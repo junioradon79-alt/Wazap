@@ -12,8 +12,8 @@ using Wazap.Infrastructure.Data;
 namespace Wazap.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260831200236_AddUsers")]
-    partial class AddUsers
+    [Migration("20260831212425_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,7 +32,8 @@ namespace Wazap.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<DateTime?>("CancelledAt")
                         .HasColumnType("timestamp with time zone");
@@ -61,6 +62,9 @@ namespace Wazap.Infrastructure.Migrations
                     b.Property<DateTime?>("RiderAssignedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("RiderUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("RiderWhatsAppNumber")
                         .HasColumnType("text");
 
@@ -69,6 +73,9 @@ namespace Wazap.Infrastructure.Migrations
 
                     b.Property<DateTime?>("VendorConfirmedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("VendorUserId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("VendorWhatsAppNumber")
                         .IsRequired()
@@ -135,14 +142,21 @@ namespace Wazap.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
                     b.Property<int>("Role")
                         .HasColumnType("integer");
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PhoneNumber");
 
                     b.HasIndex("Username")
                         .IsUnique();
