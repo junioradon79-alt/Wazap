@@ -1,0 +1,28 @@
+trigger:
+  - main
+  - develop
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - task: UseDotNet@2
+    inputs:
+      version: '10.x'
+
+  - script: dotnet restore Wazap.slnx
+    displayName: 'Restore'
+
+  - script: dotnet build Wazap.slnx --configuration Release --no-restore
+    displayName: 'Build'
+
+  - script: dotnet test tests/Wazap.UnitTests/Wazap.UnitTests.csproj --configuration Release --no-build
+    displayName: 'Test'
+
+  - script: dotnet publish src/Wazap.API/Wazap.API.csproj --configuration Release --no-restore --output $(Build.ArtifactStagingDirectory)/publish
+    displayName: 'Publish'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: $(Build.ArtifactStagingDirectory)/publish
+      artifactName: wazap-api

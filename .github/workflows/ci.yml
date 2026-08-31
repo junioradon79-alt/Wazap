@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore Wazap.slnx
+
+      - name: Build
+        run: dotnet build Wazap.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test tests/Wazap.UnitTests/Wazap.UnitTests.csproj --configuration Release --no-build
+
+      - name: Publish
+        run: dotnet publish src/Wazap.API/Wazap.API.csproj --configuration Release --no-restore --output artifacts/publish
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wazap-api
+          path: artifacts/publish
+          if-no-files-found: error

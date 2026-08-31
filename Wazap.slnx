@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Wazap.API/Wazap.API.csproj" />
+    <Project Path="src/Wazap.Application/Wazap.Application.csproj" />
+    <Project Path="src/Wazap.Domain/Wazap.Domain.csproj" />
+    <Project Path="src/Wazap.Infrastructure/Wazap.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Wazap.UnitTests/Wazap.UnitTests.csproj" />
+  </Folder>
+</Solution>
