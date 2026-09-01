@@ -65,6 +65,41 @@ public class GeniusPayPaymentServiceTests
         Assert.NotNull(result.ErrorMessage);
     }
 
+    [Fact]
+    public async Task CheckPaymentStatusAsync_ShouldReturnStatusAndAmount()
+    {
+        var handler = new FakeHttpMessageHandler(request =>
+        {
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    """{"success":true,"data":{"id":"GP-123","status":"completed","amount":5000}}""",
+                    Encoding.UTF8,
+                    "application/json")
+            };
+        });
+
+        var service = new GeniusPayPaymentService(new HttpClient(handler), Options(), NullLogger<GeniusPayPaymentService>.Instance);
+
+        var status = await service.CheckPaymentStatusAsync("GP-123");
+
+        Assert.NotNull(status);
+        Assert.Equal("completed", status.Status);
+        Assert.Equal(5000m, status.Amount);
+        Assert.Contains("/payments/GP-123", handler.LastRequestUri);
+    }
+
+    [Fact]
+    public async Task CheckPaymentStatusAsync_OnApiError_ShouldReturnNull()
+    {
+        var handler = new FakeHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.NotFound));
+        var service = new GeniusPayPaymentService(new HttpClient(handler), Options(), NullLogger<GeniusPayPaymentService>.Instance);
+
+        var status = await service.CheckPaymentStatusAsync("GP-404");
+
+        Assert.Null(status);
+    }
+
     private sealed class FakeHttpMessageHandler : HttpMessageHandler
     {
         private readonly Func<HttpRequestMessage, HttpResponseMessage> _responder;

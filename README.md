@@ -85,8 +85,9 @@ Clés stockées via `dotnet user-secrets set` :
 - Rate limiting webhook (100/min) + auth (10/min).
 - Secrets hors du code ; migrations hors démarrage ; health check DB.
 - Top-up crédits réservé Admin ; dashboard réservé Admin ; contrôle ressource vendeur.
-- **Webhook GeniusPay vérifié** : HMAC-SHA256 (`timestamp.payload` + `whsec_…`), anti-rejeu 5 min, idempotent.
-- **Paiement packs** : GeniusPay (checkout hébergé) si activé, sinon mock (dev/test, option `Payments:SimulateAsync`).
+- **Webhook GeniusPay vérifié** : HMAC-SHA256 (`timestamp.payload` + `whsec_…`), anti-rejeu 5 min, **montant vérifié**, idempotent.
+- **Réconciliation** : `PaymentReconciliationWorker` (5 min) complète les transactions Pending dont le webhook a été perdu.
+- **Paiement packs** : GeniusPay (checkout hébergé) si activé, sinon mock (dev/test, option `Payments:SimulateAsync`). Guide : **`GENIUSPAY_SETUP.md`**.
 
 ## 8. Tests
 
