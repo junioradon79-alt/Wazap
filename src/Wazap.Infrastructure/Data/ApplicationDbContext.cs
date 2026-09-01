@@ -12,6 +12,7 @@ namespace Wazap.Infrastructure.Data
         public DbSet<Order> Orders { get; set; }
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<CreditTransaction> CreditTransactions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -44,6 +45,26 @@ namespace Wazap.Infrastructure.Data
 
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.PhoneNumber);
+
+            modelBuilder.Entity<CreditTransaction>()
+                .Property(t => t.Amount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<CreditTransaction>()
+                .Property(t => t.TransactionReference)
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<CreditTransaction>()
+                .HasIndex(t => t.VendorId);
+
+            modelBuilder.Entity<CreditTransaction>()
+                .HasIndex(t => t.CreatedAt);
+
+            modelBuilder.Entity<CreditTransaction>()
+                .HasOne(t => t.Vendor)
+                .WithMany(u => u.Transactions)
+                .HasForeignKey(t => t.VendorId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

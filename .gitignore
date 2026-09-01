@@ -21,3 +21,6 @@ Thumbs.db
 # Backups
 *.bak
 *.old
+
+# Fichier de credentials local (ne pas committer)
+DEPLOYMENT.md

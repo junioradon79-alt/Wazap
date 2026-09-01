@@ -7,6 +7,7 @@ using Wazap.Application.Abstractions;
 using Wazap.Application.Services;
 using Wazap.Application.Validators;
 using Wazap.API.Health;
+using Wazap.Domain.Configuration;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
@@ -86,6 +87,10 @@ builder.Services.AddRateLimiter(options =>
 
 // Injection du service WhatsApp avec HttpClient
 builder.Services.AddHttpClient<IWhatsAppSender, WhatChimpService>();
+
+// Catalogue des packs prépayés (payé à l'usage, sans abonnement)
+var packs = builder.Configuration.GetSection("Packs").Get<List<PackConfiguration>>() ?? new List<PackConfiguration>();
+builder.Services.AddSingleton<IReadOnlyList<PackConfiguration>>(packs);
 
 // Injection des services applicatifs
 builder.Services.AddScoped<OrderService>();

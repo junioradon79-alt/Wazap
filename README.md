@@ -106,3 +106,19 @@ dotnet run --project src\Wazap.API
 
 > Aucun dépôt Git n'est encore initialisé : exécuter `git init` puis pousser vers GitHub/Azure DevOps pour activer la CI.
 
+## 12. Production (SmarterASP.NET)
+
+- **URL** : https://junioradon79gm-001-site1.jtempurl.com/ (domaine en attente)
+- **Provider** : PostgreSQL (SmarterASP.NET)
+- **Schéma** : créé (migration `InitialCreate`)
+- **Admin** : seedé automatiquement au démarrage
+- **Secrets** : injectés via `web.config` (`<environmentVariables>`) sur le serveur
+- **Détails/credentials sensibles** : voir le fichier local **`DEPLOYMENT.md`** (gitignoré)
+
+### Déploiement
+```powershell
+# Voir scripts/deploy.ps1 (publication + upload FTP)
+# Appliquer la migration :
+dotnet ef database update --project src\Wazap.Infrastructure --startup-project src\Wazap.API
+```
+
