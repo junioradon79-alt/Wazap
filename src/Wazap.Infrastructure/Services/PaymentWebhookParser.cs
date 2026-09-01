@@ -24,7 +24,7 @@ namespace Wazap.Infrastructure.Services
                 return null;
 
             var status = Str(data, "status");
-            var reference = Str(data, "reference") ?? Str(data, "id");
+            var reference = Str(data, "reference") ?? IdAsString(data, "id");
             var amount = Dbl(data, "amount");
 
             Guid? wazapTransactionId = null;
@@ -53,6 +53,18 @@ namespace Wazap.Infrastructure.Services
         {
             var v = Find(node, name);
             return v is { ValueKind: JsonValueKind.String } ? v.Value.GetString() : null;
+        }
+
+        private static string? IdAsString(JsonElement? node, string name)
+        {
+            var v = Find(node, name);
+            if (v is null) return null;
+            return v.Value.ValueKind switch
+            {
+                JsonValueKind.String => v.Value.GetString(),
+                JsonValueKind.Number => v.Value.GetRawText(),
+                _ => null
+            };
         }
 
         private static decimal? Dbl(JsonElement? node, string name)

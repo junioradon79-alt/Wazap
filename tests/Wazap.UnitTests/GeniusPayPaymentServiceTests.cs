@@ -66,6 +66,25 @@ public class GeniusPayPaymentServiceTests
     }
 
     [Fact]
+    public async Task RequestPaymentAsync_WithNumericId_ShouldReturnReference()
+    {
+        var handler = new FakeHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(
+                """{"success":true,"data":{"id":19102,"checkout_url":"https://checkout.geniuspay.ci/x"}}""",
+                Encoding.UTF8,
+                "application/json")
+        });
+
+        var service = new GeniusPayPaymentService(new HttpClient(handler), Options(), NullLogger<GeniusPayPaymentService>.Instance);
+
+        var result = await service.RequestPaymentAsync(Guid.NewGuid(), "Découverte", 2500m, "tx-1");
+
+        Assert.True(result.Success);
+        Assert.Equal("19102", result.TransactionReference); // id numérique → string
+    }
+
+    [Fact]
     public async Task CheckPaymentStatusAsync_ShouldReturnStatusAndAmount()
     {
         var handler = new FakeHttpMessageHandler(request =>
