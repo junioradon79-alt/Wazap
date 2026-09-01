@@ -7,6 +7,8 @@ using Wazap.Application.Abstractions;
 using Wazap.Application.Services;
 using Wazap.Application.Validators;
 using Wazap.API.Health;
+using Wazap.API.Components;
+using Wazap.Application.Configuration;
 using Wazap.Domain.Configuration;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -40,6 +42,17 @@ builder.Services.AddSwaggerGen(options =>
 // Configuration du DbContext (PostgreSQL)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Options géolocalisation
+var geoOptions = builder.Configuration.GetSection(GeoOptions.SectionName).Get<GeoOptions>() ?? new GeoOptions();
+builder.Services.AddSingleton(geoOptions);
+
+// Options templates WhatsApp
+var whatsAppOptions = builder.Configuration.GetSection(WhatsAppOptions.SectionName).Get<WhatsAppOptions>() ?? new WhatsAppOptions();
+builder.Services.AddSingleton(whatsAppOptions);
+
+// Géocodage d'adresses (Nominatim / OpenStreetMap)
+builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>();
 
 // Authentification JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -97,6 +110,12 @@ builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<WhatsAppNotificationService>();
 builder.Services.AddScoped<AuthService>();
 
+// Services géolocalisation / matching / tableau de bord
+builder.Services.AddScoped<RiderService>();
+builder.Services.AddScoped<VendorService>();
+builder.Services.AddScoped<DeliveryOfferService>();
+builder.Services.AddScoped<DashboardService>();
+
 // Auth : hashage de mot de passe + génération de JWT
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
@@ -111,9 +130,18 @@ builder.Services.AddHostedService<OutboxBackgroundWorker>();
 // Seed d'un administrateur initial (si SeedAdmin:Username / SeedAdmin:Password sont configurés)
 builder.Services.AddHostedService<AdminSeeder>();
 
+// Données de démonstration (vendeurs + livreurs) + workers géolocalisation
+builder.Services.AddHostedService<DemoDataSeeder>();
+builder.Services.AddHostedService<DeliveryOfferWorker>();
+builder.Services.AddHostedService<LocationPurgeWorker>();
+
 // Gestion globale des erreurs (ProblemDetails + handler personnalisé)
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+// Front Blazor Server (tableau de bord administrateur)
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
 
 var app = builder.Build();
 
@@ -128,12 +156,17 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseAntiforgery();
 
 app.MapControllers();
 app.MapHealthChecks("/health");
+
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
 
 // Les migrations sont appliquées hors démarrage (étape de déploiement dédiée) :
 //   dotnet ef database update --project src\Wazap.Infrastructure --startup-project src\Wazap.API

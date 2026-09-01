@@ -1,0 +1,101 @@
+@page "/"
+@page "/dashboard"
+@inject DashboardService DashboardSvc
+
+@if (_summary is null)
+{
+    <div class="loading">
+        <span class="loading__spinner"></span>
+        Chargement du tableau de bord…
+    </div>
+}
+else
+{
+    <section class="stats">
+        <article class="stat-card stat-card--green">
+            <div class="stat-card__icon">🧾</div>
+            <div class="stat-card__body">
+                <span class="stat-card__label">Commandes en cours</span>
+                <span class="stat-card__value">@_summary.InProgressOrdersCount</span>
+                <span class="stat-card__hint">En cours de traitement</span>
+            </div>
+        </article>
+
+        <article class="stat-card stat-card--blue">
+            <div class="stat-card__icon">🛵</div>
+            <div class="stat-card__body">
+                <span class="stat-card__label">Livreurs actifs</span>
+                <span class="stat-card__value">@_summary.ActiveRiders</span>
+                <span class="stat-card__hint">Assignés à une course</span>
+            </div>
+        </article>
+
+        <article class="stat-card stat-card--dark">
+            <div class="stat-card__icon">💰</div>
+            <div class="stat-card__body">
+                <span class="stat-card__label">Chiffre d'affaires du mois</span>
+                <span class="stat-card__value">@FormatMoney(_summary.MonthlyRevenue)</span>
+                <span class="stat-card__hint">Livré ce mois-ci</span>
+            </div>
+        </article>
+    </section>
+
+    <section class="panel">
+        <header class="panel__header">
+            <div>
+                <h2 class="panel__title">Commandes en cours</h2>
+                <p class="panel__subtitle">Suivi temps réel des livraisons</p>
+            </div>
+            <div class="panel__actions">
+                <span class="panel__count">@_summary.RecentOrders.Count commandes</span>
+                <a class="btn btn--primary" href="#">Voir tout</a>
+            </div>
+        </header>
+
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Vendeur</th>
+                        <th>WhatsApp client</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in _summary.RecentOrders)
+                    {
+                        <tr>
+                            <td><span class="order-id">#@ShortId(order.Id)</span></td>
+                            <td><div class="vendor"><span class="vendor__name">@order.VendorName</span><span class="vendor__phone">@order.VendorWhatsApp</span></div></td>
+                            <td><span class="whatsapp">@order.MaskedClientPhone</span></td>
+                            <td><span class="badge @BadgeClass(order.StatusCategory)">@order.StatusLabel</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+}
+
+@code {
+    private DashboardSummaryDto? _summary;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _summary = await DashboardSvc.GetSummaryAsync();
+    }
+
+    private static string ShortId(Guid id) => id.ToString("N")[..6].ToUpperInvariant();
+
+    private static string FormatMoney(decimal amount) =>
+        amount.ToString("N0", CultureInfo.GetCultureInfo("fr-FR")) + " €";
+
+    private static string BadgeClass(DashboardStatusCategory status) => status switch
+    {
+        DashboardStatusCategory.RechercheLivreur => "badge--orange",
+        DashboardStatusCategory.EnLivraison => "badge--blue",
+        DashboardStatusCategory.Livre => "badge--green",
+        _ => "badge--gray"
+    };
+}

@@ -112,6 +112,24 @@ namespace Wazap.API.Services
         }
 
         /// <summary>
+        /// Offres de livraison d'une commande (admin / debug).
+        /// </summary>
+        public async Task<IReadOnlyList<DeliveryOfferDto>> GetOffersAsync(Guid orderId)
+        {
+            return await _context.DeliveryOffers.AsNoTracking()
+                .Where(o => o.OrderId == orderId)
+                .OrderBy(o => o.SentAt)
+                .Select(o => new DeliveryOfferDto(
+                    o.Id,
+                    o.RiderUserId,
+                    o.Status,
+                    o.BatchNumber,
+                    o.SentAt,
+                    o.RespondedAt))
+                .ToListAsync();
+        }
+
+        /// <summary>
         /// Accepte une offre (livreur), assigne le livreur à la commande et expire les autres offres.
         /// </summary>
         public async Task AcceptOfferAsync(Guid offerId)
