@@ -12,6 +12,7 @@ namespace Wazap.Application.Dtos
         public bool LocationSharingEnabled { get; init; }
         public string? Zone { get; init; }
         public int Credits { get; init; }
+        public string? ReferralCode { get; init; }
         public double? Latitude { get; init; }
         public double? Longitude { get; init; }
         public DateTime? LocationUpdatedAt { get; init; }
