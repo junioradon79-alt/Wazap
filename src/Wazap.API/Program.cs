@@ -116,6 +116,9 @@ builder.Services.AddScoped<VendorService>();
 builder.Services.AddScoped<DeliveryOfferService>();
 builder.Services.AddScoped<DashboardService>();
 
+// Paiement des packs (mock pour les tests — à remplacer par le fournisseur Mobile Money)
+builder.Services.AddScoped<IPaymentService, MockPaymentService>();
+
 // Auth : hashage de mot de passe + génération de JWT
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();

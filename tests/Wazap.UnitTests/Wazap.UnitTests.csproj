@@ -20,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Wazap.Domain\Wazap.Domain.csproj" />
     <ProjectReference Include="..\..\src\Wazap.Application\Wazap.Application.csproj" />
+    <ProjectReference Include="..\..\src\Wazap.Infrastructure\Wazap.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
