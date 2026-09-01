@@ -12,6 +12,7 @@ namespace Wazap.Infrastructure.Data
         public DbSet<Order> Orders { get; set; }
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<DeliveryOffer> DeliveryOffers { get; set; }
         public DbSet<CreditTransaction> CreditTransactions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -45,6 +46,15 @@ namespace Wazap.Infrastructure.Data
 
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.PhoneNumber);
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.IsAvailable);
+
+            modelBuilder.Entity<DeliveryOffer>()
+                .HasIndex(o => o.OrderId);
+
+            modelBuilder.Entity<DeliveryOffer>()
+                .HasIndex(o => o.Status);
 
             modelBuilder.Entity<CreditTransaction>()
                 .Property(t => t.Amount)

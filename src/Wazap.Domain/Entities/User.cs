@@ -11,6 +11,13 @@ public class User
     public string? PhoneNumber { get; private set; }
     public DateTime CreatedAt { get; private set; }
 
+    // Géolocalisation (livreurs dynamiques + vendeurs statiques)
+    public double? Latitude { get; private set; }
+    public double? Longitude { get; private set; }
+    public DateTime? LocationUpdatedAt { get; private set; }
+    public bool IsAvailable { get; private set; }
+    public bool LocationSharingEnabled { get; private set; }
+
     // Packs prépayés : nombre de commandes restantes (payé à l'usage, sans abonnement)
     public int Credits { get; private set; }
 
@@ -27,6 +34,33 @@ public class User
         Role = role;
         PhoneNumber = phoneNumber;
         CreatedAt = DateTime.UtcNow;
+        LocationSharingEnabled = true;
+    }
+
+    /// <summary>
+    /// Met à jour la position GPS (live location).
+    /// </summary>
+    public void UpdateLocation(double latitude, double longitude)
+    {
+        Latitude = latitude;
+        Longitude = longitude;
+        LocationUpdatedAt = DateTime.UtcNow;
+    }
+
+    public void SetAvailability(bool isAvailable) => IsAvailable = isAvailable;
+
+    public void SetLocationSharing(bool enabled)
+    {
+        LocationSharingEnabled = enabled;
+        if (!enabled)
+            ClearLocation();
+    }
+
+    public void ClearLocation()
+    {
+        Latitude = null;
+        Longitude = null;
+        LocationUpdatedAt = null;
     }
 
     /// <summary>
