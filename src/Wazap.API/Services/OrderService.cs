@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Wazap.Application.Abstractions;
 using Wazap.Application.Dtos;
 using Wazap.Application.Exceptions;
+using Wazap.Application.Services;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
 using Wazap.Infrastructure.Data;
@@ -11,14 +12,22 @@ namespace Wazap.API.Services;
 
 public sealed class OrderService
 {
+    private const int LowCreditThreshold = 5;
+
     private readonly ApplicationDbContext _context;
     private readonly ICurrentUser _currentUser;
+    private readonly WhatsAppOrchestrationService _whatsApp;
     private readonly ILogger<OrderService> _logger;
 
-    public OrderService(ApplicationDbContext context, ICurrentUser currentUser, ILogger<OrderService> logger)
+    public OrderService(
+        ApplicationDbContext context,
+        ICurrentUser currentUser,
+        WhatsAppOrchestrationService whatsApp,
+        ILogger<OrderService> logger)
     {
         _context = context;
         _currentUser = currentUser;
+        _whatsApp = whatsApp;
         _logger = logger;
     }
 
@@ -64,7 +73,28 @@ public sealed class OrderService
         _logger.LogInformation("Commande créée pour {VendorName}. Crédits restants : {Credits}.",
             vendor.Username, vendor.Credits);
 
+        await NotifyCreditStatusAsync(vendor);
+
         return order;
+    }
+
+    /// <summary>
+    /// Alerte WhatsApp quand les crédits restants atteignent un seuil bas (≤ 5) ou 0 (best effort).
+    /// </summary>
+    private async Task NotifyCreditStatusAsync(User vendor)
+    {
+        try
+        {
+            if (vendor.Credits == 0)
+                await _whatsApp.SendNoCreditAlertAsync(vendor);
+            else if (vendor.Credits <= LowCreditThreshold)
+                await _whatsApp.SendLowCreditAlertAsync(vendor);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Alerte WhatsApp impossible pour {Vendor} (crédits restants : {Credits}).",
+                vendor.Username, vendor.Credits);
+        }
     }
 
     private async Task<User?> ResolveVendorAsync(string vendorWhatsApp)

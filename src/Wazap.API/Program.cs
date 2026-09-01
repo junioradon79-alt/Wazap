@@ -107,7 +107,7 @@ builder.Services.AddSingleton<IReadOnlyList<PackConfiguration>>(packs);
 
 // Injection des services applicatifs
 builder.Services.AddScoped<OrderService>();
-builder.Services.AddScoped<WhatsAppNotificationService>();
+builder.Services.AddScoped<WhatsAppOrchestrationService>();
 builder.Services.AddScoped<AuthService>();
 
 // Services géolocalisation / matching / tableau de bord

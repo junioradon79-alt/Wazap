@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Wazap.Application.Abstractions;
 using Wazap.Application.Dtos;
+using Wazap.Application.Services;
 using Wazap.Domain.Configuration;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
@@ -16,17 +17,20 @@ namespace Wazap.API.Services
         private readonly ApplicationDbContext _context;
         private readonly IPaymentService _paymentService;
         private readonly IReadOnlyList<PackConfiguration> _packs;
+        private readonly WhatsAppOrchestrationService _whatsApp;
         private readonly ILogger<PackService> _logger;
 
         public PackService(
             ApplicationDbContext context,
             IPaymentService paymentService,
             IReadOnlyList<PackConfiguration> packs,
+            WhatsAppOrchestrationService whatsApp,
             ILogger<PackService> logger)
         {
             _context = context;
             _paymentService = paymentService;
             _packs = packs;
+            _whatsApp = whatsApp;
             _logger = logger;
         }
 
@@ -78,6 +82,16 @@ namespace Wazap.API.Services
 
             _logger.LogInformation("Pack {Pack} acheté par {Vendor} — {Credits} crédits ajoutés (réf {Ref}).",
                 pack.Name, vendor.Username, pack.Credits, transaction.TransactionReference);
+
+            // Confirmation WhatsApp (best effort).
+            try
+            {
+                await _whatsApp.SendCreditPurchaseConfirmationAsync(vendor, pack);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Confirmation d'achat WhatsApp impossible pour {Vendor}.", vendor.Username);
+            }
 
             return new PaymentResponseDto(
                 true,
