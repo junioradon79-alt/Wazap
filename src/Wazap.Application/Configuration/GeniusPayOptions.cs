@@ -15,5 +15,6 @@ namespace Wazap.Application.Configuration
         public string WebhookSecret { get; set; } = string.Empty;
         public string SuccessUrl { get; set; } = string.Empty;
         public string ErrorUrl { get; set; } = string.Empty;
+        public int ReconciliationMinutes { get; set; } = 5;
     }
 }

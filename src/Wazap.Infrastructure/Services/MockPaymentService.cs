@@ -34,6 +34,9 @@ namespace Wazap.Infrastructure.Services
                 PaymentLink: _simulateAsync ? $"https://checkout.geniuspay.test/{transactionReference}" : null,
                 ErrorMessage: null);
         }
+
+        public Task<PaymentStatusResult?> CheckPaymentStatusAsync(string reference)
+            => Task.FromResult<PaymentStatusResult?>(null);
     }
 }
 

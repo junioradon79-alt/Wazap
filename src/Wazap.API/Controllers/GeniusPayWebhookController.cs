@@ -70,21 +70,25 @@ public class GeniusPayWebhookController : ControllerBase
         return Ok();
     }
 
-    private async Task HandleSuccessAsync(JsonElement raw)
+    private async Task HandleSuccessAsync(JsonElement root)
     {
-        var transactionId = ExtractWazapTransactionId(raw);
-        var reference = ExtractReference(raw);
+        var info = PaymentWebhookParser.Parse(root);
+        if (info is null)
+        {
+            _logger.LogWarning("Webhook GeniusPay illisible : payload ignoré.");
+            return;
+        }
 
-        var transaction = transactionId.HasValue
-            ? await _context.CreditTransactions.FirstOrDefaultAsync(t => t.Id == transactionId.Value)
-            : reference is null
+        var transaction = info.WazapTransactionId.HasValue
+            ? await _context.CreditTransactions.FirstOrDefaultAsync(t => t.Id == info.WazapTransactionId.Value)
+            : info.Reference is null
                 ? null
-                : await _context.CreditTransactions.FirstOrDefaultAsync(t => t.TransactionReference == reference);
+                : await _context.CreditTransactions.FirstOrDefaultAsync(t => t.TransactionReference == info.Reference);
 
         if (transaction is null)
         {
             _logger.LogWarning("Aucune transaction WAZAP pour le webhook GeniusPay (id={Tid}, ref={Ref}).",
-                transactionId, reference);
+                info.WazapTransactionId, info.Reference);
             return;
         }
 
@@ -94,53 +98,26 @@ public class GeniusPayWebhookController : ControllerBase
             return;
         }
 
-        await _packService.CompletePurchaseAsync(transaction.Id, reference ?? $"GENIUS-{transaction.Id:N}");
-    }
-
-    private async Task HandleFailedAsync(JsonElement raw)
-    {
-        var transactionId = ExtractWazapTransactionId(raw);
-        if (transactionId.HasValue)
-            await _packService.FailPurchaseAsync(transactionId.Value);
-    }
-
-    /// <summary>
-    /// Extrait l'identifiant interne WAZAP depuis data.metadata.wazap_transaction_id
-    /// (recherche tolérante à la casse).
-    /// </summary>
-    private static Guid? ExtractWazapTransactionId(JsonElement raw)
-    {
-        var data = Find(raw, "data");
-        var metadata = Find(data, "metadata");
-        var value = Find(metadata, "wazap_transaction_id");
-        if (value is null || value.Value.ValueKind != JsonValueKind.String)
-            return null;
-
-        return Guid.TryParse(value.Value.GetString(), out var id) ? id : null;
-    }
-
-    /// <summary>
-    /// Extrait l'identifiant de transaction GeniusPay (data.id).
-    /// </summary>
-    private static string? ExtractReference(JsonElement raw)
-    {
-        var data = Find(raw, "data");
-        var value = Find(data, "id");
-        if (value is null || value.Value.ValueKind != JsonValueKind.String)
-            return null;
-        return value.Value.GetString();
-    }
-
-    private static JsonElement? Find(JsonElement? node, string name)
-    {
-        if (!node.HasValue || node.Value.ValueKind != JsonValueKind.Object)
-            return null;
-
-        foreach (var prop in node.Value.EnumerateObject())
+        // Intégrité : le montant payé doit correspondre à la transaction.
+        if (info.Amount.HasValue && transaction.Amount != info.Amount.Value)
         {
-            if (string.Equals(prop.Name, name, StringComparison.OrdinalIgnoreCase))
-                return prop.Value;
+            _logger.LogWarning("Montant webhook {Paid} ≠ transaction {Expected} pour {Id}. Ignoré.",
+                info.Amount, transaction.Amount, transaction.Id);
+            return;
         }
-        return null;
+
+        await _packService.CompletePurchaseAsync(transaction.Id, info.Reference ?? $"GENIUS-{transaction.Id:N}");
+    }
+
+    private async Task HandleFailedAsync(JsonElement root)
+    {
+        var info = PaymentWebhookParser.Parse(root);
+        if (info?.WazapTransactionId is null)
+        {
+            _logger.LogWarning("Webhook échec sans identifiant WAZAP : ignoré.");
+            return;
+        }
+
+        await _packService.FailPurchaseAsync(info.WazapTransactionId.Value);
     }
 }

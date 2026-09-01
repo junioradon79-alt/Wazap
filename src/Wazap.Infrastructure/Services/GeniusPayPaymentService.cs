@@ -74,10 +74,38 @@ namespace Wazap.Infrastructure.Services
                 return new PaymentResult(false, null, null, "Réponse GeniusPay invalide.");
             }
 
-            _logger.LogInformation("Paiement GeniusPay initié : id={Id}, url={Url}",
-                result.Data.Id, result.Data.CheckoutUrl);
+            _logger.LogInformation("Paiement GeniusPay initié : id={Id}, ref={Ref}, url={Url}",
+                result.Data.Id, result.Data.Reference, result.Data.CheckoutUrl);
 
-            return new PaymentResult(true, result.Data.Id, result.Data.CheckoutUrl, null);
+            return new PaymentResult(true, result.Data.Reference ?? result.Data.Id, result.Data.CheckoutUrl, null);
+        }
+
+        /// <summary>
+        /// Interroge le statut d'une transaction GeniusPay (GET /payments/{reference}).
+        /// </summary>
+        public async Task<PaymentStatusResult?> CheckPaymentStatusAsync(string reference)
+        {
+            using var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                $"{_options.BaseUrl.TrimEnd('/')}/payments/{Uri.EscapeDataString(reference)}");
+
+            request.Headers.TryAddWithoutValidation("X-API-Key", _options.ApiKey);
+            request.Headers.TryAddWithoutValidation("X-API-Secret", _options.ApiSecret);
+
+            var response = await _httpClient.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("GeniusPay status {Status} pour {Ref}.", (int)response.StatusCode, reference);
+                return null;
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<GeniusPayStatusResponse>(content);
+
+            if (result?.Data is null)
+                return null;
+
+            return new PaymentStatusResult(result.Data.Status, result.Data.Amount);
         }
 
         private static string Truncate(string value, int max = 500)
@@ -106,11 +134,29 @@ namespace Wazap.Infrastructure.Services
             [JsonPropertyName("id")]
             public string? Id { get; set; }
 
+            [JsonPropertyName("reference")]
+            public string? Reference { get; set; }
+
             [JsonPropertyName("checkout_url")]
             public string? CheckoutUrl { get; set; }
 
             [JsonPropertyName("payment_url")]
             public string? PaymentUrl { get; set; }
+        }
+
+        private sealed class GeniusPayStatusResponse
+        {
+            [JsonPropertyName("data")]
+            public GeniusPayStatusData? Data { get; set; }
+        }
+
+        private sealed class GeniusPayStatusData
+        {
+            [JsonPropertyName("status")]
+            public string? Status { get; set; }
+
+            [JsonPropertyName("amount")]
+            public decimal? Amount { get; set; }
         }
     }
 }

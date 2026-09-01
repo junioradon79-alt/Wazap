@@ -160,6 +160,7 @@ builder.Services.AddHostedService<AdminSeeder>();
 builder.Services.AddHostedService<DemoDataSeeder>();
 builder.Services.AddHostedService<DeliveryOfferWorker>();
 builder.Services.AddHostedService<LocationPurgeWorker>();
+builder.Services.AddHostedService<PaymentReconciliationWorker>();
 
 // Gestion globale des erreurs (ProblemDetails + handler personnalisé)
 builder.Services.AddProblemDetails();
