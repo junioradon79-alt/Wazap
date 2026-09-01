@@ -41,6 +41,10 @@ namespace Wazap.Infrastructure.Data
                 .HasMaxLength(30);
 
             modelBuilder.Entity<User>()
+                .Property(u => u.Zone)
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<User>()
                 .HasIndex(u => u.Username)
                 .IsUnique();
 

@@ -17,7 +17,7 @@
 |---|---|
 | `Order` | Id, ClientName, ClientWhatsAppNumber, VendorWhatsAppNumber, RiderWhatsAppNumber, **VendorUserId**, **RiderUserId**, Description, Amount, CreatedAt, timestamps de statut |
 | `OutboxMessage` | Id, Type, Payload (JSON), Status, RetryCount, CreatedAt, AvailableAt, ProcessedAt, LastError |
-| `User` | Id, Username, PasswordHash, Role, **PhoneNumber**, CreatedAt, **géoloc** (Latitude/Longitude/LocationUpdatedAt/IsAvailable/LocationSharingEnabled), **Credits** (packs prépayés) |
+| `User` | Id, Username, PasswordHash, Role, **PhoneNumber**, CreatedAt, **géoloc** (Latitude/Longitude/LocationUpdatedAt/IsAvailable/LocationSharingEnabled), **Zone** (quartier déclaré, téléphones basiques), **Credits** (packs prépayés) |
 | `DeliveryOffer` | Id, OrderId, RiderUserId, BatchNumber, Status (Pending/Accepted/Declined/Expired), SentAt, RespondedAt |
 | `CreditTransaction` | Id, VendorId (FK → Users), **PackName**, Amount, CreditsPurchased, CreatedAt, TransactionReference, Status (Pending/Completed/Failed) |
 
@@ -32,6 +32,7 @@
 2. `AddVendorAndCreditTransaction` (20260901161922) — `Users.Credits` + `CreditTransactions` (DDL idempotent)
 3. `AddGeolocationAndDeliveryOffers` (20260901162922) — colonnes géoloc + `DeliveryOffers` (DDL idempotent)
 4. `AddPackNameToCreditTransactions` (20260901171612) — colonne `PackName` (DDL idempotent)
+5. `AddZoneToUsers` (20260901175202) — colonne `Zone` (matching téléphones basiques, DDL idempotent)
 
 Appliquer : `dotnet ef database update --project src\Wazap.Infrastructure --startup-project src\Wazap.API`
 
@@ -79,6 +80,7 @@ Clés stockées via `dotnet user-secrets set` :
 
 - Gestion globale des erreurs (`GlobalExceptionHandler`) → ProblemDetails (400/401/**402**/403/404/409/500).
 - **Pay-per-use** : création de commande réservée aux vendeurs enregistrés avec ≥ 1 crédit (402 « Crédits insuffisants »).
+- **Matching livreurs à 2 niveaux** : GPS frais (Haversine) puis **ZONE déclarée** (téléphones basiques sans GPS) — commandes WhatsApp `ZONE <quartier>`, `DISPO`, `INDISPO`, `AIDE`.
 - Webhook tolérant (camelCase/snake_case, boutons, live location, ACCEPTE code court).
 - Numéros normalisés E.164 (`PhoneNumberNormalizer`, code pays par défaut `33`).
 - Hashage mots de passe PBKDF2 (100 000 itérations, sel, comparaison temps constant).

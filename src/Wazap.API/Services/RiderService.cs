@@ -30,12 +30,23 @@ namespace Wazap.API.Services
                     Role = u.Role,
                     IsAvailable = u.IsAvailable,
                     LocationSharingEnabled = u.LocationSharingEnabled,
+                    Zone = u.Zone,
                     Credits = u.Credits,
                     Latitude = u.Latitude,
                     Longitude = u.Longitude,
                     LocationUpdatedAt = u.LocationUpdatedAt
                 })
                 .ToListAsync();
+        }
+
+        public async Task SetZoneAsync(Guid riderUserId, string zone)
+        {
+            var rider = await _context.Users.FirstOrDefaultAsync(
+                    u => u.Id == riderUserId && u.Role == UserRole.Rider)
+                ?? throw new InvalidOperationException("Livreur introuvable.");
+
+            rider.SetZone(zone);
+            await _context.SaveChangesAsync();
         }
 
         public async Task UpdateLocationAsync(Guid riderUserId, double latitude, double longitude)

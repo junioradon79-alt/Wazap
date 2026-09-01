@@ -190,7 +190,7 @@ namespace Wazap.API.Services
 
             var exclude = excludeRiderIds?.ToHashSet() ?? new HashSet<Guid>();
 
-            return riders
+            var byGps = riders
                 .Where(r => !exclude.Contains(r.Id))
                 .Select(r => new NearestRiderDto(
                     r.Id,
@@ -203,6 +203,31 @@ namespace Wazap.API.Services
                 .OrderBy(x => x.DistanceKm)
                 .Take(count)
                 .ToList();
+
+            // Tier 2 (téléphones basiques sans GPS) : compléter avec les livreurs
+            // dont la ZONE déclarée correspond à celle du vendeur.
+            if (byGps.Count < count && !string.IsNullOrWhiteSpace(vendor.Zone))
+            {
+                var remaining = count - byGps.Count;
+                var contacted = new HashSet<Guid>(exclude);
+                contacted.UnionWith(byGps.Select(r => r.RiderUserId));
+
+                var zoneRiders = await _context.Users.AsNoTracking()
+                    .Where(u => u.Role == UserRole.Rider
+                             && u.IsAvailable
+                             && u.LocationSharingEnabled
+                             && u.Zone != null)
+                    .Select(u => new { u.Id, u.Zone })
+                    .ToListAsync();
+
+                byGps.AddRange(zoneRiders
+                    .Where(r => !contacted.Contains(r.Id)
+                             && string.Equals(r.Zone?.Trim(), vendor.Zone.Trim(), StringComparison.OrdinalIgnoreCase))
+                    .Select(r => new NearestRiderDto(r.Id, double.MaxValue))
+                    .Take(remaining));
+            }
+
+            return byGps;
         }
 
         private async Task<User?> ResolveVendorAsync(string vendorWhatsApp)

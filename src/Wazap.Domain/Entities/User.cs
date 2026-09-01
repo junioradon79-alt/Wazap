@@ -18,6 +18,9 @@ public class User
     public bool IsAvailable { get; private set; }
     public bool LocationSharingEnabled { get; private set; }
 
+    // Zone/quartier déclaré (téléphones basiques sans GPS)
+    public string? Zone { get; private set; }
+
     // Packs prépayés : nombre de commandes restantes (payé à l'usage, sans abonnement)
     public int Credits { get; private set; }
 
@@ -48,6 +51,12 @@ public class User
     }
 
     public void SetAvailability(bool isAvailable) => IsAvailable = isAvailable;
+
+    /// <summary>
+    /// Définit la zone/quartier déclaré (matching de secours sans GPS).
+    /// </summary>
+    public void SetZone(string? zone)
+        => Zone = string.IsNullOrWhiteSpace(zone) ? null : zone.Trim();
 
     public void SetLocationSharing(bool enabled)
     {

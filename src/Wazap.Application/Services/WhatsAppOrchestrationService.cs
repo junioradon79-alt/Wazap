@@ -86,6 +86,17 @@ namespace Wazap.Application.Services
         }
 
         /// <summary>
+        /// Envoie un message texte à un utilisateur (réponses du webhook aux commandes).
+        /// </summary>
+        public async Task SendTextAsync(User user, string message)
+        {
+            if (string.IsNullOrWhiteSpace(user.PhoneNumber))
+                return;
+
+            await _whatsAppSender.SendTextMessageAsync(user.PhoneNumber, message);
+        }
+
+        /// <summary>
         /// Envoie un template si un nom est configuré (templates approuvés), sinon un texte.
         /// </summary>
         private async Task SendAlertAsync(

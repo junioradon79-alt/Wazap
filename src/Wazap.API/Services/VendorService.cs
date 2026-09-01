@@ -38,12 +38,23 @@ namespace Wazap.API.Services
                     Role = u.Role,
                     IsAvailable = u.IsAvailable,
                     LocationSharingEnabled = u.LocationSharingEnabled,
+                    Zone = u.Zone,
                     Credits = u.Credits,
                     Latitude = u.Latitude,
                     Longitude = u.Longitude,
                     LocationUpdatedAt = u.LocationUpdatedAt
                 })
                 .ToListAsync();
+        }
+
+        public async Task SetZoneAsync(Guid vendorId, string zone)
+        {
+            var vendor = await _context.Users.FirstOrDefaultAsync(
+                    u => u.Id == vendorId && u.Role == UserRole.Vendor)
+                ?? throw new InvalidOperationException("Vendeur introuvable.");
+
+            vendor.SetZone(zone);
+            await _context.SaveChangesAsync();
         }
 
         public async Task UpdateAddressAsync(Guid vendorId, string address)

@@ -44,6 +44,15 @@ public class VendorsController : ControllerBase
         return NoContent();
     }
 
+    // PUT: api/vendors/{id}/zone — zone/quartier (matching téléphones basiques)
+    [HttpPut("{id:guid}/zone")]
+    public async Task<IActionResult> SetZone(Guid id, [FromBody] SetVendorZoneRequest request)
+    {
+        EnsureCanManage(id);
+        await _vendorService.SetZoneAsync(id, request.Zone);
+        return NoContent();
+    }
+
     // Top-up réservé aux administrateurs : octroyer des crédits sans paiement.
     [HttpPost("{id:guid}/credits/topup")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
@@ -76,3 +85,5 @@ public class VendorsController : ControllerBase
 public sealed record UpdateVendorAddressRequest(string Address);
 
 public sealed record TopUpCreditsRequest(int Credits);
+
+public sealed record SetVendorZoneRequest(string Zone);
