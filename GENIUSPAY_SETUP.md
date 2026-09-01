@@ -38,6 +38,9 @@ complète/échoit les transactions `Pending` orphelines.
 3. Créer une application → **Paramètres → API**.
 4. Commencer en **mode sandbox** (transactions simulées).
 
+> ✅ **Clés sandbox configurées et initiations réelles validées le 01/09/2026**
+> (checkout URL `https://geniuspay.ci/checkout/SANDBOX_…` + retrieve du statut OK).
+
 ### 2.2 Configurer les secrets (user-secrets)
 ```powershell
 cd c:\Dev\Wazap\WazapSln\src\Wazap.API

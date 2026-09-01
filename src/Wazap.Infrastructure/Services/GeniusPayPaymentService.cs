@@ -77,7 +77,18 @@ namespace Wazap.Infrastructure.Services
             _logger.LogInformation("Paiement GeniusPay initié : id={Id}, ref={Ref}, url={Url}",
                 result.Data.Id, result.Data.Reference, result.Data.CheckoutUrl);
 
-            return new PaymentResult(true, result.Data.Reference ?? result.Data.Id, result.Data.CheckoutUrl, null);
+            return new PaymentResult(true, result.Data.Reference ?? IdAsString(result.Data.Id), result.Data.CheckoutUrl, null);
+        }
+
+        private static string? IdAsString(JsonElement? id)
+        {
+            if (id is null) return null;
+            return id.Value.ValueKind switch
+            {
+                JsonValueKind.String => id.Value.GetString(),
+                JsonValueKind.Number => id.Value.GetRawText(),
+                _ => id.Value.ToString()
+            };
         }
 
         /// <summary>
@@ -132,7 +143,7 @@ namespace Wazap.Infrastructure.Services
         private sealed class GeniusPayInitiateData
         {
             [JsonPropertyName("id")]
-            public string? Id { get; set; }
+            public JsonElement? Id { get; set; }
 
             [JsonPropertyName("reference")]
             public string? Reference { get; set; }
