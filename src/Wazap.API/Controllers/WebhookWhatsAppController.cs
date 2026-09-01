@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Wazap.API.Services;
+using Wazap.Application.Services;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
 using Wazap.Infrastructure.Data;
@@ -15,20 +16,26 @@ public class WebhookWhatsAppController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
     private readonly RiderService _riderService;
+    private readonly VendorService _vendorService;
     private readonly DeliveryOfferService _deliveryOfferService;
+    private readonly WhatsAppOrchestrationService _whatsApp;
     private readonly ILogger<WebhookWhatsAppController> _logger;
     private readonly string _webhookToken;
 
     public WebhookWhatsAppController(
         ApplicationDbContext context,
         RiderService riderService,
+        VendorService vendorService,
         DeliveryOfferService deliveryOfferService,
+        WhatsAppOrchestrationService whatsApp,
         ILogger<WebhookWhatsAppController> logger,
         IConfiguration config)
     {
         _context = context;
         _riderService = riderService;
+        _vendorService = vendorService;
         _deliveryOfferService = deliveryOfferService;
+        _whatsApp = whatsApp;
         _logger = logger;
         _webhookToken = config["WhatChimp:WebhookToken"] ?? "MonTokenSecret123";
     }
@@ -93,7 +100,17 @@ public class WebhookWhatsAppController : ControllerBase
             return Ok();
         }
 
-        // 3) Acceptation d'une offre (texte « ACCEPTE {code_court} » ou bouton « ACCEPT_{id} »)
+        // 3) Commandes texte (téléphones basiques sans GPS) : ZONE, DISPO, INDISPO, AIDE
+        if (!string.IsNullOrWhiteSpace(text))
+        {
+            var user = await FindUserByPhoneAsync(phone, UserRole.Rider)
+                       ?? await FindUserByPhoneAsync(phone, UserRole.Vendor);
+
+            if (user is not null && await TryHandleTextCommandAsync(user, text))
+                return Ok();
+        }
+
+        // 4) Acceptation d'une offre (texte « ACCEPTE {code_court} » ou bouton « ACCEPT_{id} »)
         var offerId = await ExtractOfferIdAsync(buttonId, buttonTitle, text);
         if (offerId is not null)
         {
@@ -152,6 +169,68 @@ public class WebhookWhatsAppController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Traitement de la réponse vendeur impossible ({Action}).", confirm ? "confirmer" : "refuser");
+        }
+    }
+
+    /// <summary>
+    /// Commandes texte WhatsApp pour téléphones basiques (sans GPS) :
+    /// ZONE &lt;quartier&gt;, DISPO, INDISPO, AIDE.
+    /// </summary>
+    private async Task<bool> TryHandleTextCommandAsync(User user, string text)
+    {
+        var command = text.Trim();
+        var upper = command.ToUpperInvariant();
+
+        if (upper == "ZONE")
+        {
+            await ReplyAsync(user, "Format : ZONE <nom du quartier> (ex : ZONE Cocody)");
+            return true;
+        }
+
+        if (upper.StartsWith("ZONE "))
+        {
+            var zone = command[5..].Trim();
+            if (user.Role == UserRole.Rider)
+                await _riderService.SetZoneAsync(user.Id, zone);
+            else
+                await _vendorService.SetZoneAsync(user.Id, zone);
+
+            await ReplyAsync(user, $"✅ Zone enregistrée : {zone}.");
+            return true;
+        }
+
+        if (upper == "DISPO" && user.Role == UserRole.Rider)
+        {
+            await _riderService.SetAvailabilityAsync(user.Id, true);
+            await ReplyAsync(user, "✅ Vous êtes en ligne.");
+            return true;
+        }
+
+        if (upper == "INDISPO" && user.Role == UserRole.Rider)
+        {
+            await _riderService.SetAvailabilityAsync(user.Id, false);
+            await ReplyAsync(user, "🚫 Vous êtes hors ligne.");
+            return true;
+        }
+
+        if (upper is "AIDE" or "HELP" or "MENU")
+        {
+            await ReplyAsync(user, "📱 Menu livreur :\n• ZONE <quartier> : définir ta zone\n• DISPO / INDISPO : en ligne / hors ligne\n• ACCEPTE <code> : accepter une course");
+            return true;
+        }
+
+        return false;
+    }
+
+    private async Task ReplyAsync(User user, string message)
+    {
+        try
+        {
+            await _whatsApp.SendTextAsync(user, message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Réponse WhatsApp impossible pour {User}.", user.Username);
         }
     }
 

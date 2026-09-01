@@ -61,4 +61,21 @@ public class UserTests
         Assert.False(user.TryConsumeCredit()); // 0 -> refus
         Assert.Equal(0, user.Credits);
     }
+
+    [Fact]
+    public void SetZone_ShouldTrimAndStore()
+    {
+        var user = new User("rider1", "hash", UserRole.Rider, "+123456789");
+        user.SetZone("  Cocody  ");
+        Assert.Equal("Cocody", user.Zone);
+    }
+
+    [Fact]
+    public void SetZone_WithEmptyValue_ShouldClear()
+    {
+        var user = new User("rider1", "hash", UserRole.Rider, "+123456789");
+        user.SetZone("Cocody");
+        user.SetZone("   ");
+        Assert.Null(user.Zone);
+    }
 }

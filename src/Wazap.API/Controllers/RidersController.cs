@@ -48,6 +48,16 @@ public class RidersController : ControllerBase
         return NoContent();
     }
 
+    // PUT: api/riders/{id}/zone — zone/quartier déclaré (téléphones basiques sans GPS)
+    [HttpPut("{id:guid}/zone")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Rider,Admin")]
+    public async Task<IActionResult> SetZone(Guid id, [FromBody] SetZoneRequest request)
+    {
+        EnsureOwnership(id);
+        await _riderService.SetZoneAsync(id, request.Zone);
+        return NoContent();
+    }
+
     // PUT: api/riders/{id}/location-sharing — RGPD : désactivation volontaire.
     [HttpPut("{id:guid}/location-sharing")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Rider,Admin")]
@@ -83,3 +93,5 @@ public sealed record UpdateRiderLocationRequest(Guid? RiderUserId, double Latitu
 public sealed record SetAvailabilityRequest(bool IsAvailable);
 
 public sealed record SetLocationSharingRequest(bool IsEnabled);
+
+public sealed record SetZoneRequest(string Zone);

@@ -10,6 +10,7 @@ namespace Wazap.Application.Dtos
         public UserRole Role { get; init; }
         public bool IsAvailable { get; init; }
         public bool LocationSharingEnabled { get; init; }
+        public string? Zone { get; init; }
         public int Credits { get; init; }
         public double? Latitude { get; init; }
         public double? Longitude { get; init; }
