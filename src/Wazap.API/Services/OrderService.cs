@@ -17,17 +17,20 @@ public sealed class OrderService
     private readonly ApplicationDbContext _context;
     private readonly ICurrentUser _currentUser;
     private readonly WhatsAppOrchestrationService _whatsApp;
+    private readonly DeliveryOfferService _deliveryOfferService;
     private readonly ILogger<OrderService> _logger;
 
     public OrderService(
         ApplicationDbContext context,
         ICurrentUser currentUser,
         WhatsAppOrchestrationService whatsApp,
+        DeliveryOfferService deliveryOfferService,
         ILogger<OrderService> logger)
     {
         _context = context;
         _currentUser = currentUser;
         _whatsApp = whatsApp;
+        _deliveryOfferService = deliveryOfferService;
         _logger = logger;
     }
 
@@ -184,6 +187,21 @@ public sealed class OrderService
         }
 
         await _context.SaveChangesAsync();
+
+        // Confirmation via l'app : la commande rejoint le lot groupé du vendeur
+        // (le broadcast du lot est déclenché par le worker).
+        if (request.Status == OrderStatus.VendorConfirmed)
+        {
+            try
+            {
+                await _deliveryOfferService.JoinOrCreateBatchAsync(id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Groupage impossible après confirmation de la commande {OrderId}.", id);
+            }
+        }
+
         return true;
     }
 

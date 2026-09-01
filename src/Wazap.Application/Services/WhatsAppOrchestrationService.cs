@@ -97,6 +97,123 @@ namespace Wazap.Application.Services
         }
 
         /// <summary>
+        /// Propose une livraison groupée à un livreur (template si configuré, sinon texte).
+        /// </summary>
+        public async Task SendBatchOfferAsync(string riderPhoneNumber, int orderCount, string offerCode)
+        {
+            if (string.IsNullOrWhiteSpace(riderPhoneNumber))
+                return;
+
+            if (!string.IsNullOrWhiteSpace(_whatsAppOptions.TemplateRiderBatchOffer))
+            {
+                await _whatsAppSender.SendTemplateAsync(riderPhoneNumber, _whatsAppOptions.TemplateRiderBatchOffer,
+                    new Dictionary<string, string>
+                    {
+                        ["1"] = orderCount.ToString(),
+                        ["2"] = offerCode
+                    });
+                return;
+            }
+
+            var message = orderCount > 1
+                ? $"🛵 Livraison groupée : {orderCount} commandes à récupérer chez le vendeur. Répondez ACCEPTE {offerCode}."
+                : $"🛵 Livraison disponible. Répondez ACCEPTE {offerCode}.";
+            await _whatsAppSender.SendTextMessageAsync(riderPhoneNumber, message);
+        }
+
+        /// <summary>
+        /// Notifie le client, le vendeur et le livreur après l'acceptation d'une course simple.
+        /// </summary>
+        public async Task SendRiderAssignedAsync(Order order, User rider)
+        {
+            var orderCode = order.Id.ToString("N")[..8].ToUpperInvariant();
+            var riderName = rider.Username;
+
+            // Client : votre livreur arrive
+            await SendStatusAsync(order.ClientWhatsAppNumber, _whatsAppOptions.TemplateRiderAssignedClient,
+                $"🛵 {riderName} a accepté votre commande #{orderCode}. Livraison en route !",
+                new Dictionary<string, string>
+                {
+                    ["1"] = orderCode,
+                    ["2"] = riderName
+                });
+
+            // Vendeur : préparez le colis
+            await SendStatusAsync(order.VendorWhatsAppNumber, _whatsAppOptions.TemplateRiderAssignedVendor,
+                $"🛵 {riderName} a accepté la commande #{orderCode} de {order.ClientName}. Il arrive pour récupérer le colis.",
+                new Dictionary<string, string>
+                {
+                    ["1"] = riderName,
+                    ["2"] = order.ClientName,
+                    ["3"] = orderCode
+                });
+
+            // Livreur : confirmation de course
+            await SendTextAsync(rider, $"✅ Course acceptée #{orderCode}. Rendez-vous chez le vendeur.");
+        }
+
+        /// <summary>
+        /// Notifie chaque client, le vendeur (une seule fois) et le livreur après
+        /// l'acceptation d'un lot de livraison groupée.
+        /// </summary>
+        public async Task SendBatchAssignedAsync(User rider, IReadOnlyList<Order> orders)
+        {
+            if (orders.Count == 0)
+                return;
+
+            var riderName = rider.Username;
+
+            // Chaque client est notifié individuellement
+            foreach (var order in orders)
+            {
+                var orderCode = order.Id.ToString("N")[..8].ToUpperInvariant();
+                await SendStatusAsync(order.ClientWhatsAppNumber, _whatsAppOptions.TemplateRiderAssignedClient,
+                    $"🛵 {riderName} a accepté votre commande #{orderCode}. Livraison en route !",
+                    new Dictionary<string, string>
+                    {
+                        ["1"] = orderCode,
+                        ["2"] = riderName
+                    });
+            }
+
+            // Le vendeur reçoit un seul récapitulatif pour le lot
+            var first = orders[0];
+            var firstCode = first.Id.ToString("N")[..8].ToUpperInvariant();
+            await SendStatusAsync(first.VendorWhatsAppNumber, _whatsAppOptions.TemplateRiderAssignedVendor,
+                $"🛵 {riderName} a accepté le lot de {orders.Count} commandes (dont #{firstCode} de {first.ClientName}). Il arrive pour récupérer les colis.",
+                new Dictionary<string, string>
+                {
+                    ["1"] = riderName,
+                    ["2"] = first.ClientName,
+                    ["3"] = firstCode
+                });
+
+            // Livreur : confirmation de la tournée groupée
+            await SendTextAsync(rider, $"✅ Tournée acceptée : {orders.Count} commandes à récupérer chez le vendeur.");
+        }
+
+        /// <summary>
+        /// Envoie un template si un nom est configuré (templates approuvés), sinon un texte.
+        /// </summary>
+        private async Task SendStatusAsync(
+            string? phoneNumber,
+            string templateName,
+            string textMessage,
+            Dictionary<string, string> variables)
+        {
+            if (string.IsNullOrWhiteSpace(phoneNumber))
+                return;
+
+            if (!string.IsNullOrWhiteSpace(templateName))
+            {
+                await _whatsAppSender.SendTemplateAsync(phoneNumber, templateName, variables);
+                return;
+            }
+
+            await _whatsAppSender.SendTextMessageAsync(phoneNumber, textMessage);
+        }
+
+        /// <summary>
         /// Envoie un template si un nom est configuré (templates approuvés), sinon un texte.
         /// </summary>
         private async Task SendAlertAsync(

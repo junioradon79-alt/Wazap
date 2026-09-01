@@ -13,6 +13,9 @@ public class Order
     public string? RiderWhatsAppNumber { get; private set; }
     public Guid? VendorUserId { get; private set; }
     public Guid? RiderUserId { get; private set; }
+
+    /// <summary>Lot de livraison groupée auquel appartient la commande (null = commande seule).</summary>
+    public Guid? BatchId { get; private set; }
     public string Description { get; private set; } = default!;
     public decimal Amount { get; private set; }
     public DateTime CreatedAt { get; private set; }
@@ -108,4 +111,9 @@ public class Order
     public void LinkVendor(Guid vendorUserId) => VendorUserId = vendorUserId;
 
     public void LinkRider(Guid riderUserId) => RiderUserId = riderUserId;
+
+    /// <summary>
+    /// Rattache la commande à un lot de livraison groupée (groupage par vendeur + fenêtre).
+    /// </summary>
+    public void JoinBatch(Guid batchId) => BatchId = batchId;
 }

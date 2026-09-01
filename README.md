@@ -15,10 +15,11 @@
 
 | Entité | Champs clés |
 |---|---|
-| `Order` | Id, ClientName, ClientWhatsAppNumber, VendorWhatsAppNumber, RiderWhatsAppNumber, **VendorUserId**, **RiderUserId**, Description, Amount, CreatedAt, timestamps de statut |
+| `Order` | Id, ClientName, ClientWhatsAppNumber, VendorWhatsAppNumber, RiderWhatsAppNumber, **VendorUserId**, **RiderUserId**, **BatchId**, Description, Amount, CreatedAt, timestamps de statut |
 | `OutboxMessage` | Id, Type, Payload (JSON), Status, RetryCount, CreatedAt, AvailableAt, ProcessedAt, LastError |
-| `User` | Id, Username, PasswordHash, Role, **PhoneNumber**, CreatedAt, **géoloc** (Latitude/Longitude/LocationUpdatedAt/IsAvailable/LocationSharingEnabled), **Zone** (quartier déclaré, téléphones basiques), **Credits** (packs prépayés) |
-| `DeliveryOffer` | Id, OrderId, RiderUserId, BatchNumber, Status (Pending/Accepted/Declined/Expired), SentAt, RespondedAt |
+| `User` | Id, Username, PasswordHash, Role, **PhoneNumber**, CreatedAt, **géoloc** (Latitude/Longitude/LocationUpdatedAt/IsAvailable/LocationSharingEnabled), **Zone** (quartier déclaré, téléphones basiques), **Credits** (packs prépayés), **ReferralCode**/ReferredByUserId |
+| `DeliveryOffer` | Id, OrderId (null pour un lot), **BatchId**, RiderUserId, BatchNumber, Status (Pending/Accepted/Declined/Expired), SentAt, RespondedAt |
+| `DeliveryBatch` | Id, VendorUserId, Status (Open/Assigned/Cancelled), CreatedAt, AssignedAt, RiderUserId, RiderWhatsAppNumber — **livraisons groupées** (le même livreur prend plusieurs commandes d'un même vendeur) |
 | `CreditTransaction` | Id, VendorId (FK → Users), **PackName**, Amount, CreditsPurchased, CreatedAt, TransactionReference, Status (Pending/Completed/Failed) |
 
 - `OrderStatus` : PendingVendorConfirmation(1) → VendorConfirmed(2) → AwaitingRiderAcceptance(3) → RiderAssigned(4) → ReadyForPickup(5) → PickedUp(6) → InTransit(7) → Delivered(8) / Cancelled(9)
@@ -33,6 +34,8 @@
 3. `AddGeolocationAndDeliveryOffers` (20260901162922) — colonnes géoloc + `DeliveryOffers` (DDL idempotent)
 4. `AddPackNameToCreditTransactions` (20260901171612) — colonne `PackName` (DDL idempotent)
 5. `AddZoneToUsers` (20260901175202) — colonne `Zone` (matching téléphones basiques, DDL idempotent)
+6. `AddReferralToUsers` (20260901194805) — `Users.ReferralCode`/`ReferredByUserId` (parrainage)
+7. `AddDeliveryBatches` (20260901215856) — table `DeliveryBatches` + `Orders.BatchId` + `DeliveryOffers.BatchId`/OrderId nullable (livraisons groupées, DDL idempotent)
 
 Appliquer : `dotnet ef database update --project src\Wazap.Infrastructure --startup-project src\Wazap.API`
 

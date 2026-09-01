@@ -13,6 +13,7 @@ namespace Wazap.Infrastructure.Data
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<DeliveryOffer> DeliveryOffers { get; set; }
+        public DbSet<DeliveryBatch> DeliveryBatches { get; set; }
         public DbSet<CreditTransaction> CreditTransactions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -28,6 +29,15 @@ namespace Wazap.Infrastructure.Data
 
             modelBuilder.Entity<Order>()
                 .HasIndex(o => o.CreatedAt);
+
+            modelBuilder.Entity<Order>()
+                .HasIndex(o => o.BatchId);
+
+            modelBuilder.Entity<Order>()
+                .HasOne<DeliveryBatch>()
+                .WithMany(b => b.Orders)
+                .HasForeignKey(o => o.BatchId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<OutboxMessage>()
                 .HasIndex(m => new { m.Status, m.AvailableAt });
@@ -58,7 +68,16 @@ namespace Wazap.Infrastructure.Data
                 .HasIndex(o => o.OrderId);
 
             modelBuilder.Entity<DeliveryOffer>()
+                .HasIndex(o => o.BatchId);
+
+            modelBuilder.Entity<DeliveryOffer>()
                 .HasIndex(o => o.Status);
+
+            modelBuilder.Entity<DeliveryBatch>()
+                .HasIndex(b => b.VendorUserId);
+
+            modelBuilder.Entity<DeliveryBatch>()
+                .HasIndex(b => b.Status);
 
             modelBuilder.Entity<CreditTransaction>()
                 .Property(t => t.Amount)
