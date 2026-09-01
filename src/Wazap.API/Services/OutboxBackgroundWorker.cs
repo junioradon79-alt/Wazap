@@ -52,7 +52,7 @@ public sealed class OutboxBackgroundWorker : BackgroundService
     {
         using var scope = _scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var notificationService = scope.ServiceProvider.GetRequiredService<WhatsAppNotificationService>();
+        var notificationService = scope.ServiceProvider.GetRequiredService<WhatsAppOrchestrationService>();
 
         var now = DateTime.UtcNow;
         var messages = await context.OutboxMessages
