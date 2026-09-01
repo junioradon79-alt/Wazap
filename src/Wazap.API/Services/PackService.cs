@@ -38,6 +38,25 @@ namespace Wazap.API.Services
             => _packs.Select(p => new PackDto(p.Name, p.Price, p.Credits)).ToList();
 
         /// <summary>
+        /// Historique des achats de crédits d'un vendeur (du plus récent au plus ancien).
+        /// </summary>
+        public async Task<IReadOnlyList<CreditTransactionDto>> GetVendorTransactionsAsync(Guid vendorId)
+        {
+            return await _context.CreditTransactions.AsNoTracking()
+                .Where(t => t.VendorId == vendorId)
+                .OrderByDescending(t => t.CreatedAt)
+                .Select(t => new CreditTransactionDto(
+                    t.Id,
+                    t.VendorId,
+                    t.Amount,
+                    t.CreditsPurchased,
+                    t.CreatedAt,
+                    t.TransactionReference,
+                    t.Status))
+                .ToListAsync();
+        }
+
+        /// <summary>
         /// Achète un pack : crée une <see cref="CreditTransaction"/> (Pending), appelle le paiement,
         /// puis complète la transaction et crédite le vendeur en cas de succès.
         /// </summary>
