@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Wazap.API.Services;
 
@@ -11,6 +12,7 @@ public class DashboardController : ControllerBase
 
     public DashboardController(DashboardService dashboardService) => _dashboardService = dashboardService;
 
+    [Authorize(Roles = "Admin")]
     [HttpGet("summary")]
     public async Task<IActionResult> GetSummary()
         => Ok(await _dashboardService.GetSummaryAsync());

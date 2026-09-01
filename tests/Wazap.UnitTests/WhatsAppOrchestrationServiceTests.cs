@@ -1,4 +1,5 @@
 using Wazap.Application.Abstractions;
+using Wazap.Application.Configuration;
 using Wazap.Application.Services;
 using Wazap.Domain.Configuration;
 using Wazap.Domain.Entities;
@@ -9,11 +10,13 @@ namespace Wazap.UnitTests;
 
 public class WhatsAppOrchestrationServiceTests
 {
+    private static WhatsAppOrchestrationService CreateService(RecordingWhatsAppSender sender)
+        => new(sender, new WhatsAppOptions());
     [Fact]
     public async Task SendCreditPurchaseConfirmation_ShouldSendExpectedMessage()
     {
         var sender = new RecordingWhatsAppSender();
-        var service = new WhatsAppOrchestrationService(sender);
+        var service = CreateService(sender);
         var vendor = CreateVendor("Vendeur Test", "+33612345678", credits: 15);
         var pack = new PackConfiguration { Name = "Découverte", Price = 2500m, Credits = 15 };
 
@@ -28,7 +31,7 @@ public class WhatsAppOrchestrationServiceTests
     public async Task SendLowCreditAlert_ShouldSendExpectedMessage()
     {
         var sender = new RecordingWhatsAppSender();
-        var service = new WhatsAppOrchestrationService(sender);
+        var service = CreateService(sender);
         var vendor = CreateVendor("Vendeur Test", "+33612345678", credits: 3);
 
         await service.SendLowCreditAlertAsync(vendor);
@@ -41,7 +44,7 @@ public class WhatsAppOrchestrationServiceTests
     public async Task SendNoCreditAlert_ShouldSendExpectedMessage()
     {
         var sender = new RecordingWhatsAppSender();
-        var service = new WhatsAppOrchestrationService(sender);
+        var service = CreateService(sender);
         var vendor = CreateVendor("Vendeur Test", "+33612345678", credits: 0);
 
         await service.SendNoCreditAlertAsync(vendor);
@@ -54,7 +57,7 @@ public class WhatsAppOrchestrationServiceTests
     public async Task SendAlert_WithoutPhone_ShouldSkip()
     {
         var sender = new RecordingWhatsAppSender();
-        var service = new WhatsAppOrchestrationService(sender);
+        var service = CreateService(sender);
         var vendor = CreateVendor("Vendeur Test", null, credits: 0);
 
         await service.SendNoCreditAlertAsync(vendor);

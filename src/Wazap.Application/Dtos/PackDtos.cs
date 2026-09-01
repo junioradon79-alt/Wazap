@@ -18,4 +18,16 @@ namespace Wazap.Application.Dtos
     /// Réponse d'une tentative d'achat de pack.
     /// </summary>
     public sealed record PaymentResponseDto(bool Success, string TransactionReference, string Message);
+
+    /// <summary>
+    /// Ligne d'historique d'achat de crédits d'un vendeur.
+    /// </summary>
+    public sealed record CreditTransactionDto(
+        Guid Id,
+        Guid VendorId,
+        decimal Amount,
+        int CreditsPurchased,
+        DateTime CreatedAt,
+        string TransactionReference,
+        Domain.Enums.TransactionStatus Status);
 }

@@ -1,4 +1,6 @@
+using System.Globalization;
 using Wazap.Application.Abstractions;
+using Wazap.Application.Configuration;
 using Wazap.Application.Dtos;
 using Wazap.Domain.Configuration;
 using Wazap.Domain.Entities;
@@ -12,32 +14,35 @@ namespace Wazap.Application.Services
     public sealed class WhatsAppOrchestrationService
     {
         private readonly IWhatsAppSender _whatsAppSender;
+        private readonly WhatsAppOptions _whatsAppOptions;
 
-        public WhatsAppOrchestrationService(IWhatsAppSender whatsAppSender)
+        public WhatsAppOrchestrationService(IWhatsAppSender whatsAppSender, WhatsAppOptions whatsAppOptions)
         {
             _whatsAppSender = whatsAppSender;
+            _whatsAppOptions = whatsAppOptions;
         }
 
         public async Task SendOrderCreatedNotificationAsync(OrderCreatedNotification notification)
         {
+            // Template order_confirm (vendeur) : variables 1=client, 2=description, 3=montant.
             var vendorTemplateData = new Dictionary<string, string>
             {
-                { "order_id", notification.OrderId.ToString().Substring(0, 8) },
-                { "client_name", notification.ClientName },
-                { "description", notification.Description },
-                { "amount", notification.Amount.ToString("F2") }
+                ["1"] = notification.ClientName,
+                ["2"] = notification.Description,
+                ["3"] = notification.Amount.ToString("0.##", CultureInfo.InvariantCulture)
             };
 
+            // Template order_received (client) : variables 1=id court, 2=vendeur, 3=délai.
             var clientTemplateData = new Dictionary<string, string>
             {
-                { "order_id", notification.OrderId.ToString().Substring(0, 8) },
-                { "vendor_name", "Vendeur" },
-                { "estimated_time", "15-30 minutes" }
+                ["1"] = notification.OrderId.ToString("N")[..8].ToUpperInvariant(),
+                ["2"] = "Vendeur",
+                ["3"] = "15-30 minutes"
             };
 
             await Task.WhenAll(
-                _whatsAppSender.SendTemplateAsync(notification.VendorWhatsAppNumber, "order_confirmation", vendorTemplateData),
-                _whatsAppSender.SendTemplateAsync(notification.ClientWhatsAppNumber, "order_received", clientTemplateData));
+                _whatsAppSender.SendTemplateAsync(notification.VendorWhatsAppNumber, _whatsAppOptions.TemplateOrderConfirm, vendorTemplateData),
+                _whatsAppSender.SendTemplateAsync(notification.ClientWhatsAppNumber, _whatsAppOptions.TemplateOrderReceived, clientTemplateData));
         }
 
         /// <summary>

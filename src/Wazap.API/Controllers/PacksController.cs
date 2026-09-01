@@ -2,7 +2,10 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Wazap.API.Services;
+using Wazap.Application.Abstractions;
 using Wazap.Application.Dtos;
+using Wazap.Application.Exceptions;
+using Wazap.Domain.Enums;
 
 namespace Wazap.API.Controllers;
 
@@ -11,11 +14,13 @@ namespace Wazap.API.Controllers;
 public class PacksController : ControllerBase
 {
     private readonly PackService _packService;
+    private readonly ICurrentUser _currentUser;
     private readonly IValidator<BuyPackRequest> _buyValidator;
 
-    public PacksController(PackService packService, IValidator<BuyPackRequest> buyValidator)
+    public PacksController(PackService packService, ICurrentUser currentUser, IValidator<BuyPackRequest> buyValidator)
     {
         _packService = packService;
+        _currentUser = currentUser;
         _buyValidator = buyValidator;
     }
 
@@ -36,6 +41,14 @@ public class PacksController : ControllerBase
             return ValidationProblem(ModelState);
         }
 
+        // Un vendeur ne peut acheter des packs que pour son propre compte.
+        if (_currentUser.Role == UserRole.Vendor
+            && _currentUser.Id is not null
+            && _currentUser.Id.Value != request.VendorId)
+        {
+            throw new ForbiddenException("Vous ne pouvez acheter des packs que pour votre propre compte.");
+        }
+
         try
         {
             var result = await _packService.BuyPackAsync(request);
@@ -47,3 +60,4 @@ public class PacksController : ControllerBase
         }
     }
 }
+
