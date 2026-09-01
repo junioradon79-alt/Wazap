@@ -10,5 +10,11 @@ namespace Wazap.Application.Configuration
         public string TemplateOrderConfirm { get; set; } = "order_confirm";
         public string TemplateOrderReceived { get; set; } = "order_received";
         public string TemplateRiderOffer { get; set; } = "rider_offer";
+
+        // Templates de crédits (vide = envoi en texte). À renseigner quand les templates
+        // sont créés et approuvés par Meta.
+        public string TemplateCreditPurchase { get; set; } = "";
+        public string TemplateLowCredit { get; set; } = "";
+        public string TemplateNoCredit { get; set; } = "";
     }
 }

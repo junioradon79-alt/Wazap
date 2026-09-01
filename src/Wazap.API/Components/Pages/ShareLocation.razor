@@ -1,42 +1,99 @@
 @page "/share-location"
+@using System.Net.Http.Json
 @using System.Text.Json
 @using Microsoft.JSInterop
 @inject IJSRuntime JS
+@inject HttpClient Http
+@inject NavigationManager Navigation
 
-<div class="geo-page">
-    <h1>📍 Partage de position livreur</h1>
-    <p class="geo-page__hint">Entre ton ID livreur, partage ta position GPS et gère ta disponibilité.</p>
+@if (_token is null)
+{
+    <div class="geo-page">
+        <h1>🔐 Connexion livreur</h1>
+        <p class="geo-page__hint">Identifie-toi pour partager ta position et gérer ta disponibilité.</p>
 
-    <label class="geo-page__label" for="riderId">ID du livreur (Guid)</label>
-    <input id="riderId" class="geo-page__input" @bind="_riderId" placeholder="00000000-0000-0000-0000-000000000000" />
+        <label class="geo-page__label" for="username">Nom d'utilisateur</label>
+        <input id="username" class="geo-page__input" @bind="_username" placeholder="ex : Karim Diallo" />
 
-    <div class="geo-page__actions">
-        <button class="btn btn--primary" @onclick="ShareAsync">📡 Partager ma position</button>
-        <button class="btn" @onclick="() => SetAvailabilityAsync(true)">🟢 En ligne</button>
-        <button class="btn" @onclick="() => SetAvailabilityAsync(false)">🔴 Hors ligne</button>
+        <label class="geo-page__label" for="password">Mot de passe</label>
+        <input id="password" type="password" class="geo-page__input" @bind="_password" placeholder="••••••••" />
+
+        <div class="geo-page__actions">
+            <button class="btn btn--primary" @onclick="LoginAsync">Connexion</button>
+        </div>
+
+        @if (_message is not null)
+        {
+            <p class="geo-page__message">@_message</p>
+        }
     </div>
+}
+else
+{
+    <div class="geo-page">
+        <h1>📍 Partage de position livreur</h1>
+        <p class="geo-page__hint">Connecté : <strong>@_username</strong></p>
 
-    @if (_message is not null)
-    {
-        <p class="geo-page__message">@_message</p>
-    }
-</div>
+        <div class="geo-page__actions">
+            <button class="btn btn--primary" @onclick="ShareAsync">📡 Partager ma position</button>
+            <button class="btn" @onclick="() => SetAvailabilityAsync(true)">🟢 En ligne</button>
+            <button class="btn" @onclick="() => SetAvailabilityAsync(false)">🔴 Hors ligne</button>
+            <button class="btn" @onclick="LogoutAsync">Déconnexion</button>
+        </div>
+
+        @if (_message is not null)
+        {
+            <p class="geo-page__message">@_message</p>
+        }
+    </div>
+}
 
 @code {
-    private string _riderId = string.Empty;
+    private string _username = string.Empty;
+    private string _password = string.Empty;
+    private string? _token;
+    private Guid? _riderId;
     private string? _message;
+
+    private async Task LoginAsync()
+    {
+        try
+        {
+            var url = Navigation.BaseUri.TrimEnd('/') + "/api/auth/login";
+            var response = await Http.PostAsJsonAsync(url, new { username = _username, password = _password });
+            if (!response.IsSuccessStatusCode)
+            {
+                _message = "❌ Identifiants invalides.";
+                return;
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<JsonElement>();
+            _token = result.GetProperty("token").GetString();
+            _riderId = Guid.Parse(result.GetProperty("userId").GetString());
+
+            await JS.InvokeVoidAsync("wazap.saveToken", _token);
+            _message = "✅ Connecté.";
+        }
+        catch (Exception ex)
+        {
+            _message = $"❌ {ex.Message}";
+        }
+    }
+
+    private async Task LogoutAsync()
+    {
+        await JS.InvokeVoidAsync("wazap.clearToken");
+        _token = null;
+        _username = string.Empty;
+        _password = string.Empty;
+        _message = null;
+    }
 
     private async Task ShareAsync()
     {
-        if (!Guid.TryParse(_riderId, out _))
-        {
-            _message = "ID livreur invalide.";
-            return;
-        }
-
         try
         {
-            var coords = await JS.InvokeAsync<JsonElement>("wazap.shareLocation", _riderId);
+            var coords = await JS.InvokeAsync<JsonElement>("wazap.shareLocation");
             var latitude = coords.GetProperty("latitude").GetDouble();
             var longitude = coords.GetProperty("longitude").GetDouble();
             _message = $"✅ Position envoyée : {latitude:F6}, {longitude:F6}";
@@ -49,15 +106,15 @@
 
     private async Task SetAvailabilityAsync(bool isAvailable)
     {
-        if (!Guid.TryParse(_riderId, out _))
+        if (_riderId is null)
         {
-            _message = "ID livreur invalide.";
+            _message = "❌ Non connecté.";
             return;
         }
 
         try
         {
-            await JS.InvokeVoidAsync("wazap.setAvailability", _riderId, isAvailable);
+            await JS.InvokeVoidAsync("wazap.setAvailability", _riderId.Value, isAvailable);
             _message = isAvailable ? "✅ Livreur en ligne." : "✅ Livreur hors ligne.";
         }
         catch (Exception ex)

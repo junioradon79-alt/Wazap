@@ -1,4 +1,7 @@
 @inherits LayoutComponentBase
+@using System.Net.Http
+@inject HttpClient Http
+@inject NavigationManager Navigation
 
 <div class="app-shell">
     <aside class="sidebar">
@@ -39,6 +42,7 @@
                     <span class="user__role">Administrateur</span>
                 </div>
             </div>
+            <button class="btn" @onclick="LogoutAsync" style="width:100%;margin-top:8px;">Déconnexion</button>
         </div>
     </aside>
 
@@ -59,3 +63,19 @@
         </div>
     </main>
 </div>
+
+@code {
+    private async Task LogoutAsync()
+    {
+        try
+        {
+            await Http.PostAsync(Navigation.BaseUri.TrimEnd('/') + "/api/auth/ui/logout", null);
+        }
+        catch
+        {
+            // best effort : on redirige quand même
+        }
+
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+}

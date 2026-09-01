@@ -16,6 +16,6 @@ public class LoginRequest
     public string Password { get; set; } = default!;
 }
 
-public sealed record AuthResponse(string Token, string Username, string Role);
+public sealed record AuthResponse(Guid UserId, string Token, string Username, string Role);
 
 public sealed record UserDto(Guid Id, string Username, string Role);

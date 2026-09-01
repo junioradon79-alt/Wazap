@@ -46,6 +46,6 @@ public sealed class AuthService
             throw new UnauthorizedAccessException("Identifiants invalides.");
 
         var token = _jwtTokenGenerator.Generate(user);
-        return new AuthResponse(token, user.Username, user.Role.ToString());
+        return new AuthResponse(user.Id, token, user.Username, user.Role.ToString());
     }
 }

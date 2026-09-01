@@ -11,6 +11,7 @@ using Wazap.API.Components;
 using Wazap.Application.Configuration;
 using Wazap.Domain.Configuration;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.OpenApi;
@@ -58,8 +59,20 @@ builder.Services.AddSingleton(geniusPayOptions);
 // Géocodage d'adresses (Nominatim / OpenStreetMap)
 builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>();
 
-// Authentification JWT
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+// HttpClient par défaut (pages Blazor qui appellent l'API)
+builder.Services.AddHttpClient();
+
+// Authentification : cookie pour le Blazor UI (admin), JWT pour l'API
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/login";
+        options.LogoutPath = "/logout";
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.SlidingExpiration = true;
+        options.Cookie.Name = "wazap.admin";
+        options.Cookie.HttpOnly = true;
+    })
     .AddJwtBearer(options =>
     {
         var key = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key manquante.");

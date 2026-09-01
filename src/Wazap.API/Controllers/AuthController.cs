@@ -1,4 +1,5 @@
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -27,7 +28,7 @@ public class AuthController : ControllerBase
 
     // POST: api/auth/register (réservé aux administrateurs)
     [HttpPost("register")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     [EnableRateLimiting("auth")]
     public async Task<ActionResult<UserDto>> Register([FromBody] RegisterRequest request)
     {

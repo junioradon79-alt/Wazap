@@ -51,8 +51,13 @@ namespace Wazap.Application.Services
         /// </summary>
         public async Task SendCreditPurchaseConfirmationAsync(User vendor, PackConfiguration pack)
         {
-            await SendTextAsync(vendor,
-                $"Vous avez acheté le pack {pack.Name}. Vous disposez maintenant de {vendor.Credits} commandes.");
+            await SendAlertAsync(vendor, _whatsAppOptions.TemplateCreditPurchase,
+                $"Vous avez acheté le pack {pack.Name}. Vous disposez maintenant de {vendor.Credits} commandes.",
+                new Dictionary<string, string>
+                {
+                    ["1"] = pack.Name,
+                    ["2"] = vendor.Credits.ToString()
+                });
         }
 
         /// <summary>
@@ -61,8 +66,12 @@ namespace Wazap.Application.Services
         /// </summary>
         public async Task SendLowCreditAlertAsync(User vendor)
         {
-            await SendTextAsync(vendor,
-                $"Il vous reste {vendor.Credits} commandes. Rechargez dès maintenant.");
+            await SendAlertAsync(vendor, _whatsAppOptions.TemplateLowCredit,
+                $"Il vous reste {vendor.Credits} commandes. Rechargez dès maintenant.",
+                new Dictionary<string, string>
+                {
+                    ["1"] = vendor.Credits.ToString()
+                });
         }
 
         /// <summary>
@@ -71,16 +80,30 @@ namespace Wazap.Application.Services
         /// </summary>
         public async Task SendNoCreditAlertAsync(User vendor)
         {
-            await SendTextAsync(vendor,
-                "Vous n'avez plus de crédits. Achetez un pack pour continuer.");
+            await SendAlertAsync(vendor, _whatsAppOptions.TemplateNoCredit,
+                "Vous n'avez plus de crédits. Achetez un pack pour continuer.",
+                new Dictionary<string, string>());
         }
 
-        private async Task SendTextAsync(User vendor, string message)
+        /// <summary>
+        /// Envoie un template si un nom est configuré (templates approuvés), sinon un texte.
+        /// </summary>
+        private async Task SendAlertAsync(
+            User vendor,
+            string templateName,
+            string textMessage,
+            Dictionary<string, string> variables)
         {
             if (string.IsNullOrWhiteSpace(vendor.PhoneNumber))
                 return;
 
-            await _whatsAppSender.SendTextMessageAsync(vendor.PhoneNumber, message);
+            if (!string.IsNullOrWhiteSpace(templateName))
+            {
+                await _whatsAppSender.SendTemplateAsync(vendor.PhoneNumber, templateName, variables);
+                return;
+            }
+
+            await _whatsAppSender.SendTextMessageAsync(vendor.PhoneNumber, textMessage);
         }
     }
 }

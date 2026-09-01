@@ -1,5 +1,15 @@
 window.wazap = {
-  shareLocation: async function (riderId) {
+  saveToken: function (token) {
+    localStorage.setItem('wazap_token', token);
+  },
+  clearToken: function () {
+    localStorage.removeItem('wazap_token');
+  },
+
+  shareLocation: async function () {
+    const token = localStorage.getItem('wazap_token');
+    if (!token) throw new Error('Non authentifié.');
+
     const pos = await new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
         reject(new Error('Géolocalisation non supportée par le navigateur.'));
@@ -14,8 +24,11 @@ window.wazap = {
 
     const response = await fetch('/api/riders/location', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ riderUserId: riderId, latitude: pos.latitude, longitude: pos.longitude })
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ latitude: pos.latitude, longitude: pos.longitude })
     });
 
     if (!response.ok) {
@@ -26,9 +39,15 @@ window.wazap = {
   },
 
   setAvailability: async function (riderId, isAvailable) {
+    const token = localStorage.getItem('wazap_token');
+    if (!token) throw new Error('Non authentifié.');
+
     const response = await fetch('/api/riders/' + riderId + '/availability', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
       body: JSON.stringify({ isAvailable: isAvailable })
     });
 
