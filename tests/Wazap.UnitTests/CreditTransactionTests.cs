@@ -73,4 +73,29 @@ public class CreditTransactionTests
         transaction.MarkFailed();
         Assert.Throws<InvalidOperationException>(() => transaction.MarkCompleted());
     }
+
+    [Fact]
+    public void Complete_ShouldReplaceReference_AndSetCompleted()
+    {
+        var transaction = new CreditTransaction(Guid.NewGuid(), 2500m, 15, "PENDING-abc");
+        transaction.Complete("PAY-1234-5678");
+
+        Assert.Equal("PAY-1234-5678", transaction.TransactionReference);
+        Assert.Equal(TransactionStatus.Completed, transaction.Status);
+    }
+
+    [Fact]
+    public void Complete_WithEmptyReference_ShouldThrow()
+    {
+        var transaction = new CreditTransaction(Guid.NewGuid(), 2500m, 15, "PENDING-abc");
+        Assert.Throws<ArgumentException>(() => transaction.Complete("   "));
+    }
+
+    [Fact]
+    public void Complete_OnFailedTransaction_ShouldThrow()
+    {
+        var transaction = new CreditTransaction(Guid.NewGuid(), 2500m, 15, "PENDING-abc");
+        transaction.MarkFailed();
+        Assert.Throws<InvalidOperationException>(() => transaction.Complete("PAY-1234-5678"));
+    }
 }
