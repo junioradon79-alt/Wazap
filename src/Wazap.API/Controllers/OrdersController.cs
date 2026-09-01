@@ -12,15 +12,18 @@ namespace Wazap.API.Controllers;
 public class OrdersController : ControllerBase
 {
     private readonly OrderService _orderService;
+    private readonly DeliveryOfferService _deliveryOfferService;
     private readonly IValidator<CreateOrderRequest> _createValidator;
     private readonly IValidator<UpdateStatusRequest> _updateValidator;
 
     public OrdersController(
         OrderService orderService,
+        DeliveryOfferService deliveryOfferService,
         IValidator<CreateOrderRequest> createValidator,
         IValidator<UpdateStatusRequest> updateValidator)
     {
         _orderService = orderService;
+        _deliveryOfferService = deliveryOfferService;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
     }
@@ -79,4 +82,16 @@ public class OrdersController : ControllerBase
         var updated = await _orderService.UpdateStatusAsync(id, request);
         return updated ? NoContent() : NotFound();
     }
+
+    // POST: api/orders/{id}/broadcast — déclenche la diffusion des offres aux livreurs
+    [HttpPost("{id:guid}/broadcast")]
+    [Authorize(Roles = "Admin,Vendor")]
+    public async Task<IActionResult> Broadcast(Guid id)
+        => Ok(await _deliveryOfferService.BroadcastAsync(id));
+
+    // GET: api/orders/{id}/offers — offres de livraison de la commande (admin / debug)
+    [HttpGet("{id:guid}/offers")]
+    [Authorize(Roles = "Admin,Vendor")]
+    public async Task<IActionResult> GetOffers(Guid id)
+        => Ok(await _deliveryOfferService.GetOffersAsync(id));
 }

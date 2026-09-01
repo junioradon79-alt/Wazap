@@ -1,0 +1,68 @@
+@page "/share-location"
+@using System.Text.Json
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+
+<div class="geo-page">
+    <h1>📍 Partage de position livreur</h1>
+    <p class="geo-page__hint">Entre ton ID livreur, partage ta position GPS et gère ta disponibilité.</p>
+
+    <label class="geo-page__label" for="riderId">ID du livreur (Guid)</label>
+    <input id="riderId" class="geo-page__input" @bind="_riderId" placeholder="00000000-0000-0000-0000-000000000000" />
+
+    <div class="geo-page__actions">
+        <button class="btn btn--primary" @onclick="ShareAsync">📡 Partager ma position</button>
+        <button class="btn" @onclick="() => SetAvailabilityAsync(true)">🟢 En ligne</button>
+        <button class="btn" @onclick="() => SetAvailabilityAsync(false)">🔴 Hors ligne</button>
+    </div>
+
+    @if (_message is not null)
+    {
+        <p class="geo-page__message">@_message</p>
+    }
+</div>
+
+@code {
+    private string _riderId = string.Empty;
+    private string? _message;
+
+    private async Task ShareAsync()
+    {
+        if (!Guid.TryParse(_riderId, out _))
+        {
+            _message = "ID livreur invalide.";
+            return;
+        }
+
+        try
+        {
+            var coords = await JS.InvokeAsync<JsonElement>("wazap.shareLocation", _riderId);
+            var latitude = coords.GetProperty("latitude").GetDouble();
+            var longitude = coords.GetProperty("longitude").GetDouble();
+            _message = $"✅ Position envoyée : {latitude:F6}, {longitude:F6}";
+        }
+        catch (Exception ex)
+        {
+            _message = $"❌ {ex.Message}";
+        }
+    }
+
+    private async Task SetAvailabilityAsync(bool isAvailable)
+    {
+        if (!Guid.TryParse(_riderId, out _))
+        {
+            _message = "ID livreur invalide.";
+            return;
+        }
+
+        try
+        {
+            await JS.InvokeVoidAsync("wazap.setAvailability", _riderId, isAvailable);
+            _message = isAvailable ? "✅ Livreur en ligne." : "✅ Livreur hors ligne.";
+        }
+        catch (Exception ex)
+        {
+            _message = $"❌ {ex.Message}";
+        }
+    }
+}
