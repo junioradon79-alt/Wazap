@@ -56,7 +56,7 @@ public class PacksController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new PaymentResponseDto(false, string.Empty, ex.Message));
+            return BadRequest(new PaymentResponseDto(false, string.Empty, null, ex.Message));
         }
     }
 }

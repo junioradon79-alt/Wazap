@@ -10,10 +10,12 @@ namespace Wazap.Application.Abstractions
         string? ErrorMessage);
 
     /// <summary>
-    /// Port de paiement des packs (Mobile Money en production, mock en dev/test).
+    /// Port de paiement des packs (GeniusPay en production, mock en dev/test).
+    /// <paramref name="reference"/> identifie la transaction interne WAZAP (utilisée
+    /// comme metadata côté agrégateur pour la corrélation au webhook).
     /// </summary>
     public interface IPaymentService
     {
-        Task<PaymentResult> RequestPaymentAsync(Guid vendorId, string packName, decimal amount);
+        Task<PaymentResult> RequestPaymentAsync(Guid vendorId, string packName, decimal amount, string reference);
     }
 }

@@ -98,4 +98,28 @@ public class CreditTransactionTests
         transaction.MarkFailed();
         Assert.Throws<InvalidOperationException>(() => transaction.Complete("PAY-1234-5678"));
     }
+
+    [Fact]
+    public void NewTransaction_WithPackName_ShouldStoreIt()
+    {
+        var transaction = new CreditTransaction(Guid.NewGuid(), 2500m, 15, "REF", "Découverte");
+        Assert.Equal("Découverte", transaction.PackName);
+    }
+
+    [Fact]
+    public void SetTransactionReference_ShouldReplaceReference_WithoutChangingStatus()
+    {
+        var transaction = new CreditTransaction(Guid.NewGuid(), 2500m, 15, "PENDING-abc", "Découverte");
+        transaction.SetTransactionReference("GP-987654");
+
+        Assert.Equal("GP-987654", transaction.TransactionReference);
+        Assert.Equal(TransactionStatus.Pending, transaction.Status);
+    }
+
+    [Fact]
+    public void SetTransactionReference_WithEmptyValue_ShouldThrow()
+    {
+        var transaction = new CreditTransaction(Guid.NewGuid(), 2500m, 15, "PENDING-abc");
+        Assert.Throws<ArgumentException>(() => transaction.SetTransactionReference("  "));
+    }
 }

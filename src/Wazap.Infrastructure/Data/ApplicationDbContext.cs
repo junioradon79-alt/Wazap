@@ -65,6 +65,10 @@ namespace Wazap.Infrastructure.Data
                 .HasMaxLength(100);
 
             modelBuilder.Entity<CreditTransaction>()
+                .Property(t => t.PackName)
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<CreditTransaction>()
                 .HasIndex(t => t.VendorId);
 
             modelBuilder.Entity<CreditTransaction>()

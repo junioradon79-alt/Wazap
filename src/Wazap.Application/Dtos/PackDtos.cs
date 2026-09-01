@@ -16,8 +16,14 @@ namespace Wazap.Application.Dtos
 
     /// <summary>
     /// Réponse d'une tentative d'achat de pack.
+    /// <see cref="PaymentLink"/> est renseigné pour un flux asynchrone (lien de checkout
+    /// de l'agrégateur) ; sinon le paiement a été complété immédiatement (mock).
     /// </summary>
-    public sealed record PaymentResponseDto(bool Success, string TransactionReference, string Message);
+    public sealed record PaymentResponseDto(
+        bool Success,
+        string TransactionReference,
+        string? PaymentLink,
+        string Message);
 
     /// <summary>
     /// Ligne d'historique d'achat de crédits d'un vendeur.

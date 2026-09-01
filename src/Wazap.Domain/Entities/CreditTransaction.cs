@@ -10,6 +10,7 @@ public class CreditTransaction
 {
     public Guid Id { get; private set; }
     public Guid VendorId { get; private set; }
+    public string? PackName { get; private set; }
     public decimal Amount { get; private set; }
     public int CreditsPurchased { get; private set; }
     public DateTime CreatedAt { get; private set; }
@@ -21,7 +22,12 @@ public class CreditTransaction
 
     private CreditTransaction() { }
 
-    public CreditTransaction(Guid vendorId, decimal amount, int creditsPurchased, string transactionReference)
+    public CreditTransaction(
+        Guid vendorId,
+        decimal amount,
+        int creditsPurchased,
+        string transactionReference,
+        string? packName = null)
     {
         if (amount <= 0)
             throw new ArgumentOutOfRangeException(nameof(amount), "Le montant doit être positif.");
@@ -32,6 +38,7 @@ public class CreditTransaction
 
         Id = Guid.NewGuid();
         VendorId = vendorId;
+        PackName = packName;
         Amount = amount;
         CreditsPurchased = creditsPurchased;
         CreatedAt = DateTime.UtcNow;
@@ -44,6 +51,18 @@ public class CreditTransaction
         if (Status == TransactionStatus.Failed)
             throw new InvalidOperationException("Une transaction en échec ne peut pas être complétée.");
         Status = TransactionStatus.Completed;
+    }
+
+    /// <summary>
+    /// Remplace la référence provisoire par la référence de transaction de l'agrégateur
+    /// (sans changer le statut — utilisé à l'initiation d'un paiement asynchrone).
+    /// </summary>
+    public void SetTransactionReference(string transactionReference)
+    {
+        if (string.IsNullOrWhiteSpace(transactionReference))
+            throw new ArgumentException("La référence de transaction est requise.", nameof(transactionReference));
+
+        TransactionReference = transactionReference;
     }
 
     /// <summary>
