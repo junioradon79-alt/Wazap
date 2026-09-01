@@ -13,15 +13,23 @@ public sealed class OrderService
 {
     private readonly ApplicationDbContext _context;
     private readonly ICurrentUser _currentUser;
+    private readonly ILogger<OrderService> _logger;
 
-    public OrderService(ApplicationDbContext context, ICurrentUser currentUser)
+    public OrderService(ApplicationDbContext context, ICurrentUser currentUser, ILogger<OrderService> logger)
     {
         _context = context;
         _currentUser = currentUser;
+        _logger = logger;
     }
 
     public async Task<Order> CreateOrderAsync(CreateOrderRequest request)
     {
+        var vendor = await ResolveVendorAsync(request.VendorWhatsAppNumber);
+
+        // Pay-per-use : un crédit est requis par commande.
+        if (vendor is null || !vendor.TryConsumeCredit())
+            throw new PaymentRequiredException("Crédits insuffisants. Achetez un pack sur /api/packs.");
+
         var order = new Order(
             request.ClientName,
             request.ClientWhatsAppNumber,
@@ -29,9 +37,8 @@ public sealed class OrderService
             request.Description,
             request.Amount);
 
-        // Un vendeur qui crée la commande en devient le propriétaire
-        if (_currentUser.Role == UserRole.Vendor && _currentUser.Id is not null)
-            order.LinkVendor(_currentUser.Id.Value);
+        // Le vendeur résolu (via son numéro WhatsApp) devient propriétaire de la commande.
+        order.LinkVendor(vendor.Id);
 
         var notification = new OrderCreatedNotification(
             order.Id,
@@ -54,7 +61,23 @@ public sealed class OrderService
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
 
+        _logger.LogInformation("Commande créée pour {VendorName}. Crédits restants : {Credits}.",
+            vendor.Username, vendor.Credits);
+
         return order;
+    }
+
+    private async Task<User?> ResolveVendorAsync(string vendorWhatsApp)
+    {
+        var normalized = new string((vendorWhatsApp ?? string.Empty).Where(char.IsDigit).ToArray());
+        if (normalized.Length == 0) return null;
+
+        var vendors = await _context.Users
+            .Where(u => u.Role == UserRole.Vendor && u.PhoneNumber != null)
+            .ToListAsync();
+
+        return vendors.FirstOrDefault(v =>
+            new string(v.PhoneNumber!.Where(char.IsDigit).ToArray()) == normalized);
     }
 
     public async Task<Order?> GetOrderAsync(Guid id) =>
