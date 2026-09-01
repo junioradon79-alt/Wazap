@@ -166,6 +166,16 @@ builder.Services.AddHostedService<PaymentReconciliationWorker>();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
+// CORS pour le frontend React/Vite (dev : localhost:5173 ; prod : même domaine → sans objet, mais toléré)
+var corsOrigins = builder.Configuration["Cors:AllowedOrigins"]
+    ?.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? ["http://localhost:5173"];
+builder.Services.AddCors(options =>
+    options.AddPolicy("WebFrontend", policy =>
+        policy.WithOrigins(corsOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod()));
+
 // Front Blazor Server (tableau de bord administrateur)
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -183,8 +193,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseRateLimiter();
+app.UseCors("WebFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
@@ -194,6 +206,9 @@ app.MapHealthChecks("/health");
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+// SPA React (web/) servie depuis /app — fallback pour le routing client
+app.MapFallbackToFile("app/{*path:nonfile}", "app/index.html");
 
 // Les migrations sont appliquées hors démarrage (étape de déploiement dédiée) :
 //   dotnet ef database update --project src\Wazap.Infrastructure --startup-project src\Wazap.API

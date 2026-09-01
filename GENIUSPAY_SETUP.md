@@ -70,10 +70,18 @@ dotnet user-secrets set "GeniusPay:WebhookSecret" "whsec_xxxxxxxx"
 
 ### 2.5 Vérifier
 ```powershell
-# L'API doit être accessible publiquement (tunnel ngrok en dev) pour recevoir le webhook.
+# L'API doit être accessible publiquement (tunnel en dev) pour recevoir le webhook.
 # Achat : POST /api/packs/buy → response.paymentLink = page de paiement.
 # Après paiement sandbox : la transaction passe Completed + crédits ajoutés.
 ```
+
+> ✅ **E2E validé le 01/09/2026** : webhook signé envoyé via tunnel public → HTTP 200,
+> transaction `Pending → Completed`, crédits crédités (pack « Petit » : 0 → 35).
+>
+> ℹ️ **ngrok** est bloqué par Windows Defender sur cette machine (faux positif « logiciel
+> indésirable », quarantaine). Le tunnel de test utilisé est **cloudflared**
+> (`tools\cloudflared.exe`) : `cloudflared tunnel --url http://localhost:5297`
+> → URL `https://XXXX.trycloudflare.com` (change à chaque redémarrage).
 
 ## 3. Passage en production
 1. Tester en sandbox de bout en bout.

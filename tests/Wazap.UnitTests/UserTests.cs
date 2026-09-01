@@ -78,4 +78,46 @@ public class UserTests
         user.SetZone("   ");
         Assert.Null(user.Zone);
     }
+
+    [Fact]
+    public void ChangePassword_ShouldReplaceHash()
+    {
+        var user = new User("admin", "ancien_hash", UserRole.Admin);
+        user.ChangePassword("nouveau_hash");
+        Assert.Equal("nouveau_hash", user.PasswordHash);
+    }
+
+    [Fact]
+    public void ChangePassword_WithNullOrEmptyHash_ShouldThrow()
+    {
+        var user = new User("admin", "ancien_hash", UserRole.Admin);
+        Assert.Throws<ArgumentException>(() => user.ChangePassword("   "));
+    }
+
+    [Fact]
+    public void NewUser_ShouldHaveReferralCode()
+    {
+        var user = new User("vendor1", "hash", UserRole.Vendor, "+123456789");
+        Assert.NotNull(user.ReferralCode);
+        Assert.Matches("^WA-[A-Z2-9]{4}$", user.ReferralCode);
+    }
+
+    [Fact]
+    public void GenerateReferralCode_ShouldBeMostlyUnique()
+    {
+        var codes = Enumerable.Range(0, 50)
+            .Select(_ => User.GenerateReferralCode())
+            .ToHashSet();
+        // 50 codes sur ~1 M de combinaisons : quasi-unanimité attendue (seuil large pour éviter tout flaky).
+        Assert.True(codes.Count >= 48, $"Codes distincts attendus ≥ 48, obtenus {codes.Count}.");
+    }
+
+    [Fact]
+    public void SetReferral_ShouldStoreReferrer()
+    {
+        var user = new User("vendor1", "hash", UserRole.Vendor);
+        var sponsor = new User("sponsor", "hash", UserRole.Vendor);
+        user.SetReferral(sponsor.Id);
+        Assert.Equal(sponsor.Id, user.ReferredByUserId);
+    }
 }

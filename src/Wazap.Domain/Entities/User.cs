@@ -24,6 +24,10 @@ public class User
     // Packs prépayés : nombre de commandes restantes (payé à l'usage, sans abonnement)
     public int Credits { get; private set; }
 
+    // Parrainage : code promo du compte (ex : WA-XXXX) + parrain éventuel
+    public string? ReferralCode { get; private set; }
+    public Guid? ReferredByUserId { get; private set; }
+
     // Navigation : achats de crédits (vendeur)
     public ICollection<CreditTransaction> Transactions { get; } = new List<CreditTransaction>();
 
@@ -38,7 +42,30 @@ public class User
         PhoneNumber = phoneNumber;
         CreatedAt = DateTime.UtcNow;
         LocationSharingEnabled = true;
+        ReferralCode = GenerateReferralCode();
     }
+
+    /// <summary>
+    /// Génère un code de parrainage unique au format WA-XXXX.
+    /// </summary>
+    public static string GenerateReferralCode()
+    {
+        const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        Span<char> code = stackalloc char[4];
+        for (var i = 0; i < code.Length; i++)
+            code[i] = chars[Random.Shared.Next(chars.Length)];
+        return "WA-" + new string(code);
+    }
+
+    /// <summary>
+    /// Régénère le code de parrainage (utilisé si une collision est détectée en base).
+    /// </summary>
+    public void RegenerateReferralCode() => ReferralCode = GenerateReferralCode();
+
+    /// <summary>
+    /// Lie le compte à un parrain (code promo utilisé à l'inscription).
+    /// </summary>
+    public void SetReferral(Guid referrerId) => ReferredByUserId = referrerId;
 
     /// <summary>
     /// Met à jour la position GPS (live location).
@@ -51,6 +78,17 @@ public class User
     }
 
     public void SetAvailability(bool isAvailable) => IsAvailable = isAvailable;
+
+    /// <summary>
+    /// Met à jour le hash du mot de passe (changement de mot de passe du compte).
+    /// </summary>
+    public void ChangePassword(string newPasswordHash)
+    {
+        if (string.IsNullOrWhiteSpace(newPasswordHash))
+            throw new ArgumentException("Le hash du mot de passe est requis.", nameof(newPasswordHash));
+
+        PasswordHash = newPasswordHash;
+    }
 
     /// <summary>
     /// Définit la zone/quartier déclaré (matching de secours sans GPS).

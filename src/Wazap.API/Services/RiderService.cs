@@ -32,6 +32,7 @@ namespace Wazap.API.Services
                     LocationSharingEnabled = u.LocationSharingEnabled,
                     Zone = u.Zone,
                     Credits = u.Credits,
+                    ReferralCode = u.ReferralCode,
                     Latitude = u.Latitude,
                     Longitude = u.Longitude,
                     LocationUpdatedAt = u.LocationUpdatedAt
