@@ -70,6 +70,17 @@ public class OrderTests
     }
 
     [Fact]
+    public void JoinBatch_ShouldSetBatchId()
+    {
+        var order = CreateOrder();
+        var batchId = Guid.NewGuid();
+
+        order.JoinBatch(batchId);
+
+        Assert.Equal(batchId, order.BatchId);
+    }
+
+    [Fact]
     public void Cancel_WhenDelivered_ShouldThrow()
     {
         var order = CreateOrder();

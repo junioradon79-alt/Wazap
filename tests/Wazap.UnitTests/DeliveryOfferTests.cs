@@ -22,6 +22,30 @@ public class DeliveryOfferTests
     }
 
     [Fact]
+    public void CreateForBatch_ShouldLinkBatch_WithoutOrder()
+    {
+        var batchId = Guid.NewGuid();
+        var riderId = Guid.NewGuid();
+        var offer = DeliveryOffer.CreateForBatch(batchId, riderId, 1);
+
+        Assert.Null(offer.OrderId);
+        Assert.Equal(batchId, offer.BatchId);
+        Assert.Equal(riderId, offer.RiderUserId);
+        Assert.Equal(1, offer.BatchNumber);
+        Assert.Equal(DeliveryOfferStatus.Pending, offer.Status);
+        Assert.NotEqual(default, offer.SentAt);
+    }
+
+    [Fact]
+    public void Accept_PendingBatchOffer_ShouldSetAcceptedAndRespondedAt()
+    {
+        var offer = DeliveryOffer.CreateForBatch(Guid.NewGuid(), Guid.NewGuid(), 1);
+        offer.Accept();
+        Assert.Equal(DeliveryOfferStatus.Accepted, offer.Status);
+        Assert.NotNull(offer.RespondedAt);
+    }
+
+    [Fact]
     public void Accept_PendingOffer_ShouldSetAcceptedAndRespondedAt()
     {
         var offer = new DeliveryOffer(Guid.NewGuid(), Guid.NewGuid(), 1);

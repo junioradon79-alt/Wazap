@@ -149,14 +149,15 @@ public class WebhookWhatsAppController : ControllerBase
                 await _context.SaveChangesAsync();
                 _logger.LogInformation("Commande confirmée par le vendeur {Phone}.", phone);
 
-                // Broadcast initial aux livreurs (best effort).
+                // Groupage : la commande rejoint le lot ouvert du vendeur.
+                // Le broadcast du lot est déclenché par le worker quand la fenêtre est écoulée.
                 try
                 {
-                    await _deliveryOfferService.BroadcastAsync(order.Id);
+                    await _deliveryOfferService.JoinOrCreateBatchAsync(order.Id);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Broadcast impossible après confirmation de la commande {OrderId}.", order.Id);
+                    _logger.LogWarning(ex, "Groupage impossible après confirmation de la commande {OrderId}.", order.Id);
                 }
             }
             else

@@ -48,6 +48,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 var geoOptions = builder.Configuration.GetSection(GeoOptions.SectionName).Get<GeoOptions>() ?? new GeoOptions();
 builder.Services.AddSingleton(geoOptions);
 
+// Options groupage des livraisons
+var groupingOptions = builder.Configuration.GetSection(GroupingOptions.SectionName).Get<GroupingOptions>() ?? new GroupingOptions();
+builder.Services.AddSingleton(groupingOptions);
+
 // Options templates WhatsApp
 var whatsAppOptions = builder.Configuration.GetSection(WhatsAppOptions.SectionName).Get<WhatsAppOptions>() ?? new WhatsAppOptions();
 builder.Services.AddSingleton(whatsAppOptions);
