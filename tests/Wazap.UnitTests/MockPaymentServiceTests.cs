@@ -11,12 +11,13 @@ public class MockPaymentServiceTests
     {
         var service = new MockPaymentService();
 
-        var result = await service.RequestPaymentAsync(Guid.NewGuid(), "Découverte", 2500m);
+        var result = await service.RequestPaymentAsync(Guid.NewGuid(), "Découverte", 2500m, "tx-123");
 
         Assert.True(result.Success);
         Assert.NotNull(result.TransactionReference);
         Assert.Matches(new Regex(@"^PAY-\d{4}-\d{4}$"), result.TransactionReference);
         Assert.Null(result.ErrorMessage);
+        Assert.Null(result.PaymentLink);
     }
 
     [Fact]
@@ -24,8 +25,8 @@ public class MockPaymentServiceTests
     {
         var service = new MockPaymentService();
 
-        var first = await service.RequestPaymentAsync(Guid.NewGuid(), "Petit", 5000m);
-        var second = await service.RequestPaymentAsync(Guid.NewGuid(), "Petit", 5000m);
+        var first = await service.RequestPaymentAsync(Guid.NewGuid(), "Petit", 5000m, "tx-a");
+        var second = await service.RequestPaymentAsync(Guid.NewGuid(), "Petit", 5000m, "tx-b");
 
         Assert.NotEqual(first.TransactionReference, second.TransactionReference);
     }

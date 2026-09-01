@@ -51,6 +51,10 @@ builder.Services.AddSingleton(geoOptions);
 var whatsAppOptions = builder.Configuration.GetSection(WhatsAppOptions.SectionName).Get<WhatsAppOptions>() ?? new WhatsAppOptions();
 builder.Services.AddSingleton(whatsAppOptions);
 
+// Options agrégateur de paiement GeniusPay
+var geniusPayOptions = builder.Configuration.GetSection(GeniusPayOptions.SectionName).Get<GeniusPayOptions>() ?? new GeniusPayOptions();
+builder.Services.AddSingleton(geniusPayOptions);
+
 // Géocodage d'adresses (Nominatim / OpenStreetMap)
 builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>();
 
@@ -119,8 +123,11 @@ builder.Services.AddScoped<DashboardService>();
 // Packs prépayés : catalogue + achat
 builder.Services.AddScoped<PackService>();
 
-// Paiement des packs (mock pour les tests — à remplacer par le fournisseur Mobile Money)
-builder.Services.AddScoped<IPaymentService, MockPaymentService>();
+// Paiement des packs : GeniusPay si activé, sinon mock (dev/test)
+if (geniusPayOptions.Enabled)
+    builder.Services.AddHttpClient<IPaymentService, GeniusPayPaymentService>();
+else
+    builder.Services.AddScoped<IPaymentService, MockPaymentService>();
 
 // Auth : hashage de mot de passe + génération de JWT
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();

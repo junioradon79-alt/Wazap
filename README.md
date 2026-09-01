@@ -19,7 +19,7 @@
 | `OutboxMessage` | Id, Type, Payload (JSON), Status, RetryCount, CreatedAt, AvailableAt, ProcessedAt, LastError |
 | `User` | Id, Username, PasswordHash, Role, **PhoneNumber**, CreatedAt, **géoloc** (Latitude/Longitude/LocationUpdatedAt/IsAvailable/LocationSharingEnabled), **Credits** (packs prépayés) |
 | `DeliveryOffer` | Id, OrderId, RiderUserId, BatchNumber, Status (Pending/Accepted/Declined/Expired), SentAt, RespondedAt |
-| `CreditTransaction` | Id, VendorId (FK → Users), Amount, CreditsPurchased, CreatedAt, TransactionReference, Status (Pending/Completed/Failed) |
+| `CreditTransaction` | Id, VendorId (FK → Users), **PackName**, Amount, CreditsPurchased, CreatedAt, TransactionReference, Status (Pending/Completed/Failed) |
 
 - `OrderStatus` : PendingVendorConfirmation(1) → VendorConfirmed(2) → AwaitingRiderAcceptance(3) → RiderAssigned(4) → ReadyForPickup(5) → PickedUp(6) → InTransit(7) → Delivered(8) / Cancelled(9)
 - `OutboxStatus` : Pending(1), Sent(2), Failed(3)
@@ -31,6 +31,7 @@
 1. `InitialCreate` (20260831212425) — Orders, OutboxMessages, Users
 2. `AddVendorAndCreditTransaction` (20260901161922) — `Users.Credits` + `CreditTransactions` (DDL idempotent)
 3. `AddGeolocationAndDeliveryOffers` (20260901162922) — colonnes géoloc + `DeliveryOffers` (DDL idempotent)
+4. `AddPackNameToCreditTransactions` (20260901171612) — colonne `PackName` (DDL idempotent)
 
 Appliquer : `dotnet ef database update --project src\Wazap.Infrastructure --startup-project src\Wazap.API`
 
@@ -45,7 +46,7 @@ Clés stockées via `dotnet user-secrets set` :
 - `SeedAdmin:Username` = `admin`
 - `SeedAdmin:Password` = `Admin@Wazap2026` (à changer)
 
-`appsettings.json` contient le non-secret : `WhatChimp:PhoneNumberId`, `WhatChimp:BaseUrl`, `Jwt:Issuer`, `Jwt:Audience`, `Outbox:MaxRetries`, `Outbox:PollingIntervalSeconds`, `Geo` (rayon/fraîcheur/exclusivité/timeout/rétention), `Packs` (catalogue 5 packs).
+`appsettings.json` contient le non-secret : `WhatChimp:PhoneNumberId`, `WhatChimp:BaseUrl`, `Jwt:Issuer`, `Jwt:Audience`, `Outbox:MaxRetries`, `Outbox:PollingIntervalSeconds`, `Geo` (rayon/fraîcheur/exclusivité/timeout/rétention), `Packs` (catalogue 5 packs), `GeniusPay` (BaseUrl/Enabled, clés en user-secrets), `Payments:SimulateAsync` (test flux asynchrone).
 
 ## 5. Endpoints & autorisation
 
@@ -65,7 +66,8 @@ Clés stockées via `dotnet user-secrets set` :
 | `POST /api/vendors/{id}/credits/topup` | **Admin uniquement** — octroi de crédits |
 | `GET /api/vendors/{id}/transactions` | Admin, Vendor (propriétaire) — historique d'achats |
 | `GET /api/packs` | anonyme — catalogue des packs prépayés |
-| `POST /api/packs/buy` | Admin, Vendor (le vendor n'achète que pour lui) |
+| `POST /api/packs/buy` | Admin, Vendor (le vendor n'achète que pour lui) — initiation, lien de checkout si asynchrone |
+| `POST /api/webhook/geniuspay` | anonyme (signature HMAC-SHA256) — confirmation de paiement GeniusPay |
 
 ## 6. Outbox durable
 
@@ -81,6 +83,8 @@ Clés stockées via `dotnet user-secrets set` :
 - Rate limiting webhook (100/min) + auth (10/min).
 - Secrets hors du code ; migrations hors démarrage ; health check DB.
 - Top-up crédits réservé Admin ; dashboard réservé Admin ; contrôle ressource vendeur.
+- **Webhook GeniusPay vérifié** : HMAC-SHA256 (`timestamp.payload` + `whsec_…`), anti-rejeu 5 min, idempotent.
+- **Paiement packs** : GeniusPay (checkout hébergé) si activé, sinon mock (dev/test, option `Payments:SimulateAsync`).
 
 ## 8. Tests
 
