@@ -116,6 +116,9 @@ builder.Services.AddScoped<VendorService>();
 builder.Services.AddScoped<DeliveryOfferService>();
 builder.Services.AddScoped<DashboardService>();
 
+// Packs prépayés : catalogue + achat
+builder.Services.AddScoped<PackService>();
+
 // Paiement des packs (mock pour les tests — à remplacer par le fournisseur Mobile Money)
 builder.Services.AddScoped<IPaymentService, MockPaymentService>();
 

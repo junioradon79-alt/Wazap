@@ -46,6 +46,21 @@ public class CreditTransaction
         Status = TransactionStatus.Completed;
     }
 
+    /// <summary>
+    /// Complète la transaction avec la référence de paiement fournie par le fournisseur
+    /// (la référence provisoire « PENDING-… » est remplacée).
+    /// </summary>
+    public void Complete(string paymentReference)
+    {
+        if (Status == TransactionStatus.Failed)
+            throw new InvalidOperationException("Une transaction en échec ne peut pas être complétée.");
+        if (string.IsNullOrWhiteSpace(paymentReference))
+            throw new ArgumentException("La référence de paiement est requise.", nameof(paymentReference));
+
+        TransactionReference = paymentReference;
+        Status = TransactionStatus.Completed;
+    }
+
     public void MarkFailed()
     {
         if (Status == TransactionStatus.Completed)
