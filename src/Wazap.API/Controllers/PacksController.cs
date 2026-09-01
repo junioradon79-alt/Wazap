@@ -1,4 +1,5 @@
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Wazap.API.Services;
@@ -30,7 +31,7 @@ public class PacksController : ControllerBase
 
     // POST: api/packs/buy — achat d'un pack (paiement + crédits vendeur)
     [HttpPost("buy")]
-    [Authorize(Roles = "Admin,Vendor")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin,Vendor")]
     public async Task<IActionResult> Buy([FromBody] BuyPackRequest request)
     {
         var validation = await _buyValidator.ValidateAsync(request);

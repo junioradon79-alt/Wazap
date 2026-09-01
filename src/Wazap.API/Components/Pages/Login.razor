@@ -1,0 +1,51 @@
+@page "/login"
+@using System.Net.Http.Json
+@using Microsoft.AspNetCore.Authorization
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+@attribute [AllowAnonymous]
+
+<div class="geo-page" style="max-width:420px;margin:80px auto;">
+    <h1>🔐 Connexion administrateur</h1>
+
+    <label class="geo-page__label" for="username">Nom d'utilisateur</label>
+    <input id="username" class="geo-page__input" @bind="_username" autocomplete="username" />
+
+    <label class="geo-page__label" for="password">Mot de passe</label>
+    <input id="password" type="password" class="geo-page__input" @bind="_password" autocomplete="current-password" />
+
+    <div class="geo-page__actions">
+        <button class="btn btn--primary" @onclick="LoginAsync">Connexion</button>
+    </div>
+
+    @if (_error)
+    {
+        <p class="geo-page__message">❌ Identifiants invalides.</p>
+    }
+</div>
+
+@code {
+    private string _username = string.Empty;
+    private string _password = string.Empty;
+    private bool _error;
+
+    private async Task LoginAsync()
+    {
+        _error = false;
+        var url = Navigation.BaseUri.TrimEnd('/') + "/api/auth/ui/login";
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync(url, new { username = _username, password = _password });
+            if (response.IsSuccessStatusCode)
+                Navigation.NavigateTo("/", forceLoad: true);
+            else
+                _error = true;
+        }
+        catch
+        {
+            _error = true;
+        }
+    }
+}

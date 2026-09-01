@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Wazap.API.Services;
@@ -9,7 +10,7 @@ namespace Wazap.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin,Vendor")]
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin,Vendor")]
 public class VendorsController : ControllerBase
 {
     private readonly VendorService _vendorService;
@@ -45,7 +46,7 @@ public class VendorsController : ControllerBase
 
     // Top-up réservé aux administrateurs : octroyer des crédits sans paiement.
     [HttpPost("{id:guid}/credits/topup")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> TopUpCredits(Guid id, [FromBody] TopUpCreditsRequest request)
     {
         await _vendorService.TopUpCreditsAsync(id, request.Credits);

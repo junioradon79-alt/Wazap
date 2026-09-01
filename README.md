@@ -60,7 +60,9 @@ Clés stockées via `dotnet user-secrets set` :
 | `PUT /api/orders/{id}/status` | Admin, Vendor, Rider + autorisation ressource |
 | `POST /api/orders/{id}/broadcast` | Admin, Vendor — diffuse les offres aux livreurs |
 | `GET /api/orders/{id}/offers` | Admin, Vendor — offres de la commande |
-| `GET/PUT/POST /api/riders` | liste, location, availability, location-sharing (flux appareil) |
+| `GET/PUT/POST /api/riders` | Admin (liste) · Rider/Admin (location, availability, location-sharing) avec contrôle ressource |
+| `GET /` et `/share-location` | Blazor Server — dashboard **admin protégé (cookie)**, share-location livreur (login JWT) |
+| `GET /login` · `POST /api/auth/ui/login` | connexion dashboard admin (cookie) |
 | `GET /api/vendors` | Admin, Vendor (le vendor ne voit que sa fiche) |
 | `PUT /api/vendors/{id}/address` | Admin, Vendor (propriétaire) — géocodage |
 | `POST /api/vendors/{id}/credits/topup` | **Admin uniquement** — octroi de crédits |

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using FluentValidation;
@@ -30,7 +31,7 @@ public class OrdersController : ControllerBase
 
     // POST: api/orders
     [HttpPost]
-    [Authorize(Roles = "Admin,Vendor")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin,Vendor")]
     public async Task<ActionResult<Order>> CreateOrder([FromBody] CreateOrderRequest request)
     {
         var validation = await _createValidator.ValidateAsync(request);
@@ -47,7 +48,7 @@ public class OrdersController : ControllerBase
 
     // GET: api/orders/{id}
     [HttpGet("{id}")]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public async Task<ActionResult<Order>> GetOrder(Guid id)
     {
         var order = await _orderService.GetOrderAsync(id);
@@ -58,7 +59,7 @@ public class OrdersController : ControllerBase
 
     // GET: api/orders?page=1&pageSize=50
     [HttpGet]
-    [Authorize(Roles = "Admin,Vendor")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin,Vendor")]
     public async Task<ActionResult<PagedResult<OrderDto>>> GetOrders(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 50)
@@ -68,7 +69,7 @@ public class OrdersController : ControllerBase
 
     // PUT: api/orders/{id}/status
     [HttpPut("{id}/status")]
-    [Authorize(Roles = "Admin,Vendor,Rider")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin,Vendor,Rider")]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateStatusRequest request)
     {
         var validation = await _updateValidator.ValidateAsync(request);
@@ -85,13 +86,13 @@ public class OrdersController : ControllerBase
 
     // POST: api/orders/{id}/broadcast — déclenche la diffusion des offres aux livreurs
     [HttpPost("{id:guid}/broadcast")]
-    [Authorize(Roles = "Admin,Vendor")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin,Vendor")]
     public async Task<IActionResult> Broadcast(Guid id)
         => Ok(await _deliveryOfferService.BroadcastAsync(id));
 
     // GET: api/orders/{id}/offers — offres de livraison de la commande (admin / debug)
     [HttpGet("{id:guid}/offers")]
-    [Authorize(Roles = "Admin,Vendor")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin,Vendor")]
     public async Task<IActionResult> GetOffers(Guid id)
         => Ok(await _deliveryOfferService.GetOffersAsync(id));
 }

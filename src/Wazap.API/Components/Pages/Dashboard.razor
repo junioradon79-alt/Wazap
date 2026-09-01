@@ -1,6 +1,9 @@
 @page "/"
 @page "/dashboard"
+@using Microsoft.AspNetCore.Authorization
 @inject DashboardService DashboardSvc
+
+@attribute [Authorize]
 
 @if (_summary is null)
 {
