@@ -123,12 +123,23 @@ namespace Wazap.API.Services
         }
 
         /// <summary>
-        /// Offres de livraison d'une commande (admin / debug).
+        /// Offres de livraison d'une commande (admin / debug). Pour une commande groupée,
+        /// expose les offres de SON lot (les offres de lot ont OrderId = null).
         /// </summary>
         public async Task<IReadOnlyList<DeliveryOfferDto>> GetOffersAsync(Guid orderId)
         {
-            return await _context.DeliveryOffers.AsNoTracking()
-                .Where(o => o.OrderId == orderId)
+            var order = await _context.Orders.AsNoTracking()
+                .Select(o => new { o.Id, o.BatchId })
+                .FirstOrDefaultAsync(o => o.Id == orderId);
+
+            if (order is null)
+                return Array.Empty<DeliveryOfferDto>();
+
+            var query = order.BatchId is { } batchId
+                ? _context.DeliveryOffers.AsNoTracking().Where(o => o.BatchId == batchId)
+                : _context.DeliveryOffers.AsNoTracking().Where(o => o.OrderId == order.Id);
+
+            return await query
                 .OrderBy(o => o.SentAt)
                 .Select(o => new DeliveryOfferDto(
                     o.Id,
@@ -158,7 +169,10 @@ namespace Wazap.API.Services
             var openBatch = await _context.DeliveryBatches
                 .FirstOrDefaultAsync(b => b.VendorUserId == order.VendorUserId.Value
                                        && b.Status == DeliveryBatchStatus.Open
-                                       && b.CreatedAt >= windowCutoff);
+                                       && b.CreatedAt >= windowCutoff
+                                       // Un lot déjà diffusé ne doit plus accepter de commandes :
+                                       // elles ne seraient jamais proposées aux livreurs.
+                                       && !_context.DeliveryOffers.Any(o => o.BatchId == b.Id));
 
             if (openBatch is null)
             {
@@ -173,6 +187,36 @@ namespace Wazap.API.Services
                 order.Id, openBatch.Id, order.VendorUserId);
 
             return openBatch.Id;
+        }
+
+        /// <summary>
+        /// À appeler quand une commande d'un lot est annulée : si plus aucune commande
+        /// active ne reste dans le lot, celui-ci est clôturé et ses offres en attente expirées.
+        /// </summary>
+        public async Task HandleOrderCancelledInBatchAsync(Guid batchId)
+        {
+            var batch = await _context.DeliveryBatches.FirstOrDefaultAsync(b => b.Id == batchId);
+            if (batch is null || batch.Status != DeliveryBatchStatus.Open)
+                return;
+
+            var activeCount = await _context.Orders.CountAsync(o =>
+                o.BatchId == batch.Id
+                && (o.Status == OrderStatus.VendorConfirmed || o.Status == OrderStatus.AwaitingRiderAcceptance));
+
+            if (activeCount > 0)
+                return;
+
+            var pendingOffers = await _context.DeliveryOffers
+                .Where(o => o.BatchId == batch.Id && o.Status == DeliveryOfferStatus.Pending)
+                .ToListAsync();
+
+            foreach (var offer in pendingOffers)
+                offer.Expire();
+
+            batch.Cancel();
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Lot {BatchId} annulé : plus aucune commande active.", batch.Id);
         }
 
         /// <summary>
@@ -191,14 +235,19 @@ namespace Wazap.API.Services
                 .Where(o => o.BatchId == batch.Id)
                 .ToListAsync();
 
-            var confirmedOrders = orders.Where(o => o.Status == OrderStatus.VendorConfirmed).ToList();
-            if (confirmedOrders.Count == 0)
-                throw new InvalidOperationException("Aucune commande confirmée dans le lot.");
+            // Commandes actives du lot : confirmées (première vague) ou déjà en attente
+            // d'un livreur (vagues d'élargissement suivantes). Les annulées sont ignorées.
+            var activeOrders = orders
+                .Where(o => o.Status is OrderStatus.VendorConfirmed or OrderStatus.AwaitingRiderAcceptance)
+                .ToList();
 
-            foreach (var order in confirmedOrders)
+            if (activeOrders.Count == 0)
+                throw new InvalidOperationException("Aucune commande active dans le lot.");
+
+            foreach (var order in activeOrders.Where(o => o.Status == OrderStatus.VendorConfirmed))
                 order.AwaitRiderAcceptance();
 
-            var vendor = await ResolveVendorAsync(confirmedOrders[0].VendorWhatsAppNumber);
+            var vendor = await ResolveVendorAsync(activeOrders[0].VendorWhatsAppNumber);
             if (vendor?.Latitude is null || vendor.Longitude is null)
                 throw new InvalidOperationException("Position du vendeur introuvable.");
 
@@ -243,7 +292,7 @@ namespace Wazap.API.Services
                 {
                     await _orchestrator.SendBatchOfferAsync(
                         rider.PhoneNumber,
-                        confirmedOrders.Count,
+                        activeOrders.Count,
                         offer.Id.ToString("N")[..8].ToUpperInvariant());
                 }
                 catch (Exception ex)
@@ -283,6 +332,7 @@ namespace Wazap.API.Services
                 ?? throw new InvalidOperationException("Commande introuvable.");
 
             order.AssignRider(riderPhone);
+            order.LinkRider(rider.Id);
 
             var otherPending = await _context.DeliveryOffers
                 .Where(o => o.OrderId == order.Id && o.Id != offer.Id && o.Status == DeliveryOfferStatus.Pending)
@@ -309,10 +359,35 @@ namespace Wazap.API.Services
             var batch = await _context.DeliveryBatches.FirstOrDefaultAsync(b => b.Id == offer.BatchId)
                 ?? throw new InvalidOperationException("Lot introuvable.");
 
-            var orders = await _context.Orders.Where(o => o.BatchId == batch.Id).ToListAsync();
+            // Seules les commandes réellement en attente d'un livreur sont assignées.
+            // (Une commande annulée après la diffusion du lot ne doit pas bloquer l'acceptation.)
+            var orders = await _context.Orders
+                .Where(o => o.BatchId == batch.Id && o.Status == OrderStatus.AwaitingRiderAcceptance)
+                .ToListAsync();
+
+            if (orders.Count == 0)
+            {
+                // Toutes les commandes ont été annulées entre-temps : on expire les offres
+                // et on clôt le lot plutôt que de laisser une acceptation sans objet.
+                var stalePending = await _context.DeliveryOffers
+                    .Where(o => o.BatchId == batch.Id && o.Status == DeliveryOfferStatus.Pending)
+                    .ToListAsync();
+
+                foreach (var stale in stalePending)
+                    stale.Expire();
+
+                batch.Cancel();
+                await _context.SaveChangesAsync();
+
+                _logger.LogWarning("Lot {BatchId} accepté mais sans commande active : lot annulé.", batch.Id);
+                return;
+            }
 
             foreach (var order in orders)
+            {
                 order.AssignRider(riderPhone);
+                order.LinkRider(rider.Id);
+            }
 
             batch.AssignRider(rider.Id, riderPhone);
 

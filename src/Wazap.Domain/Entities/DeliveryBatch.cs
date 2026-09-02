@@ -45,7 +45,7 @@ public class DeliveryBatch
     }
 
     /// <summary>
-    /// Assigne le livreur au lot (acceptation) : toutes les commandes du lot
+    /// Assigne le livreur au lot (acceptation) : toutes les commandes actives du lot
     /// lui sont alors attribuées.
     /// </summary>
     public void AssignRider(Guid riderUserId, string riderWhatsAppNumber)
@@ -57,5 +57,16 @@ public class DeliveryBatch
         RiderWhatsAppNumber = riderWhatsAppNumber;
         AssignedAt = DateTime.UtcNow;
         _status = DeliveryBatchStatus.Assigned;
+    }
+
+    /// <summary>
+    /// Annule le lot (plus aucune commande active, ou refus global du vendeur).
+    /// </summary>
+    public void Cancel()
+    {
+        if (_status is DeliveryBatchStatus.Assigned or DeliveryBatchStatus.Cancelled)
+            throw new InvalidOperationException($"État actuel : {_status}. Impossible d'annuler le lot.");
+
+        _status = DeliveryBatchStatus.Cancelled;
     }
 }

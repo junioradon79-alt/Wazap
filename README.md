@@ -84,6 +84,7 @@ Clés stockées via `dotnet user-secrets set` :
 - Gestion globale des erreurs (`GlobalExceptionHandler`) → ProblemDetails (400/401/**402**/403/404/409/500).
 - **Pay-per-use** : création de commande réservée aux vendeurs enregistrés avec ≥ 1 crédit (402 « Crédits insuffisants »).
 - **Matching livreurs à 2 niveaux** : GPS frais (Haversine) puis **ZONE déclarée** (téléphones basiques sans GPS) — commandes WhatsApp `ZONE <quartier>`, `DISPO`, `INDISPO`, `AIDE`.
+- **Livraisons groupées fiabilisées** (validation 02/09) : un lot déjà diffusé n'accepte plus de nouvelles commandes (late-join), les vagues d'élargissement re-fonctionnent par lot, l'acceptation d'un lot ignore les commandes annulées et pose `RiderUserId`, l'annulation de la dernière commande active clôt le lot et expire ses offres. Vérifié par E2E : `scripts/e2e-batch-validation.ps1`.
 - Webhook tolérant (camelCase/snake_case, boutons, live location, ACCEPTE code court).
 - Numéros normalisés E.164 (`PhoneNumberNormalizer`, code pays par défaut `33`).
 - Hashage mots de passe PBKDF2 (100 000 itérations, sel, comparaison temps constant).
@@ -96,7 +97,7 @@ Clés stockées via `dotnet user-secrets set` :
 
 ## 8. Tests
 
-`dotnet test` → **55 tests** (Order, OutboxMessage, User, CreditTransaction, DeliveryOffer, GeoDistance, MockPayment, WhatsAppOrchestration, PhoneNumberNormalizer).
+`dotnet test` → **98 tests** (Order, DeliveryBatch, DeliveryOffer, OutboxMessage, User, CreditTransaction, GeoDistance, MockPayment, WhatsAppOrchestration, PhoneNumberNormalizer, validators, GeniusPay).
 
 ## 9. Lancer le projet
 
