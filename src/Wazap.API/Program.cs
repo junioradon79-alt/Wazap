@@ -64,6 +64,10 @@ builder.Services.AddSingleton(securityOptions);
 var trialOptions = builder.Configuration.GetSection(TrialOptions.SectionName).Get<TrialOptions>() ?? new TrialOptions();
 builder.Services.AddSingleton(trialOptions);
 
+// Options parcours acheteur (lien de suivi PWA)
+var clientOptions = builder.Configuration.GetSection(ClientOptions.SectionName).Get<ClientOptions>() ?? new ClientOptions();
+builder.Services.AddSingleton(clientOptions);
+
 // Options templates WhatsApp
 var whatsAppOptions = builder.Configuration.GetSection(WhatsAppOptions.SectionName).Get<WhatsAppOptions>() ?? new WhatsAppOptions();
 builder.Services.AddSingleton(whatsAppOptions);

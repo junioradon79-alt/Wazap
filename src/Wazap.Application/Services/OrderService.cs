@@ -47,6 +47,11 @@ public sealed class OrderService
         // Le vendeur résolu (via son numéro WhatsApp) devient propriétaire de la commande.
         order.LinkVendor(vendor.Id);
 
+        // Parcours acheteur : la commande attendra les coordonnées du client (page de suivi)
+        // avant la recherche des livreurs.
+        if (!string.IsNullOrWhiteSpace(order.ClientWhatsAppNumber))
+            order.EnableBuyerTracking();
+
         var notification = new OrderCreatedNotification(
             order.Id,
             order.ClientName,
@@ -201,17 +206,17 @@ public sealed class OrderService
 
         await _context.SaveChangesAsync();
 
-        // Confirmation via l'app : la commande rejoint le lot groupé du vendeur
-        // (le broadcast du lot est déclenché par le worker).
+        // Confirmation via l'app : routage parcours acheteur (lien au client) OU groupage
+        // classique. La diffusion des livreurs attend le routage/les coordonnées du client.
         if (request.Status == OrderStatus.VendorConfirmed)
         {
             try
             {
-                await _deliveryOfferService.JoinOrCreateBatchAsync(id);
+                await _deliveryOfferService.ConfirmAndRouteAsync(id);
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Groupage impossible après confirmation de la commande {OrderId}.", id);
+                _logger.LogWarning(ex, "Routage impossible après confirmation de la commande {OrderId}.", id);
             }
         }
         // Annulation d'une commande appartenant à un lot : clôturer le lot si aucune

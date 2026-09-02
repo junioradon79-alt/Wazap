@@ -23,6 +23,7 @@ namespace Wazap.Application.Services
         private readonly WhatsAppOptions _whatsAppOptions;
         private readonly GeoOptions _geo;
         private readonly GroupingOptions _grouping;
+        private readonly ClientOptions _client;
         private readonly WhatsAppOrchestrationService _orchestrator;
         private readonly ILogger<DeliveryOfferService> _logger;
 
@@ -32,6 +33,7 @@ namespace Wazap.Application.Services
             WhatsAppOptions whatsAppOptions,
             GeoOptions geo,
             GroupingOptions grouping,
+            ClientOptions client,
             WhatsAppOrchestrationService orchestrator,
             ILogger<DeliveryOfferService> logger)
         {
@@ -40,6 +42,7 @@ namespace Wazap.Application.Services
             _whatsAppOptions = whatsAppOptions;
             _geo = geo;
             _grouping = grouping;
+            _client = client;
             _orchestrator = orchestrator;
             _logger = logger;
         }
@@ -221,6 +224,74 @@ namespace Wazap.Application.Services
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Lot {BatchId} annulé : plus aucune commande active.", batch.Id);
+        }
+
+        /// <summary>
+        /// Routage après confirmation vendeur :
+        /// - parcours acheteur (coordonnées client attendues) → envoi du lien de suivi au
+        ///   client, PAS de diffusion (elle attendra la validation des coordonnées) ;
+        /// - sinon → groupage classique (le worker diffuse).
+        /// </summary>
+        public async Task ConfirmAndRouteAsync(Guid orderId)
+        {
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == orderId)
+                ?? throw new InvalidOperationException("Commande introuvable.");
+
+            if (!order.RequiresClientCoordinates || string.IsNullOrWhiteSpace(order.ClientWhatsAppNumber))
+            {
+                await JoinOrCreateBatchAsync(orderId);
+                return;
+            }
+
+            // Parcours acheteur : on envoie le lien de la page de suivi au client.
+            var vendor = order.VendorUserId is { } vendorId
+                ? await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == vendorId)
+                : null;
+
+            var code = order.Id.ToString("N")[..8].ToUpperInvariant();
+            var url = $"{_client.TrackingBaseUrl.TrimEnd('/')}?id={order.Id}";
+
+            try
+            {
+                await _orchestrator.SendClientTrackingLinkAsync(
+                    order.ClientWhatsAppNumber, code, vendor?.Username ?? "le vendeur", url);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Lien de suivi impossible pour {OrderId}.", order.Id);
+            }
+        }
+
+        /// <summary>
+        /// Lance la recherche des livreurs dès que le client a validé ses coordonnées
+        /// (parcours acheteur). Diffusion immédiate + notification au client.
+        /// </summary>
+        public async Task<BroadcastResultDto> DispatchConfirmedOrderAsync(Guid orderId)
+        {
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == orderId)
+                ?? throw new InvalidOperationException("Commande introuvable.");
+
+            if (order.ClientLatitude is null || order.ClientLongitude is null)
+                throw new InvalidOperationException("Coordonnées du client manquantes.");
+
+            if (order.Status != OrderStatus.VendorConfirmed)
+                throw new InvalidOperationException($"État actuel : {order.Status}. Diffusion impossible.");
+
+            var batchId = await JoinOrCreateBatchAsync(order.Id);
+            var result = await BroadcastBatchAsync(batchId);
+
+            try
+            {
+                await _orchestrator.SendDispatchStartedAsync(
+                    order.ClientWhatsAppNumber,
+                    order.Id.ToString("N")[..8].ToUpperInvariant());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Notification de lancement impossible pour {OrderId}.", order.Id);
+            }
+
+            return result;
         }
 
         /// <summary>

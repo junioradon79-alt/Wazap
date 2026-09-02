@@ -25,6 +25,13 @@ public class Order
     public DateTime? DeliveredAt { get; private set; }
     public DateTime? CancelledAt { get; private set; }
 
+    // Suivi acheteur (PWA) : la commande attend les coordonnées du client avant la
+    // recherche des livreurs. Coordonnées de livraison (client) une fois validées.
+    public bool RequiresClientCoordinates { get; private set; }
+    public double? ClientLatitude { get; private set; }
+    public double? ClientLongitude { get; private set; }
+    public string? ClientAddress { get; private set; }
+
     public OrderStatus Status
     {
         get => _status;
@@ -111,6 +118,27 @@ public class Order
     public void LinkVendor(Guid vendorUserId) => VendorUserId = vendorUserId;
 
     public void LinkRider(Guid riderUserId) => RiderUserId = riderUserId;
+
+    /// <summary>
+    /// Active le parcours acheteur : la course attendra les coordonnées du client
+    /// (validées sur la page de suivi) avant de déclencher la recherche des livreurs.
+    /// </summary>
+    public void EnableBuyerTracking() => RequiresClientCoordinates = true;
+
+    /// <summary>
+    /// Enregistre les coordonnées de livraison fournies par le client (page de suivi).
+    /// </summary>
+    public void SetClientCoordinates(double latitude, double longitude, string? address)
+    {
+        if (latitude is < -90 or > 90)
+            throw new ArgumentOutOfRangeException(nameof(latitude), "Latitude invalide.");
+        if (longitude is < -180 or > 180)
+            throw new ArgumentOutOfRangeException(nameof(longitude), "Longitude invalide.");
+
+        ClientLatitude = latitude;
+        ClientLongitude = longitude;
+        ClientAddress = string.IsNullOrWhiteSpace(address) ? null : address.Trim();
+    }
 
     /// <summary>
     /// Rattache la commande à un lot de livraison groupée (groupage par vendeur + fenêtre).
