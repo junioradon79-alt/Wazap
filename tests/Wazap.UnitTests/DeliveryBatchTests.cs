@@ -42,4 +42,41 @@ public class DeliveryBatchTests
 
         Assert.Throws<InvalidOperationException>(() => batch.AssignRider(Guid.NewGuid(), "+2250708091012"));
     }
+
+    [Fact]
+    public void Cancel_OpenBatch_ShouldSetCancelled()
+    {
+        var batch = new DeliveryBatch(Guid.NewGuid());
+
+        batch.Cancel();
+
+        Assert.Equal(DeliveryBatchStatus.Cancelled, batch.Status);
+    }
+
+    [Fact]
+    public void AssignRider_AfterCancel_ShouldThrow()
+    {
+        var batch = new DeliveryBatch(Guid.NewGuid());
+        batch.Cancel();
+
+        Assert.Throws<InvalidOperationException>(() => batch.AssignRider(Guid.NewGuid(), "+2250708091011"));
+    }
+
+    [Fact]
+    public void Cancel_AssignedBatch_ShouldThrow()
+    {
+        var batch = new DeliveryBatch(Guid.NewGuid());
+        batch.AssignRider(Guid.NewGuid(), "+2250708091011");
+
+        Assert.Throws<InvalidOperationException>(() => batch.Cancel());
+    }
+
+    [Fact]
+    public void Cancel_AlreadyCancelled_ShouldThrow()
+    {
+        var batch = new DeliveryBatch(Guid.NewGuid());
+        batch.Cancel();
+
+        Assert.Throws<InvalidOperationException>(() => batch.Cancel());
+    }
 }

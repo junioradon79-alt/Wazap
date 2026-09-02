@@ -65,7 +65,10 @@ namespace Wazap.API.Services
 
             foreach (var batch in openBatches)
             {
-                var orderCount = await db.Orders.CountAsync(o => o.BatchId == batch.Id, ct);
+                // Taille du lot = commandes actives uniquement (les annulées ne comptent pas).
+                var orderCount = await db.Orders.CountAsync(o =>
+                    o.BatchId == batch.Id
+                    && (o.Status == OrderStatus.VendorConfirmed || o.Status == OrderStatus.AwaitingRiderAcceptance), ct);
                 var ready = batch.CreatedAt <= windowCutoff || orderCount >= _grouping.MaxOrdersPerBatch;
                 if (!ready)
                     continue;

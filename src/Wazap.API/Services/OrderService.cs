@@ -201,6 +201,19 @@ public sealed class OrderService
                 _logger.LogWarning(ex, "Groupage impossible après confirmation de la commande {OrderId}.", id);
             }
         }
+        // Annulation d'une commande appartenant à un lot : clôturer le lot si aucune
+        // commande active n'y reste (et expirer ses offres en attente).
+        else if (request.Status == OrderStatus.Cancelled && order.BatchId is { } batchId)
+        {
+            try
+            {
+                await _deliveryOfferService.HandleOrderCancelledInBatchAsync(batchId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Nettoyage du lot impossible après annulation de la commande {OrderId}.", id);
+            }
+        }
 
         return true;
     }
