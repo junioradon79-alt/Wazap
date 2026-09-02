@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
 using Wazap.Application.Abstractions;
 using Wazap.Application.Configuration;
 using Wazap.Application.Dtos;
@@ -291,6 +292,19 @@ namespace Wazap.Application.Services
                 _logger.LogWarning(ex, "Notification de lancement impossible pour {OrderId}.", order.Id);
             }
 
+            // Le vendeur est notifié : coordonnées reçues, recherche lancée (best effort).
+            try
+            {
+                await _orchestrator.SendVendorDispatchStartedAsync(
+                    order.VendorWhatsAppNumber,
+                    order.Id.ToString("N")[..8].ToUpperInvariant(),
+                    order.ClientAddress);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Notification vendeur impossible pour {OrderId}.", order.Id);
+            }
+
             return result;
         }
 
@@ -431,7 +445,14 @@ namespace Wazap.Application.Services
             // Notifications post-acceptation (best effort) : client + vendeur + livreur.
             try
             {
-                await _orchestrator.SendRiderAssignedAsync(order, rider);
+                var pickupLink = vendor is { Latitude: not null, Longitude: not null }
+                    ? MapLink(vendor.Latitude.Value, vendor.Longitude.Value)
+                    : null;
+                var dropoffLink = order.ClientLatitude is { } lat && order.ClientLongitude is { } lng
+                    ? MapLink(lat, lng)
+                    : null;
+
+                await _orchestrator.SendRiderAssignedAsync(order, rider, pickupLink, dropoffLink);
             }
             catch (Exception ex)
             {
@@ -497,7 +518,11 @@ namespace Wazap.Application.Services
             // Notifications post-acceptation (best effort) : chaque client + vendeur + livreur.
             try
             {
-                await _orchestrator.SendBatchAssignedAsync(rider, orders);
+                var pickupLink = vendor is { Latitude: not null, Longitude: not null }
+                    ? MapLink(vendor.Latitude.Value, vendor.Longitude.Value)
+                    : null;
+
+                await _orchestrator.SendBatchAssignedAsync(rider, orders, pickupLink);
             }
             catch (Exception ex)
             {
@@ -548,6 +573,9 @@ namespace Wazap.Application.Services
                     vendor.Username, vendor.Credits);
             }
         }
+
+        private static string? MapLink(double latitude, double longitude)
+            => $"https://www.google.com/maps/search/?api=1&query={latitude.ToString("F6", CultureInfo.InvariantCulture)},{longitude.ToString("F6", CultureInfo.InvariantCulture)}";
 
         /// <summary>
         /// Livreurs disponibles, partage activé, position fraîche (&lt; Geo:LocationFreshnessMinutes)
