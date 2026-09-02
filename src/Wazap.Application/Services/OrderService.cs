@@ -94,7 +94,7 @@ public sealed class OrderService
 
         var order = new Order(
             "Client",
-            string.IsNullOrWhiteSpace(clientPhone) ? string.Empty : (PhoneNumberNormalizer.Normalize(clientPhone) ?? string.Empty),
+            string.IsNullOrWhiteSpace(clientPhone) ? string.Empty : clientPhone.Trim(),
             vendor.PhoneNumber ?? string.Empty,
             instruction,
             0m);
