@@ -191,10 +191,25 @@ namespace Wazap.Application.Services
                     ["3"] = firstCode
                 });
 
-            // Livreur : confirmation de la tournée groupée
+            // Livreur : confirmation de la tournée groupée + liste détaillée par client
+            var details = string.Join("\n", orders.Select(o =>
+                $"  • #{o.Id.ToString("N")[..8].ToUpperInvariant()} — {o.ClientName} : {o.Description}"));
+
             await SendTextAsync(rider,
                 $"✅ Tournée acceptée : {orders.Count} commandes à récupérer chez le vendeur.\n" +
-                "📦 Les détails de livraison vous sont remis par le vendeur au retrait.");
+                $"📋 Livraisons :\n{details}\n" +
+                "🔄 Envoyez LIVRE <code> après CHAQUE livraison effectuée.");
+        }
+
+        /// <summary>
+        /// Notifie le client que sa livraison a été effectuée (texte, best-effort).
+        /// </summary>
+        public async Task SendDeliveredNotificationAsync(Order order)
+        {
+            var orderCode = order.Id.ToString("N")[..8].ToUpperInvariant();
+            await SendStatusAsync(order.ClientWhatsAppNumber, string.Empty,
+                $"✅ Votre colis #{orderCode} a été livré. Merci d'avoir choisi WAZAP !",
+                new Dictionary<string, string>());
         }
 
         /// <summary>
