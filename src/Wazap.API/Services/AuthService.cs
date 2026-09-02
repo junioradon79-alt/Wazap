@@ -102,17 +102,17 @@ public sealed class AuthService
             await _context.SaveChangesAsync();
         }
 
-        // Bienvenue avec l'offre (best-effort, hors fenêtre 24 h l'envoi échouera silencieusement).
-        if (trialGranted && !string.IsNullOrWhiteSpace(user.PhoneNumber))
+        // Mode d'emploi post-enrôlement (best-effort) : guide en ≤ 3 étapes simples selon
+        // le rôle. Hors fenêtre 24 h (prospect jamais contacté), l'envoi échouera et sera loggé.
+        if (!string.IsNullOrWhiteSpace(user.PhoneNumber))
         {
             try
             {
-                await _whatsApp.SendTextAsync(user,
-                    $"🎁 Bienvenue chez WAZAP, {user.Username} ! Vos {trialCredits} premières commandes de livraison sont offertes pour découvrir le service. Ensuite, choisissez un pack pour continuer !");
+                await _whatsApp.SendTextAsync(user, BuildOnboardingGuide(user, trialGranted, trialCredits));
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Message de bienvenue WhatsApp impossible pour {User}.", user.Username);
+                _logger.LogWarning(ex, "Guide d'onboarding WhatsApp impossible pour {User}.", user.Username);
             }
         }
 
@@ -168,5 +168,38 @@ public sealed class AuthService
 
         user.ChangePassword(_passwordHasher.Hash(request.NewPassword));
         await _context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Guide de prise en main envoyé après un enrôlement réussi (≤ 3 étapes simples),
+    /// adapté au rôle du compte. Les crédits offerts (Trial) sont rappelés aux vendeurs.
+    /// </summary>
+    private static string BuildOnboardingGuide(User user, bool trialGranted, int trialCredits)
+    {
+        var offerLine = trialGranted
+            ? $"🎁 Vos {trialCredits} premières commandes de livraison sont offertes pour découvrir le service !\n"
+            : string.Empty;
+
+        return user.Role switch
+        {
+            UserRole.Vendor =>
+                $"🎉 Bienvenue chez WAZAP, {user.Username} !\n{offerLine}" +
+                "Mode d'emploi :\n" +
+                "1. Un client commande → vous recevez le détail sur WhatsApp\n" +
+                "2. Répondez « Confirmer » pour accepter la commande\n" +
+                "3. Préparez le colis : le livreur le plus proche est assigné\n" +
+                "📩 Envoyez AIDE pour le menu complet.",
+
+            UserRole.Rider =>
+                $"🚴 Bienvenue chez WAZAP, {user.Username} !\n" +
+                "Mode d'emploi :\n" +
+                "1. Envoyez ZONE <votre quartier> (ex : ZONE Cocody)\n" +
+                "2. Envoyez DISPO pour passer en ligne\n" +
+                "3. Répondez ACCEPTE <code> pour prendre une course\n" +
+                "📩 Envoyez AIDE pour le menu complet.",
+
+            _ =>
+                $"👋 Bienvenue chez WAZAP, {user.Username} ! Envoyez AIDE pour découvrir les services disponibles."
+        };
     }
 }
