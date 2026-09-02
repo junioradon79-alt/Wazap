@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using FluentValidation;
 using Wazap.Application.Dtos;
+using Wazap.Application.Services;
 using Wazap.Domain.Entities;
 using Wazap.API.Services;
 

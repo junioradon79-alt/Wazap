@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Wazap.Application.Configuration;
+using Wazap.Application.Services;
 using Wazap.Domain.Enums;
 using Wazap.Infrastructure.Data;
 
