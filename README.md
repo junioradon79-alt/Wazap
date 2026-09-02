@@ -87,7 +87,7 @@ Clés stockées via `dotnet user-secrets set` :
 - **Matching livreurs à 2 niveaux** : GPS frais (Haversine) puis **ZONE déclarée** (téléphones basiques sans GPS) — commandes WhatsApp `ZONE <quartier>`, `DISPO`, `INDISPO`, `AIDE`.
 - **Livraisons groupées fiabilisées** (validation 02/09) : un lot déjà diffusé n'accepte plus de nouvelles commandes (late-join), les vagues d'élargissement re-fonctionnent par lot, l'acceptation d'un lot ignore les commandes annulées et pose `RiderUserId`, l'annulation de la dernière commande active clôt le lot et expire ses offres. Vérifié par E2E : `scripts/e2e-batch-validation.ps1`.
 - Webhook tolérant (camelCase/snake_case, boutons, live location, ACCEPTE code court).
-- Numéros normalisés E.164 (`PhoneNumberNormalizer`, code pays par défaut `33`).
+- Numéros normalisés E.164 (`PhoneNumberNormalizer`, code pays par défaut `33`) **+ gestion numérotation ivoirienne** : matching `SameSubscriber` (8 derniers chiffres) pour ancienne (+225+8) vs nouvelle (+225+10) numérotation ; **auto-réparation** du numéro stocké depuis le `wa_id` reçu au webhook ; parseur webhook compatible format réel WhatChimp (`chat_id`/`user_message`).
 - Hashage mots de passe PBKDF2 (100 000 itérations, sel, comparaison temps constant).
 - Rate limiting webhook (100/min) + auth (10/min).
 - Secrets hors du code ; migrations hors démarrage ; health check DB.
