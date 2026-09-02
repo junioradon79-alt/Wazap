@@ -69,7 +69,8 @@ else
 
             var result = await response.Content.ReadFromJsonAsync<JsonElement>();
             _token = result.GetProperty("token").GetString();
-            _riderId = Guid.Parse(result.GetProperty("userId").GetString());
+            var userIdRaw = result.GetProperty("userId").GetString();
+            _riderId = Guid.TryParse(userIdRaw, out var riderId) ? riderId : null;
 
             await JS.InvokeVoidAsync("wazap.saveToken", _token);
             _message = "✅ Connecté.";
