@@ -161,6 +161,12 @@ builder.Services.AddRateLimiter(options =>
         o.Window = TimeSpan.FromMinutes(1);
         o.QueueLimit = 0;
     });
+    options.AddFixedWindowLimiter("client", o =>
+    {
+        o.PermitLimit = 60;
+        o.Window = TimeSpan.FromMinutes(1);
+        o.QueueLimit = 0;
+    });
 });
 
 // Injection du service WhatsApp avec HttpClient
