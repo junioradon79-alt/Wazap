@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Wazap.Application.Dtos;
 using Wazap.Application.Services;
 using Wazap.Domain.Entities;
-using Wazap.Domain.Enums;
 using Wazap.Infrastructure.Data;
 
 namespace Wazap.API.Services;
@@ -54,15 +53,31 @@ public sealed class OutboxBackgroundWorker : BackgroundService
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var notificationService = scope.ServiceProvider.GetRequiredService<WhatsAppOrchestrationService>();
 
-        var now = DateTime.UtcNow;
-        var messages = await context.OutboxMessages
-            .Where(m => m.Status == OutboxStatus.Pending && m.AvailableAt <= now)
-            .OrderBy(m => m.CreatedAt)
-            .Take(10)
+        // Réclamation atomique compatible multi-instances : les lignes sont verrouillées
+        // (FOR UPDATE SKIP LOCKED) jusqu'au commit — deux instances ne traitent jamais
+        // le même message en parallèle.
+        await using var transaction = await context.Database.BeginTransactionAsync(ct);
+
+        var ids = await context.Database
+            .SqlQueryRaw<Guid>("""
+                SELECT "Id" FROM "OutboxMessages"
+                WHERE "Status" = 1 AND "AvailableAt" <= NOW()
+                ORDER BY "CreatedAt"
+                LIMIT 10
+                FOR UPDATE SKIP LOCKED
+                """)
             .ToListAsync(ct);
 
-        if (messages.Count == 0)
+        if (ids.Count == 0)
+        {
+            await transaction.RollbackAsync(ct);
             return false;
+        }
+
+        var messages = await context.OutboxMessages
+            .Where(m => ids.Contains(m.Id))
+            .OrderBy(m => m.CreatedAt)
+            .ToListAsync(ct);
 
         foreach (var message in messages)
         {
@@ -88,6 +103,7 @@ public sealed class OutboxBackgroundWorker : BackgroundService
         }
 
         await context.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
         return true;
     }
 

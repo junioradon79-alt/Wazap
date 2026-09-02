@@ -36,6 +36,7 @@
 5. `AddZoneToUsers` (20260901175202) — colonne `Zone` (matching téléphones basiques, DDL idempotent)
 6. `AddReferralToUsers` (20260901194805) — `Users.ReferralCode`/`ReferredByUserId` (parrainage)
 7. `AddDeliveryBatches` (20260901215856) — table `DeliveryBatches` + `Orders.BatchId` + `DeliveryOffers.BatchId`/OrderId nullable (livraisons groupées, DDL idempotent)
+8. `AddLoginSecurity` (20260902123854) — `Users.FailedLoginAttempts`/`LockedUntilUtc` (verrouillage anti force-brute, DDL idempotent)
 
 Appliquer : `dotnet ef database update --project src\Wazap.Infrastructure --startup-project src\Wazap.API`
 
@@ -77,11 +78,11 @@ Clés stockées via `dotnet user-secrets set` :
 
 ## 6. Outbox durable
 
-`CreateOrder` écrit l'`Order` + l'`OutboxMessage` (+ décrément de crédit) dans la même transaction. `OutboxBackgroundWorker` poll (5 s, lot de 10), retry exponentiel, 5 tentatives puis `Failed`. Sémantique at-least-once.
+`CreateOrder` écrit l'`Order` + l'`OutboxMessage` (+ décrément de crédit) dans la même transaction. `OutboxBackgroundWorker` réclame les messages avec **`FOR UPDATE SKIP LOCKED`** (sûr en multi-instances), poll 5 s, lot de 10, retry exponentiel, 5 tentatives puis `Failed`. Sémantique at-least-once.
 
 ## 7. Sécurité / robustesse déjà en place
 
-- Gestion globale des erreurs (`GlobalExceptionHandler`) → ProblemDetails (400/401/**402**/403/404/409/500).
+- Gestion globale des erreurs (`GlobalExceptionHandler`) → ProblemDetails (400/401/**402**/403/404/409/**423**/500). Les **401/403** du middleware JWT renvoient aussi un corps ProblemDetails (plus de réponse vide).
 - **Pay-per-use** : création de commande réservée aux vendeurs enregistrés avec ≥ 1 crédit (402 « Crédits insuffisants »).
 - **Matching livreurs à 2 niveaux** : GPS frais (Haversine) puis **ZONE déclarée** (téléphones basiques sans GPS) — commandes WhatsApp `ZONE <quartier>`, `DISPO`, `INDISPO`, `AIDE`.
 - **Livraisons groupées fiabilisées** (validation 02/09) : un lot déjà diffusé n'accepte plus de nouvelles commandes (late-join), les vagues d'élargissement re-fonctionnent par lot, l'acceptation d'un lot ignore les commandes annulées et pose `RiderUserId`, l'annulation de la dernière commande active clôt le lot et expire ses offres. Vérifié par E2E : `scripts/e2e-batch-validation.ps1`.
@@ -91,6 +92,7 @@ Clés stockées via `dotnet user-secrets set` :
 - Rate limiting webhook (100/min) + auth (10/min).
 - Secrets hors du code ; migrations hors démarrage ; health check DB.
 - Top-up crédits réservé Admin ; dashboard réservé Admin ; contrôle ressource vendeur.
+- **Verrouillage anti force-brute** : après `Security:MaxFailedLoginAttempts` (5) échecs consécutifs, le compte est bloqué `Security:LockoutMinutes` (15 min) → **HTTP 423** avec corps ProblemDetails (migration `AddLoginSecurity`).
 - **Webhook GeniusPay vérifié** : HMAC-SHA256 (`timestamp.payload` + `whsec_…`), anti-rejeu 5 min, **montant vérifié**, idempotent.
 - **Réconciliation** : `PaymentReconciliationWorker` (5 min) complète les transactions Pending dont le webhook a été perdu.
 - **Paiement packs** : GeniusPay (checkout hébergé) si activé, sinon mock (dev/test, option `Payments:SimulateAsync`). Guide : **`GENIUSPAY_SETUP.md`**.
@@ -112,7 +114,7 @@ dotnet run --project src\Wazap.API
 
 - 403 sans corps (ajouter ProblemDetails 403 si besoin).
 - Swagger : `AddSecurityRequirement` non ajouté (API `Microsoft.OpenApi` v2).
-- Pas de refresh token, verrouillage de compte, 2FA, reset mot de passe.
+- Pas de refresh token, 2FA ni reset de mot de passe oublié (le changement de mot de passe connecté existe via `/app/account`).
 - `OrderService` encore dans la couche API (dépend du DbContext) → extraire via repository/`IApplicationDbContext`.
 - Outbox multi-instances → `SKIP LOCKED` requis.
 - Endpoints livreurs (location/availability) ouverts (flux appareil par Guid) — à sécuriser avec l'app mobile.

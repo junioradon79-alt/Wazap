@@ -120,4 +120,53 @@ public class UserTests
         user.SetReferral(sponsor.Id);
         Assert.Equal(sponsor.Id, user.ReferredByUserId);
     }
+
+    [Fact]
+    public void FailedLogins_BelowThreshold_ShouldNotLock()
+    {
+        var user = new User("vendor1", "hash", UserRole.Vendor);
+        for (var i = 0; i < 4; i++)
+            user.RegisterFailedLogin(5, TimeSpan.FromMinutes(15));
+
+        Assert.False(user.IsLocked());
+        Assert.Equal(4, user.FailedLoginAttempts);
+        Assert.Null(user.LockedUntilUtc);
+    }
+
+    [Fact]
+    public void FailedLogins_ReachingThreshold_ShouldLock()
+    {
+        var user = new User("vendor1", "hash", UserRole.Vendor);
+        for (var i = 0; i < 5; i++)
+            user.RegisterFailedLogin(5, TimeSpan.FromMinutes(15));
+
+        Assert.True(user.IsLocked());
+        Assert.NotNull(user.LockedUntilUtc);
+        Assert.Equal(0, user.FailedLoginAttempts);
+    }
+
+    [Fact]
+    public void LockedAccount_ShouldIgnoreFurtherFailures()
+    {
+        var user = new User("vendor1", "hash", UserRole.Vendor);
+        for (var i = 0; i < 5; i++)
+            user.RegisterFailedLogin(5, TimeSpan.FromMinutes(15));
+
+        user.RegisterFailedLogin(5, TimeSpan.FromMinutes(15));
+        Assert.True(user.IsLocked());
+        Assert.Equal(0, user.FailedLoginAttempts);
+    }
+
+    [Fact]
+    public void ResetLoginFailures_ShouldClearLock()
+    {
+        var user = new User("vendor1", "hash", UserRole.Vendor);
+        for (var i = 0; i < 5; i++)
+            user.RegisterFailedLogin(5, TimeSpan.FromMinutes(15));
+
+        user.ResetLoginFailures();
+        Assert.False(user.IsLocked());
+        Assert.Equal(0, user.FailedLoginAttempts);
+        Assert.Null(user.LockedUntilUtc);
+    }
 }

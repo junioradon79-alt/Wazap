@@ -12,6 +12,7 @@ using Wazap.Application.Configuration;
 using Wazap.Domain.Configuration;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.OpenApi;
@@ -52,6 +53,10 @@ builder.Services.AddSingleton(geoOptions);
 var groupingOptions = builder.Configuration.GetSection(GroupingOptions.SectionName).Get<GroupingOptions>() ?? new GroupingOptions();
 builder.Services.AddSingleton(groupingOptions);
 
+// Options sécurité des comptes (verrouillage anti force-brute)
+var securityOptions = builder.Configuration.GetSection(SecurityOptions.SectionName).Get<SecurityOptions>() ?? new SecurityOptions();
+builder.Services.AddSingleton(securityOptions);
+
 // Options templates WhatsApp
 var whatsAppOptions = builder.Configuration.GetSection(WhatsAppOptions.SectionName).Get<WhatsAppOptions>() ?? new WhatsAppOptions();
 builder.Services.AddSingleton(whatsAppOptions);
@@ -89,6 +94,34 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
+        };
+
+        // 401/403 de l'API en ProblemDetails JSON (et non un corps vide).
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = context =>
+            {
+                context.HandleResponse();
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.ContentType = "application/problem+json";
+                return context.Response.WriteAsJsonAsync(new ProblemDetails
+                {
+                    Status = StatusCodes.Status401Unauthorized,
+                    Title = "Non autorisé",
+                    Detail = "Authentification requise."
+                });
+            },
+            OnForbidden = context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                context.Response.ContentType = "application/problem+json";
+                return context.Response.WriteAsJsonAsync(new ProblemDetails
+                {
+                    Status = StatusCodes.Status403Forbidden,
+                    Title = "Accès refusé",
+                    Detail = "Vous n'avez pas les droits nécessaires pour cette ressource."
+                });
+            }
         };
     });
 
