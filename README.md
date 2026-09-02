@@ -6,9 +6,9 @@
 ## 1. Architecture (Clean Architecture pragmatique)
 
 - **Wazap.Domain** : entités + enums + invariants métier (aucune dépendance).
-- **Wazap.Application** : DTOs, ports (abstractions), services purs, validateurs, helpers, exceptions.
-- **Wazap.Infrastructure** : `ApplicationDbContext`, migrations, `WhatChimpService`, `MockPaymentService`, `PasswordHasher`.
-- **Wazap.API** : contrôleurs, services applicatifs, workers, middleware, health check, DI, Blazor (dashboard).
+- **Wazap.Application** : DTOs, ports (`IApplicationDbContext`, `IWhatsAppSender`, `IPaymentService`…), **services d'application** (`OrderService`, `DeliveryOfferService`, `WhatsAppOrchestrationService`, validators, helpers, exceptions).
+- **Wazap.Infrastructure** : `ApplicationDbContext` (implémente `IApplicationDbContext`), migrations, `WhatChimpService`, `MockPaymentService`, `PasswordHasher`.
+- **Wazap.API** : contrôleurs, workers, middleware, health check, DI, Blazor (dashboard) — **sans logique métier**.
 - **tests/Wazap.UnitTests** : xUnit.
 
 ## 2. Entités & enums
@@ -115,7 +115,7 @@ dotnet run --project src\Wazap.API
 - 403 sans corps (ajouter ProblemDetails 403 si besoin).
 - Swagger : `AddSecurityRequirement` non ajouté (API `Microsoft.OpenApi` v2).
 - Pas de refresh token, 2FA ni reset de mot de passe oublié (le changement de mot de passe connecté existe via `/app/account`).
-- `OrderService` encore dans la couche API (dépend du DbContext) → extraire via repository/`IApplicationDbContext`.
+- ~~`OrderService` dans la couche API~~ → ✅ déplacé dans `Wazap.Application` avec `DeliveryOfferService` via le port **`IApplicationDbContext`** (02/09).
 - Outbox multi-instances → `SKIP LOCKED` requis.
 - Endpoints livreurs (location/availability) ouverts (flux appareil par Guid) — à sécuriser avec l'app mobile.
 - Alertes WhatsApp crédits en **message texte** — templates approuvés requis en production.

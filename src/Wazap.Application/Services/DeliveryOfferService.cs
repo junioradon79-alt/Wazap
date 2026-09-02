@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Wazap.Application.Abstractions;
 using Wazap.Application.Configuration;
 using Wazap.Application.Dtos;
@@ -6,9 +7,8 @@ using Wazap.Application.Services;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
 using Wazap.Domain.Services;
-using Wazap.Infrastructure.Data;
 
-namespace Wazap.API.Services
+namespace Wazap.Application.Services
 {
     /// <summary>
     /// Matching des livreurs : diffusion d'offres aux plus proches, acceptation,
@@ -16,7 +16,7 @@ namespace Wazap.API.Services
     /// </summary>
     public sealed class DeliveryOfferService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IApplicationDbContext _context;
         private readonly IWhatsAppSender _whatsApp;
         private readonly WhatsAppOptions _whatsAppOptions;
         private readonly GeoOptions _geo;
@@ -25,7 +25,7 @@ namespace Wazap.API.Services
         private readonly ILogger<DeliveryOfferService> _logger;
 
         public DeliveryOfferService(
-            ApplicationDbContext context,
+            IApplicationDbContext context,
             IWhatsAppSender whatsApp,
             WhatsAppOptions whatsAppOptions,
             GeoOptions geo,

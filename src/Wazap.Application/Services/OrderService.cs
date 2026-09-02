@@ -1,27 +1,27 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Wazap.Application.Abstractions;
 using Wazap.Application.Dtos;
 using Wazap.Application.Exceptions;
 using Wazap.Application.Services;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
-using Wazap.Infrastructure.Data;
 
-namespace Wazap.API.Services;
+namespace Wazap.Application.Services;
 
 public sealed class OrderService
 {
     private const int LowCreditThreshold = 5;
 
-    private readonly ApplicationDbContext _context;
+    private readonly IApplicationDbContext _context;
     private readonly ICurrentUser _currentUser;
     private readonly WhatsAppOrchestrationService _whatsApp;
     private readonly DeliveryOfferService _deliveryOfferService;
     private readonly ILogger<OrderService> _logger;
 
     public OrderService(
-        ApplicationDbContext context,
+        IApplicationDbContext context,
         ICurrentUser currentUser,
         WhatsAppOrchestrationService whatsApp,
         DeliveryOfferService deliveryOfferService,

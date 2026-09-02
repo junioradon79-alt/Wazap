@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Wazap.Application.Abstractions;
 using Wazap.Domain.Entities;
 
 namespace Wazap.Infrastructure.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : DbContext, IApplicationDbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
