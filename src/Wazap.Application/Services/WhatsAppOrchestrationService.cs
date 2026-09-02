@@ -202,6 +202,27 @@ namespace Wazap.Application.Services
         }
 
         /// <summary>
+        /// Envoie au client le lien de la page de suivi (après acceptation du vendeur).
+        /// </summary>
+        public async Task SendClientTrackingLinkAsync(string clientPhone, string orderCode, string vendorName, string trackingUrl)
+        {
+            await SendStatusAsync(clientPhone, string.Empty,
+                $"✅ {vendorName} a accepté votre commande #{orderCode} !\n" +
+                $"Confirmez votre adresse pour lancer la livraison : {trackingUrl}",
+                new Dictionary<string, string>());
+        }
+
+        /// <summary>
+        /// Informe le client que sa livraison est lancée (un livreur est recherché).
+        /// </summary>
+        public async Task SendDispatchStartedAsync(string clientPhone, string orderCode)
+        {
+            await SendStatusAsync(clientPhone, string.Empty,
+                $"🚀 Livraison #{orderCode} lancée ! Un livreur proche est contacté, il arrive bientôt.",
+                new Dictionary<string, string>());
+        }
+
+        /// <summary>
         /// Notifie le client que sa livraison a été effectuée (texte, best-effort).
         /// </summary>
         public async Task SendDeliveredNotificationAsync(Order order)
