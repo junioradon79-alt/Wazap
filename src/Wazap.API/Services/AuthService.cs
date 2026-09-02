@@ -6,6 +6,7 @@ using Wazap.Application.Exceptions;
 using Wazap.Application.Helpers;
 using Wazap.Application.Services;
 using Wazap.Domain.Entities;
+using Wazap.Domain.Enums;
 using Wazap.Infrastructure.Data;
 
 namespace Wazap.API.Services;
@@ -17,6 +18,7 @@ public sealed class AuthService
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly WhatsAppOrchestrationService _whatsApp;
     private readonly SecurityOptions _security;
+    private readonly TrialOptions _trial;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
@@ -25,6 +27,7 @@ public sealed class AuthService
         IJwtTokenGenerator jwtTokenGenerator,
         WhatsAppOrchestrationService whatsApp,
         SecurityOptions security,
+        TrialOptions trial,
         ILogger<AuthService> logger)
     {
         _context = context;
@@ -32,6 +35,7 @@ public sealed class AuthService
         _jwtTokenGenerator = jwtTokenGenerator;
         _whatsApp = whatsApp;
         _security = security;
+        _trial = trial;
         _logger = logger;
     }
 
@@ -48,6 +52,26 @@ public sealed class AuthService
             user.RegenerateReferralCode();
 
         _context.Users.Add(user);
+
+        // Offre de découverte : N premières commandes offertes aux nouveaux vendeurs
+        // (pour découvrir la solution avant d'acheter un pack). Tracée dans l'historique.
+        var trialCredits = request.Role == UserRole.Vendor && _trial.Enabled
+            ? Math.Max(0, _trial.FreeCreditsOnRegistration)
+            : 0;
+        var trialGranted = false;
+
+        if (trialCredits > 0)
+        {
+            user.AddCredits(trialCredits);
+            _context.CreditTransactions.Add(CreditTransaction.ForFreeGrant(
+                user.Id,
+                trialCredits,
+                $"TRIAL-{user.ReferralCode}",
+                "Offre découverte - premières commandes offertes"));
+            trialGranted = true;
+            _logger.LogInformation("Offre de découverte : {Credits} crédits offerts au vendeur {Username} ({Ref}).",
+                trialCredits, user.Username, $"TRIAL-{user.ReferralCode}");
+        }
 
         // Parrainage : si un code promo est fourni, créditer le parrain (+5 crédits) et le notifier.
         if (!string.IsNullOrWhiteSpace(request.ReferralCode))
@@ -76,6 +100,20 @@ public sealed class AuthService
         else
         {
             await _context.SaveChangesAsync();
+        }
+
+        // Bienvenue avec l'offre (best-effort, hors fenêtre 24 h l'envoi échouera silencieusement).
+        if (trialGranted && !string.IsNullOrWhiteSpace(user.PhoneNumber))
+        {
+            try
+            {
+                await _whatsApp.SendTextAsync(user,
+                    $"🎁 Bienvenue chez WAZAP, {user.Username} ! Vos {trialCredits} premières commandes de livraison sont offertes pour découvrir le service. Ensuite, choisissez un pack pour continuer !");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Message de bienvenue WhatsApp impossible pour {User}.", user.Username);
+            }
         }
 
         return new UserDto(user.Id, user.Username, user.Role.ToString());

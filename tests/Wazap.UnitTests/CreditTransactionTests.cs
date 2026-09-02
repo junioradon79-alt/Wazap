@@ -122,4 +122,32 @@ public class CreditTransactionTests
         var transaction = new CreditTransaction(Guid.NewGuid(), 2500m, 15, "PENDING-abc");
         Assert.Throws<ArgumentException>(() => transaction.SetTransactionReference("  "));
     }
+
+    [Fact]
+    public void ForFreeGrant_ShouldCreateCompletedTransaction_WithZeroAmount()
+    {
+        var vendorId = Guid.NewGuid();
+        var transaction = CreditTransaction.ForFreeGrant(vendorId, 15, "TRIAL-WA-ABCD", "Offre découverte");
+
+        Assert.Equal(vendorId, transaction.VendorId);
+        Assert.Equal(15, transaction.CreditsPurchased);
+        Assert.Equal(0m, transaction.Amount);
+        Assert.Equal("TRIAL-WA-ABCD", transaction.TransactionReference);
+        Assert.Equal(TransactionStatus.Completed, transaction.Status);
+        Assert.Equal("Offre découverte", transaction.PackName);
+    }
+
+    [Fact]
+    public void ForFreeGrant_WithNonPositiveCredits_ShouldThrow()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(
+            () => CreditTransaction.ForFreeGrant(Guid.NewGuid(), 0, "TRIAL-1", "Offre découverte"));
+    }
+
+    [Fact]
+    public void ForFreeGrant_WithoutReference_ShouldThrow()
+    {
+        Assert.Throws<ArgumentException>(
+            () => CreditTransaction.ForFreeGrant(Guid.NewGuid(), 15, "  ", "Offre découverte"));
+    }
 }

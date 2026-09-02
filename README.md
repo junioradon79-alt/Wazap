@@ -96,6 +96,7 @@ Clés stockées via `dotnet user-secrets set` :
 - **Webhook GeniusPay vérifié** : HMAC-SHA256 (`timestamp.payload` + `whsec_…`), anti-rejeu 5 min, **montant vérifié**, idempotent.
 - **Réconciliation** : `PaymentReconciliationWorker` (5 min) complète les transactions Pending dont le webhook a été perdu.
 - **Paiement packs** : GeniusPay (checkout hébergé) si activé, sinon mock (dev/test, option `Payments:SimulateAsync`). Guide : **`GENIUSPAY_SETUP.md`**.
+- **Offre de découverte (Trial)** : `Trial:FreeCreditsOnRegistration` (15) commandes offertes à l'inscription de chaque nouveau vendeur (`AuthService.RegisterAsync`), tracée en `CreditTransaction` (réf `TRIAL-…`, montant 0) + message de bienvenue WhatsApp best-effort.
 
 ## 8. Tests
 

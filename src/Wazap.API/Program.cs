@@ -60,6 +60,10 @@ builder.Services.AddSingleton(groupingOptions);
 var securityOptions = builder.Configuration.GetSection(SecurityOptions.SectionName).Get<SecurityOptions>() ?? new SecurityOptions();
 builder.Services.AddSingleton(securityOptions);
 
+// Options offre de découverte (crédits offerts aux nouveaux vendeurs)
+var trialOptions = builder.Configuration.GetSection(TrialOptions.SectionName).Get<TrialOptions>() ?? new TrialOptions();
+builder.Services.AddSingleton(trialOptions);
+
 // Options templates WhatsApp
 var whatsAppOptions = builder.Configuration.GetSection(WhatsAppOptions.SectionName).Get<WhatsAppOptions>() ?? new WhatsAppOptions();
 builder.Services.AddSingleton(whatsAppOptions);
