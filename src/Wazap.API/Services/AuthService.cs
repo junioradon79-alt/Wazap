@@ -187,7 +187,7 @@ public sealed class AuthService
                 "Vos clients commandent par téléphone, Facebook ou en boutique ? " +
                 "WAZAP s'occupe de la LIVRAISON.\n" +
                 "Mode d'emploi :\n" +
-                "1. Une commande à livrer ? Demandez une course WAZAP depuis votre espace\n" +
+                "1. Une commande à livrer ? Envoyez LIVRAISON + l'adresse du client (ou passez par votre espace)\n" +
                 "2. Le livreur le plus proche vient chercher le colis chez vous\n" +
                 "3. Il livre votre client : vous suivez l'avancement sur WhatsApp\n" +
                 "📩 Envoyez AIDE pour le menu.",

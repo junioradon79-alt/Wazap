@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Wazap.API.Services;
+using Wazap.Application.Exceptions;
 using Wazap.Application.Helpers;
 using Wazap.Application.Services;
 using Wazap.Domain.Entities;
@@ -19,6 +20,7 @@ public class WebhookWhatsAppController : ControllerBase
     private readonly RiderService _riderService;
     private readonly VendorService _vendorService;
     private readonly DeliveryOfferService _deliveryOfferService;
+    private readonly OrderService _orderService;
     private readonly WhatsAppOrchestrationService _whatsApp;
     private readonly ILogger<WebhookWhatsAppController> _logger;
     private readonly string _webhookToken;
@@ -28,6 +30,7 @@ public class WebhookWhatsAppController : ControllerBase
         RiderService riderService,
         VendorService vendorService,
         DeliveryOfferService deliveryOfferService,
+        OrderService orderService,
         WhatsAppOrchestrationService whatsApp,
         ILogger<WebhookWhatsAppController> logger,
         IConfiguration config)
@@ -36,6 +39,7 @@ public class WebhookWhatsAppController : ControllerBase
         _riderService = riderService;
         _vendorService = vendorService;
         _deliveryOfferService = deliveryOfferService;
+        _orderService = orderService;
         _whatsApp = whatsApp;
         _logger = logger;
         _webhookToken = config["WhatChimp:WebhookToken"] ?? "MonTokenSecret123";
@@ -219,10 +223,50 @@ public class WebhookWhatsAppController : ControllerBase
             return true;
         }
 
+        // Livraison à la demande (vendeur) : « LIVRAISON <ce qu'il faut livrer> à <adresse client> ».
+        // Un crédit est consommé, la course est diffusée immédiatement aux livreurs proches.
+        if (user.Role == UserRole.Vendor && (upper == "LIVRAISON" || upper.StartsWith("LIVRAISON ")))
+        {
+            var instruction = command.Length > "LIVRAISON ".Length
+                ? command["LIVRAISON ".Length..].Trim()
+                : string.Empty;
+
+            if (instruction.Length < 3)
+            {
+                await ReplyAsync(user,
+                    "📦 Format : LIVRAISON <ce qu'il faut livrer> à <quartier/adresse du client>\n" +
+                    "Exemple : LIVRAISON 2 poulets à Marcory, rue Princesse");
+                return true;
+            }
+
+            try
+            {
+                var order = await _orderService.CreateDispatchRequestAsync(user.Id, instruction, null);
+                var creditsLeft = await _context.Users.AsNoTracking()
+                    .Where(u => u.Id == user.Id)
+                    .Select(u => u.Credits)
+                    .FirstOrDefaultAsync();
+
+                var code = order.Id.ToString("N")[..8].ToUpperInvariant();
+                await ReplyAsync(user,
+                    $"✅ Course #{code} enregistrée ! Un livreur proche est contacté. Crédits restants : {creditsLeft}.");
+            }
+            catch (PaymentRequiredException ex)
+            {
+                await ReplyAsync(user, "❌ " + ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                await ReplyAsync(user, "❌ " + ex.Message);
+            }
+
+            return true;
+        }
+
         if (upper is "AIDE" or "HELP" or "MENU")
         {
             var menu = user.Role == UserRole.Vendor
-                ? "📱 Menu vendeur :\n• ZONE <quartier> : votre zone de livraison\n• AIDE : ce menu\n💡 Créez vos livraisons depuis votre espace WAZAP (une course = 1 crédit)."
+                ? "📱 Menu vendeur :\n• LIVRAISON <détail + adresse client> : demander une course (1 crédit)\n• ZONE <quartier> : votre zone de livraison\n• AIDE : ce menu"
                 : "📱 Menu livreur :\n• ZONE <quartier> : définir ta zone\n• DISPO / INDISPO : en ligne / hors ligne\n• ACCEPTE <code> : accepter une course";
 
             await ReplyAsync(user, menu);

@@ -101,6 +101,46 @@ public sealed class OrderService
         }
     }
 
+    /// <summary>
+    /// Livraison à la demande : le vendeur déclenche une course (commande WhatsApp
+    /// « LIVRAISON … » ou via son espace), quel que soit le canal d'origine de la commande
+    /// (téléphone, Facebook, boutique). 1 crédit consommé, commande confirmée, jointe à un
+    /// lot puis diffusée immédiatement aux livreurs.
+    /// </summary>
+    public async Task<Order> CreateDispatchRequestAsync(Guid vendorUserId, string instruction, string? clientPhone)
+    {
+        var vendor = await _context.Users.FirstOrDefaultAsync(u => u.Id == vendorUserId && u.Role == UserRole.Vendor)
+            ?? throw new InvalidOperationException("Vendeur introuvable.");
+
+        // Le matching exige une position GPS OU une zone déclarée.
+        if ((vendor.Latitude is null || vendor.Longitude is null) && string.IsNullOrWhiteSpace(vendor.Zone))
+            throw new InvalidOperationException("Définissez d'abord votre zone : envoyez ZONE <votre quartier> (ex : ZONE Cocody).");
+
+        if (!vendor.TryConsumeCredit())
+            throw new PaymentRequiredException("Crédits insuffisants. Achetez un pack sur /api/packs.");
+
+        var order = new Order(
+            "Client",
+            string.IsNullOrWhiteSpace(clientPhone) ? string.Empty : (PhoneNumberNormalizer.Normalize(clientPhone) ?? string.Empty),
+            vendor.PhoneNumber ?? string.Empty,
+            instruction,
+            0m);
+
+        order.LinkVendor(vendor.Id);
+        order.ConfirmByVendor();
+        _context.Orders.Add(order);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Course à la demande créée pour {Vendor} ({OrderId}). Crédits restants : {Credits}.",
+            vendor.Username, order.Id, vendor.Credits);
+
+        // Groupage + diffusion immédiate : un livreur proche est contacté sans intervention.
+        var batchId = await _deliveryOfferService.JoinOrCreateBatchAsync(order.Id);
+        await _deliveryOfferService.BroadcastBatchAsync(batchId);
+
+        return order;
+    }
+
     private async Task<User?> ResolveVendorAsync(string vendorWhatsApp)
     {
         if (string.IsNullOrWhiteSpace(vendorWhatsApp)) return null;

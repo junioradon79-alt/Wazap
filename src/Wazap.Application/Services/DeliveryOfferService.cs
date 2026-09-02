@@ -64,8 +64,10 @@ namespace Wazap.Application.Services
                 order.AwaitRiderAcceptance();
 
             var vendor = await ResolveVendorAsync(order.VendorWhatsAppNumber);
-            if (vendor?.Latitude is null || vendor.Longitude is null)
-                throw new InvalidOperationException("Position du vendeur introuvable.");
+            if (vendor is null)
+                throw new InvalidOperationException("Vendeur introuvable.");
+            if ((vendor.Latitude is null || vendor.Longitude is null) && string.IsNullOrWhiteSpace(vendor.Zone))
+                throw new InvalidOperationException("Le vendeur n'a ni position GPS ni zone déclarée.");
 
             // Expirer la vague précédente en attente.
             var previousPending = await _context.DeliveryOffers
@@ -249,8 +251,12 @@ namespace Wazap.Application.Services
                 order.AwaitRiderAcceptance();
 
             var vendor = await ResolveVendorAsync(activeOrders[0].VendorWhatsAppNumber);
-            if (vendor?.Latitude is null || vendor.Longitude is null)
-                throw new InvalidOperationException("Position du vendeur introuvable.");
+            if (vendor is null)
+                throw new InvalidOperationException("Vendeur introuvable.");
+
+            // Le matching exige une position GPS OU une zone déclarée (livraison à la demande).
+            if ((vendor.Latitude is null || vendor.Longitude is null) && string.IsNullOrWhiteSpace(vendor.Zone))
+                throw new InvalidOperationException("Le vendeur n'a ni position GPS ni zone déclarée.");
 
             // Expirer la vague précédente en attente.
             var previousPending = await _context.DeliveryOffers
@@ -428,36 +434,41 @@ namespace Wazap.Application.Services
                 .FirstOrDefaultAsync(u => u.Id == vendorUserId)
                 ?? throw new InvalidOperationException("Vendeur introuvable.");
 
-            if (vendor.Latitude is null || vendor.Longitude is null)
-                throw new InvalidOperationException("Le vendeur n'a pas de position.");
+            // Position GPS OU zone déclarée exigées (livraison à la demande, téléphones basiques).
+            if ((vendor.Latitude is null || vendor.Longitude is null) && string.IsNullOrWhiteSpace(vendor.Zone))
+                throw new InvalidOperationException("Le vendeur n'a ni position GPS ni zone déclarée.");
 
             var freshnessThreshold = DateTime.UtcNow.AddMinutes(-_geo.LocationFreshnessMinutes);
 
-            var riders = await _context.Users.AsNoTracking()
-                .Where(u => u.Role == UserRole.Rider
-                         && u.IsAvailable
-                         && u.LocationSharingEnabled
-                         && u.Latitude != null
-                         && u.Longitude != null
-                         && u.LocationUpdatedAt >= freshnessThreshold)
-                .Select(u => new { u.Id, u.Latitude, u.Longitude })
-                .ToListAsync();
-
             var exclude = excludeRiderIds?.ToHashSet() ?? new HashSet<Guid>();
+            var byGps = new List<NearestRiderDto>();
 
-            var byGps = riders
-                .Where(r => !exclude.Contains(r.Id))
-                .Select(r => new NearestRiderDto(
-                    r.Id,
-                    GeoDistance.DistanceKm(
-                        vendor.Latitude.Value,
-                        vendor.Longitude.Value,
-                        r.Latitude.GetValueOrDefault(),
-                        r.Longitude.GetValueOrDefault())))
-                .Where(x => x.DistanceKm <= _geo.MaxDistanceKm)
-                .OrderBy(x => x.DistanceKm)
-                .Take(count)
-                .ToList();
+            // Tier 1 — GPS (Haversine) : uniquement si le vendeur a une position.
+            if (vendor.Latitude is not null && vendor.Longitude is not null)
+            {
+                var riders = await _context.Users.AsNoTracking()
+                    .Where(u => u.Role == UserRole.Rider
+                             && u.IsAvailable
+                             && u.LocationSharingEnabled
+                             && u.Latitude != null
+                             && u.Longitude != null
+                             && u.LocationUpdatedAt >= freshnessThreshold)
+                    .Select(u => new { u.Id, u.Latitude, u.Longitude })
+                    .ToListAsync();
+
+                byGps.AddRange(riders
+                    .Where(r => !exclude.Contains(r.Id))
+                    .Select(r => new NearestRiderDto(
+                        r.Id,
+                        GeoDistance.DistanceKm(
+                            vendor.Latitude.Value,
+                            vendor.Longitude.Value,
+                            r.Latitude.GetValueOrDefault(),
+                            r.Longitude.GetValueOrDefault())))
+                    .Where(x => x.DistanceKm <= _geo.MaxDistanceKm)
+                    .OrderBy(x => x.DistanceKm)
+                    .Take(count));
+            }
 
             // Tier 2 (téléphones basiques sans GPS) : compléter avec les livreurs
             // dont la ZONE déclarée correspond à celle du vendeur.
