@@ -51,7 +51,7 @@ Clés stockées via `dotnet user-secrets set` :
 - `SeedAdmin:Username` = `admin`
 - `SeedAdmin:Password` = `Admin@Wazap2026` (à changer)
 
-`appsettings.json` contient le non-secret : `WhatChimp:PhoneNumberId`, `WhatChimp:BaseUrl`, `Jwt:Issuer`, `Jwt:Audience`, `Outbox:MaxRetries`, `Outbox:PollingIntervalSeconds`, `Geo` (rayon/fraîcheur/exclusivité/timeout/rétention), `Packs` (catalogue 5 packs), `GeniusPay` (BaseUrl/Enabled, clés en user-secrets), `Payments:SimulateAsync` (test flux asynchrone).
+`appsettings.json` contient le non-secret : `WhatChimp:PhoneNumberId`, `WhatChimp:BaseUrl`, `Jwt:Issuer`, `Jwt:Audience`, `Outbox:MaxRetries`, `Outbox:PollingIntervalSeconds`, `Geo` (rayon/fraîcheur/exclusivité/timeout/rétention), `Packs` (catalogue 6 packs : Mini 1000 F/6 · Découverte 2500/15 · Petit 5000/35 · Moyen 10000/80 · Grand 25000/220 · Pro 100000/1000), `GeniusPay` (BaseUrl/Enabled, clés en user-secrets), `Payments:SimulateAsync` (test flux asynchrone).
 
 ## 5. Endpoints & autorisation
 
@@ -96,7 +96,8 @@ Clés stockées via `dotnet user-secrets set` :
 - **Webhook GeniusPay vérifié** : HMAC-SHA256 (`timestamp.payload` + `whsec_…`), anti-rejeu 5 min, **montant vérifié**, idempotent.
 - **Réconciliation** : `PaymentReconciliationWorker` (5 min) complète les transactions Pending dont le webhook a été perdu.
 - **Paiement packs** : GeniusPay (checkout hébergé) si activé, sinon mock (dev/test, option `Payments:SimulateAsync`). Guide : **`GENIUSPAY_SETUP.md`**.
-- **Offre de découverte (Trial)** : `Trial:FreeCreditsOnRegistration` (15) commandes offertes à l'inscription de chaque nouveau vendeur (`AuthService.RegisterAsync`), tracée en `CreditTransaction` (réf `TRIAL-…`, montant 0) + message de bienvenue WhatsApp best-effort.
+- **Offre de découverte (Trial)** : `Trial:FreeCreditsOnRegistration` (15) commandes offertes à l'inscription de chaque nouveau vendeur (`AuthService.RegisterAsync`), tracée en `CreditTransaction` (réf `TRIAL-…`, montant 0).
+- **Guide d'onboarding WhatsApp** : après tout enrôlement réussi (vendeur/livreur/autre), envoi best-effort d'un mode d'emploi en **≤ 3 étapes simples** adapté au rôle (`BuildOnboardingGuide`).
 
 ## 8. Tests
 
