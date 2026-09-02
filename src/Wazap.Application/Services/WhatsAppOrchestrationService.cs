@@ -123,8 +123,14 @@ namespace Wazap.Application.Services
 
         /// <summary>
         /// Notifie le client, le vendeur et le livreur après l'acceptation d'une course simple.
+        /// <paramref name="vendorPickupLink"/> / <paramref name="dropoffLink"/> = liens Google Maps
+        /// (retrait chez le vendeur / livraison chez le client) quand les coordonnées existent.
         /// </summary>
-        public async Task SendRiderAssignedAsync(Order order, User rider)
+        public async Task SendRiderAssignedAsync(
+            Order order,
+            User rider,
+            string? vendorPickupLink = null,
+            string? dropoffLink = null)
         {
             var orderCode = order.Id.ToString("N")[..8].ToUpperInvariant();
             var riderName = rider.Username;
@@ -148,18 +154,26 @@ namespace Wazap.Application.Services
                     ["3"] = orderCode
                 });
 
-            // Livreur : confirmation de course + détails de livraison
-            await SendTextAsync(rider,
-                $"✅ Course acceptée #{orderCode}.\n" +
-                $"📦 À livrer : {order.Description}\n" +
-                "📍 Retrait chez le vendeur.");
+            // Livreur : confirmation de course + détails + liens cartographiques
+            var riderText = $"✅ Course acceptée #{orderCode}.\n" +
+                            $"📦 À livrer : {order.Description}\n" +
+                            "📍 Retrait chez le vendeur.";
+
+            if (!string.IsNullOrWhiteSpace(vendorPickupLink))
+                riderText += $"\n🗺️ Retrait : {vendorPickupLink}";
+
+            if (!string.IsNullOrWhiteSpace(dropoffLink))
+                riderText += $"\n🗺️ Client : {dropoffLink}";
+
+            await SendTextAsync(rider, riderText);
         }
 
         /// <summary>
         /// Notifie chaque client, le vendeur (une seule fois) et le livreur après
-        /// l'acceptation d'un lot de livraison groupée.
+        /// l'acceptation d'un lot de livraison groupée. Liens Google Maps ajoutés
+        /// quand les coordonnées (client / vendeur) existent.
         /// </summary>
-        public async Task SendBatchAssignedAsync(User rider, IReadOnlyList<Order> orders)
+        public async Task SendBatchAssignedAsync(User rider, IReadOnlyList<Order> orders, string? vendorPickupLink = null)
         {
             if (orders.Count == 0)
                 return;
@@ -193,12 +207,28 @@ namespace Wazap.Application.Services
 
             // Livreur : confirmation de la tournée groupée + liste détaillée par client
             var details = string.Join("\n", orders.Select(o =>
-                $"  • #{o.Id.ToString("N")[..8].ToUpperInvariant()} — {o.ClientName} : {o.Description}"));
+            {
+                var line = $"  • #{o.Id.ToString("N")[..8].ToUpperInvariant()} — {o.ClientName} : {o.Description}";
+                var link = ClientMapLink(o);
+                return link is null ? line : $"{line}\n     🗺️ {link}";
+            }));
 
-            await SendTextAsync(rider,
-                $"✅ Tournée acceptée : {orders.Count} commandes à récupérer chez le vendeur.\n" +
-                $"📋 Livraisons :\n{details}\n" +
-                "🔄 Envoyez LIVRE <code> après CHAQUE livraison effectuée.");
+            var tourText = $"✅ Tournée acceptée : {orders.Count} commandes à récupérer chez le vendeur.\n" +
+                           $"📋 Livraisons :\n{details}\n" +
+                           "🔄 Envoyez LIVRE <code> après CHAQUE livraison effectuée.";
+
+            if (!string.IsNullOrWhiteSpace(vendorPickupLink))
+                tourText += $"\n📍 Retrait : {vendorPickupLink}";
+
+            await SendTextAsync(rider, tourText);
+        }
+
+        private static string? ClientMapLink(Order order)
+        {
+            if (order.ClientLatitude is not { } lat || order.ClientLongitude is not { } lng)
+                return null;
+
+            return $"https://www.google.com/maps/search/?api=1&query={lat.ToString("F6", System.Globalization.CultureInfo.InvariantCulture)},{lng.ToString("F6", System.Globalization.CultureInfo.InvariantCulture)}";
         }
 
         /// <summary>
@@ -219,6 +249,19 @@ namespace Wazap.Application.Services
         {
             await SendStatusAsync(clientPhone, string.Empty,
                 $"🚀 Livraison #{orderCode} lancée ! Un livreur proche est contacté, il arrive bientôt.",
+                new Dictionary<string, string>());
+        }
+
+        /// <summary>
+        /// Notifie le vendeur que le client a validé ses coordonnées et que la recherche
+        /// des livreurs est lancée.
+        /// </summary>
+        public async Task SendVendorDispatchStartedAsync(string vendorPhone, string orderCode, string? clientAddress)
+        {
+            await SendStatusAsync(vendorPhone, string.Empty,
+                $"✅ Coordonnées du client reçues pour la commande #{orderCode}" +
+                (string.IsNullOrWhiteSpace(clientAddress) ? string.Empty : $" ({clientAddress})") +
+                ". Recherche d'un livreur lancée !",
                 new Dictionary<string, string>());
         }
 
