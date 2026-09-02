@@ -16,6 +16,7 @@ namespace Wazap.Infrastructure.Data
         public DbSet<DeliveryOffer> DeliveryOffers { get; set; }
         public DbSet<DeliveryBatch> DeliveryBatches { get; set; }
         public DbSet<CreditTransaction> CreditTransactions { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -103,6 +104,13 @@ namespace Wazap.Infrastructure.Data
                 .WithMany(u => u.Transactions)
                 .HasForeignKey(t => t.VendorId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<RefreshToken>()
+                .Property(r => r.TokenHash)
+                .HasMaxLength(64);
+
+            modelBuilder.Entity<RefreshToken>()
+                .HasIndex(r => r.UserId);
         }
     }
 }
