@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Wazap.Application.Abstractions;
 using Wazap.Application.Configuration;
 using Wazap.Application.Dtos;
+using Wazap.Application.Helpers;
 using Wazap.Application.Services;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
@@ -486,16 +487,16 @@ namespace Wazap.Application.Services
 
         private async Task<User?> ResolveVendorAsync(string vendorWhatsApp)
         {
-            var normalized = Normalize(vendorWhatsApp);
+            if (string.IsNullOrWhiteSpace(vendorWhatsApp))
+                return null;
+
             var vendors = await _context.Users.AsNoTracking()
                 .Where(u => u.Role == UserRole.Vendor && u.PhoneNumber != null)
                 .ToListAsync();
 
-            return vendors.FirstOrDefault(v => Normalize(v.PhoneNumber) == normalized);
+            return vendors.FirstOrDefault(v =>
+                PhoneNumberNormalizer.SameSubscriber(v.PhoneNumber, vendorWhatsApp));
         }
-
-        private static string Normalize(string? phone)
-            => new string((phone ?? string.Empty).Where(char.IsDigit).ToArray());
     }
 }
 
