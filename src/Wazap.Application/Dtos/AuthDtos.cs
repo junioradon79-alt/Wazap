@@ -17,7 +17,33 @@ public class LoginRequest
     public string Password { get; set; } = default!;
 }
 
-public sealed record AuthResponse(Guid UserId, string Token, string Username, string Role);
+public sealed record AuthResponse(
+    Guid UserId,
+    string? Token,
+    string Username,
+    string Role,
+    bool MfaRequired = false,
+    string? RefreshToken = null);
+
+public sealed record RefreshRequest(string RefreshToken);
+
+public sealed class ForgotPasswordRequest
+{
+    public string PhoneNumber { get; set; } = default!;
+}
+
+public sealed class ResetPasswordRequest
+{
+    public string PhoneNumber { get; set; } = default!;
+    public string Code { get; set; } = default!;
+    public string NewPassword { get; set; } = default!;
+}
+
+public sealed record TwoFactorVerifyRequest(string Username, string Password, string Code);
+
+public sealed record EnableTwoFactorRequest(string Code, string Secret);
+
+public sealed record DisableTwoFactorRequest(string Code);
 
 public sealed record UserDto(Guid Id, string Username, string Role);
 

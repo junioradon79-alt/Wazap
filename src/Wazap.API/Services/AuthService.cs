@@ -151,8 +151,11 @@ public sealed class AuthService
             await _context.SaveChangesAsync();
         }
 
-        var token = _jwtTokenGenerator.Generate(user);
-        return new AuthResponse(user.Id, token, user.Username, user.Role.ToString());
+        // 2FA activée : on demande le code avant de délivrer les jetons.
+        if (user.TwoFactorEnabled)
+            return new AuthResponse(user.Id, null, user.Username, user.Role.ToString(), MfaRequired: true);
+
+        return await IssueAuthAsync(user);
     }
 
     /// <summary>
@@ -168,6 +171,191 @@ public sealed class AuthService
 
         user.ChangePassword(_passwordHasher.Hash(request.NewPassword));
         await _context.SaveChangesAsync();
+    }
+
+    /// <summary>Émet le couple (access JWT 8 h + refresh token 30 j, stocké hashé).</summary>
+    private async Task<AuthResponse> IssueAuthAsync(User user)
+    {
+        var access = _jwtTokenGenerator.Generate(user);
+        var rawRefresh = SecurityHelper.GenerateOpaqueToken();
+        var refresh = new RefreshToken(user.Id, SecurityHelper.Sha256Hex(rawRefresh), DateTime.UtcNow.AddDays(30));
+        _context.RefreshTokens.Add(refresh);
+        await _context.SaveChangesAsync();
+
+        return new AuthResponse(user.Id, access, user.Username, user.Role.ToString(), RefreshToken: rawRefresh);
+    }
+
+    /// <summary>Rafraîchit la session : rotation du refresh token (l'ancien est révoqué).</summary>
+    public async Task<AuthResponse> RefreshAsync(string? refreshToken)
+    {
+        if (string.IsNullOrWhiteSpace(refreshToken))
+            throw new UnauthorizedAccessException("Refresh token manquant.");
+
+        var hash = SecurityHelper.Sha256Hex(refreshToken);
+        var stored = await _context.RefreshTokens.FirstOrDefaultAsync(r => r.TokenHash == hash)
+            ?? throw new UnauthorizedAccessException("Session expirée.");
+
+        if (!stored.IsActive)
+            throw new UnauthorizedAccessException("Session expirée ou révoquée.");
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == stored.UserId)
+            ?? throw new UnauthorizedAccessException("Utilisateur introuvable.");
+
+        stored.Revoke();
+        await _context.SaveChangesAsync();
+
+        var pair = await IssueAuthAsync(user);
+        stored.Revoke(SecurityHelper.Sha256Hex(pair.RefreshToken!));
+        await _context.SaveChangesAsync();
+
+        return pair;
+    }
+
+    /// <summary>Révoque un refresh token (déconnexion).</summary>
+    public async Task LogoutAsync(string? refreshToken)
+    {
+        if (string.IsNullOrWhiteSpace(refreshToken)) return;
+
+        var hash = SecurityHelper.Sha256Hex(refreshToken);
+        var stored = await _context.RefreshTokens.FirstOrDefaultAsync(r => r.TokenHash == hash);
+        if (stored is not null)
+        {
+            stored.Revoke();
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    /// <summary>
+    /// Demande de réinitialisation du mot de passe : code à 6 chiffres envoyé par WhatsApp
+    /// (best-effort). Toujours 200 (pas d'énumération de numéros).
+    /// </summary>
+    public async Task RequestPasswordResetAsync(string? phoneNumber)
+    {
+        var user = await FindUserByPhoneAnyRoleAsync(phoneNumber);
+        if (user is null) return;
+
+        var code = SecurityHelper.GenerateNumericCode();
+        user.SetResetCode(SecurityHelper.Sha256Hex(code), DateTime.UtcNow.AddMinutes(15));
+        await _context.SaveChangesAsync();
+
+        try
+        {
+            await _whatsApp.SendTextAsync(user, $"🔐 Code de réinitialisation WAZAP : {code} (valable 15 minutes).");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Envoi du code de réinitialisation impossible pour {User}.", user.Username);
+        }
+    }
+
+    /// <summary>Valide le code reçu puis change le mot de passe.</summary>
+    public async Task ResetPasswordAsync(ResetPasswordRequest request)
+    {
+        var user = await FindUserByPhoneAnyRoleAsync(request.PhoneNumber)
+            ?? throw new InvalidOperationException("Aucun compte associé à ce numéro.");
+
+        if (!user.HasActiveResetCode()
+            || user.ResetCodeHash is null
+            || !SecurityHelper.FixedTimeEquals(user.ResetCodeHash, SecurityHelper.Sha256Hex(request.Code.Trim())))
+        {
+            throw new InvalidOperationException("Code invalide ou expiré.");
+        }
+
+        if (request.NewPassword.Length < 8)
+            throw new ArgumentException("Le nouveau mot de passe doit contenir au moins 8 caractères.");
+
+        user.ChangePassword(_passwordHasher.Hash(request.NewPassword));
+        user.ClearResetCode();
+        user.ResetLoginFailures();
+        await _context.SaveChangesAsync();
+        await RevokeAllRefreshTokensAsync(user.Id);
+    }
+
+    /// <summary>Étape 2 d'un login 2FA : vérifie le code TOTP puis émet les jetons.</summary>
+    public async Task<AuthResponse> VerifyTwoFactorAsync(TwoFactorVerifyRequest request)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username)
+            ?? throw new UnauthorizedAccessException("Identifiants invalides.");
+
+        if (!_passwordHasher.Verify(request.Password, user.PasswordHash))
+            throw new UnauthorizedAccessException("Identifiants invalides.");
+
+        if (!user.TwoFactorEnabled || string.IsNullOrWhiteSpace(user.TwoFactorSecret))
+            throw new UnauthorizedAccessException("La double authentification n'est pas active.");
+
+        if (!Totp.Verify(user.TwoFactorSecret, request.Code))
+            throw new UnauthorizedAccessException("Code de validation invalide.");
+
+        if (user.FailedLoginAttempts != 0 || user.LockedUntilUtc is not null)
+        {
+            user.ResetLoginFailures();
+            await _context.SaveChangesAsync();
+        }
+
+        return await IssueAuthAsync(user);
+    }
+
+    /// <summary>Prépare la 2FA : génère un secret TOTP (non encore activé).</summary>
+    public async Task<(string Secret, string OtpauthUri)> SetupTwoFactorAsync(Guid userId)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId)
+            ?? throw new InvalidOperationException("Utilisateur introuvable.");
+
+        var secret = Totp.GenerateSecret();
+        return (secret, Totp.BuildOtpauthUri("WAZAP", user.Username, secret));
+    }
+
+    /// <summary>Active la 2FA après vérification du premier code.</summary>
+    public async Task EnableTwoFactorAsync(Guid userId, string code, string secret)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId)
+            ?? throw new InvalidOperationException("Utilisateur introuvable.");
+
+        if (!Totp.Verify(secret, code))
+            throw new InvalidOperationException("Code de validation invalide.");
+
+        user.EnableTwoFactor(secret);
+        await _context.SaveChangesAsync();
+    }
+
+    /// <summary>Désactive la 2FA (vérification du code requise).</summary>
+    public async Task DisableTwoFactorAsync(Guid userId, string code)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId)
+            ?? throw new InvalidOperationException("Utilisateur introuvable.");
+
+        if (!user.TwoFactorEnabled || string.IsNullOrWhiteSpace(user.TwoFactorSecret))
+            throw new InvalidOperationException("La double authentification n'est pas active.");
+
+        if (!Totp.Verify(user.TwoFactorSecret, code))
+            throw new InvalidOperationException("Code de validation invalide.");
+
+        user.DisableTwoFactor();
+        await _context.SaveChangesAsync();
+    }
+
+    private async Task RevokeAllRefreshTokensAsync(Guid userId)
+    {
+        var active = await _context.RefreshTokens
+            .Where(r => r.UserId == userId && r.RevokedAtUtc == null)
+            .ToListAsync();
+
+        if (active.Count == 0) return;
+
+        foreach (var token in active) token.Revoke();
+        await _context.SaveChangesAsync();
+    }
+
+    private async Task<User?> FindUserByPhoneAnyRoleAsync(string? phoneNumber)
+    {
+        if (string.IsNullOrWhiteSpace(phoneNumber)) return null;
+
+        var users = await _context.Users.AsNoTracking()
+            .Where(u => u.PhoneNumber != null)
+            .ToListAsync();
+
+        return users.FirstOrDefault(u =>
+            PhoneNumberNormalizer.SameSubscriber(u.PhoneNumber, phoneNumber));
     }
 
     /// <summary>

@@ -119,7 +119,9 @@ dotnet run --project src\Wazap.API
 
 - 403 sans corps (ajouter ProblemDetails 403 si besoin).
 - Swagger : `AddSecurityRequirement` non ajouté (API `Microsoft.OpenApi` v2).
-- Pas de refresh token, 2FA ni reset de mot de passe oublié (le changement de mot de passe connecté existe via `/app/account`).
+- **Refresh token (rotation)** : couple access JWT 8 h + refresh 30 j stocké **hashé** (table `RefreshTokens`, migration `AddAuthSecurity`) ; rotation + révocation (anti-rejeu) ; `POST /api/auth/refresh`, `/logout`.
+- **2FA TOTP optionnelle** (app d'authentification) : `POST /api/auth/2fa/setup|enable|disable` + étape `/2fa/verify` au login (`mfaRequired`). **Désactivée par défaut**.
+- **Reset de mot de passe oublié** : `POST /api/auth/forgot-password` → code 6 chiffres par WhatsApp (15 min) ; `POST /api/auth/reset-password`.
 - ~~`OrderService` dans la couche API~~ → ✅ déplacé dans `Wazap.Application` avec `DeliveryOfferService` via le port **`IApplicationDbContext`** (02/09).
 - Outbox multi-instances → `SKIP LOCKED` requis.
 - Endpoints livreurs (location/availability) ouverts (flux appareil par Guid) — à sécuriser avec l'app mobile.

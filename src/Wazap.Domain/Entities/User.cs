@@ -32,6 +32,12 @@ public class User
     public int FailedLoginAttempts { get; private set; }
     public DateTime? LockedUntilUtc { get; private set; }
 
+    // Authentification renforcée : 2FA (TOTP) et code de réinitialisation de mot de passe
+    public bool TwoFactorEnabled { get; private set; }
+    public string? TwoFactorSecret { get; private set; }
+    public string? ResetCodeHash { get; private set; }
+    public DateTime? ResetCodeExpiresAtUtc { get; private set; }
+
     // Navigation : achats de crédits (vendeur)
     public ICollection<CreditTransaction> Transactions { get; } = new List<CreditTransaction>();
 
@@ -97,6 +103,46 @@ public class User
     {
         FailedLoginAttempts = 0;
         LockedUntilUtc = null;
+    }
+
+    /// <summary>Active la 2FA (TOTP) avec le secret déjà validé par l'utilisateur.</summary>
+    public void EnableTwoFactor(string secret)
+    {
+        if (string.IsNullOrWhiteSpace(secret))
+            throw new ArgumentException("Le secret 2FA est requis.", nameof(secret));
+
+        TwoFactorSecret = secret;
+        TwoFactorEnabled = true;
+    }
+
+    /// <summary>Désactive la 2FA.</summary>
+    public void DisableTwoFactor()
+    {
+        TwoFactorEnabled = false;
+        TwoFactorSecret = null;
+    }
+
+    /// <summary>Enregistre un code de réinitialisation (hashé) avec sa date d'expiration.</summary>
+    public void SetResetCode(string codeHash, DateTime expiresAtUtc)
+    {
+        if (string.IsNullOrWhiteSpace(codeHash))
+            throw new ArgumentException("Le hash du code est requis.", nameof(codeHash));
+
+        ResetCodeHash = codeHash;
+        ResetCodeExpiresAtUtc = expiresAtUtc;
+    }
+
+    /// <summary>Un code de réinitialisation est-il actif à cet instant ?</summary>
+    public bool HasActiveResetCode()
+        => ResetCodeHash is not null
+           && ResetCodeExpiresAtUtc is { } expiry
+           && expiry > DateTime.UtcNow;
+
+    /// <summary>Consomme (efface) le code de réinitialisation après usage.</summary>
+    public void ClearResetCode()
+    {
+        ResetCodeHash = null;
+        ResetCodeExpiresAtUtc = null;
     }
 
     /// <summary>
