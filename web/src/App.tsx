@@ -10,6 +10,7 @@ import VendorsPage from './pages/VendorsPage'
 import RidersPage from './pages/RidersPage'
 import OrdersPage from './pages/OrdersPage'
 import AccountPage from './pages/AccountPage'
+import SuiviPage from './pages/SuiviPage'
 
 function Protected({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
@@ -23,6 +24,8 @@ export default function App() {
 
   return (
     <Routes>
+      {/* Page publique de suivi acheteur (aucune authentification) */}
+      <Route path="/suivi/:id" element={<SuiviPage />} />
       <Route
         path="/login"
         element={user ? <Navigate to="/" replace /> : <LoginPage />}
