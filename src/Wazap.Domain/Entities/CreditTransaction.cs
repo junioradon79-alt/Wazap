@@ -46,6 +46,35 @@ public class CreditTransaction
         Status = TransactionStatus.Pending;
     }
 
+    /// <summary>
+    /// Trace un octroi de crédits OFFERTS (offre de découverte) : montant nul,
+    /// statut directement « Completed » — pas de paiement.
+    /// </summary>
+    public static CreditTransaction ForFreeGrant(
+        Guid vendorId,
+        int creditsPurchased,
+        string transactionReference,
+        string? packName)
+    {
+        if (creditsPurchased <= 0)
+            throw new ArgumentOutOfRangeException(nameof(creditsPurchased), "Le nombre de crédits doit être positif.");
+        if (string.IsNullOrWhiteSpace(transactionReference))
+            throw new ArgumentException("La référence de transaction est requise.", nameof(transactionReference));
+
+        var transaction = new CreditTransaction
+        {
+            Id = Guid.NewGuid(),
+            VendorId = vendorId,
+            PackName = packName,
+            CreditsPurchased = creditsPurchased,
+            CreatedAt = DateTime.UtcNow,
+            TransactionReference = transactionReference,
+            Status = TransactionStatus.Completed
+        };
+
+        return transaction;
+    }
+
     public void MarkCompleted()
     {
         if (Status == TransactionStatus.Failed)
