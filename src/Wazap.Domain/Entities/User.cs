@@ -109,6 +109,18 @@ public class User
         LocationUpdatedAt = DateTime.UtcNow;
     }
 
+    /// <summary>
+    /// Met à jour le numéro de téléphone (auto-réparation depuis le wa_id reçu
+    /// au webhook quand l'ancienne/nouvelle numérotation ivoirienne diffère).
+    /// </summary>
+    public void UpdatePhoneNumber(string phoneNumber)
+    {
+        if (string.IsNullOrWhiteSpace(phoneNumber))
+            throw new ArgumentException("Le numéro de téléphone est requis.", nameof(phoneNumber));
+
+        PhoneNumber = phoneNumber;
+    }
+
     public void SetAvailability(bool isAvailable) => IsAvailable = isAvailable;
 
     /// <summary>

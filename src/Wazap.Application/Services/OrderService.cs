@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Wazap.Application.Abstractions;
 using Wazap.Application.Dtos;
 using Wazap.Application.Exceptions;
+using Wazap.Application.Helpers;
 using Wazap.Application.Services;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
@@ -102,15 +103,14 @@ public sealed class OrderService
 
     private async Task<User?> ResolveVendorAsync(string vendorWhatsApp)
     {
-        var normalized = new string((vendorWhatsApp ?? string.Empty).Where(char.IsDigit).ToArray());
-        if (normalized.Length == 0) return null;
+        if (string.IsNullOrWhiteSpace(vendorWhatsApp)) return null;
 
         var vendors = await _context.Users
             .Where(u => u.Role == UserRole.Vendor && u.PhoneNumber != null)
             .ToListAsync();
 
         return vendors.FirstOrDefault(v =>
-            new string(v.PhoneNumber!.Where(char.IsDigit).ToArray()) == normalized);
+            PhoneNumberNormalizer.SameSubscriber(v.PhoneNumber, vendorWhatsApp));
     }
 
     public async Task<Order?> GetOrderAsync(Guid id) =>

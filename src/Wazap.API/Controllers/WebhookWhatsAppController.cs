@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Wazap.API.Services;
+using Wazap.Application.Helpers;
 using Wazap.Application.Services;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
@@ -61,8 +62,12 @@ public class WebhookWhatsAppController : ControllerBase
         var interactive = Find(message, "interactive");
         var buttonReply = Find(interactive, "buttonReply");
 
-        var phone = Str(subscriber, "phoneNumber");
-        var text = Str(message, "text");
+        var phone = Str(subscriber, "phoneNumber")
+                    ?? Str(raw, "chat_id")
+                    ?? Str(raw, "chatId");
+        var text = Str(message, "text")
+                   ?? Str(raw, "user_message")
+                   ?? Str(raw, "userMessage");
         var latitude = Dbl(location, "latitude");
         var longitude = Dbl(location, "longitude");
         var buttonId = Str(buttonReply, "id");
@@ -237,8 +242,7 @@ public class WebhookWhatsAppController : ControllerBase
 
     private async Task<Order?> FindPendingOrderAsync(string vendorWhatsApp)
     {
-        var normalized = new string((vendorWhatsApp ?? string.Empty).Where(char.IsDigit).ToArray());
-        if (normalized.Length == 0) return null;
+        if (string.IsNullOrWhiteSpace(vendorWhatsApp)) return null;
 
         var orders = await _context.Orders
             .Where(o => o.Status == OrderStatus.PendingVendorConfirmation)
@@ -246,19 +250,50 @@ public class WebhookWhatsAppController : ControllerBase
             .ToListAsync();
 
         return orders.FirstOrDefault(o =>
-            new string(o.VendorWhatsAppNumber.Where(char.IsDigit).ToArray()) == normalized);
+            PhoneNumberNormalizer.SameSubscriber(o.VendorWhatsAppNumber, vendorWhatsApp));
     }
 
     private async Task<User?> FindUserByPhoneAsync(string? phone, UserRole role)
     {
         if (string.IsNullOrWhiteSpace(phone)) return null;
-        var digits = new string(phone.Where(char.IsDigit).ToArray());
 
         var users = await _context.Users.AsNoTracking()
             .Where(u => u.Role == role && u.PhoneNumber != null)
             .ToListAsync();
 
-        return users.FirstOrDefault(u => new string(u.PhoneNumber!.Where(char.IsDigit).ToArray()) == digits);
+        var user = users.FirstOrDefault(u =>
+            PhoneNumberNormalizer.SameSubscriber(u.PhoneNumber, phone));
+
+        // Auto-réparation : le wa_id reçu est la référence fiable (ancienne vs nouvelle
+        // numérotation ivoirienne). On aligne le numéro stocké pour les réponses sortantes.
+        if (user is not null)
+            await RefreshAuthoritativePhoneAsync(user, phone);
+
+        return user;
+    }
+
+    private async Task RefreshAuthoritativePhoneAsync(User user, string rawPhone)
+    {
+        var incoming = new string(rawPhone.Where(char.IsDigit).ToArray());
+        if (incoming.Length == 0)
+            return;
+
+        if (PhoneNumberNormalizer.DigitsOnly(user.PhoneNumber) == incoming
+            || !PhoneNumberNormalizer.SameSubscriber(user.PhoneNumber, rawPhone))
+        {
+            return;
+        }
+
+        var canonical = "+" + incoming;
+        user.UpdatePhoneNumber(canonical);
+
+        var tracked = await _context.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
+        if (tracked is not null)
+        {
+            tracked.UpdatePhoneNumber(canonical);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Numéro du compte {UserId} aligné sur le wa_id reçu ({Phone}).", user.Id, canonical);
+        }
     }
 
     private async Task<Guid?> ExtractOfferIdAsync(params string?[] candidates)
