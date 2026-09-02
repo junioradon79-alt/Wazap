@@ -221,7 +221,11 @@ public class WebhookWhatsAppController : ControllerBase
 
         if (upper is "AIDE" or "HELP" or "MENU")
         {
-            await ReplyAsync(user, "📱 Menu livreur :\n• ZONE <quartier> : définir ta zone\n• DISPO / INDISPO : en ligne / hors ligne\n• ACCEPTE <code> : accepter une course");
+            var menu = user.Role == UserRole.Vendor
+                ? "📱 Menu vendeur :\n• ZONE <quartier> : votre zone de livraison\n• AIDE : ce menu\n💡 Créez vos livraisons depuis votre espace WAZAP (une course = 1 crédit)."
+                : "📱 Menu livreur :\n• ZONE <quartier> : définir ta zone\n• DISPO / INDISPO : en ligne / hors ligne\n• ACCEPTE <code> : accepter une course";
+
+            await ReplyAsync(user, menu);
             return true;
         }
 

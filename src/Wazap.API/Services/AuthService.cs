@@ -184,11 +184,13 @@ public sealed class AuthService
         {
             UserRole.Vendor =>
                 $"🎉 Bienvenue chez WAZAP, {user.Username} !\n{offerLine}" +
+                "Vos clients commandent par téléphone, Facebook ou en boutique ? " +
+                "WAZAP s'occupe de la LIVRAISON.\n" +
                 "Mode d'emploi :\n" +
-                "1. Un client commande → vous recevez le détail sur WhatsApp\n" +
-                "2. Répondez « Confirmer » pour accepter la commande\n" +
-                "3. Préparez le colis : le livreur le plus proche est assigné\n" +
-                "📩 Envoyez AIDE pour le menu complet.",
+                "1. Une commande à livrer ? Demandez une course WAZAP depuis votre espace\n" +
+                "2. Le livreur le plus proche vient chercher le colis chez vous\n" +
+                "3. Il livre votre client : vous suivez l'avancement sur WhatsApp\n" +
+                "📩 Envoyez AIDE pour le menu.",
 
             UserRole.Rider =>
                 $"🚴 Bienvenue chez WAZAP, {user.Username} !\n" +
