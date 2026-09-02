@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Wazap.Application.Abstractions;
+using Wazap.Application.Configuration;
 using Wazap.Application.Dtos;
+using Wazap.Application.Exceptions;
 using Wazap.Application.Helpers;
 using Wazap.Application.Services;
 using Wazap.Domain.Entities;
@@ -14,6 +16,7 @@ public sealed class AuthService
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly WhatsAppOrchestrationService _whatsApp;
+    private readonly SecurityOptions _security;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
@@ -21,12 +24,14 @@ public sealed class AuthService
         IPasswordHasher passwordHasher,
         IJwtTokenGenerator jwtTokenGenerator,
         WhatsAppOrchestrationService whatsApp,
+        SecurityOptions security,
         ILogger<AuthService> logger)
     {
         _context = context;
         _passwordHasher = passwordHasher;
         _jwtTokenGenerator = jwtTokenGenerator;
         _whatsApp = whatsApp;
+        _security = security;
         _logger = logger;
     }
 
@@ -79,11 +84,34 @@ public sealed class AuthService
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
     {
         var user = await _context.Users
-            .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Username == request.Username);
 
+        // Verrouillage anti force-brute : après N échecs, le compte est bloqué
+        // pendant Security:LockoutMinutes (HTTP 423).
+        if (user is not null && user.IsLocked() && user.LockedUntilUtc is { } lockedUntil)
+            throw new AccountLockedException(lockedUntil);
+
         if (user is null || !_passwordHasher.Verify(request.Password, user.PasswordHash))
+        {
+            if (user is not null)
+            {
+                user.RegisterFailedLogin(
+                    Math.Max(1, _security.MaxFailedLoginAttempts),
+                    TimeSpan.FromMinutes(Math.Max(1, _security.LockoutMinutes)));
+                await _context.SaveChangesAsync();
+
+                if (user.IsLocked() && user.LockedUntilUtc is { } until)
+                    throw new AccountLockedException(until);
+            }
+
             throw new UnauthorizedAccessException("Identifiants invalides.");
+        }
+
+        if (user.FailedLoginAttempts != 0 || user.LockedUntilUtc is not null)
+        {
+            user.ResetLoginFailures();
+            await _context.SaveChangesAsync();
+        }
 
         var token = _jwtTokenGenerator.Generate(user);
         return new AuthResponse(user.Id, token, user.Username, user.Role.ToString());

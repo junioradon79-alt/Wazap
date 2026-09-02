@@ -28,6 +28,10 @@ public class User
     public string? ReferralCode { get; private set; }
     public Guid? ReferredByUserId { get; private set; }
 
+    // Sécurité : verrouillage anti force-brute après échecs répétés de connexion
+    public int FailedLoginAttempts { get; private set; }
+    public DateTime? LockedUntilUtc { get; private set; }
+
     // Navigation : achats de crédits (vendeur)
     public ICollection<CreditTransaction> Transactions { get; } = new List<CreditTransaction>();
 
@@ -66,6 +70,34 @@ public class User
     /// Lie le compte à un parrain (code promo utilisé à l'inscription).
     /// </summary>
     public void SetReferral(Guid referrerId) => ReferredByUserId = referrerId;
+
+    /// <summary>Le compte est-il verrouillé à cet instant ?</summary>
+    public bool IsLocked() => LockedUntilUtc.HasValue && LockedUntilUtc.Value > DateTime.UtcNow;
+
+    /// <summary>
+    /// Enregistre un échec de connexion ; verrouille le compte après
+    /// <paramref name="maxAttempts"/> échecs consécutifs.
+    /// </summary>
+    public void RegisterFailedLogin(int maxAttempts, TimeSpan lockDuration)
+    {
+        if (IsLocked())
+            return;
+
+        FailedLoginAttempts++;
+
+        if (FailedLoginAttempts < maxAttempts)
+            return;
+
+        LockedUntilUtc = DateTime.UtcNow.Add(lockDuration);
+        FailedLoginAttempts = 0;
+    }
+
+    /// <summary>Réinitialise le compteur d'échecs après une connexion réussie.</summary>
+    public void ResetLoginFailures()
+    {
+        FailedLoginAttempts = 0;
+        LockedUntilUtc = null;
+    }
 
     /// <summary>
     /// Met à jour la position GPS (live location).

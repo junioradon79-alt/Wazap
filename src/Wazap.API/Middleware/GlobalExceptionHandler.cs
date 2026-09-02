@@ -28,6 +28,8 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
                 Build(StatusCodes.Status401Unauthorized, "Non autorisé", exception.Message),
             ForbiddenException =>
                 Build(StatusCodes.Status403Forbidden, "Accès refusé", exception.Message),
+            AccountLockedException =>
+                Build(StatusCodes.Status423Locked, "Compte verrouillé", exception.Message),
             PaymentRequiredException =>
                 Build(StatusCodes.Status402PaymentRequired, "Paiement requis", exception.Message),
             InvalidOperationException =>
