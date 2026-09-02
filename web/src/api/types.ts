@@ -99,6 +99,19 @@ export interface CreateOrderRequest {
   amount: number
 }
 
+export interface ClientOrderStatus {
+  id: string
+  code: string
+  vendorName: string | null
+  status: string
+  description: string | null
+  needsCoordinates: boolean
+  hasCoordinates: boolean
+  address: string | null
+  riderAssigned: boolean
+  delivered: boolean
+}
+
 export interface ChangePasswordRequest {
   currentPassword: string
   newPassword: string

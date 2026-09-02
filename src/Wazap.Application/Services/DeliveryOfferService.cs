@@ -250,7 +250,7 @@ namespace Wazap.Application.Services
                 : null;
 
             var code = order.Id.ToString("N")[..8].ToUpperInvariant();
-            var url = $"{_client.TrackingBaseUrl.TrimEnd('/')}?id={order.Id}";
+            var url = $"{_client.TrackingBaseUrl.TrimEnd('/')}/{order.Id}";
 
             try
             {
