@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Wazap.Application.Services;
 using Wazap.Domain.Enums;
@@ -25,6 +26,7 @@ public class ClientOrdersController : ControllerBase
 
     // GET: api/client/orders/{id} — état visible par le client (public, id non devinable)
     [HttpGet("{id:guid}")]
+    [EnableRateLimiting("client")]
     public async Task<IActionResult> Get(Guid id)
     {
         var order = await _context.Orders.AsNoTracking()
@@ -57,6 +59,7 @@ public class ClientOrdersController : ControllerBase
 
     // POST: api/client/orders/{id}/coordinates — le client valide → diffusion auto des livreurs
     [HttpPost("{id:guid}/coordinates")]
+    [EnableRateLimiting("client")]
     public async Task<IActionResult> SubmitCoordinates(Guid id, [FromBody] SetClientCoordinatesRequest request)
     {
         var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id);

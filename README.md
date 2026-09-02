@@ -92,7 +92,7 @@ Clés stockées via `dotnet user-secrets set` :
 - Webhook tolérant (camelCase/snake_case, boutons, live location, ACCEPTE code court).
 - Numéros normalisés E.164 (`PhoneNumberNormalizer`, code pays par défaut `33`) **+ gestion numérotation ivoirienne** : matching `SameSubscriber` (8 derniers chiffres) pour ancienne (+225+8) vs nouvelle (+225+10) numérotation ; **auto-réparation** du numéro stocké depuis le `wa_id` reçu au webhook ; parseur webhook compatible format réel WhatChimp (`chat_id`/`user_message`).
 - Hashage mots de passe PBKDF2 (100 000 itérations, sel, comparaison temps constant).
-- Rate limiting webhook (100/min) + auth (10/min).
+- Rate limiting webhook (100/min) + auth (10/min) + **client** (60/min, endpoints publics du parcours acheteur).
 - Secrets hors du code ; migrations hors démarrage ; health check DB.
 - Top-up crédits réservé Admin ; dashboard réservé Admin ; contrôle ressource vendeur.
 - **Verrouillage anti force-brute** : après `Security:MaxFailedLoginAttempts` (5) échecs consécutifs, le compte est bloqué `Security:LockoutMinutes` (15 min) → **HTTP 423** avec corps ProblemDetails (migration `AddLoginSecurity`).
