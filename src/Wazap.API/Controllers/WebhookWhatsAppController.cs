@@ -283,8 +283,19 @@ public class WebhookWhatsAppController : ControllerBase
                 .Where(o => o.RiderUserId == user.Id && o.Status == targetStatus)
                 .ToListAsync();
 
-            if (!string.IsNullOrWhiteSpace(code))
+            var closeAll = marker == "LIVRE" && code.Equals("TOUT", StringComparison.OrdinalIgnoreCase);
+            if (!string.IsNullOrWhiteSpace(code) && !closeAll)
                 orders = orders.Where(o => o.Id.ToString("N").StartsWith(code, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            // Tournée multi-clients : on ne clôture JAMAIS toutes les livraisons d'un coup
+            // (sauf « LIVRE TOUT » explicite) pour notifier chaque client au bon moment.
+            if (marker == "LIVRE" && orders.Count > 1 && string.IsNullOrWhiteSpace(code))
+            {
+                await ReplyAsync(user,
+                    "ℹ️ Plusieurs livraisons en cours.\n" +
+                    "Envoyez LIVRE <code> après CHAQUE livraison (ex : LIVRE A1B2C3D4), ou LIVRE TOUT pour tout clôturer.");
+                return true;
+            }
 
             if (orders.Count == 0)
             {
@@ -309,6 +320,22 @@ public class WebhookWhatsAppController : ControllerBase
             }
 
             await _context.SaveChangesAsync();
+
+            // Notification « livré » à CHAQUE client concerné (best-effort).
+            if (marker == "LIVRE")
+            {
+                foreach (var order in orders)
+                {
+                    try
+                    {
+                        await _whatsApp.SendDeliveredNotificationAsync(order);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Notification de livraison impossible pour {OrderId}.", order.Id);
+                    }
+                }
+            }
 
             await ReplyAsync(user, marker == "RECU"
                 ? $"✅ Colis récupéré ({orders.Count} course(s)) — en route !"
