@@ -132,15 +132,29 @@ dotnet run --project src\Wazap.API
 
 - **URL** : https://junioradon79gm-001-site1.jtempurl.com/ (domaine en attente)
 - **Provider** : PostgreSQL (SmarterASP.NET)
-- **Schéma** : créé (3 migrations appliquées)
+- **Schéma** : créé (7 migrations appliquées)
 - **Admin** : seedé automatiquement au démarrage
 - **Secrets** : injectés via `web.config` (`<environmentVariables>`) sur le serveur
 - **Détails/credentials sensibles** : voir le fichier local **`DEPLOYMENT.md`** (gitignoré)
 
-### Déploiement
+### Déploiement (⚠️ procédure du 02/09/2026)
+
+La prod tourne en **self-contained win-x64** (le serveur n'a pas forcément le runtime .NET 10) :
 ```powershell
-# Voir scripts/deploy.ps1 (publication + upload FTP)
-# Appliquer la migration :
+# 1. Publication self-contained
+dotnet publish src\Wazap.API\Wazap.API.csproj -c Release -r win-x64 --self-contained true -o artifacts\publish-win64
+
+# 2. Réécrire artifacts\publish-win64\web.config AVANT l'upload :
+#    - processPath=".\Wazap.API.exe" arguments="" hostingModel="OutOfProcess"
+#    - les env vars s'écrivent <environmentVariable name="X" value="Y" />  (⚠️ PAS <add> → 500 IIS)
+#    - stdoutLogEnabled=false en production
+
+# 3. Upload FTP : app_offline.htm → tous les fichiers → supprimer app_offline.htm
+#    (voir DEPLOYMENT.md pour les identifiants et les valeurs des env vars)
+```
+
+### Appliquer les migrations
+```powershell
 dotnet ef database update --project src\Wazap.Infrastructure --startup-project src\Wazap.API
 ```
 
