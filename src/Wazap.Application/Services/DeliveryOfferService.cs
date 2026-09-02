@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Wazap.Application.Abstractions;
 using Wazap.Application.Configuration;
 using Wazap.Application.Dtos;
+using Wazap.Application.Exceptions;
 using Wazap.Application.Helpers;
 using Wazap.Application.Services;
 using Wazap.Domain.Entities;
@@ -338,6 +339,9 @@ namespace Wazap.Application.Services
             var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == offer.OrderId)
                 ?? throw new InvalidOperationException("Commande introuvable.");
 
+            // Débit du crédit UNIQUEMENT à l'acceptation de la course par le livreur.
+            var vendor = await DebitVendorForOrdersAsync(order.VendorUserId, 1);
+
             order.AssignRider(riderPhone);
             order.LinkRider(rider.Id);
 
@@ -349,6 +353,9 @@ namespace Wazap.Application.Services
                 other.Expire();
 
             await _context.SaveChangesAsync();
+
+            // Alerte crédits bas/épuisés après débit (best effort).
+            await NotifyVendorCreditAsync(vendor);
 
             // Notifications post-acceptation (best effort) : client + vendeur + livreur.
             try
@@ -390,6 +397,9 @@ namespace Wazap.Application.Services
                 return;
             }
 
+            // Débit des crédits (1 par commande du lot) UNIQUEMENT à l'acceptation.
+            var vendor = await DebitVendorForOrdersAsync(batch.VendorUserId, orders.Count);
+
             foreach (var order in orders)
             {
                 order.AssignRider(riderPhone);
@@ -410,6 +420,9 @@ namespace Wazap.Application.Services
             _logger.LogInformation("Lot {BatchId} accepté par {Rider} : {Count} commande(s) assignée(s).",
                 batch.Id, rider.Username, orders.Count);
 
+            // Alerte crédits bas/épuisés après débit (best effort).
+            await NotifyVendorCreditAsync(vendor);
+
             // Notifications post-acceptation (best effort) : chaque client + vendeur + livreur.
             try
             {
@@ -418,6 +431,50 @@ namespace Wazap.Application.Services
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Notifications d'acceptation impossibles pour le lot {BatchId}.", batch.Id);
+            }
+        }
+
+        /// <summary>
+        /// Débite le vendeur de <paramref name="ordersCount"/> crédit(s) (un par course acceptée).
+        /// Ne fait rien si la commande n'a pas de vendeur lié (données historiques).
+        /// </summary>
+        private async Task<User?> DebitVendorForOrdersAsync(Guid? vendorUserId, int ordersCount)
+        {
+            if (vendorUserId is null)
+                return null;
+
+            var vendor = await _context.Users.FirstOrDefaultAsync(u => u.Id == vendorUserId.Value && u.Role == UserRole.Vendor)
+                ?? throw new InvalidOperationException("Vendeur introuvable.");
+
+            for (var i = 0; i < ordersCount; i++)
+            {
+                if (!vendor.TryConsumeCredit())
+                    throw new PaymentRequiredException(
+                        $"Crédits insuffisants ({vendor.Credits} restant(s)) pour {ordersCount} course(s). Rechargez sur /api/packs.");
+            }
+
+            return vendor;
+        }
+
+        /// <summary>
+        /// Alerte WhatsApp quand les crédits restants atteignent un seuil bas (≤ 5) ou 0 (best effort).
+        /// </summary>
+        private async Task NotifyVendorCreditAsync(User? vendor)
+        {
+            if (vendor is null)
+                return;
+
+            try
+            {
+                if (vendor.Credits == 0)
+                    await _orchestrator.SendNoCreditAlertAsync(vendor);
+                else if (vendor.Credits <= 5)
+                    await _orchestrator.SendLowCreditAlertAsync(vendor);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Alerte WhatsApp impossible pour {Vendor} (crédits restants : {Credits}).",
+                    vendor.Username, vendor.Credits);
             }
         }
 

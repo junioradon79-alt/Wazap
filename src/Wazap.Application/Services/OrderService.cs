@@ -13,35 +13,29 @@ namespace Wazap.Application.Services;
 
 public sealed class OrderService
 {
-    private const int LowCreditThreshold = 5;
-
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUser _currentUser;
-    private readonly WhatsAppOrchestrationService _whatsApp;
     private readonly DeliveryOfferService _deliveryOfferService;
     private readonly ILogger<OrderService> _logger;
 
     public OrderService(
         IApplicationDbContext context,
         ICurrentUser currentUser,
-        WhatsAppOrchestrationService whatsApp,
         DeliveryOfferService deliveryOfferService,
         ILogger<OrderService> logger)
     {
         _context = context;
         _currentUser = currentUser;
-        _whatsApp = whatsApp;
         _deliveryOfferService = deliveryOfferService;
         _logger = logger;
     }
 
     public async Task<Order> CreateOrderAsync(CreateOrderRequest request)
     {
-        var vendor = await ResolveVendorAsync(request.VendorWhatsAppNumber);
-
-        // Pay-per-use : un crédit est requis par commande.
-        if (vendor is null || !vendor.TryConsumeCredit())
-            throw new PaymentRequiredException("Crédits insuffisants. Achetez un pack sur /api/packs.");
+        // Le vendeur doit être enregistré (propriétaire de la commande). Le crédit n'est
+        // PAS débité ici : il ne l'est qu'à l'acceptation de la course par un livreur.
+        var vendor = await ResolveVendorAsync(request.VendorWhatsAppNumber)
+            ?? throw new InvalidOperationException("Vendeur non enregistré.");
 
         var order = new Order(
             request.ClientName,
@@ -74,31 +68,10 @@ public sealed class OrderService
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
 
-        _logger.LogInformation("Commande créée pour {VendorName}. Crédits restants : {Credits}.",
-            vendor.Username, vendor.Credits);
-
-        await NotifyCreditStatusAsync(vendor);
+        _logger.LogInformation("Commande créée pour {VendorName} (débit à l'acceptation d'un livreur).",
+            vendor.Username);
 
         return order;
-    }
-
-    /// <summary>
-    /// Alerte WhatsApp quand les crédits restants atteignent un seuil bas (≤ 5) ou 0 (best effort).
-    /// </summary>
-    private async Task NotifyCreditStatusAsync(User vendor)
-    {
-        try
-        {
-            if (vendor.Credits == 0)
-                await _whatsApp.SendNoCreditAlertAsync(vendor);
-            else if (vendor.Credits <= LowCreditThreshold)
-                await _whatsApp.SendLowCreditAlertAsync(vendor);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Alerte WhatsApp impossible pour {Vendor} (crédits restants : {Credits}).",
-                vendor.Username, vendor.Credits);
-        }
     }
 
     /// <summary>
@@ -116,8 +89,8 @@ public sealed class OrderService
         if ((vendor.Latitude is null || vendor.Longitude is null) && string.IsNullOrWhiteSpace(vendor.Zone))
             throw new InvalidOperationException("Définissez d'abord votre zone : envoyez ZONE <votre quartier> (ex : ZONE Cocody).");
 
-        if (!vendor.TryConsumeCredit())
-            throw new PaymentRequiredException("Crédits insuffisants. Achetez un pack sur /api/packs.");
+        // NOTE : le crédit n'est PAS débité ici. Il ne l'est qu'à l'acceptation de la
+        // course par un livreur (DeliveryOfferService.AcceptOfferAsync / AcceptBatchAsync).
 
         var order = new Order(
             "Client",
@@ -131,8 +104,8 @@ public sealed class OrderService
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Course à la demande créée pour {Vendor} ({OrderId}). Crédits restants : {Credits}.",
-            vendor.Username, order.Id, vendor.Credits);
+        _logger.LogInformation("Course à la demande créée pour {Vendor} ({OrderId}). Débit à l'acceptation.",
+            vendor.Username, order.Id);
 
         // Groupage + diffusion immédiate : un livreur proche est contacté sans intervention.
         var batchId = await _deliveryOfferService.JoinOrCreateBatchAsync(order.Id);

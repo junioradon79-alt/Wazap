@@ -83,7 +83,7 @@ Clés stockées via `dotnet user-secrets set` :
 ## 7. Sécurité / robustesse déjà en place
 
 - Gestion globale des erreurs (`GlobalExceptionHandler`) → ProblemDetails (400/401/**402**/403/404/409/**423**/500). Les **401/403** du middleware JWT renvoient aussi un corps ProblemDetails (plus de réponse vide).
-- **Pay-per-use** : création de commande réservée aux vendeurs enregistrés avec ≥ 1 crédit (402 « Crédits insuffisants »).
+- **Pay-per-use à l'acceptation** : le crédit n'est **débité que lorsqu'un livreur accepte** la course (1 crédit par commande, par lot au prorata) ; la création d'une commande/course est **gratuite** (402 « Crédits insuffisants » uniquement si le solde est insuffisant au moment de l'acceptation).
 - **Matching livreurs à 2 niveaux** : GPS frais (Haversine) puis **ZONE déclarée** (téléphones basiques sans GPS) — commandes WhatsApp `ZONE <quartier>`, `DISPO`, `INDISPO`, `AIDE`. Une course est possible avec une **zone seule** (pas de GPS vendeur requis).
 - **Livraison à la demande (vendeur)** : commande WhatsApp **`LIVRAISON <détail + adresse client>`** → 1 crédit consommé → commande confirmée → diffusion **immédiate** aux livreurs (aucune intervention requise). Également accessible depuis l'espace (API/dashboard).
 - **Livraisons groupées fiabilisées** (validation 02/09) : un lot déjà diffusé n'accepte plus de nouvelles commandes (late-join), les vagues d'élargissement re-fonctionnent par lot, l'acceptation d'un lot ignore les commandes annulées et pose `RiderUserId`, l'annulation de la dernière commande active clôt le lot et expire ses offres. Vérifié par E2E : `scripts/e2e-batch-validation.ps1`.
