@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -241,7 +242,11 @@ public class WebhookWhatsAppController : ControllerBase
 
             try
             {
-                var order = await _orderService.CreateDispatchRequestAsync(user.Id, instruction, null);
+                // Extraction optionnelle du téléphone du client (ex : « … tél 0708091011 »)
+                // → notifications automatiques possibles (livreur assigné, livraison effectuée).
+                var clientPhone = TryExtractClientPhone(instruction);
+
+                var order = await _orderService.CreateDispatchRequestAsync(user.Id, instruction, clientPhone);
                 var creditsLeft = await _context.Users.AsNoTracking()
                     .Where(u => u.Id == user.Id)
                     .Select(u => u.Credits)
@@ -259,6 +264,55 @@ public class WebhookWhatsAppController : ControllerBase
             {
                 await ReplyAsync(user, "❌ " + ex.Message);
             }
+
+            return true;
+        }
+
+        // Statuts automatiques livreur : « RECU » = colis récupéré (en route),
+        // « LIVRE » = livraison effectuée. Option : code court de la course.
+        if (user.Role == UserRole.Rider
+            && (upper == "RECU" || upper.StartsWith("RECU ") || upper == "LIVRE" || upper.StartsWith("LIVRE ")))
+        {
+            var marker = upper.StartsWith("RECU") ? "RECU" : "LIVRE";
+            var code = command.Length > marker.Length ? command[marker.Length..].Trim() : string.Empty;
+            var targetStatus = marker == "RECU"
+                ? OrderStatus.RiderAssigned
+                : OrderStatus.InTransit;
+
+            var orders = await _context.Orders
+                .Where(o => o.RiderUserId == user.Id && o.Status == targetStatus)
+                .ToListAsync();
+
+            if (!string.IsNullOrWhiteSpace(code))
+                orders = orders.Where(o => o.Id.ToString("N").StartsWith(code, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            if (orders.Count == 0)
+            {
+                await ReplyAsync(user, marker == "RECU"
+                    ? "ℹ️ Aucune course à récupérer pour le moment."
+                    : "ℹ️ Aucune course en cours de livraison.");
+                return true;
+            }
+
+            foreach (var order in orders)
+            {
+                if (marker == "RECU")
+                {
+                    order.MarkReadyForPickup();
+                    order.MarkPickedUp();
+                    order.MarkInTransit();
+                }
+                else
+                {
+                    order.MarkDelivered();
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            await ReplyAsync(user, marker == "RECU"
+                ? $"✅ Colis récupéré ({orders.Count} course(s)) — en route !"
+                : $"✅ {orders.Count} course(s) livrée(s). Merci ! 🎉");
 
             return true;
         }
@@ -342,6 +396,29 @@ public class WebhookWhatsAppController : ControllerBase
             await _context.SaveChangesAsync();
             _logger.LogInformation("Numéro du compte {UserId} aligné sur le wa_id reçu ({Phone}).", user.Id, canonical);
         }
+    }
+
+    private static string? TryExtractClientPhone(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return null;
+
+        // Candidats : +225XXXXXXXXXX (nouveau), +225XXXXXXXX (ancien),
+        // 0XXXXXXXXX (nouveau 10) / 0XXXXXXXX (ancien 8).
+        var match = Regex.Match(text, @"(?:\+?\s?225[\s.-]?)?(?:0[157]\d{8}|0\d{7})");
+        if (!match.Success)
+            return null;
+
+        var digits = new string(match.Value.Where(char.IsDigit).ToArray());
+        if (digits.StartsWith("225") && digits.Length is 11 or 13)
+            return "+" + digits;
+
+        // Numéro national ivoirien (8 ou 10 chiffres commençant par 0) : on conserve le 0
+        // après l'indicatif (E.164 CI : +225 07 08 … → 2250708…).
+        if (digits.Length is 8 or 10 && digits.StartsWith("0"))
+            return "+225" + digits;
+
+        return null;
     }
 
     private async Task<Guid?> ExtractOfferIdAsync(params string?[] candidates)

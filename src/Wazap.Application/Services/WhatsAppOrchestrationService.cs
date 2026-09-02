@@ -148,8 +148,11 @@ namespace Wazap.Application.Services
                     ["3"] = orderCode
                 });
 
-            // Livreur : confirmation de course
-            await SendTextAsync(rider, $"✅ Course acceptée #{orderCode}. Rendez-vous chez le vendeur.");
+            // Livreur : confirmation de course + détails de livraison
+            await SendTextAsync(rider,
+                $"✅ Course acceptée #{orderCode}.\n" +
+                $"📦 À livrer : {order.Description}\n" +
+                "📍 Retrait chez le vendeur.");
         }
 
         /// <summary>
@@ -189,7 +192,9 @@ namespace Wazap.Application.Services
                 });
 
             // Livreur : confirmation de la tournée groupée
-            await SendTextAsync(rider, $"✅ Tournée acceptée : {orders.Count} commandes à récupérer chez le vendeur.");
+            await SendTextAsync(rider,
+                $"✅ Tournée acceptée : {orders.Count} commandes à récupérer chez le vendeur.\n" +
+                "📦 Les détails de livraison vous sont remis par le vendeur au retrait.");
         }
 
         /// <summary>
