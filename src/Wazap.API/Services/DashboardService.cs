@@ -43,6 +43,48 @@ namespace Wazap.API.Services
                          && o.DeliveredAt >= startOfMonth)
                 .SumAsync(o => o.Amount);
 
+            // ---- KPI acquisition & activité (pilotage marketing) ----
+            var now30d = now.AddDays(-30);
+            var now7d = now.AddDays(-7);
+
+            var totalVendors = await _context.Users.CountAsync(u => u.Role == UserRole.Vendor);
+            var totalRiders = await _context.Users.CountAsync(u => u.Role == UserRole.Rider);
+            var newVendors30d = await _context.Users.CountAsync(
+                u => u.Role == UserRole.Vendor && u.CreatedAt >= now30d);
+
+            // Vendeurs actifs = ayant au moins 1 commande créée dans les 30 derniers jours.
+            var activeVendorIds30d = await _context.Orders
+                .Where(o => o.CreatedAt >= now30d && o.VendorUserId != null)
+                .Select(o => o.VendorUserId!.Value)
+                .Distinct()
+                .ToListAsync();
+            var activeVendors30d = activeVendorIds30d.Count;
+
+            var ordersThisWeek = await _context.Orders.CountAsync(o => o.CreatedAt >= now7d);
+            var ordersLast30d = await _context.Orders.CountAsync(o => o.CreatedAt >= now30d);
+
+            // Répartition des commandes (30 j) par zone du vendeur.
+            var recentVendorZones = await _context.Users.AsNoTracking()
+                .Where(u => u.Role == UserRole.Vendor)
+                .Select(u => new { u.Id, u.Zone })
+                .ToListAsync();
+            var orders30d = await _context.Orders.AsNoTracking()
+                .Where(o => o.CreatedAt >= now30d && o.VendorUserId != null)
+                .Select(o => o.VendorUserId!.Value)
+                .ToListAsync();
+            var zoneMap = recentVendorZones
+                .GroupBy(v => v.Zone ?? "Inconnue")
+                .ToDictionary(g => g.Key, g => g.Select(v => v.Id).ToHashSet());
+            var ordersByZone = zoneMap
+                .Select(kv => new ZoneMetricDto
+                {
+                    Zone = string.IsNullOrWhiteSpace(kv.Key) ? "Inconnue" : kv.Key,
+                    Orders = orders30d.Count(id => kv.Value.Contains(id))
+                })
+                .Where(z => z.Orders > 0)
+                .OrderByDescending(z => z.Orders)
+                .ToList();
+
             // Dernières commandes non annulées (les 10 plus récentes).
             var recentOrders = await _context.Orders
                 .AsNoTracking()
@@ -58,7 +100,14 @@ namespace Wazap.API.Services
                 InProgressOrdersCount = inProgressOrdersCount,
                 ActiveRiders = activeRiders,
                 MonthlyRevenue = monthlyRevenue,
-                RecentOrders = recentOrders.Select(o => Map(o, vendorNames)).ToList()
+                RecentOrders = recentOrders.Select(o => Map(o, vendorNames)).ToList(),
+                TotalVendors = totalVendors,
+                NewVendors30d = newVendors30d,
+                ActiveVendors30d = activeVendors30d,
+                TotalRiders = totalRiders,
+                OrdersThisWeek = ordersThisWeek,
+                OrdersLast30d = ordersLast30d,
+                OrdersByZone30d = ordersByZone
             };
         }
 
