@@ -39,6 +39,7 @@ export default function SuiviPage() {
   const [geoErr, setGeoErr] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
+  const [rider, setRider] = useState<{ riderName?: string; location?: { latitude: number; longitude: number } | null } | null>(null)
   const timer = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const fetchOrder = useCallback(async () => {
@@ -63,6 +64,13 @@ export default function SuiviPage() {
         const o = await api.get<ClientOrderStatus>(`/client/orders/${id}`)
         setOrder(o)
         if (o.delivered && timer.current) clearInterval(timer.current)
+        const active = ['RiderAssigned', 'ReadyForPickup', 'PickedUp', 'InTransit'].includes(o.status)
+        if (active) {
+          try {
+            const r = await api.get<{ riderName?: string; location?: { latitude: number; longitude: number } | null }>(`/client/orders/${id}/rider-location`)
+            setRider(r)
+          } catch { /* silencieux */ }
+        }
       } catch { /* silencieux */ }
     }, 5000)
   }, [id])
@@ -127,6 +135,18 @@ export default function SuiviPage() {
           <p style={s.muted}>Vendeur : {order.vendorName || '—'}</p>
           {order.description && <p>{order.description}</p>}
           {order.address && <p style={s.muted}>📍 {order.address}</p>}
+        </div>
+      )}
+      {rider && (
+        <div style={s.card}>
+          <div style={s.row}><span style={{ fontWeight: 700 }}>🛵 {rider.riderName || 'Livreur'}</span><span style={s.pill}>En route</span></div>
+          {rider.location
+            ? <a
+                href={`https://www.google.com/maps/search/?api=1&query=${rider.location.latitude},${rider.location.longitude}`}
+                target="_blank" rel="noreferrer"
+                style={{ ...s.btn, textDecoration: 'none', textAlign: 'center', display: 'block' }}
+              >📍 Voir le livreur sur la carte</a>
+            : <p style={s.muted}>Le livreur se rapproche de chez vous…</p>}
         </div>
       )}
     </div>

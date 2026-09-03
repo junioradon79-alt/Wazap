@@ -88,6 +88,41 @@ public class ClientOrdersController : ControllerBase
             code = order.Id.ToString("N")[..8].ToUpperInvariant()
         });
     }
+
+    // GET: api/client/orders/{id}/rider-location — position live du livreur (suivi client)
+    [HttpGet("{id:guid}/rider-location")]
+    [EnableRateLimiting("client")]
+    public async Task<IActionResult> RiderLocation(Guid id)
+    {
+        var order = await _context.Orders.AsNoTracking()
+            .FirstOrDefaultAsync(o => o.Id == id);
+
+        if (order is null)
+            return NotFound();
+
+        var inTransit = order.Status is OrderStatus.RiderAssigned
+            or OrderStatus.ReadyForPickup
+            or OrderStatus.PickedUp
+            or OrderStatus.InTransit;
+
+        if (!inTransit || order.RiderUserId is null)
+            return Ok(new { tracking = false });
+
+        var rider = await _context.Users.AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == order.RiderUserId.Value);
+
+        if (rider is null)
+            return Ok(new { tracking = true, location = (object?)null });
+
+        return Ok(new
+        {
+            tracking = true,
+            location = rider.Latitude is { } lat && rider.Longitude is { } lng
+                ? new { latitude = lat, longitude = lng, updatedAt = rider.LocationUpdatedAt }
+                : null,
+            riderName = rider.Username
+        });
+    }
 }
 
 public sealed record SetClientCoordinatesRequest(double Latitude, double Longitude, string? Address);
