@@ -37,6 +37,8 @@
 6. `AddReferralToUsers` (20260901194805) — `Users.ReferralCode`/`ReferredByUserId` (parrainage)
 7. `AddDeliveryBatches` (20260901215856) — table `DeliveryBatches` + `Orders.BatchId` + `DeliveryOffers.BatchId`/OrderId nullable (livraisons groupées, DDL idempotent)
 8. `AddLoginSecurity` (20260902123854) — `Users.FailedLoginAttempts`/`LockedUntilUtc` (verrouillage anti force-brute, DDL idempotent)
+9. `AddBuyerTracking` (20260902154648) — colonnes `Orders.ClientLatitude/Longitude/Landmark` (parcours acheteur PWA, DDL idempotent)
+10. `AddAuthSecurity` (20260902162510) — table `RefreshTokens` (hash), colonnes 2FA TOTP + reset mdp (DDL idempotent)
 
 Appliquer : `dotnet ef database update --project src\Wazap.Infrastructure --startup-project src\Wazap.API`
 
@@ -104,26 +106,26 @@ Clés stockées via `dotnet user-secrets set` :
 
 ## 8. Tests
 
-`dotnet test` → **98 tests** (Order, DeliveryBatch, DeliveryOffer, OutboxMessage, User, CreditTransaction, GeoDistance, MockPayment, WhatsAppOrchestration, PhoneNumberNormalizer, validators, GeniusPay).
+`dotnet test` → **117 tests** (Order, DeliveryBatch, DeliveryOffer, OutboxMessage, User, CreditTransaction, GeoDistance, MockPayment, WhatsAppOrchestration, PhoneNumberNormalizer, validators, auth 2FA/refresh/reset, GeniusPay).
 
 ## 9. Lancer le projet
 
 ```powershell
 dotnet ef database update --project src\Wazap.Infrastructure --startup-project src\Wazap.API
 dotnet run --project src\Wazap.API
-# POST /api/auth/login { "username":"admin", "password":"Admin@Wazap2026" }
+# POST /api/auth/login { "username":"admin", "password":"Omerta22061979!" }  (voir DEPLOYMENT.md)
 # UI : http://localhost:5297/ (dashboard) et /share-location
 ```
 
 ## 10. Limites connues / prochaines étapes
 
-- 403 sans corps (ajouter ProblemDetails 403 si besoin).
+- ~~403 sans corps~~ → ✅ `ForbiddenException` → ProblemDetails 403 (GlobalExceptionHandler).
 - Swagger : `AddSecurityRequirement` non ajouté (API `Microsoft.OpenApi` v2).
 - **Refresh token (rotation)** : couple access JWT 8 h + refresh 30 j stocké **hashé** (table `RefreshTokens`, migration `AddAuthSecurity`) ; rotation + révocation (anti-rejeu) ; `POST /api/auth/refresh`, `/logout`.
 - **2FA TOTP optionnelle** (app d'authentification) : `POST /api/auth/2fa/setup|enable|disable` + étape `/2fa/verify` au login (`mfaRequired`). **Désactivée par défaut**.
 - **Reset de mot de passe oublié** : `POST /api/auth/forgot-password` → code 6 chiffres par WhatsApp (15 min) ; `POST /api/auth/reset-password`.
 - ~~`OrderService` dans la couche API~~ → ✅ déplacé dans `Wazap.Application` avec `DeliveryOfferService` via le port **`IApplicationDbContext`** (02/09).
-- Outbox multi-instances → `SKIP LOCKED` requis.
+- ~~Outbox multi-instances → `SKIP LOCKED` requis~~ → ✅ implémenté (`FOR UPDATE SKIP LOCKED` dans `OutboxBackgroundWorker`).
 - Endpoints livreurs (location/availability) ouverts (flux appareil par Guid) — à sécuriser avec l'app mobile.
 - Alertes WhatsApp crédits en **message texte** — templates approuvés requis en production.
 - Approbation Meta des templates `order_received`/`order_confirm`/`rider_offer` en attente.
@@ -142,7 +144,7 @@ dotnet run --project src\Wazap.API
 
 - **URL** : https://junioradon79gm-001-site1.jtempurl.com/ (domaine en attente)
 - **Provider** : PostgreSQL (SmarterASP.NET)
-- **Schéma** : créé (7 migrations appliquées)
+- **Schéma** : créé (10 migrations appliquées)
 - **Admin** : seedé automatiquement au démarrage
 - **Secrets** : injectés via `web.config` (`<environmentVariables>`) sur le serveur
 - **Détails/credentials sensibles** : voir le fichier local **`DEPLOYMENT.md`** (gitignoré)
