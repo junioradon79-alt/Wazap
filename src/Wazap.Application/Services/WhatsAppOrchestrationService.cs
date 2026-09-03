@@ -277,6 +277,21 @@ namespace Wazap.Application.Services
         }
 
         /// <summary>
+        /// Notifie le vendeur qu'aucun livreur n'a accepté sa commande (timeout global) —
+        /// la commande est annulée, le vendeur peut renvoyer « LIVRAISON » pour réessayer.
+        /// </summary>
+        public async Task SendNoRiderFoundAsync(string vendorPhone, string orderCode)
+        {
+            if (string.IsNullOrWhiteSpace(vendorPhone))
+                return;
+
+            const string message =
+                "😕 Aucun livreur n'a accepté votre commande. Elle a été annulée (aucun crédit débité). " +
+                "Renvoyez LIVRAISON pour réessayer dans quelques minutes.";
+            await _whatsAppSender.SendTextMessageAsync(vendorPhone, $"{message} #{orderCode}");
+        }
+
+        /// <summary>
         /// Envoie un template si un nom est configuré (templates approuvés), sinon un texte.
         /// </summary>
         private async Task SendStatusAsync(
