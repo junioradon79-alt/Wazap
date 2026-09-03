@@ -12,4 +12,11 @@ public sealed class GroupingOptions
 
     /// <summary>Nombre maximal de commandes par lot (au-delà, le lot est diffusé immédiatement).</summary>
     public int MaxOrdersPerBatch { get; set; } = 5;
+
+    /// <summary>
+    /// Délai d'attente (secondes) avant diffusion d'un lot issu du parcours acheteur
+    /// (validation des coordonnées client) : laisse les autres clients du même vendeur
+    /// rejoindre le lot → tournée multi-clients.
+    /// </summary>
+    public int BuyerDispatchDelaySeconds { get; set; } = 30;
 }

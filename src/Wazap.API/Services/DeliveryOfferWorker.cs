@@ -67,10 +67,18 @@ namespace Wazap.API.Services
             foreach (var batch in openBatches)
             {
                 // Taille du lot = commandes actives uniquement (les annulées ne comptent pas).
-                var orderCount = await db.Orders.CountAsync(o =>
-                    o.BatchId == batch.Id
-                    && (o.Status == OrderStatus.VendorConfirmed || o.Status == OrderStatus.AwaitingRiderAcceptance), ct);
-                var ready = batch.CreatedAt <= windowCutoff || orderCount >= _grouping.MaxOrdersPerBatch;
+                var activeOrders = await db.Orders
+                    .Where(o => o.BatchId == batch.Id
+                        && (o.Status == OrderStatus.VendorConfirmed || o.Status == OrderStatus.AwaitingRiderAcceptance))
+                    .ToListAsync(ct);
+                var orderCount = activeOrders.Count;
+                // Lot issu du parcours acheteur (au moins une commande avec coordonnées client) :
+                // diffusion après le court délai de groupage (tournée multi-clients).
+                var hasBuyerCoords = activeOrders.Any(o => o.ClientLatitude != null && o.ClientLongitude != null);
+                var buyerCutoff = now.AddSeconds(-_grouping.BuyerDispatchDelaySeconds);
+                var ready = hasBuyerCoords
+                    ? batch.CreatedAt <= buyerCutoff || orderCount >= _grouping.MaxOrdersPerBatch
+                    : batch.CreatedAt <= windowCutoff || orderCount >= _grouping.MaxOrdersPerBatch;
                 if (!ready)
                     continue;
 
