@@ -143,7 +143,9 @@ namespace Wazap.API.Services
                 }
             }
 
-            // 3) Timeout global (aucune acceptation après X min) — lots et commandes
+            // 3) Timeout global (aucune acceptation après X min) — lots et commandes :
+            //    la commande est annulée (aucun crédit débité) et le vendeur est notifié
+            //    avec une invitation à relancer (LIVRAISON).
             var acceptedBatchIds = offers
                 .Where(o => o.Status == DeliveryOfferStatus.Accepted && o.BatchId != null)
                 .Select(o => o.BatchId!.Value)
@@ -157,7 +159,13 @@ namespace Wazap.API.Services
                 .ToList();
 
             foreach (var batchId in timedOutBatchIds)
-                _logger.LogWarning("Aucun livreur n'a accepté le lot {BatchId} (timeout global).", batchId);
+            {
+                var timedOrders = await db.Orders
+                    .Where(o => o.BatchId == batchId && o.Status == OrderStatus.AwaitingRiderAcceptance)
+                    .ToListAsync(ct);
+                foreach (var order in timedOrders)
+                    await FailDispatchAsync(order);
+            }
 
             var acceptedOrderIds = offers
                 .Where(o => o.Status == DeliveryOfferStatus.Accepted && o.OrderId != null)
@@ -172,7 +180,33 @@ namespace Wazap.API.Services
                 .ToList();
 
             foreach (var orderId in timedOutOrderIds)
-                _logger.LogWarning("Aucun livreur n'a accepté la commande {OrderId} (timeout global).", orderId);
+            {
+                var order = await db.Orders.FirstOrDefaultAsync(
+                    o => o.Id == orderId && o.Status == OrderStatus.AwaitingRiderAcceptance, ct);
+                if (order is not null)
+                    await FailDispatchAsync(order);
+            }
+
+            if (timedOutBatchIds.Count > 0 || timedOutOrderIds.Count > 0)
+                await db.SaveChangesAsync(ct);
+
+            // Annule la commande et notifie le vendeur (aucun livreur trouvé).
+            async Task FailDispatchAsync(Wazap.Domain.Entities.Order order)
+            {
+                order.Cancel();
+                _logger.LogWarning("Commande {OrderId} : aucun livreur (timeout global) — annulée.", order.Id);
+
+                var code = order.Id.ToString("N")[..8].ToUpperInvariant();
+                try
+                {
+                    var orchestrator = scope.ServiceProvider.GetRequiredService<WhatsAppOrchestrationService>();
+                    await orchestrator.SendNoRiderFoundAsync(order.VendorWhatsAppNumber, code);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Notification « aucun livreur » impossible pour {OrderId}.", order.Id);
+                }
+            }
         }
     }
 }
