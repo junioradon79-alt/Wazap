@@ -26,13 +26,13 @@
 3. **Purge des comptes de test** en base prod (`test_reel_utilisateur`, `test_vendeur_cocody`) après la fin des essais réels (CleanupTestVendors).
 
 ## C. Chantiers code recommandés (par ordre d'impact)
-1. **Fallback timeout 5 min** : actuellement un simple log quand aucun livreur n'accepte → notifier le vendeur (« aucun livreur trouvé, réessayez ») + proposer une relance.
-2. **Conversion numéros 8→10 chiffres** (table de correspondance par opérateur CI) pour fiabiliser les notifications sortantes.
-3. **Suivi GPS temps réel** : exposer la position du livreur au client pendant la course (le parcours acheteur poll le statut, pas la position).
-4. **Sécuriser les endpoints livreurs** (location/availability) par JWT quand l'app mobile arrive.
-5. **Dashboard KPI marketing** (vendeurs actifs, taux de conversion, commandes/zone/semaine — voir MARKETING_STRATEGY §7).
-6. **Fin des tests réels** S3 (parcours acheteur complet lien→GPS) et S4 (cas négatifs) — protocole prêt.
-7. Minor : Swagger `AddSecurityRequirement` (bloqué par Microsoft.OpenApi v2), nettoyage vieux assets serveur.
+1. **Fallback timeout 5 min** : ✅ FAIT (03/09, commit 29c28ab) — au timeout sans livreur, la commande est annulée (aucun crédit débité) et le vendeur est notifié avec invitation à renvoyer LIVRAISON.
+2. **Conversion numéros 8→10 chiffres** : ⏳ EN ATTENTE table officielle ARTCI par opérateur (risque d'erreur sinon). Approche actuelle conservée : matching SameSubscriber (8 derniers) + auto-réparation du numéro via `wa_id` au 1er échange.
+3. **Suivi GPS temps réel** : ✅ FAIT (03/09, commit 4fa00bd) — `GET /api/client/orders/{id}/rider-location` + carte Google Maps live dans la page `/app/suivi/:id`.
+4. **Sécuriser les endpoints livreurs** : ✅ DÉJÀ FAIT — `RidersController` exige JWT (Rider gère son compte, Admin tout) avec contrôle d'appartenance.
+5. **Dashboard KPI marketing** : ✅ FAIT (03/09, commit 88db0ab) — `GET /api/dashboard/summary` étendu : vendeurs totaux/nouveaux(30j)/actifs(30j), livreurs, commandes semaine/30j, commandes par zone.
+6. **Tests réels S3/S4** : ⏳ nécessite téléphone utilisateur (S3 parcours acheteur lien complet, S4 cas négatifs) — protocole prêt.
+
 
 ## D. Scaling technique
 - **CI/CD → prod automatisé** : workflow GitHub Actions qui publie + upload FTP (actuellement manuel, upload différentiel).
