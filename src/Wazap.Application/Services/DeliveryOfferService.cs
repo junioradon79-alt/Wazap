@@ -279,7 +279,11 @@ namespace Wazap.Application.Services
                 throw new InvalidOperationException($"État actuel : {order.Status}. Diffusion impossible.");
 
             var batchId = await JoinOrCreateBatchAsync(order.Id);
-            var result = await BroadcastBatchAsync(batchId);
+
+            // Diffusion différée : le worker (DeliveryOfferWorker) diffusera le lot après le
+            // délai de groupage (Grouping:BuyerDispatchDelaySeconds) afin de laisser les autres
+            // clients du même vendeur rejoindre la tournée multi-clients. Les notifications
+            // « recherche en cours » partent immédiatement pour rassurer le client.
 
             try
             {
@@ -305,7 +309,7 @@ namespace Wazap.Application.Services
                 _logger.LogWarning(ex, "Notification vendeur impossible pour {OrderId}.", order.Id);
             }
 
-            return result;
+            return new BroadcastResultDto(0, 0);
         }
 
         /// <summary>
