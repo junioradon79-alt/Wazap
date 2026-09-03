@@ -76,6 +76,10 @@ builder.Services.AddSingleton(whatsAppOptions);
 var geniusPayOptions = builder.Configuration.GetSection(GeniusPayOptions.SectionName).Get<GeniusPayOptions>() ?? new GeniusPayOptions();
 builder.Services.AddSingleton(geniusPayOptions);
 
+// Options numérotation ivoirienne (conversion 8 → 10 chiffres, table officielle ARTCI à venir)
+var ciNumberingOptions = builder.Configuration.GetSection(IvoryCoastNumberingOptions.SectionName).Get<IvoryCoastNumberingOptions>() ?? new IvoryCoastNumberingOptions();
+builder.Services.AddSingleton(ciNumberingOptions);
+
 // Géocodage d'adresses (Nominatim / OpenStreetMap)
 builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>();
 
