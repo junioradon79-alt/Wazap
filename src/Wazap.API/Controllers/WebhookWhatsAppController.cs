@@ -122,6 +122,19 @@ public class WebhookWhatsAppController : ControllerBase
 
         // 4) Acceptation d'une offre (texte « ACCEPTE {code_court} » ou bouton « ACCEPT_{id} »)
         var offerId = await ExtractOfferIdAsync(buttonId, buttonTitle, text);
+
+        // 4b) Bouton générique « Accepter » (template à bouton) : le clic n'embarque pas le code,
+        //     on résout l'offre en attente la plus récente du livreur.
+        if (offerId is null)
+        {
+            var buttonReplies = new[] { buttonId, buttonTitle }
+                .Where(v => !string.IsNullOrWhiteSpace(v))
+                .Select(v => v!.Trim().ToLowerInvariant())
+                .ToList();
+            if (buttonReplies.Any(r => r.Contains("accept")))
+                offerId = await FindPendingOfferForRiderAsync(phone);
+        }
+
         if (offerId is not null)
         {
             await _deliveryOfferService.AcceptOfferAsync(offerId.Value);
@@ -367,6 +380,24 @@ public class WebhookWhatsAppController : ControllerBase
         {
             _logger.LogWarning(ex, "Réponse WhatsApp impossible pour {User}.", user.Username);
         }
+    }
+
+    private async Task<Guid?> FindPendingOfferForRiderAsync(string? phone)
+    {
+        if (string.IsNullOrWhiteSpace(phone))
+            return null;
+
+        var rider = await FindUserByPhoneAsync(phone, UserRole.Rider);
+        if (rider is null)
+            return null;
+
+        // L'offre en attente la plus récente du livreur (bouton « Accepter » sans code).
+        var offer = await _context.DeliveryOffers
+            .Where(o => o.RiderUserId == rider.Id && o.Status == DeliveryOfferStatus.Pending)
+            .OrderByDescending(o => o.SentAt)
+            .FirstOrDefaultAsync();
+
+        return offer?.Id;
     }
 
     private async Task<Order?> FindPendingOrderAsync(string vendorWhatsApp)
