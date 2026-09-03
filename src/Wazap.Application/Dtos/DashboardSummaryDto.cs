@@ -11,6 +11,22 @@ namespace Wazap.Application.Dtos
         public int ActiveRiders { get; init; }
         public decimal MonthlyRevenue { get; init; }
         public IReadOnlyList<OrderInProgressDto> RecentOrders { get; init; } = [];
+
+        // KPI acquisition & activité (pilotage marketing)
+        public int TotalVendors { get; init; }
+        public int NewVendors30d { get; init; }
+        public int ActiveVendors30d { get; init; }
+        public int TotalRiders { get; init; }
+        public int OrdersThisWeek { get; init; }
+        public int OrdersLast30d { get; init; }
+        public IReadOnlyList<ZoneMetricDto> OrdersByZone30d { get; init; } = [];
+    }
+
+    /// <summary>Métrique par zone (commandes des 30 derniers jours).</summary>
+    public sealed class ZoneMetricDto
+    {
+        public string Zone { get; init; } = "Inconnue";
+        public int Orders { get; init; }
     }
 
     /// <summary>
