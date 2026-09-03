@@ -27,7 +27,7 @@
 
 ## C. Chantiers code recommandés (par ordre d'impact)
 1. **Fallback timeout 5 min** : ✅ FAIT (03/09, commit 29c28ab) — au timeout sans livreur, la commande est annulée (aucun crédit débité) et le vendeur est notifié avec invitation à renvoyer LIVRAISON.
-2. **Conversion numéros 8→10 chiffres** : ⏳ EN ATTENTE table officielle ARTCI par opérateur (risque d'erreur sinon). Approche actuelle conservée : matching SameSubscriber (8 derniers) + auto-réparation du numéro via `wa_id` au 1er échange.
+2. **Conversion numéros 8→10 chiffres** : ⏳ EN ATTENTE table officielle ARTCI par opérateur (risque d'erreur sinon). Approche actuelle conservée : matching SameSubscriber (8 derniers) + auto-réparation du numéro via `wa_id` au 1er échange. **Squelette config-drivé prêt (03/09)** : section `IvoryCoastNumbering` (`appsettings`, `Enabled=false` par défaut) + `PhoneNumberNormalizer.ConvertOldCiToCurrent()` (options & table) + tests dédiés → dès réception de la table ARTCI : remplir `OldToNewPrefixMap` puis activer (aucun code à écrire).
 3. **Suivi GPS temps réel** : ✅ FAIT (03/09, commit 4fa00bd) — `GET /api/client/orders/{id}/rider-location` + carte Google Maps live dans la page `/app/suivi/:id`.
 4. **Sécuriser les endpoints livreurs** : ✅ DÉJÀ FAIT — `RidersController` exige JWT (Rider gère son compte, Admin tout) avec contrôle d'appartenance.
 5. **Dashboard KPI marketing** : ✅ FAIT (03/09, commit 88db0ab) — `GET /api/dashboard/summary` étendu : vendeurs totaux/nouveaux(30j)/actifs(30j), livreurs, commandes semaine/30j, commandes par zone.
