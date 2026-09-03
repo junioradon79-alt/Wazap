@@ -42,14 +42,17 @@
 - **Performance données** : index supplémentaires, archivage des commandes livrées (rétention), partitionnement si >1M lignes.
 - **API publique** versionnée pour intégrations (agrégateurs, grossistes) + webhooks sortants.
 
-## E. Scaling business (30/60/90 — cf. MARKETING_STRATEGY)
-| Phase | Actions | Cibles KPI |
-|---|---|---|
-| J0–30 | Zone pilote Cocody/Marcory · démarchage 20 vendeurs · 30 livreurs · pack découverte · collecte+relances prospects | 20 vendeurs · 50 commandes/sem |
-| J30–60 | Parrainage amplifié · 2 zones + · témoignages · partenariats commerçants | 60 vendeurs · 300 cmd/sem |
-| J60–90 | Campagnes Ads géolocalisées · programme livreur (prime) · analyse zones rentables | 120 vendeurs · 1 000 cmd/sem |
-- **Levier produit** : templates approuvés (notifications pro + prospect) = condition pour industrialiser l'acquisition.
-- **Recrutement livreurs** : templates `rider_recruit`/`rider_company` + lien d'inscription.
+## E. Scaling business (30/60/90 — objectifs 10× révisés, cf. MARKETING_STRATEGY §10)
+| Phase | Vendeurs actifs | Livreurs | Commandes/sem | Zones |
+|---|---|---|---|---|
+| J0–30 Démarrage | **150** | **200** | **2 000** | Cocody, Marcory, Yopougon, Adjamé, Treichville |
+| J30–60 Accélération | **600** | **700** | **10 000** | + Koumassi, Port-Bouët, Abobo |
+| J60–90 Scale | **1 500** | **1 500** | **25 000** | + Bingerville, Anyama, Songon |
+
+- **Entonnoir** : démo→inscription 35 % · inscrit→actif 60 % · 12-15 cmd/sem/vendeur actif.
+- **Moyens** : 5 commerciaux J0 → 25 à J60 · budget ads géolocalisées · recrutement livreurs ANTICIPÉ par zone.
+- **Conditions** : templates Meta approuvés · capacité livreurs (offre/demande) · délai < 45 min, taux réussite > 90 % · Mobile Money client · KPI quotidiens par zone.
+
 
 ## F. Vision moyen terme (différenciation)
 1. **Paiement Mobile Money du client** (Orange Money / MTN MoMo) via GeniusPay → encaisser la course, pas seulement les packs.
