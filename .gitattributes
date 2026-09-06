@@ -1,0 +1,8 @@
+# Normalisation des fins de ligne Git
+* text=auto
+
+# Scripts shell : toujours LF (exécutés sur les runners GitHub Linux)
+*.sh text eol=lf
+
+# Scripts PowerShell : CRLF (Windows)
+*.ps1 text eol=crlf
