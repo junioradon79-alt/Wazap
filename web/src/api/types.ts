@@ -134,8 +134,11 @@ export interface RiderCertification {
   isAvailable: boolean
   status: 'Pending' | 'Verified' | 'Rejected' | 'Blacklisted'
   fullName: string | null
-  cniNumber: string | null
-  motorcyclePlate: string | null
+  idNumber: string | null
+  motorcycle: string | null
+  idScanUrl: string | null
+  scanFileName: string | null
+  scanReceivedAt: string | null
   blacklistReason: string | null
   createdAt: string | null
   reviewedAt: string | null

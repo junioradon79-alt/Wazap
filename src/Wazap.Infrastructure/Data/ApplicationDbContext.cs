@@ -106,12 +106,20 @@ namespace Wazap.Infrastructure.Data
                 .HasMaxLength(80);
 
             modelBuilder.Entity<RiderIdentity>()
-                .Property(i => i.CniNumber)
-                .HasMaxLength(30);
+                .Property(i => i.IdNumber)
+                .HasMaxLength(40);
 
             modelBuilder.Entity<RiderIdentity>()
-                .Property(i => i.MotorcyclePlate)
-                .HasMaxLength(30);
+                .Property(i => i.Motorcycle)
+                .HasMaxLength(80);
+
+            modelBuilder.Entity<RiderIdentity>()
+                .Property(i => i.IdScanUrl)
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<RiderIdentity>()
+                .Property(i => i.ScanFileName)
+                .HasMaxLength(120);
 
             modelBuilder.Entity<RiderIdentity>()
                 .Property(i => i.BlacklistReason)

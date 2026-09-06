@@ -7,15 +7,20 @@ using Wazap.Infrastructure.Data;
 namespace Wazap.API.Services
 {
     /// <summary>
-    /// Gestion des livreurs : liste, position live, disponibilité, partage RGPD.
+    /// Gestion des livreurs : liste, position live, disponibilité, partage RGPD et
+    /// certification « Garantie Colis Sûr » (dossier d'identité + scan de la pièce).
     /// </summary>
     public sealed class RiderService
     {
-        private readonly ApplicationDbContext _context;
+        private const string ScanFolder = "App_Data/rider-scans";
 
-        public RiderService(ApplicationDbContext context)
+        private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _env;
+
+        public RiderService(ApplicationDbContext context, IWebHostEnvironment env)
         {
             _context = context;
+            _env = env;
         }
 
         public async Task<List<UserSummaryDto>> GetRidersAsync()
@@ -107,8 +112,11 @@ namespace Wazap.API.Services
                         u.IsAvailable,
                         i?.Status.ToString() ?? RiderIdentityStatus.Pending.ToString(),
                         i?.FullName,
-                        i?.CniNumber,
-                        i?.MotorcyclePlate,
+                        i?.IdNumber,
+                        i?.Motorcycle,
+                        i?.IdScanUrl,
+                        i?.ScanFileName,
+                        i?.ScanReceivedAt,
                         i?.BlacklistReason,
                         i?.CreatedAt,
                         i?.ReviewedAt);
@@ -121,8 +129,8 @@ namespace Wazap.API.Services
         }
 
         /// <summary>Certifie un livreur après contrôle d'identité par l'équipe (badge « certifié »).</summary>
-        public async Task VerifyRiderAsync(Guid riderUserId, string? fullName, string? cniNumber,
-            string? motorcyclePlate, Guid? reviewerId)
+        public async Task VerifyRiderAsync(Guid riderUserId, string? fullName, string? idNumber,
+            string? motorcycle, Guid? reviewerId)
         {
             var rider = await _context.Users.FirstOrDefaultAsync(
                     u => u.Id == riderUserId && u.Role == UserRole.Rider)
@@ -131,11 +139,11 @@ namespace Wazap.API.Services
             var identity = await _context.RiderIdentities.FirstOrDefaultAsync(i => i.UserId == riderUserId);
             if (identity is null)
             {
-                identity = new RiderIdentity(riderUserId, fullName, cniNumber, motorcyclePlate);
+                identity = new RiderIdentity(riderUserId, fullName, idNumber, motorcycle);
                 _context.RiderIdentities.Add(identity);
             }
 
-            identity.Verify(fullName, cniNumber, motorcyclePlate, reviewerId);
+            identity.Verify(fullName, idNumber, motorcycle, reviewerId);
             await _context.SaveChangesAsync();
         }
 
@@ -178,7 +186,57 @@ namespace Wazap.API.Services
             rider.SetAvailability(false);
             await _context.SaveChangesAsync();
         }
+
+
+        /// <summary>
+        /// Téléverse le scan de la pièce d'identité fourni par l'équipe (photo reçue
+        /// sur WhatsApp). Un dossier refusé est rouvert « à vérifier ».
+        /// </summary>
+        public async Task StoreScanAsync(Guid riderUserId, Stream file, string fileName)
+        {
+            var rider = await _context.Users.FirstOrDefaultAsync(
+                    u => u.Id == riderUserId && u.Role == UserRole.Rider)
+                ?? throw new InvalidOperationException("Livreur introuvable.");
+
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
+            if (extension is not (".jpg" or ".jpeg" or ".png" or ".webp" or ".pdf"))
+                throw new InvalidOperationException("Format non pris en charge (JPG, PNG, WEBP ou PDF attendu).");
+
+            var dir = Path.Combine(_env.ContentRootPath, ScanFolder);
+            Directory.CreateDirectory(dir);
+
+            var storedName = $"{riderUserId:N}{extension}";
+            var fullPath = Path.Combine(dir, storedName);
+            await using (var output = new FileStream(fullPath, FileMode.Create, FileAccess.Write))
+            {
+                await file.CopyToAsync(output);
+            }
+
+            var identity = await _context.RiderIdentities.FirstOrDefaultAsync(i => i.UserId == riderUserId);
+            if (identity is null)
+            {
+                identity = new RiderIdentity(riderUserId);
+                _context.RiderIdentities.Add(identity);
+            }
+
+            identity.SubmitScanFile(storedName);
+            await _context.SaveChangesAsync();
+        }
+
+        /// <summary>Chemin du scan local (null si aucun fichier téléversé).</summary>
+        public async Task<string?> GetStoredScanPathAsync(Guid riderUserId)
+        {
+            var identity = await _context.RiderIdentities.AsNoTracking()
+                .FirstOrDefaultAsync(i => i.UserId == riderUserId);
+
+            if (identity?.ScanFileName is null)
+                return null;
+
+            var fullPath = Path.Combine(_env.ContentRootPath, ScanFolder, identity.ScanFileName);
+            return File.Exists(fullPath) ? fullPath : null;
+        }
     }
+
 
     public sealed record RiderCertificationDto(
         Guid RiderId,
@@ -188,9 +246,13 @@ namespace Wazap.API.Services
         bool IsAvailable,
         string Status,
         string? FullName,
-        string? CniNumber,
-        string? MotorcyclePlate,
+        string? IdNumber,
+        string? Motorcycle,
+        string? IdScanUrl,
+        string? ScanFileName,
+        DateTime? ScanReceivedAt,
         string? BlacklistReason,
         DateTime? CreatedAt,
         DateTime? ReviewedAt);
 }
+

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { api } from '../api/client'
+import { api, getToken } from '../api/client'
 import type { RiderCertification, UserSummary } from '../api/types'
 import { StatusBadge } from '../components/ui'
 
@@ -16,7 +16,8 @@ export default function RidersPage() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [verifyTarget, setVerifyTarget] = useState<{ rider: UserSummary; cert: RiderCertification } | null>(null)
-  const [verifyForm, setVerifyForm] = useState({ fullName: '', cniNumber: '', motorcyclePlate: '' })
+  const [verifyForm, setVerifyForm] = useState({ fullName: '', idNumber: '', motorcycle: '' })
+  const [scanSaved, setScanSaved] = useState(false)
 
   const load = async (): Promise<void> => {
     try {
@@ -39,14 +40,58 @@ export default function RidersPage() {
     const cert = certById[r.id] ?? {
       riderId: r.id, username: r.username, phoneNumber: r.phoneNumber, zone: r.zone,
       isAvailable: r.isAvailable, status: 'Pending' as const, fullName: null,
-      cniNumber: null, motorcyclePlate: null, blacklistReason: null, createdAt: null, reviewedAt: null,
+      idNumber: null, motorcycle: null, idScanUrl: null, scanFileName: null,
+      scanReceivedAt: null, blacklistReason: null, createdAt: null, reviewedAt: null,
     }
     setVerifyForm({
       fullName: cert.fullName ?? r.username,
-      cniNumber: cert.cniNumber ?? '',
-      motorcyclePlate: cert.motorcyclePlate ?? '',
+      idNumber: cert.idNumber ?? '',
+      motorcycle: cert.motorcycle ?? '',
     })
+    setScanSaved(Boolean(cert.scanFileName))
     setVerifyTarget({ rider: r, cert })
+  }
+
+  const uploadScan = async (file: File): Promise<void> => {
+    if (!verifyTarget) return
+    setBusy(true)
+    setError('')
+    const token = getToken()
+    const body = new FormData()
+    body.append('file', file)
+    try {
+      const res = await fetch(`/api/riders/${verifyTarget.rider.id}/scan`, {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body,
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => null)
+        throw new Error((err as { error?: string } | null)?.error ?? 'Téléversement impossible')
+      }
+      setScanSaved(true)
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Téléversement impossible')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const viewScan = async (riderId: string): Promise<void> => {
+    const token = getToken()
+    try {
+      const res = await fetch(`/api/riders/${riderId}/scan`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      })
+      if (!res.ok) throw new Error('Scan introuvable')
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      window.open(url, '_blank')
+      setTimeout(() => URL.revokeObjectURL(url), 30_000)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Scan introuvable')
+    }
   }
 
   const doVerify = async (): Promise<void> => {
@@ -140,7 +185,10 @@ export default function RidersPage() {
                       {cert?.fullName
                         ? <span style={{ fontSize: 13 }}>
                             {cert.fullName}
-                            {cert.motorcyclePlate && <><br /><span className="mono">{cert.motorcyclePlate}</span></>}
+                            {cert.idNumber && <><br /><span className="mono">{cert.idNumber}</span></>}
+                            {(cert.scanFileName)
+                              ? <><br /><button className="btn" style={{ padding: '2px 8px', fontSize: 11 }} onClick={() => void viewScan(r.id)}>🖼 Voir le scan</button></>
+                              : null}
                           </span>
                         : <span style={{ fontSize: 13, color: 'var(--muted, #888)' }}>—</span>}
                     </td>
@@ -199,11 +247,12 @@ export default function RidersPage() {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>Certifier « {verifyTarget.rider.username} »</h3>
             <p style={{ fontSize: 13, marginBottom: 12 }}>
-              Vérifiez l'identité (CNI) et la moto avant d'activer le badge « Livreur certifié ».
+              Le scan de la pièce d'identité et le nom complet sont obligatoires avant de certifier.
+              La moto des particuliers n'est souvent pas immatriculée : la plaque est optionnelle.
               Numéro : <span className="whatsapp">{verifyTarget.rider.phoneNumber ?? '—'}</span>
             </p>
             <div className="field">
-              <label>Nom complet (CNI)</label>
+              <label>Nom complet (sur la pièce d'identité)</label>
               <input
                 value={verifyForm.fullName}
                 onChange={(e) => setVerifyForm((f) => ({ ...f, fullName: e.target.value }))}
@@ -212,21 +261,44 @@ export default function RidersPage() {
               />
             </div>
             <div className="field">
-              <label>N° CNI</label>
+              <label>N° de la pièce (CNI, passeport…)</label>
               <input
-                value={verifyForm.cniNumber}
-                onChange={(e) => setVerifyForm((f) => ({ ...f, cniNumber: e.target.value }))}
+                value={verifyForm.idNumber}
+                onChange={(e) => setVerifyForm((f) => ({ ...f, idNumber: e.target.value }))}
                 placeholder="ex : CI-XXXXXXXXX"
-                maxLength={30}
+                maxLength={40}
               />
             </div>
             <div className="field">
-              <label>Plaque de la moto</label>
+              <label>Moto (type / couleur — plaque seulement si disponible)</label>
               <input
-                value={verifyForm.motorcyclePlate}
-                onChange={(e) => setVerifyForm((f) => ({ ...f, motorcyclePlate: e.target.value }))}
-                placeholder="ex : 1234 AB 01"
-                maxLength={30}
+                value={verifyForm.motorcycle}
+                onChange={(e) => setVerifyForm((f) => ({ ...f, motorcycle: e.target.value }))}
+                placeholder="ex : moto rouge"
+                maxLength={80}
+              />
+            </div>
+            <div className="field">
+              <label>🪪 Scan de la pièce d'identité (obligatoire)</label>
+              {verifyTarget.cert.scanFileName || scanSaved ? (
+                <p style={{ fontSize: 13, color: 'var(--wz-green-strong, #059669)' }}>
+                  ✅ Scan reçu —{' '}
+                  <button className="btn" style={{ padding: '2px 8px', fontSize: 12 }} onClick={() => void viewScan(verifyTarget.rider.id)}>
+                    Voir le scan
+                  </button>
+                </p>
+              ) : (
+                <p style={{ fontSize: 13, color: 'var(--muted, #888)' }}>Aucun scan — téléversez la photo de la pièce reçue sur WhatsApp (JPG/PNG/WEBP/PDF).</p>
+              )}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                disabled={busy}
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) void uploadScan(file)
+                  e.currentTarget.value = ''
+                }}
               />
             </div>
             <div className="modal__actions">
@@ -234,7 +306,8 @@ export default function RidersPage() {
               <button
                 className="btn btn--primary"
                 onClick={() => void doVerify()}
-                disabled={busy || verifyForm.fullName.trim().length === 0}
+                disabled={busy || verifyForm.fullName.trim().length === 0 || !(verifyTarget.cert.scanFileName || scanSaved)}
+                title={!(verifyTarget.cert.scanFileName || scanSaved) ? 'Téléversez d’abord le scan de la pièce d’identité' : undefined}
               >
                 {busy ? '…' : '✅ Certifier'}
               </button>

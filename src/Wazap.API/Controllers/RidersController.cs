@@ -79,9 +79,49 @@ public class RidersController : ControllerBase
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> Verify(Guid id, [FromBody] VerifyRiderRequest request)
     {
-        await _riderService.VerifyRiderAsync(id, request.FullName, request.CniNumber, request.MotorcyclePlate,
+        await _riderService.VerifyRiderAsync(id, request.FullName, request.IdNumber, request.Motorcycle,
             _currentUser.Id);
         return NoContent();
+    }
+
+    // POST: api/riders/{id}/scan — téléversement du scan de la pièce d'identité (photo reçue sur WhatsApp)
+    [HttpPost("{id:guid}/scan")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    public async Task<IActionResult> UploadScan(Guid id, IFormFile file)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { error = "Fichier manquant ou vide." });
+
+        try
+        {
+            await _riderService.StoreScanAsync(id, file.OpenReadStream(), file.FileName);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    // GET: api/riders/{id}/scan — lecture du scan stocké (réservé admin)
+    [HttpGet("{id:guid}/scan")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    public async Task<IActionResult> GetScan(Guid id)
+    {
+        var path = await _riderService.GetStoredScanPathAsync(id);
+        if (path is null)
+            return NotFound();
+
+        var extension = Path.GetExtension(path).ToLowerInvariant();
+        var contentType = extension switch
+        {
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".webp" => "image/webp",
+            ".pdf" => "application/pdf",
+            _ => "application/octet-stream"
+        };
+        return PhysicalFile(path, contentType, Path.GetFileName(path));
     }
 
     // POST: api/riders/{id}/reject — certification refusée (dossier incomplet/incohérent)
@@ -133,7 +173,7 @@ public sealed record SetLocationSharingRequest(bool IsEnabled);
 
 public sealed record SetZoneRequest(string Zone);
 
-public sealed record VerifyRiderRequest(string? FullName, string? CniNumber, string? MotorcyclePlate);
+public sealed record VerifyRiderRequest(string? FullName, string? IdNumber, string? Motorcycle);
 
 public sealed record RejectRiderRequest(string? Reason);
 
