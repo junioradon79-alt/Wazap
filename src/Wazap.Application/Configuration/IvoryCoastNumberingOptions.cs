@@ -18,9 +18,18 @@ namespace Wazap.Application.Configuration;
 /// chiffres + auto-réparation via wa_id) est conservé.
 /// </para>
 /// <para>
-/// ⚠️ Statut : table DESACTIVEE par défaut. Avant de passer <see cref="Enabled"/> à <c>true</c>,
-/// valider la table sur le document officiel ARTCI et faire un test réel (message WhatsApp vers un
-/// numéro converti). Surcharge possible par environnement via la section config du même nom.
+/// ✅ Table **VALIDÉE le 06/09/2026** contre le plan officiel ARTCI 2021 (communiqué « Passage de
+/// 8 à 10 chiffres à compter du 31 janvier 2021 », artci.ci 11/08/2020 ; plan national de
+/// numérotation) et recoupée avec les wa_id réels observés. Couverture exacte : Orange → 07
+/// (07/08/09/47/48/49/57/58/59/77/78/87/88/89/98), MTN → 05 (04/05/06/44/45/46/55/56/84/85/86),
+/// Moov Africa CI → 01 (01/02/03/40/42). Préfixes fermés/non attribués (50/60/66/67/69/41/43…)
+/// volontairement absents → aucune conversion hasardeuse (test dédié).
+/// </para>
+/// <para>
+/// ⚠️ Toujours **DÉSACTIVÉE** (`Enabled = false`). Avant de passer à <c>true</c> :
+/// 1) brancher la conversion sur un point d'appel réel (ex. envoi WhatsApp sortant / inscription),
+/// 2) faire un test réel (message WhatsApp vers un numéro converti). Surcharge possible par
+/// environnement via la section config du même nom.
 /// </para>
 /// </remarks>
 public sealed class IvoryCoastNumberingOptions

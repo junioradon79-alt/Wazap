@@ -31,11 +31,14 @@
 
 ## C. Chantiers code recommandés (par ordre d'impact)
 1. **Fallback timeout 5 min** : ✅ FAIT (03/09, commit 29c28ab) — au timeout sans livreur, la commande est annulée (aucun crédit débité) et le vendeur est notifié avec invitation à renvoyer LIVRAISON.
-2. **Conversion numéros 8→10 chiffres** : ⏳ table reconstituée du **plan ARTCI 2021** (commit 6db9cbb, 06/09) :
-   Orange→07, MTN→05, Moov/ex-Atlantique→01, lignes fixes 2x/3x exclues (pas de WhatsApp), échantillons réels
-   en tests. **Toujours désactivée** (`IvoryCoastNumbering.Enabled=false`) — reste à valider sur le document
-   officiel ARTCI puis test réel avant activation (aucun code à écrire). Approche actuelle conservée en
-   attendant : matching SameSubscriber (8 derniers) + auto-réparation via `wa_id` au 1er échange.
+2. **Conversion numéros 8→10 chiffres** : ✅ **table VALIDÉE le 06/09** (plan officiel ARTCI 2021 :
+   communiqué artci.ci 11/08/2020 + plan NNP + recoupement wa_id réels) — Orange→07 (15 préfixes),
+   MTN→05 (11), Moov/ex-Atlantique→01 (5), fixes 2x/3x et préfixes fermés exclus (tests exhaustifs).
+   **Toujours désactivée** (`Enabled=false`). Reste avant activation : (1) **brancher** la conversion
+   sur un point d'appel réel (aujourd'hui `ConvertOldCiToCurrent` n'est pas appelé par le code métier —
+   l'auto-réparation `wa_id` au webhook reste le filet principal) ; (2) **test réel WhatsApp** vers un
+   numéro converti. Approche conservée en attendant : matching SameSubscriber (8 derniers) + auto-réparation
+   via `wa_id` au 1er échange.
 3. **Suivi GPS temps réel** : ✅ FAIT (03/09, commit 4fa00bd) — `GET /api/client/orders/{id}/rider-location` + carte Google Maps live dans la page `/app/suivi/:id`.
 4. **Sécuriser les endpoints livreurs** : ✅ DÉJÀ FAIT — `RidersController` exige JWT (Rider gère son compte, Admin tout) avec contrôle d'appartenance.
 5. **Dashboard KPI marketing** : ✅ FAIT (03/09, commit 88db0ab) — `GET /api/dashboard/summary` étendu : vendeurs totaux/nouveaux(30j)/actifs(30j), livreurs, commandes semaine/30j, commandes par zone.

@@ -186,4 +186,56 @@ public class PhoneNumberNormalizerTests
             Assert.Contains(entry.Value, new[] { "01", "05", "07" });
         });
     }
+
+    [Fact]
+    public void DefaultTable_MatchesOfficialArteiPlan2021()
+    {
+        // PLAN OFFICIEL ARTCI (réforme du 31/01/2021) — anciens préfixes mobiles (2 chiffres) par opérateur,
+        // et nouveau préfixe de 2 chiffres à préfixer aux 8 chiffres conservés.
+        // Sources :
+        //   • communiqué ARTCI « Passage de 8 à 10 chiffres à compter du 31 janvier 2021 » (artci.ci, 11/08/2020) ;
+        //   • plan national de numérotation (NNP) — liste des anciens préfixes mobiles par opérateur ;
+        //   • recoupement avec les wa_id réels observés en prod (5 échantillons, testés ci-dessus).
+        // Nouvelles numérotations : mobiles 01 (Moov) / 05 (MTN) / 07 (Orange) ; fixes 21/25/27 (hors table, pas de WhatsApp).
+        var expected = new Dictionary<string, string>
+        {
+            // Orange – Côte d'Ivoire → 07 (15 préfixes historiques)
+            ["07"] = "07", ["08"] = "07", ["09"] = "07",
+            ["47"] = "07", ["48"] = "07", ["49"] = "07",
+            ["57"] = "07", ["58"] = "07", ["59"] = "07",
+            ["77"] = "07", ["78"] = "07",
+            ["87"] = "07", ["88"] = "07", ["89"] = "07", ["98"] = "07",
+
+            // MTN – Côte d'Ivoire → 05 (11 préfixes historiques ; 04/05/06 hérités d'Oricel/Warid/Comium fermés)
+            ["04"] = "05", ["05"] = "05", ["06"] = "05",
+            ["44"] = "05", ["45"] = "05", ["46"] = "05",
+            ["55"] = "05", ["56"] = "05",
+            ["84"] = "05", ["85"] = "05", ["86"] = "05",
+
+            // Moov Africa CI (ex-Atlantique Telecom) → 01 (5 préfixes historiques)
+            ["01"] = "01", ["02"] = "01", ["03"] = "01",
+            ["40"] = "01", ["42"] = "01"
+        };
+
+        var actual = new IvoryCoastNumberingOptions().OldToNewPrefixMap;
+        Assert.Equal(expected.Count, actual.Count);
+        Assert.Equal(
+            expected.OrderBy(e => e.Key).Select(e => $"{e.Key}={e.Value}"),
+            actual.OrderBy(e => e.Key).Select(e => $"{e.Key}={e.Value}"));
+    }
+
+    [Theory]
+    [InlineData("41")] // non attribué mobile (ni MTN, ni Orange, ni Moov selon le NNP)
+    [InlineData("43")] // non attribué
+    [InlineData("50")] // Warid (fermé avant 2021 — lignes migrées, préfixe obsolète)
+    [InlineData("60")] // Oricel (fermé)
+    [InlineData("66")] // Comium (fermé)
+    [InlineData("67")] // Comium (fermé)
+    [InlineData("69")] // Aircomm (fermé)
+    public void DefaultTable_UnassignedOrClosedPrefixes_ShouldNeverConvert(string oldPrefix)
+    {
+        // Règle de sûreté : ne JAMAIS convertir un préfixe absent du plan officiel → null (aucune devinette).
+        var options = new IvoryCoastNumberingOptions { Enabled = true };
+        Assert.Null(PhoneNumberNormalizer.ConvertOldCiToCurrent("+225" + oldPrefix + "123456", options));
+    }
 }
