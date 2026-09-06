@@ -139,4 +139,51 @@ public class PhoneNumberNormalizerTests
         };
         Assert.Equal("+2250708323366", PhoneNumberNormalizer.ConvertOldCiToCurrent("+22508323366", options));
     }
+
+    // --- Table ARTCI par défaut (plan 2021) ---
+
+    [Fact]
+    public void DefaultOptions_AreDisabled_ShouldReturnNull()
+    {
+        // Sécurité : la conversion reste DESACTIVEE par défaut (validation officielle en cours).
+        var options = new IvoryCoastNumberingOptions();
+        Assert.False(options.Enabled);
+        Assert.True(options.OldToNewPrefixMap.Count > 0);
+        Assert.Null(PhoneNumberNormalizer.ConvertOldCiToCurrent("+22508323366", options));
+    }
+
+    [Theory]
+    [InlineData("+22508323366", "+2250708323366")]   // Orange 08 → 07 (exemple réel validé en prod)
+    [InlineData("+22547639363", "+2250747639363")]   // Orange 47 → 07 (prospect réel 0747639363)
+    [InlineData("+22587870768", "+2250787870768")]   // Orange 87 → 07 (prospect réel 0787870768)
+    [InlineData("+22555901010", "+2250555901010")]   // MTN 55 → 05 (prospect réel 0555901010)
+    [InlineData("+22542331142", "+2250142331142")]   // Moov/ex-Atlantique 42 → 01
+    [InlineData("+22540647584", "+2250140647584")]   // Moov/ex-Atlantique 40 → 01
+    public void ConvertOldCiToCurrent_DefaultTable_RealSamples_PerOperator(string input, string expected)
+    {
+        var options = new IvoryCoastNumberingOptions { Enabled = true };
+        Assert.Equal(expected, PhoneNumberNormalizer.ConvertOldCiToCurrent(input, options));
+    }
+
+    [Theory]
+    [InlineData("+22522472404")] // fixe Cocody (ancien 2x) → pas de WhatsApp, aucune conversion
+    [InlineData("+22522415538")] // fixe (ancien 2x)
+    public void ConvertOldCiToCurrent_DefaultTable_FixedLines_ShouldNotConvert(string input)
+    {
+        var options = new IvoryCoastNumberingOptions { Enabled = true };
+        Assert.Null(PhoneNumberNormalizer.ConvertOldCiToCurrent(input, options));
+    }
+
+    [Fact]
+    public void DefaultTable_KeysAndValues_AreWellFormed()
+    {
+        // Garde-fou de saisie : clés = 2 chiffres, valeurs = préfixes mobiles officiels 01/05/07.
+        var options = new IvoryCoastNumberingOptions();
+        Assert.All(options.OldToNewPrefixMap, entry =>
+        {
+            Assert.Equal(2, entry.Key.Length);
+            Assert.True(entry.Key.All(char.IsDigit), $"Clé invalide : {entry.Key}");
+            Assert.Contains(entry.Value, new[] { "01", "05", "07" });
+        });
+    }
 }
