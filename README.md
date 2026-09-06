@@ -39,6 +39,7 @@
 8. `AddLoginSecurity` (20260902123854) — `Users.FailedLoginAttempts`/`LockedUntilUtc` (verrouillage anti force-brute, DDL idempotent)
 9. `AddBuyerTracking` (20260902154648) — colonnes `Orders.ClientLatitude/Longitude/Landmark` (parcours acheteur PWA, DDL idempotent)
 10. `AddAuthSecurity` (20260902162510) — table `RefreshTokens` (hash), colonnes 2FA TOTP + reset mdp (DDL idempotent)
+11. `AddRetentionAndIndexes` (20260906125100) — index composites de performance + purge de rétention (DDL idempotent)
 
 Appliquer : `dotnet ef database update --project src\Wazap.Infrastructure --startup-project src\Wazap.API`
 
@@ -51,7 +52,7 @@ Clés stockées via `dotnet user-secrets set` :
 - `WhatChimp:WebhookToken`
 - `Jwt:Key`
 - `SeedAdmin:Username` = `admin`
-- `SeedAdmin:Password` = `Admin@Wazap2026` (à changer)
+- `SeedAdmin:Password` = `<REDACTED-PASSWORD>` (voir DEPLOYMENT.md — gitignoré)
 
 `appsettings.json` contient le non-secret : `WhatChimp:PhoneNumberId`, `WhatChimp:BaseUrl`, `Jwt:Issuer`, `Jwt:Audience`, `Outbox:MaxRetries`, `Outbox:PollingIntervalSeconds`, `Geo` (rayon/fraîcheur/exclusivité/timeout/rétention), `Packs` (catalogue 6 packs : Mini 1000 F/6 · Découverte 2500/15 · Petit 5000/35 · Moyen 10000/80 · Grand 25000/220 · Pro 100000/1000), `GeniusPay` (BaseUrl/Enabled, clés en user-secrets), `Payments:SimulateAsync` (test flux asynchrone).
 
@@ -106,7 +107,7 @@ Clés stockées via `dotnet user-secrets set` :
 
 ## 8. Tests
 
-`dotnet test` → **117 tests** (Order, DeliveryBatch, DeliveryOffer, OutboxMessage, User, CreditTransaction, GeoDistance, MockPayment, WhatsAppOrchestration, PhoneNumberNormalizer, validators, auth 2FA/refresh/reset, GeniusPay).
+`dotnet test` → **149 tests** (Order, DeliveryBatch, DeliveryOffer, OutboxMessage, User, CreditTransaction, GeoDistance, MockPayment, WhatsAppOrchestration, PhoneNumberNormalizer + table ARTCI 8→10 exhaustive, validators, auth 2FA/refresh/reset, GeniusPay).
 
 ## 9. Lancer le projet
 
@@ -125,22 +126,30 @@ dotnet run --project src\Wazap.API
 - **2FA TOTP optionnelle** (app d'authentification) : `POST /api/auth/2fa/setup|enable|disable` + étape `/2fa/verify` au login (`mfaRequired`). **Désactivée par défaut**.
 - **Reset de mot de passe oublié** : `POST /api/auth/forgot-password` → code 6 chiffres par WhatsApp (15 min) ; `POST /api/auth/reset-password`.
 - ~~`OrderService` dans la couche API~~ → ✅ déplacé dans `Wazap.Application` avec `DeliveryOfferService` via le port **`IApplicationDbContext`** (02/09).
+- ~~Endpoints livreurs (location/availability) ouverts~~ → ✅ **sécurisés** (chantier C4) : `RidersController`
+  exige un **JWT** (rôles `Rider,Admin`) avec **contrôle d'appartenance** (`EnsureOwnership`) — un livreur ne
+  modifie que son propre compte ; Admin peut tout. Liste des livreurs : **Admin uniquement** (RGPD).
 - ~~Outbox multi-instances → `SKIP LOCKED` requis~~ → ✅ implémenté (`FOR UPDATE SKIP LOCKED` dans `OutboxBackgroundWorker`).
-- Endpoints livreurs (location/availability) ouverts (flux appareil par Guid) — à sécuriser avec l'app mobile.
+- Swagger : `AddSecurityRequirement` non ajouté (API `Microsoft.OpenApi` v2) — le schéma Bearer reste défini dans Swagger UI.
+- **Monitoring** : `GET /health/details` (JSON : base, outbox, workers, uptime) + logs JSON en production + alertes
+  outbox (log `ALERTE` + webhook optionnel `Monitoring:WebhookUrl`).
+- **Rétention** : purge opt-in (`Retention:Enabled=false` par défaut) — commandes livrées/lots vides/outbox envoyée.
 - Alertes WhatsApp crédits en **message texte** — templates approuvés requis en production.
-- Approbation Meta des templates `order_received`/`order_confirm`/`rider_offer` en attente.
+- Approbation Meta des **15 templates** (tous `Submitted`) en attente — dès approbation, activation des noms dans
+  `appsettings` puis déploiement.
 
 ## 11. CI/CD & scripts d'automatisation
 
-- `.github/workflows/ci.yml` : pipeline GitHub Actions (restore → build → test → publish → artifact).
-- `.github/workflows/deploy.yml` : **déploiement prod manuel** (workflow_dispatch) — publish self-contained
-  win-x64 puis upload FTP via `scripts/cd-deploy.sh` (app_offline, `web.config` distant préservé, health check).
-  ⏳ Nécessite les secrets GitHub `SMARTERASP_FTP_*` + `SMARTERASP_APP_URL`.
+- `.github/workflows/ci.yml` : pipeline GitHub Actions (restore → build → test → publish → artifact) — **active** sur `main`.
+- `.github/workflows/deploy.yml` : **déploiement prod** (workflow_dispatch) — publish self-contained win-x64 puis
+  **upload différentiel** FTP via `scripts/cd-deploy.sh` (manifest SHA-256, `web.config` distant préservé, health check).
+  Secrets `SMARTERASP_*` configurés. Opérationnel depuis le 06/09 (déploiements courants ~1-2 min).
 - `azure-pipelines.yml` : équivalent Azure DevOps.
-- `scripts/cd-deploy.sh` : déploiement FTP complet et sûr (utilisé par le workflow ci-dessus).
-- `scripts/deploy.ps1` : publication + upload FTP vers SmarterASP.NET (identifiants via variables d'environnement).
+- `scripts/cd-deploy.sh` : upload FTP différentiel (manifest `.deploy-manifest.sha256` sur le serveur ; modes
+  `--seed-manifest`, `--full`) — voir ROADMAP §D.
+- `scripts/deploy.ps1` : publication + upload FTP (legacy).
 - `scripts/test-whatchimp.ps1` : test d'envoi WhatsApp + infos webhook (lit les user-secrets).
-- `.gitignore` : exclut bin/obj/publish/secrets.
+- `.gitignore` : exclut bin/obj/publish/secrets + DEPLOYMENT.md.
 
 > Dépôt Git initialisé sur `main` — pousser vers GitHub/Azure DevOps pour activer la CI.
 
@@ -148,7 +157,7 @@ dotnet run --project src\Wazap.API
 
 - **URL** : https://junioradon79gm-001-site1.jtempurl.com/ (domaine en attente)
 - **Provider** : PostgreSQL (SmarterASP.NET)
-- **Schéma** : créé (10 migrations appliquées)
+- **Schéma** : créé (**11 migrations** appliquées)
 - **Admin** : seedé automatiquement au démarrage
 - **Secrets** : injectés via `web.config` (`<environmentVariables>`) sur le serveur
 - **Détails/credentials sensibles** : voir le fichier local **`DEPLOYMENT.md`** (gitignoré)
@@ -177,6 +186,8 @@ dotnet ef database update --project src\Wazap.Infrastructure --startup-project s
 | `GET /api/dashboard/summary` | **Admin** — métriques du tableau de bord |
 | `POST /api/webhook/whatsapp` | anonyme (token) + rate limit « webhook » |
 | `GET /` et `/share-location` | Blazor Server (dashboard + partage GPS) |
-| `GET /health` | anonyme |
+| `GET /health` | anonyme — liveness (base de données) |
+| `GET /health/details` | anonyme — métriques détaillées (base, outbox, workers, uptime) |
+| `GET /api/client/orders/{id}/…` | anonyme + rate limit « client » — parcours acheteur (suivi, coordonnées) |
 
 Autorisation par ressource : Admin = tout ; Vendor = ses commandes (`VendorUserId`) et son compte vendeur ; Rider = ses courses (`RiderUserId`), claim à l'acceptation.
