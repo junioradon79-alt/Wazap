@@ -46,8 +46,10 @@
 - **CI/CD → prod automatisé** : ✅ **OPÉRATIONNEL (06/09, run #3 success)** — workflow `.github/workflows/deploy.yml`
   + `scripts/cd-deploy.sh` (publish self-contained win-x64 → upload FTP avec `app_offline`, `web.config` distant
   préservé → health check). Secrets `SMARTERASP_*` configurés. Déclenchement manuel (workflow_dispatch).
-  Premier déploiement complet : 395 fichiers / 117 Mo en ~20 min. **Optimisation possible** : upload différentiel
-  (hash des fichiers déjà déployés) pour retomber à ~1-2 min.
+- **Upload DIFFÉRENTIEL** : ✅ **FAIT (06/09)** — manifest SHA-256 `.deploy-manifest.sha256` conservé sur le serveur ;
+  ne transfère que les fichiers nouveaux/modifiés + nettoie les périmés ; `app_offline` seulement si des binaires
+  changent. Option `--full` (ou input `full_deploy`) pour forcer un déploiement complet. Seed effectué (395 fichiers),
+  déploiement courant : ~1-2 min.
 - **Hébergement** : passer de SmarterASP (self-contained, upload FTP lent) à **PaaS managé** (Azure App Service / Render / Railway) + PostgreSQL managé (scalable, backups auto). Maturer d'abord sur SmarterASP pour valider le marché.
 - **Monitoring / alerting** : logs structurés + métriques (OpenTelemetry → Application Insights/Sentry) ; alertes sur échecs webhook et file d'attente.
 - **Multi-instances** : déjà compatible outbox `SKIP LOCKED` + workers → prêt à horizontaliser ; ajouter un bus de messages si le volume explose.

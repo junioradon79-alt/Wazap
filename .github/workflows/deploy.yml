@@ -16,10 +16,10 @@ name: Deploy prod (SmarterASP - FTP)
 on:
   workflow_dispatch:
     inputs:
-      publish_self_contained:
-        description: 'Publication self-contained win-x64 (recommandé pour SmarterASP)'
+      full_deploy:
+        description: 'Forcer un déploiement complet (ignorer le différentiel)'
         type: boolean
-        default: true
+        default: false
 
 concurrency:
   group: deploy-prod
@@ -43,7 +43,7 @@ jobs:
       - name: Publish self-contained (win-x64)
         run: dotnet publish src/Wazap.API/Wazap.API.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish-win64 --no-restore
 
-      - name: Déploiement FTP (app_offline + upload + health check)
+      - name: Déploiement FTP différentiel (manifest SHA-256 + upload + health check)
         run: bash scripts/cd-deploy.sh artifacts/publish-win64
         env:
           SMARTERASP_FTP_HOST: ${{ secrets.SMARTERASP_FTP_HOST }}
@@ -51,3 +51,4 @@ jobs:
           SMARTERASP_FTP_PASSWORD: ${{ secrets.SMARTERASP_FTP_PASSWORD }}
           SMARTERASP_FTP_REMOTE_DIR: ${{ secrets.SMARTERASP_FTP_REMOTE_DIR }}
           SMARTERASP_APP_URL: ${{ secrets.SMARTERASP_APP_URL }}
+          FORCE_FULL: ${{ inputs.full_deploy }}
