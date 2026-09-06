@@ -141,9 +141,11 @@ dotnet run --project src\Wazap.API
 ## 11. CI/CD & scripts d'automatisation
 
 - `.github/workflows/ci.yml` : pipeline GitHub Actions (restore → build → test → publish → artifact) — **active** sur `main`.
-- `.github/workflows/deploy.yml` : **déploiement prod** (workflow_dispatch) — publish self-contained win-x64 puis
-  **upload différentiel** FTP via `scripts/cd-deploy.sh` (manifest SHA-256, `web.config` distant préservé, health check).
-  Secrets `SMARTERASP_*` configurés. Opérationnel depuis le 06/09 (déploiements courants ~1-2 min).
+- `.github/workflows/deploy.yml` : **déploiement prod AUTOMATIQUE** — déclenché sur chaque push `main`
+  touchant `src/**` (ou manuel `workflow_dispatch`). **Migrations prod appliquées automatiquement** avant
+  l'upload (idempotentes) puis **upload différentiel** FTP via `scripts/cd-deploy.sh` (manifest SHA-256,
+  `web.config` distant préservé, health check). Secrets `SMARTERASP_*` + `SMARTERASP_DB_CONNECTION` configurés.
+  Déploiements courants ~1-2 min (+ migrations).
 - `azure-pipelines.yml` : équivalent Azure DevOps.
 - `scripts/cd-deploy.sh` : upload FTP différentiel (manifest `.deploy-manifest.sha256` sur le serveur ; modes
   `--seed-manifest`, `--full`) — voir ROADMAP §D.

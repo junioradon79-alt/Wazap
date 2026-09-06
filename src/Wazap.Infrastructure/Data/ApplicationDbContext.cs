@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using Wazap.Application.Abstractions;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
@@ -204,7 +205,18 @@ namespace Wazap.Infrastructure.Data
             if (events.Count == 0)
                 return;
 
-            var subscribers = WebhookSubscribers.Where(s => s.Enabled).ToList();
+            List<WebhookSubscriber> subscribers;
+            try
+            {
+                subscribers = WebhookSubscribers.Where(s => s.Enabled).ToList();
+            }
+            catch (PostgresException ex) when (ex.SqlState == "42P01") // relation inexistante (migration en attente)
+            {
+                // Migration « AddWebhookSubscribers » pas encore appliquée sur cette base :
+                // on n'émet pas de webhook pour l'instant (sans casser les sauvegardes).
+                return;
+            }
+
             if (subscribers.Count == 0)
                 return;
 

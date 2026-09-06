@@ -1,25 +1,40 @@
 name: Deploy prod (SmarterASP - FTP)
 
-# Déploiement automatisé vers la production SmarterASP.
-# Déclenchement MANUEL (workflow_dispatch) pour garder la main (migrations à appliquer
-# d'abord via `dotnet ef database update` contre la base prod si besoin).
+# Déploiement AUTOMATIQUE vers la production SmarterASP :
+#   • à chaque push sur main touchant src/** , scripts/cd-deploy.sh, Wazap.slnx ou ce workflow ;
+#   • ou en manuel (workflow_dispatch).
+# Les MIGRATIONS prod sont appliquées automatiquement AVANT l'upload (idempotentes),
+# puis l'upload différentiel (manifest SHA-256) se termine par le health check.
 #
 # ⚠️ Secrets à configurer dans le dépôt (Settings → Secrets and variables → Actions) :
-#   SMARTERASP_FTP_HOST      ex: ftp://ftp.votresite.com   (schéma inclus)
+#   SMARTERASP_FTP_HOST        ex: ftp://WIN6054.site4now.net (schéma inclus)
 #   SMARTERASP_FTP_USER
 #   SMARTERASP_FTP_PASSWORD
 #   SMARTERASP_FTP_REMOTE_DIR  (défaut /wazap2)
 #   SMARTERASP_APP_URL         (défaut https://junioradon79gm-001-site1.jtempurl.com/health)
+#   SMARTERASP_DB_CONNECTION   chaîne de connexion PostgreSQL PROD
+#     ex: Host=pg6001.site4now.net;Port=6432;Database=db_acdd27_wazap;Username=...;Password=...;SSL Mode=Require
 #
 # Le web.config DISTANT n'est jamais écrasé (il porte les env vars de prod).
 
 on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'Wazap.slnx'
+      - 'scripts/cd-deploy.sh'
+      - '.github/workflows/deploy.yml'
   workflow_dispatch:
     inputs:
       full_deploy:
         description: 'Forcer un déploiement complet (ignorer le différentiel)'
         type: boolean
         default: false
+      apply_migrations:
+        description: 'Appliquer les migrations prod avant déploiement'
+        type: boolean
+        default: true
 
 concurrency:
   group: deploy-prod
@@ -43,6 +58,19 @@ jobs:
       - name: Publish self-contained (win-x64)
         run: dotnet publish src/Wazap.API/Wazap.API.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish-win64 --no-restore
 
+      - name: Appliquer les migrations prod (idempotent)
+        if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.apply_migrations) }}
+        shell: bash
+        env:
+          PROD_DB: ${{ secrets.SMARTERASP_DB_CONNECTION }}
+        run: |
+          if [ -z "$PROD_DB" ]; then
+            echo "::error::Le secret SMARTERASP_DB_CONNECTION n'est pas configuré — ajoutez-le pour activer les migrations automatiques."
+            exit 1
+          fi
+          dotnet tool restore
+          dotnet ef database update --project src/Wazap.Infrastructure --startup-project src/Wazap.API --connection "$PROD_DB"
+
       - name: Déploiement FTP différentiel (manifest SHA-256 + upload + health check)
         run: bash scripts/cd-deploy.sh artifacts/publish-win64
         env:
@@ -51,4 +79,5 @@ jobs:
           SMARTERASP_FTP_PASSWORD: ${{ secrets.SMARTERASP_FTP_PASSWORD }}
           SMARTERASP_FTP_REMOTE_DIR: ${{ secrets.SMARTERASP_FTP_REMOTE_DIR }}
           SMARTERASP_APP_URL: ${{ secrets.SMARTERASP_APP_URL }}
-          FORCE_FULL: ${{ inputs.full_deploy }}
+          FORCE_FULL: ${{ github.event_name == 'workflow_dispatch' && inputs.full_deploy || false }}
+
