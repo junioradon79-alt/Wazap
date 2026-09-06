@@ -104,6 +104,11 @@ builder.Services.AddScoped<MetricsService>();
 var retentionOptions = builder.Configuration.GetSection(RetentionOptions.SectionName).Get<RetentionOptions>() ?? new RetentionOptions();
 builder.Services.AddSingleton(retentionOptions);
 
+// Options API publique v1 (clés partenaires + rate limit)
+var publicApiOptions = builder.Configuration.GetSection(PublicApiOptions.SectionName).Get<PublicApiOptions>() ?? new PublicApiOptions();
+builder.Services.AddSingleton(publicApiOptions);
+builder.Services.AddScoped<PublicApiService>();
+
 // Géocodage d'adresses (Nominatim / OpenStreetMap)
 builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>();
 
@@ -195,6 +200,12 @@ builder.Services.AddRateLimiter(options =>
         o.Window = TimeSpan.FromMinutes(1);
         o.QueueLimit = 0;
     });
+    options.AddFixedWindowLimiter("publicapi", o =>
+    {
+        o.PermitLimit = Math.Max(1, publicApiOptions.RateLimitPerMinute);
+        o.Window = TimeSpan.FromMinutes(1);
+        o.QueueLimit = 0;
+    });
 });
 
 // Injection du service WhatsApp avec HttpClient
@@ -283,6 +294,11 @@ app.UseCors("WebFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
+
+// API publique v1 : protégée par clé (X-Api-Key) — montée uniquement sur /api/v1.
+app.UseWhen(
+    ctx => ctx.Request.Path.StartsWithSegments("/api/v1"),
+    branch => branch.UseMiddleware<PublicApiKeyMiddleware>());
 
 app.MapControllers();
 app.MapHealthChecks("/health");
