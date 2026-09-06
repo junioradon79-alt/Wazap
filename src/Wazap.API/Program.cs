@@ -327,6 +327,11 @@ app.MapRazorComponents<App>()
 // SPA React (web/) servie depuis /app — fallback pour le routing client
 app.MapFallbackToFile("app/{*path:nonfile}", "app/index.html");
 
+// Liens courts marketing (évitent le long préfixe /app) :
+//   /vente       → page de vente          ·   /parrainage → page parrainage
+app.MapGet("/vente", () => Results.Redirect("/app/vente"));
+app.MapGet("/parrainage", () => Results.Redirect("/app/parrainage"));
+
 // Les migrations sont appliquées hors démarrage (étape de déploiement dédiée) :
 //   dotnet ef database update --project src\Wazap.Infrastructure --startup-project src\Wazap.API
 app.Run();

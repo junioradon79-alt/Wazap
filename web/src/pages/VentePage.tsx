@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { api } from '../api/client'
 
 // ===== Style (mobile-first, identité WAZAP) =================================
@@ -43,11 +44,14 @@ const AVANTAGES: [string, string, string][] = [
 ]
 
 export default function VentePage() {
+  const location = useLocation()
+  const query = new URLSearchParams(location.search)
+  const src = query.get('src') || 'page-vente'
   const [whatsapp, setWhatsapp] = useState('')
   const [business, setBusiness] = useState('')
   const [contact, setContact] = useState('')
   const [phone, setPhone] = useState('')
-  const [zone, setZone] = useState('')
+  const [zone, setZone] = useState<string>(() => query.get('zone') ?? '')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
@@ -76,7 +80,7 @@ export default function VentePage() {
         contactName: contact.trim() || null,
         whatsappNumber: phone.trim(),
         zone: zone.trim(),
-        source: 'page-vente',
+        source: src,
       })
       setDone(true)
     } catch (e) {
@@ -185,6 +189,33 @@ export default function VentePage() {
           </div>
         )}
       </section>
+
+      <section style={t.card}>
+        <h2 style={{ margin: '0 0 8px' }}>Vous hésitez encore ?</h2>
+        {[
+          ['C’est payant ?', 'Non au départ : les 15 premières commandes livrées sont offertes. Ensuite, des packs de crédits à l’usage — dès 1 000 FCFA, sans abonnement.'],
+          ['Mes clients savent-ils utiliser ça ?', 'Oui : ils commandent simplement par WhatsApp, comme ils vous écrivent déjà. Zéro application à installer pour eux.'],
+          ['Et si personne ne livre dans mon quartier ?', 'WAZAP recrute et active des livreurs dans votre zone avant de lancer les commandes — si votre quartier n’est pas encore couvert, nous vous prévenons.'],
+          ['Dois-je changer ma façon de travailler ?', 'Non. Vous recevez la commande, vous validez d’un message — le reste (livreur, suivi) est géré pour vous.'],
+          ['Comment suis-je payé ?', 'Les clients paient la commande en espèces ou Mobile Money ; vous conservez vos encaissements habituels. WAZAP facture uniquement les livraisons, à l’usage.'],
+        ].map(([q, a]) => (
+          <details key={q} style={{ borderBottom: '1px solid #eef1ee', padding: '8px 0' }}>
+            <summary style={{ fontWeight: 700, cursor: 'pointer', fontSize: 15 }}>{q}</summary>
+            <p style={t.muted}>{a}</p>
+          </details>
+        ))}
+        <p style={t.muted}>Une autre question ? Écrivez-nous directement sur WhatsApp.</p>
+      </section>
+
+      <div className="vente-sticky">
+        <a className="vente-sticky__btn" href="#inscription">Recevoir mes 15 commandes offertes</a>
+      </div>
+
+      <div style={{ textAlign: 'center', marginTop: 26 }}>
+        <Link to="/parrainage" style={{ color: '#0e7a3e', fontWeight: 700, fontSize: 14, textDecoration: 'none' }}>
+          🎁 Déjà client ? Parrainez un commerce et gagnez +5 crédits →
+        </Link>
+      </div>
 
       <footer style={t.footer}>⚡ WAZAP — La livraison en un éclair, directement dans WhatsApp.</footer>
     </div>

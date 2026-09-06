@@ -342,3 +342,8 @@ button { font-family: inherit; }
   border-radius: 12px;
 }
 
+
+/* --- Page de vente : CTA mobile fixe --- */
+.vente-sticky{position:fixed;left:0;right:0;bottom:0;padding:10px 16px;background:rgba(255,255,255,.97);border-top:1px solid #e3e9e4;text-align:center;z-index:40}
+.vente-sticky__btn{display:inline-block;width:100%;max-width:460px;box-sizing:border-box;background:#07a04b;color:#fff;font-weight:800;font-size:16px;padding:13px 18px;border-radius:12px;text-decoration:none}
+@media (min-width:641px){.vente-sticky{display:none}}
