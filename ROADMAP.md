@@ -43,10 +43,11 @@
 
 
 ## D. Scaling technique
-- **CI/CD → prod automatisé** : workflow `.github/workflows/deploy.yml` + `scripts/cd-deploy.sh` **prêts (06/09)** —
-  publication self-contained win-x64 + upload FTP (app_offline, web.config distant préservé, health check).
-  Déclenchement **manuel** (workflow_dispatch). ⏳ Reste : configurer les secrets GitHub
-  (`SMARTERASP_FTP_HOST/_USER/_PASSWORD/_REMOTE_DIR/_APP_URL`).
+- **CI/CD → prod automatisé** : ✅ **OPÉRATIONNEL (06/09, run #3 success)** — workflow `.github/workflows/deploy.yml`
+  + `scripts/cd-deploy.sh` (publish self-contained win-x64 → upload FTP avec `app_offline`, `web.config` distant
+  préservé → health check). Secrets `SMARTERASP_*` configurés. Déclenchement manuel (workflow_dispatch).
+  Premier déploiement complet : 395 fichiers / 117 Mo en ~20 min. **Optimisation possible** : upload différentiel
+  (hash des fichiers déjà déployés) pour retomber à ~1-2 min.
 - **Hébergement** : passer de SmarterASP (self-contained, upload FTP lent) à **PaaS managé** (Azure App Service / Render / Railway) + PostgreSQL managé (scalable, backups auto). Maturer d'abord sur SmarterASP pour valider le marché.
 - **Monitoring / alerting** : logs structurés + métriques (OpenTelemetry → Application Insights/Sentry) ; alertes sur échecs webhook et file d'attente.
 - **Multi-instances** : déjà compatible outbox `SKIP LOCKED` + workers → prêt à horizontaliser ; ajouter un bus de messages si le volume explose.
