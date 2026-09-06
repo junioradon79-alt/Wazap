@@ -6,6 +6,7 @@ const NAV = [
   { to: '/orders', label: 'Commandes', icon: '🧾' },
   { to: '/riders', label: 'Livreurs', icon: '🛵' },
   { to: '/vendors', label: 'Vendeurs', icon: '🏪' },
+  { to: '/leads', label: 'Leads', icon: '🎯' },
   { to: '/packs', label: 'Packs', icon: '💳' },
   { to: '/transactions', label: 'Transactions', icon: '📒' },
   { to: '/account', label: 'Mon compte', icon: '👤' },
@@ -29,7 +30,7 @@ export default function Layout() {
 
         <nav className="sidebar__nav">
           <span className="nav__section">Pilotage</span>
-          {NAV.map((item) => (
+          {NAV.filter((item) => item.to !== '/leads' || user?.role === 'Admin').map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
