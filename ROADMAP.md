@@ -19,15 +19,23 @@
 4. **Nom de domaine** propre (remplacer le jtempurl.com).
 
 ## B. À relancer (service externe / timing)
-1. **Collecte Overpass complète** (33 secteurs, 13 communes) — Overpass public était down ; code robuste prêt :
-   `dotnet run --project tools\ProspectCollectorOsm -- --reset --out-dir=prospection\out_osm`
+1. **Collecte Overpass complète** (33 secteurs, 13 communes) — Overpass public saturé depuis le 03/09.
+   Outil **durci le 06/09** : sonde de disponibilité des miroirs (ordre dynamique, sortie rapide si tout
+   est down), option `--timeout=<s>` (défaut 120), réponses « busy/timeout » d'Overpass traitées comme
+   de vrais échecs réessayables (plus de zone marquée « terminée » sans données). Relancer quand la
+   charge baisse :
+   `dotnet run --project tools\ProspectCollectorOsm -- --out-dir=prospection\out_osm`
 2. **Campagne WhatsApp prospects** (72 mobiles qualifiés `Prospects_campagne_mobiles_20260902.csv`) — dès approbation de `prospect_approach` :
    `$env:WHATCHIMP_API_TOKEN=… ; dotnet run --project tools\WhatsAppCampaign -- prospection\Prospects_campagne_mobiles_20260902.csv --zone=Marcory`
 3. **Purge des comptes de test** en base prod (`test_reel_utilisateur`, `test_vendeur_cocody`) après la fin des essais réels (CleanupTestVendors).
 
 ## C. Chantiers code recommandés (par ordre d'impact)
 1. **Fallback timeout 5 min** : ✅ FAIT (03/09, commit 29c28ab) — au timeout sans livreur, la commande est annulée (aucun crédit débité) et le vendeur est notifié avec invitation à renvoyer LIVRAISON.
-2. **Conversion numéros 8→10 chiffres** : ⏳ EN ATTENTE table officielle ARTCI par opérateur (risque d'erreur sinon). Approche actuelle conservée : matching SameSubscriber (8 derniers) + auto-réparation du numéro via `wa_id` au 1er échange. **Squelette config-drivé prêt (03/09)** : section `IvoryCoastNumbering` (`appsettings`, `Enabled=false` par défaut) + `PhoneNumberNormalizer.ConvertOldCiToCurrent()` (options & table) + tests dédiés → dès réception de la table ARTCI : remplir `OldToNewPrefixMap` puis activer (aucun code à écrire).
+2. **Conversion numéros 8→10 chiffres** : ⏳ table reconstituée du **plan ARTCI 2021** (commit 6db9cbb, 06/09) :
+   Orange→07, MTN→05, Moov/ex-Atlantique→01, lignes fixes 2x/3x exclues (pas de WhatsApp), échantillons réels
+   en tests. **Toujours désactivée** (`IvoryCoastNumbering.Enabled=false`) — reste à valider sur le document
+   officiel ARTCI puis test réel avant activation (aucun code à écrire). Approche actuelle conservée en
+   attendant : matching SameSubscriber (8 derniers) + auto-réparation via `wa_id` au 1er échange.
 3. **Suivi GPS temps réel** : ✅ FAIT (03/09, commit 4fa00bd) — `GET /api/client/orders/{id}/rider-location` + carte Google Maps live dans la page `/app/suivi/:id`.
 4. **Sécuriser les endpoints livreurs** : ✅ DÉJÀ FAIT — `RidersController` exige JWT (Rider gère son compte, Admin tout) avec contrôle d'appartenance.
 5. **Dashboard KPI marketing** : ✅ FAIT (03/09, commit 88db0ab) — `GET /api/dashboard/summary` étendu : vendeurs totaux/nouveaux(30j)/actifs(30j), livreurs, commandes semaine/30j, commandes par zone.
@@ -35,7 +43,10 @@
 
 
 ## D. Scaling technique
-- **CI/CD → prod automatisé** : workflow GitHub Actions qui publie + upload FTP (actuellement manuel, upload différentiel).
+- **CI/CD → prod automatisé** : workflow `.github/workflows/deploy.yml` + `scripts/cd-deploy.sh` **prêts (06/09)** —
+  publication self-contained win-x64 + upload FTP (app_offline, web.config distant préservé, health check).
+  Déclenchement **manuel** (workflow_dispatch). ⏳ Reste : configurer les secrets GitHub
+  (`SMARTERASP_FTP_HOST/_USER/_PASSWORD/_REMOTE_DIR/_APP_URL`).
 - **Hébergement** : passer de SmarterASP (self-contained, upload FTP lent) à **PaaS managé** (Azure App Service / Render / Railway) + PostgreSQL managé (scalable, backups auto). Maturer d'abord sur SmarterASP pour valider le marché.
 - **Monitoring / alerting** : logs structurés + métriques (OpenTelemetry → Application Insights/Sentry) ; alertes sur échecs webhook et file d'attente.
 - **Multi-instances** : déjà compatible outbox `SKIP LOCKED` + workers → prêt à horizontaliser ; ajouter un bus de messages si le volume explose.

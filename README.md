@@ -133,7 +133,11 @@ dotnet run --project src\Wazap.API
 ## 11. CI/CD & scripts d'automatisation
 
 - `.github/workflows/ci.yml` : pipeline GitHub Actions (restore → build → test → publish → artifact).
+- `.github/workflows/deploy.yml` : **déploiement prod manuel** (workflow_dispatch) — publish self-contained
+  win-x64 puis upload FTP via `scripts/cd-deploy.sh` (app_offline, `web.config` distant préservé, health check).
+  ⏳ Nécessite les secrets GitHub `SMARTERASP_FTP_*` + `SMARTERASP_APP_URL`.
 - `azure-pipelines.yml` : équivalent Azure DevOps.
+- `scripts/cd-deploy.sh` : déploiement FTP complet et sûr (utilisé par le workflow ci-dessus).
 - `scripts/deploy.ps1` : publication + upload FTP vers SmarterASP.NET (identifiants via variables d'environnement).
 - `scripts/test-whatchimp.ps1` : test d'envoi WhatsApp + infos webhook (lit les user-secrets).
 - `.gitignore` : exclut bin/obj/publish/secrets.

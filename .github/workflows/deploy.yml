@@ -1,0 +1,50 @@
+name: Deploy prod (SmarterASP - FTP)
+
+# Déploiement automatisé vers la production SmarterASP.
+# Déclenchement MANUEL (workflow_dispatch) pour garder la main (migrations à appliquer
+# d'abord via `dotnet ef database update` contre la base prod si besoin).
+#
+# ⚠️ Secrets à configurer dans le dépôt (Settings → Secrets and variables → Actions) :
+#   SMARTERASP_FTP_HOST      ex: ftp://ftp.votresite.com   (schéma inclus)
+#   SMARTERASP_FTP_USER
+#   SMARTERASP_FTP_PASSWORD
+#   SMARTERASP_FTP_REMOTE_DIR  (défaut /wazap2)
+#   SMARTERASP_APP_URL         (défaut https://junioradon79gm-001-site1.jtempurl.com/health)
+#
+# Le web.config DISTANT n'est jamais écrasé (il porte les env vars de prod).
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_self_contained:
+        description: 'Publication self-contained win-x64 (recommandé pour SmarterASP)'
+        type: boolean
+        default: true
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish self-contained (win-x64)
+        run: dotnet publish src/Wazap.API/Wazap.API.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish-win64 --no-restore
+
+      - name: Déploiement FTP (app_offline + upload + health check)
+        run: bash scripts/cd-deploy.sh artifacts/publish-win64
+        env:
+          SMARTERASP_FTP_HOST: ${{ secrets.SMARTERASP_FTP_HOST }}
+          SMARTERASP_FTP_USER: ${{ secrets.SMARTERASP_FTP_USER }}
+          SMARTERASP_FTP_PASSWORD: ${{ secrets.SMARTERASP_FTP_PASSWORD }}
+          SMARTERASP_FTP_REMOTE_DIR: ${{ secrets.SMARTERASP_FTP_REMOTE_DIR }}
+          SMARTERASP_APP_URL: ${{ secrets.SMARTERASP_APP_URL }}
