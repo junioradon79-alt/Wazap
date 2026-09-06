@@ -84,6 +84,9 @@ build_manifest "$PUBLISH_DIR" "$LOCAL_MAN"
 total=$(wc -l < "$LOCAL_MAN")
 echo "    $total fichiers indexés (hors web.config / app_offline / appsettings.Development.json / manifest)"
 
+# Se placer dans le dossier de publication : les chemins du manifest sont relatifs à lui.
+cd "$PUBLISH_DIR"
+
 # --- amorçage du manifest (aucun transfert de fichiers) ------------------
 if [ "$MODE" = "seed" ]; then
     if [ "$DRY_RUN" = "1" ]; then
