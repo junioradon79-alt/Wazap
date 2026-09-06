@@ -70,15 +70,6 @@ ftp_upload() { # $1=chemin distant ; fichier local lu sur stdin
     curl -fsS --user "$FTP_USER:$FTP_PASS" --ftp-create-dirs -T - "$HOST$REMOTE_DIR/$1"
 }
 
-extract_paths() { # lit des lignes "hash  path" → imprime les chemins
-    local line path
-    while IFS= read -r line; do
-        [ -n "$line" ] || continue
-        path="${line#*  }"
-        [ -n "$path" ] && printf '%s\n' "$path"
-    done < "$1"
-}
-
 echo "==> Publication locale : $PUBLISH_DIR"
 build_manifest "$PUBLISH_DIR" "$LOCAL_MAN"
 total=$(wc -l < "$LOCAL_MAN")
@@ -109,21 +100,40 @@ else
     if ! ftp_download "$MANIFEST" "$REMOTE_MAN"; then FULL=1; fi
 fi
 
+# Conversion « hash  path » → liste « path hash » triée par chemin.
+# ⚠️ La clé de comparaison est le CHEMIN (jamais la ligne complète) : un fichier modifié
+# ne doit jamais être à la fois uploadé (nouveau hash) ET supprimé (ancien hash) — sinon
+# on efface le fichier qu'on vient d'envoyer (bug réel du 06/09 qui a supprimé les Wazap.*).
+to_pathhash() {
+    local line h p
+    while IFS= read -r line; do
+        [ -n "$line" ] || continue
+        h="${line%%  *}"; p="${line#*  }"
+        [ -n "$p" ] && printf '%s %s\n' "$p" "$h"
+    done
+}
+local_ph="$TMPD/local.ph"; remote_ph="$TMPD/remote.ph"
+to_pathhash < "$LOCAL_MAN"  | LC_ALL=C sort > "$local_ph"
+to_pathhash < "$REMOTE_MAN" | LC_ALL=C sort > "$remote_ph"
+
 if [ "$FULL" = "1" ]; then
     echo "==> Mode COMPLET (manifest absent ou --full) : $total fichiers à transférer."
-    cp "$LOCAL_MAN" "$CHANGED"
+    awk '{print $1}' "$local_ph" > "$CHANGED"
     : > "$REMOVED"
 else
-    LC_ALL=C comm -23 "$LOCAL_MAN" "$REMOTE_MAN" > "$CHANGED"
-    LC_ALL=C comm -13 "$LOCAL_MAN" "$REMOTE_MAN" > "$REMOVED"
+    # À uploader : chemins locaux absents du manifest distant, OU dont le hash diffère.
+    LC_ALL=C join -t' ' -a1 -e MISSING -o '1.1,1.2,2.2' "$local_ph" "$remote_ph" \
+        | awk '$2 != $3 {print $1}' | LC_ALL=C sort > "$CHANGED"
+    # À supprimer : chemins du manifest distant totalement absents du dossier local.
+    LC_ALL=C join -t' ' -v2 "$local_ph" "$remote_ph" | awk '{print $1}' > "$REMOVED"
     echo "==> Différentiel : $(wc -l < "$CHANGED") à transférer · $(wc -l < "$REMOVED") à supprimer · $total au total."
 fi
 
 n_chg=$(wc -l < "$CHANGED")
 if [ "$DRY_RUN" = "1" ]; then
     echo "==> [dry-run] Plan d'action :"
-    extract_paths "$CHANGED" | sed 's/^/    [upload] /'
-    extract_paths "$REMOVED" | sed 's/^/    [delete] /'
+    sed 's/^/    [upload] /' "$CHANGED"
+    sed 's/^/    [delete] /' "$REMOVED"
     [ "$n_chg" -eq 0 ] && echo "    (aucun fichier à transférer)"
     exit 0
 fi
@@ -140,9 +150,8 @@ fi
 # --- transfert des fichiers modifiés ---------------------------------------
 echo "==> Upload de $n_chg fichiers…"
 if [ "$n_chg" -gt 0 ]; then
-    while IFS= read -r line; do
-        [ -n "$line" ] || continue
-        path="${line#*  }"
+    while IFS= read -r path; do
+        [ -n "$path" ] || continue
         echo "  -> $path"
         curl -fsS --user "$FTP_USER:$FTP_PASS" --ftp-create-dirs -T "$path" "$HOST$REMOTE_DIR/$path"
     done < "$CHANGED"
@@ -152,13 +161,13 @@ fi
 n_rm=$(wc -l < "$REMOVED")
 if [ "$n_rm" -gt 0 ]; then
     echo "==> Suppression de $n_rm fichiers périmés…"
-    while IFS= read -r line; do
-        [ -n "$line" ] || continue
-        path="${line#*  }"
+    while IFS= read -r path; do
+        [ -n "$path" ] || continue
         echo "  - $path"
         curl -fsS --user "$FTP_USER:$FTP_PASS" -Q "-DELE $REMOTE_DIR/$path" "$HOST/" >/dev/null 2>&1 || echo "    (absent ? ignoré)"
     done < "$REMOVED"
 fi
+
 
 # --- commit : réécriture du manifest distant --------------------------------
 echo "==> Mise à jour du manifest distant ($MANIFEST)…"
