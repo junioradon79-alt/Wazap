@@ -99,6 +99,10 @@ builder.Services.AddSingleton(monitoringOptions);
 builder.Services.AddScoped<MonitoringAlertService>();
 builder.Services.AddScoped<HealthDetailsService>();
 
+// Options rétention / archivage des données (purge opt-in, désactivée par défaut)
+var retentionOptions = builder.Configuration.GetSection(RetentionOptions.SectionName).Get<RetentionOptions>() ?? new RetentionOptions();
+builder.Services.AddSingleton(retentionOptions);
+
 // Géocodage d'adresses (Nominatim / OpenStreetMap)
 builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>();
 
@@ -238,6 +242,7 @@ builder.Services.AddHostedService<DemoDataSeeder>();
 builder.Services.AddHostedService<DeliveryOfferWorker>();
 builder.Services.AddHostedService<LocationPurgeWorker>();
 builder.Services.AddHostedService<PaymentReconciliationWorker>();
+builder.Services.AddHostedService<RetentionWorker>();
 
 // Gestion globale des erreurs (ProblemDetails + handler personnalisé)
 builder.Services.AddProblemDetails();

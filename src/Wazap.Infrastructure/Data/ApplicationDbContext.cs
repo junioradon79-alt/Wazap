@@ -35,6 +35,17 @@ namespace Wazap.Infrastructure.Data
             modelBuilder.Entity<Order>()
                 .HasIndex(o => o.BatchId);
 
+            // Index composites pour les requêtes métier fréquentes (listes par acteur + statut,
+            // statistiques/archivage par statut + date de livraison).
+            modelBuilder.Entity<Order>()
+                .HasIndex(o => new { o.VendorUserId, o.Status });
+
+            modelBuilder.Entity<Order>()
+                .HasIndex(o => new { o.RiderUserId, o.Status });
+
+            modelBuilder.Entity<Order>()
+                .HasIndex(o => new { o.Status, o.DeliveredAt });
+
             modelBuilder.Entity<Order>()
                 .HasOne<DeliveryBatch>()
                 .WithMany(b => b.Orders)
@@ -66,6 +77,13 @@ namespace Wazap.Infrastructure.Data
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.IsAvailable);
 
+            // Recherche des livreurs/vendeurs par rôle (+ disponibilité pour le matching géo).
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Role);
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => new { u.Role, u.IsAvailable });
+
             modelBuilder.Entity<DeliveryOffer>()
                 .HasIndex(o => o.OrderId);
 
@@ -75,11 +93,22 @@ namespace Wazap.Infrastructure.Data
             modelBuilder.Entity<DeliveryOffer>()
                 .HasIndex(o => o.Status);
 
+            // Historique des offres par livreur + statut (dashboard, relances, purge).
+            modelBuilder.Entity<DeliveryOffer>()
+                .HasIndex(o => new { o.RiderUserId, o.Status });
+
             modelBuilder.Entity<DeliveryBatch>()
                 .HasIndex(b => b.VendorUserId);
 
             modelBuilder.Entity<DeliveryBatch>()
                 .HasIndex(b => b.Status);
+
+            // Lots ouverts par ancienneté (timeout global, purge des lots vides anciens).
+            modelBuilder.Entity<DeliveryBatch>()
+                .HasIndex(b => new { b.Status, b.CreatedAt });
+
+            modelBuilder.Entity<RefreshToken>()
+                .HasIndex(r => r.ExpiresAtUtc);
 
             modelBuilder.Entity<CreditTransaction>()
                 .Property(t => t.Amount)
