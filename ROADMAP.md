@@ -5,6 +5,7 @@
 
 ## État actuel (résumé)
 - **Produit** : livraison à la demande WhatsApp (vendeur→livreur→client), tournées groupées, parcours acheteur PWA avec suivi, packs de crédits prépayés (GeniusPay LIVE), parrainage, trial 15 commandes, auth renforcée (refresh/2FA/reset).
+- **Acquisition (leads)** : page de vente publique `/app/vente` (offre réelle « 15 commandes offertes », CTA WhatsApp, zones, formulaire) + capture `Lead` (migration 13), gestion admin + export CSV.
 - **Tests** : 117/117 · **Prod** : Healthy (SmarterASP self-contained) · **Base dev** : PostgreSQL local `wazapdev` (séparée) · **CI** GitHub Actions ✅.
 - **Tests réels validés** : flux livreur complet (ACCEPTE→RECU→LIVRE), groupage multi-clients (diffusion différée 30 s).
 

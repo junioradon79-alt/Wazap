@@ -109,6 +109,10 @@ var publicApiOptions = builder.Configuration.GetSection(PublicApiOptions.Section
 builder.Services.AddSingleton(publicApiOptions);
 builder.Services.AddScoped<PublicApiService>();
 
+// Options page de vente / acquisition de leads (numéro WhatsApp du CTA)
+var salesPageOptions = builder.Configuration.GetSection(SalesPageOptions.SectionName).Get<SalesPageOptions>() ?? new SalesPageOptions();
+builder.Services.AddSingleton(salesPageOptions);
+
 // Géocodage d'adresses (Nominatim / OpenStreetMap)
 builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>();
 
@@ -203,6 +207,12 @@ builder.Services.AddRateLimiter(options =>
     options.AddFixedWindowLimiter("publicapi", o =>
     {
         o.PermitLimit = Math.Max(1, publicApiOptions.RateLimitPerMinute);
+        o.Window = TimeSpan.FromMinutes(1);
+        o.QueueLimit = 0;
+    });
+    options.AddFixedWindowLimiter("leads", o =>
+    {
+        o.PermitLimit = 10;
         o.Window = TimeSpan.FromMinutes(1);
         o.QueueLimit = 0;
     });

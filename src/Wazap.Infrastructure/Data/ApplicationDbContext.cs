@@ -22,6 +22,7 @@ namespace Wazap.Infrastructure.Data
         public DbSet<CreditTransaction> CreditTransactions { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<WebhookSubscriber> WebhookSubscribers { get; set; }
+        public DbSet<Lead> Leads { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -165,6 +166,29 @@ namespace Wazap.Infrastructure.Data
             modelBuilder.Entity<WebhookSubscriber>()
                 .HasIndex(s => s.Url)
                 .IsUnique();
+
+            modelBuilder.Entity<Lead>()
+                .Property(l => l.BusinessName)
+                .HasMaxLength(120);
+
+            modelBuilder.Entity<Lead>()
+                .Property(l => l.ContactName)
+                .HasMaxLength(80);
+
+            modelBuilder.Entity<Lead>()
+                .Property(l => l.WhatsAppNumber)
+                .HasMaxLength(20);
+
+            modelBuilder.Entity<Lead>()
+                .Property(l => l.Zone)
+                .HasMaxLength(60);
+
+            modelBuilder.Entity<Lead>()
+                .Property(l => l.Source)
+                .HasMaxLength(40);
+
+            modelBuilder.Entity<Lead>()
+                .HasIndex(l => new { l.Status, l.CreatedAt });
         }
 
         // --- Webhooks sortants : détection des événements commande à la sauvegarde ----------
