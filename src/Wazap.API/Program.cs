@@ -77,6 +77,10 @@ builder.Services.AddSingleton(securityOptions);
 var trialOptions = builder.Configuration.GetSection(TrialOptions.SectionName).Get<TrialOptions>() ?? new TrialOptions();
 builder.Services.AddSingleton(trialOptions);
 
+// Options onboarding vendeur séquencé (J+1/J+3/J+7, worker + templates Meta)
+var vendorOnboardingOptions = builder.Configuration.GetSection(VendorOnboardingOptions.SectionName).Get<VendorOnboardingOptions>() ?? new VendorOnboardingOptions();
+builder.Services.AddSingleton(vendorOnboardingOptions);
+
 // Options parcours acheteur (lien de suivi PWA)
 var clientOptions = builder.Configuration.GetSection(ClientOptions.SectionName).Get<ClientOptions>() ?? new ClientOptions();
 builder.Services.AddSingleton(clientOptions);
@@ -271,6 +275,7 @@ builder.Services.AddHostedService<DeliveryOfferWorker>();
 builder.Services.AddHostedService<LocationPurgeWorker>();
 builder.Services.AddHostedService<PaymentReconciliationWorker>();
 builder.Services.AddHostedService<RetentionWorker>();
+builder.Services.AddHostedService<VendorOnboardingWorker>();
 
 // Gestion globale des erreurs (ProblemDetails + handler personnalisé)
 builder.Services.AddProblemDetails();

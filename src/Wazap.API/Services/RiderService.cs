@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Wazap.Application.Abstractions;
 using Wazap.Application.Dtos;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
@@ -16,11 +18,16 @@ namespace Wazap.API.Services
 
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _env;
+        private readonly IWhatsAppSender _whatsApp;
+        private readonly ILogger<RiderService> _logger;
 
-        public RiderService(ApplicationDbContext context, IWebHostEnvironment env)
+        public RiderService(ApplicationDbContext context, IWebHostEnvironment env,
+            IWhatsAppSender whatsApp, ILogger<RiderService> logger)
         {
             _context = context;
             _env = env;
+            _whatsApp = whatsApp;
+            _logger = logger;
         }
 
         public async Task<List<UserSummaryDto>> GetRidersAsync()
@@ -145,6 +152,10 @@ namespace Wazap.API.Services
 
             identity.Verify(fullName, idNumber, motorcycle, reviewerId);
             await _context.SaveChangesAsync();
+
+            await NotifyRiderAsync(rider,
+                "✅ Félicitations ! Votre dossier est vérifié : vous êtes désormais Livreur certifié WAZAP. 🛵\n" +
+                "Envoyez DISPO pour recevoir les courses près de chez vous, puis ZONE <quartier> pour définir votre zone.");
         }
 
         /// <summary>Refuse la certification (dossier incomplet, incohérences…).</summary>
@@ -163,6 +174,10 @@ namespace Wazap.API.Services
 
             identity.Reject(reason, reviewerId);
             await _context.SaveChangesAsync();
+
+            await NotifyRiderAsync(rider,
+                "ℹ️ Votre dossier de certification WAZAP n'a pas encore été validé.\n" +
+                "Répondez à notre équipe ou renvoyez une photo claire de votre pièce d'identité pour réessayer.");
         }
 
         /// <summary>Exclut définitivement un livreur (vol/fraude) : hors-ligne + plus aucune offre.</summary>
@@ -185,6 +200,10 @@ namespace Wazap.API.Services
             identity.Blacklist(reason, reviewerId);
             rider.SetAvailability(false);
             await _context.SaveChangesAsync();
+
+            await NotifyRiderAsync(rider,
+                "Votre compte livreur WAZAP a été suspendu.\n" +
+                "Contactez notre équipe pour toute question.");
         }
 
 
@@ -234,6 +253,22 @@ namespace Wazap.API.Services
 
             var fullPath = Path.Combine(_env.ContentRootPath, ScanFolder, identity.ScanFileName);
             return File.Exists(fullPath) ? fullPath : null;
+        }
+
+        private async Task NotifyRiderAsync(User rider, string message)
+        {
+            if (string.IsNullOrWhiteSpace(rider.PhoneNumber))
+                return;
+
+            try
+            {
+                await _whatsApp.SendTextMessageAsync(rider.PhoneNumber, message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Notification WhatsApp impossible pour le livreur {Rider} (certification).",
+                    rider.Username);
+            }
         }
     }
 

@@ -26,5 +26,14 @@ namespace Wazap.Application.Configuration
         public string TemplateCreditPurchase { get; set; } = "";
         public string TemplateLowCredit { get; set; } = "";
         public string TemplateNoCredit { get; set; } = "";
+
+        // Onboarding vendeur séquencé (J+1 / J+3 / J+7) — variables par étape :
+        //   J+1 : 1 = nom du vendeur
+        //   J+3 : 1 = nom, 2 = nb de courses livrées (« 0 » sinon)
+        //   J+7 : 1 = nom, 2 = code parrainage, 3 = crédits restants
+        // Vide = étape non envoyée (le worker réessaie) tant que le template n'est pas approuvé.
+        public string TemplateVendorOnboardingDay1 { get; set; } = "";
+        public string TemplateVendorOnboardingDay3 { get; set; } = "";
+        public string TemplateVendorOnboardingDay7 { get; set; } = "";
     }
 }

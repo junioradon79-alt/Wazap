@@ -82,6 +82,10 @@ public sealed class AuthService
                 trialCredits, user.Username, $"TRIAL-{user.ReferralCode}");
         }
 
+        // Onboarding vendeur séquencé : 1re étape programmée à J+1.
+        if (request.Role == UserRole.Vendor)
+            user.StartVendorOnboarding();
+
         // Parrainage : si un code promo est fourni, créditer le parrain (+5 crédits) et le notifier.
         if (!string.IsNullOrWhiteSpace(request.ReferralCode))
         {

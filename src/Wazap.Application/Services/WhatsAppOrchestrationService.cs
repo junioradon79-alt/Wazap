@@ -266,6 +266,43 @@ namespace Wazap.Application.Services
         }
 
         /// <summary>
+        /// Envoie une étape de l'onboarding vendeur (J+1/J+3/J+7) via template WhatsApp.
+        /// Retourne false si le template n'est pas encore configuré/approuvé (l'étape
+        /// reste programmée et sera réessayée plus tard).
+        /// </summary>
+        public async Task<bool> TrySendVendorOnboardingAsync(User vendor, int stage, string deliveredStats)
+        {
+            if (string.IsNullOrWhiteSpace(vendor.PhoneNumber))
+                return false;
+
+            var template = stage switch
+            {
+                1 => _whatsAppOptions.TemplateVendorOnboardingDay1,
+                2 => _whatsAppOptions.TemplateVendorOnboardingDay3,
+                3 => _whatsAppOptions.TemplateVendorOnboardingDay7,
+                _ => null
+            };
+
+            if (string.IsNullOrWhiteSpace(template))
+                return false;
+
+            var variables = stage switch
+            {
+                1 => new Dictionary<string, string> { ["1"] = vendor.Username },
+                2 => new Dictionary<string, string> { ["1"] = vendor.Username, ["2"] = deliveredStats },
+                _ => new Dictionary<string, string>
+                {
+                    ["1"] = vendor.Username,
+                    ["2"] = vendor.ReferralCode ?? vendor.Username,
+                    ["3"] = vendor.Credits.ToString()
+                }
+            };
+
+            await _whatsAppSender.SendTemplateAsync(vendor.PhoneNumber, template, variables);
+            return true;
+        }
+
+        /// <summary>
         /// Notifie le client que sa livraison a été effectuée (texte, best-effort).
         /// </summary>
         public async Task SendDeliveredNotificationAsync(Order order)

@@ -77,6 +77,9 @@ public sealed class LeadConversionService
 
         _context.Users.Add(user);
 
+        // Onboarding vendeur séquencé : 1re étape programmée à J+1.
+        user.StartVendorOnboarding();
+
         // Offre découverte : crédits offerts (même logique que l'inscription classique).
         var trialCredits = _trial.Enabled ? Math.Max(0, _trial.FreeCreditsOnRegistration) : 0;
         if (trialCredits > 0)

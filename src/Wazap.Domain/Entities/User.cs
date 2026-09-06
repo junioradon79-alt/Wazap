@@ -24,6 +24,11 @@ public class User
     // Packs prépayés : nombre de commandes restantes (payé à l'usage, sans abonnement)
     public int Credits { get; private set; }
 
+    // Onboarding vendeur séquencé (J+1 / J+3 / J+7 via WhatsApp) : étape en attente
+    // et prochaine échéance (worker dédié, templates Meta requis pour les envois sortants).
+    public int? OnboardingStage { get; private set; }
+    public DateTime? OnboardingNextAtUtc { get; private set; }
+
     // Parrainage : code promo du compte (ex : WA-XXXX) + parrain éventuel
     public string? ReferralCode { get; private set; }
     public Guid? ReferredByUserId { get; private set; }
@@ -211,6 +216,52 @@ public class User
         if (credits <= 0)
             throw new ArgumentOutOfRangeException(nameof(credits), "Le nombre de crédits doit être positif.");
         Credits += credits;
+    }
+
+    /// <summary>Lance la séquence d'onboarding vendeur (1re étape programmée à J+1).</summary>
+    public void StartVendorOnboarding()
+    {
+        if (Role != UserRole.Vendor)
+            return;
+
+        OnboardingStage = 1;
+        OnboardingNextAtUtc = DateTime.UtcNow.AddDays(1);
+    }
+
+    /// <summary>
+    /// Programme l'étape suivante à une date fixe depuis la création du compte
+    /// (J+3 puis J+7). Si la date cible est déjà passée, reporte la tentative à +6 h.
+    /// </summary>
+    public void AdvanceVendorOnboarding(DateTime createdAtUtc)
+    {
+        if (OnboardingStage is not (1 or 2))
+        {
+            CompleteVendorOnboarding();
+            return;
+        }
+
+        var nextStage = OnboardingStage.Value + 1;
+        var offsetDays = nextStage switch
+        {
+            2 => 3,
+            3 => 7,
+            _ => 7
+        };
+
+        OnboardingStage = nextStage;
+        var target = createdAtUtc.AddDays(offsetDays);
+        OnboardingNextAtUtc = target > DateTime.UtcNow ? target : DateTime.UtcNow.AddHours(6);
+    }
+
+    /// <summary>L'envoi a échoué (fenêtre 24 h, template indisponible…) : on réessaie dans 6 h.</summary>
+    public void RetryVendorOnboarding()
+        => OnboardingNextAtUtc = DateTime.UtcNow.AddHours(6);
+
+    /// <summary>Termine la séquence (dernière étape envoyée ou compte non concerné).</summary>
+    public void CompleteVendorOnboarding()
+    {
+        OnboardingStage = null;
+        OnboardingNextAtUtc = null;
     }
 
     /// <summary>
