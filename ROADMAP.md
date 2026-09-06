@@ -1,3 +1,40 @@
+# 🗺️ WAZAP — Feuille de route & scaling — MISE À JOUR 06/09/2026 (session acquisition + confiance)
+
+> Récapitulatif de la session du 06/09 (le document d'origine, daté 03/09, est conservé en dessous
+> comme historique). Sources : WAZAP_SESSION_NOTES.md (§77 et suiv.), README, DEPLOYMENT.
+
+## ✅ Livré cette session (tout poussé sur main + déploiement auto, tests OK)
+1. `774b28a` — **Automatisation prospects WhatsApp** (numéros inconnus) : leads + qualification en 2 messages + alerte équipe.
+2. `17a15af` — **Conversion Lead → compte vendeur** : `POST /api/admin/leads/{id}/convert` (+ bouton `/app/leads`, trial, mot de passe temporaire, bienvenue WhatsApp).
+3. `0f22b6a` — **« CONVERTIR » depuis l'alerte WhatsApp équipe** + **espace vendeur** (`/app`, stats, parrainage, historique).
+4. `41ee803` — **Garantie Colis Sûr v1 — Certification livreurs** : `RiderIdentity` (statuts), vérif admin, blacklist (plus d'offres), option `RiderSecurity:RequireCertifiedRiders`.
+5. `d2797be` — **Certification v2 — scan de la pièce d'identité** (upload admin, moto décrite sans plaque obligatoire).
+6. `3485922` — **Notifications WhatsApp aux décisions de certification** + **onboarding vendeur J+1/J+3/J+7** (worker opt-in).
+7. `a173243` — **Parrainage au converti WhatsApp** (+5 crédits au parrain, capture code `WA-XXXX`) + **profil livreur visible au vendeur** (« certifié · N livraisons »).
+8. `6b8bf0b` — **Garantie Colis Sûr étape 2 — SINISTRES** : commande `SINISTRE <code>`, suspension pendant enquête, page admin `/app/claims`, indemnisation (crédits) + exclusion.
+
+## ⏭️ Chantiers restants à couvrir (au retour de pause)
+### Code (par impact)
+1. **Suivi des filleuls dans l'espace vendeur** (liste filleuls + historique +5, éventuelle limite anti-abus).
+2. **Garantie Colis Sûr étape 3** : versement FCFA sortant (Orange Money via GeniusPay), plafond/franchise configurables, caution livreur, conditions affichées sur `/app/vente`.
+3. **Preuves de livraison** : code client (`LIVRE <code> CODE <4 chiffres>`) + photo colis au retrait.
+4. **Notes / réputation livreur** (étoiles) affichées au vendeur avant remise du colis.
+5. **Webhook média WhatChimp** (photos CNI en auto) — sinon rester sur l'upload admin.
+6. **Onboarding vendeur activable** dès templates Meta approuvés + relance des inactifs.
+7. **Dashboard leads enrichi** : filtre source, code parrainage visible, attribution.
+8. **Tests unitaires** des nouveaux services (LeadConversion, ColisSur, certification) + E2E webhook.
+9. **Sécurité/RGPD CNI** : chiffrement au repos des scans, durées de conservation, consentement.
+10. Suite ROADMAP historique : Mobile Money client, multi-villes, PWA livreur, réputation, IA prévision.
+
+### Actions utilisateur (déblocages)
+- **Meta** : statut des 15 templates → dès `Approved`, renseigner les noms dans le web.config distant.
+- **Créer/valider les 3 templates onboarding vendeur** (d1/d3/d7) puis `VendorOnboarding:Enabled=true`.
+- **Certifier les livreurs actuels** (scan CNI) puis `RiderSecurity:RequireCertifiedRiders=true`.
+- Tests réels : prospect inconnu → `CONVERTIR` → `LIVRAISON` → `SINISTRE` (bout-en-bout).
+- Collecte Overpass complète + campagne 72 mobiles + purge comptes de test prod.
+
+---
+
 # 🗺️ WAZAP — Feuille de route & scaling (03/09/2026)
 
 > Document de synthèse : reste à faire + propositions de scaling.
