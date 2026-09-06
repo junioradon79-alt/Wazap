@@ -34,10 +34,11 @@
 2. **Conversion numéros 8→10 chiffres** : ✅ **table VALIDÉE le 06/09** (plan officiel ARTCI 2021 :
    communiqué artci.ci 11/08/2020 + plan NNP + recoupement wa_id réels) — Orange→07 (15 préfixes),
    MTN→05 (11), Moov/ex-Atlantique→01 (5), fixes 2x/3x et préfixes fermés exclus (tests exhaustifs).
-   **Toujours désactivée** (`Enabled=false`). Reste avant activation : (1) **brancher** la conversion
-   sur un point d'appel réel (aujourd'hui `ConvertOldCiToCurrent` n'est pas appelé par le code métier —
-   l'auto-réparation `wa_id` au webhook reste le filet principal) ; (2) **test réel WhatsApp** vers un
-   numéro converti. Approche conservée en attendant : matching SameSubscriber (8 derniers) + auto-réparation
+   **Toujours désactivée** (`Enabled=false`). Reste avant activation : (1) ~~brancher la conversion~~
+   ✅ **point d'appel branché (06/09)** : `WhatChimpService.PrepareRecipient` (tous les envois
+   templates + texte convertis au vol) + inscription `AuthService.RegisterAsync` (stockage direct au
+   format courant) — inopérant tant que `Enabled=false` ; (2) **test réel WhatsApp** vers un numéro
+   converti. Approche conservée en attendant : matching SameSubscriber (8 derniers) + auto-réparation
    via `wa_id` au 1er échange.
 3. **Suivi GPS temps réel** : ✅ FAIT (03/09, commit 4fa00bd) — `GET /api/client/orders/{id}/rider-location` + carte Google Maps live dans la page `/app/suivi/:id`.
 4. **Sécuriser les endpoints livreurs** : ✅ DÉJÀ FAIT — `RidersController` exige JWT (Rider gère son compte, Admin tout) avec contrôle d'appartenance.

@@ -19,6 +19,7 @@ public sealed class AuthService
     private readonly WhatsAppOrchestrationService _whatsApp;
     private readonly SecurityOptions _security;
     private readonly TrialOptions _trial;
+    private readonly IvoryCoastNumberingOptions _ciNumbering;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
@@ -28,6 +29,7 @@ public sealed class AuthService
         WhatsAppOrchestrationService whatsApp,
         SecurityOptions security,
         TrialOptions trial,
+        IvoryCoastNumberingOptions ciNumbering,
         ILogger<AuthService> logger)
     {
         _context = context;
@@ -36,6 +38,7 @@ public sealed class AuthService
         _whatsApp = whatsApp;
         _security = security;
         _trial = trial;
+        _ciNumbering = ciNumbering;
         _logger = logger;
     }
 
@@ -45,7 +48,13 @@ public sealed class AuthService
         if (exists)
             throw new InvalidOperationException("Ce nom d'utilisateur est déjà utilisé.");
 
-        var user = new User(request.Username, _passwordHasher.Hash(request.Password), request.Role, PhoneNumberNormalizer.Normalize(request.PhoneNumber));
+        // Numéro normalisé E.164 ; si la conversion 8 → 10 chiffres (plan ARTCI) est activée et que le
+        // numéro est un ancien format ivoirien, on le stocke directement sous sa forme actuelle.
+        var phone = PhoneNumberNormalizer.Normalize(request.PhoneNumber);
+        if (phone is not null && _ciNumbering.Enabled)
+            phone = PhoneNumberNormalizer.ConvertOldCiToCurrent(phone, _ciNumbering) ?? phone;
+
+        var user = new User(request.Username, _passwordHasher.Hash(request.Password), request.Role, phone);
 
         // Garantir l'unicité du code de parrainage avant sauvegarde.
         while (await _context.Users.AnyAsync(u => u.ReferralCode == user.ReferralCode))
