@@ -37,6 +37,9 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Restore
+        run: dotnet restore Wazap.slnx
+
       - name: Publish self-contained (win-x64)
         run: dotnet publish src/Wazap.API/Wazap.API.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish-win64 --no-restore
 
