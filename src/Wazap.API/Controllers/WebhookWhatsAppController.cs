@@ -23,6 +23,7 @@ public class WebhookWhatsAppController : ControllerBase
     private readonly DeliveryOfferService _deliveryOfferService;
     private readonly OrderService _orderService;
     private readonly WhatsAppOrchestrationService _whatsApp;
+    private readonly ProspectAutoService _prospects;
     private readonly ILogger<WebhookWhatsAppController> _logger;
     private readonly string _webhookToken;
 
@@ -33,6 +34,7 @@ public class WebhookWhatsAppController : ControllerBase
         DeliveryOfferService deliveryOfferService,
         OrderService orderService,
         WhatsAppOrchestrationService whatsApp,
+        ProspectAutoService prospects,
         ILogger<WebhookWhatsAppController> logger,
         IConfiguration config)
     {
@@ -42,6 +44,7 @@ public class WebhookWhatsAppController : ControllerBase
         _deliveryOfferService = deliveryOfferService;
         _orderService = orderService;
         _whatsApp = whatsApp;
+        _prospects = prospects;
         _logger = logger;
         _webhookToken = config["WhatChimp:WebhookToken"] ?? "<REDACTED-TOKEN>";
     }
@@ -139,6 +142,15 @@ public class WebhookWhatsAppController : ControllerBase
         {
             await _deliveryOfferService.AcceptOfferAsync(offerId.Value);
             _logger.LogInformation("Offre {OfferId} acceptée via webhook.", offerId);
+        }
+
+        // 5) Numéro INCONNU → automatisation des échanges prospects (commerçant / livreur /
+        //    parrainage) : création/qualification d'un Lead + réponse contextuelle.
+        if (!string.IsNullOrWhiteSpace(phone) && !string.IsNullOrWhiteSpace(text))
+        {
+            var knownUser = await _context.Users.AnyAsync(u => PhoneNumberNormalizer.SameSubscriber(u.PhoneNumber, phone));
+            if (!knownUser)
+                await _prospects.HandleAsync(phone, text);
         }
 
         return Ok();

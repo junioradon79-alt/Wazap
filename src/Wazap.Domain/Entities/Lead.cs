@@ -32,4 +32,13 @@ public class Lead
     }
 
     public void SetStatus(LeadStatus status) => Status = status;
+
+    public void Update(string businessName, string? contactName, string source)
+    {
+        BusinessName = businessName;
+        ContactName = string.IsNullOrWhiteSpace(contactName) ? null : contactName.Trim();
+        Source = source;
+    }
+
+    public void SetZone(string zone) => Zone = zone;
 }
