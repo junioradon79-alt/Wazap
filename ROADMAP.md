@@ -47,9 +47,10 @@
 
 
 ## D. Scaling technique
-- **CI/CD → prod automatisé** : ✅ **OPÉRATIONNEL (06/09, run #3 success)** — workflow `.github/workflows/deploy.yml`
-  + `scripts/cd-deploy.sh` (publish self-contained win-x64 → upload FTP avec `app_offline`, `web.config` distant
-  préservé → health check). Secrets `SMARTERASP_*` configurés. Déclenchement manuel (workflow_dispatch).
+- **CI/CD → prod automatisé** : ✅ **OPÉRATIONNEL (06/09)** — workflow `.github/workflows/deploy.yml` + `scripts/cd-deploy.sh`
+  (publish self-contained win-x64 → **migrations prod auto** → upload FTP différentiel → health check). Secrets
+  `SMARTERASP_*` + `SMARTERASP_DB_CONNECTION` configurés. **Déclenchement automatique sur push `main`** (src/**)
+  ou manuel (`workflow_dispatch`, options `full_deploy`/`apply_migrations`).
 - **Upload DIFFÉRENTIEL** : ✅ **FAIT (06/09)** — manifest SHA-256 `.deploy-manifest.sha256` conservé sur le serveur ;
   ne transfère que les fichiers nouveaux/modifiés + nettoie les périmés ; `app_offline` seulement si des binaires
   changent. Option `--full` (ou input `full_deploy`) pour forcer un déploiement complet. Seed effectué (395 fichiers),
