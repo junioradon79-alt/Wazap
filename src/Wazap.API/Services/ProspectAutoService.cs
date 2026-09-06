@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 using Wazap.Application.Abstractions;
 using Wazap.Application.Helpers;
 using Wazap.Domain.Entities;
@@ -81,6 +82,7 @@ public sealed class ProspectAutoService
 
         var businessName = rider ? "Prospect livreur" : CaptureName(text);
         var lead = new Lead(businessName, phone, zone, source, contactName: null);
+        lead.SetReferralCode(ExtractReferralCode(text));
         _context.Leads.Add(lead);
         await _context.SaveChangesAsync();
 
@@ -108,6 +110,9 @@ public sealed class ProspectAutoService
         if (!rider && lead.Zone.Length == 0 && zone.Length > 0)
             lead.SetZone(zone);
 
+        if (string.IsNullOrWhiteSpace(lead.ReferralCode))
+            lead.SetReferralCode(ExtractReferralCode(text));
+
         lead.SetStatus(LeadStatus.Contacted);
         await _context.SaveChangesAsync();
 
@@ -122,6 +127,16 @@ public sealed class ProspectAutoService
             : $"\n👉 Répondez « CONVERTIR {lead.WhatsAppNumber} » pour créer son compte vendeur en 1 clic.";
         await NotifyTeamAsync($"Lead qualifié ✅ {lead.WhatsAppNumber} — {lead.BusinessName}{(zone.Length > 0 ? " · " + zone : "")}{convertHint}");
         return true;
+    }
+
+    /// <summary>Capture un code de parrainage WAZAP (format WA-XXXX) dans un message.</summary>
+    private static string? ExtractReferralCode(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return null;
+
+        var match = Regex.Match(text, @"\bWA-[A-Z0-9]{4}\b", RegexOptions.IgnoreCase);
+        return match.Success ? match.Value.ToUpperInvariant() : null;
     }
 
     /// <summary>Capture un nom plausible : 1re ligne courte, sans mots-clés d'intention ni de zone.</summary>

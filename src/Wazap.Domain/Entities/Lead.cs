@@ -11,6 +11,7 @@ public class Lead
     public Guid Id { get; private set; }
     public string BusinessName { get; private set; } = default!;
     public string? ContactName { get; private set; }
+    public string? ReferralCode { get; private set; }
     public string WhatsAppNumber { get; private set; } = default!;
     public string Zone { get; private set; } = default!;
     public string Source { get; private set; } = default!;
@@ -41,4 +42,14 @@ public class Lead
     }
 
     public void SetZone(string zone) => Zone = zone;
+
+    /// <summary>Enregistre le code de parrainage mentionné par le prospect (ex : WA-AB12).</summary>
+    public void SetReferralCode(string? referralCode)
+    {
+        if (string.IsNullOrWhiteSpace(referralCode))
+            return;
+
+        var code = referralCode.Trim().ToUpperInvariant();
+        ReferralCode = code.Length > 12 ? code[..12] : code;
+    }
 }

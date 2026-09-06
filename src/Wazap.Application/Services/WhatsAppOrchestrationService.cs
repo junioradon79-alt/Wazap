@@ -130,7 +130,8 @@ namespace Wazap.Application.Services
             Order order,
             User rider,
             string? vendorPickupLink = null,
-            string? dropoffLink = null)
+            string? dropoffLink = null,
+            string? riderProfileLine = null)
         {
             var orderCode = order.Id.ToString("N")[..8].ToUpperInvariant();
             var riderName = rider.Username;
@@ -145,8 +146,10 @@ namespace Wazap.Application.Services
                 });
 
             // Vendeur : préparez le colis
+            var vendorText = $"🛵 {riderName} a accepté la commande #{orderCode} de {order.ClientName}. Il arrive pour récupérer le colis."
+                + (string.IsNullOrWhiteSpace(riderProfileLine) ? string.Empty : $"\n{riderProfileLine}");
             await SendStatusAsync(order.VendorWhatsAppNumber, _whatsAppOptions.TemplateRiderAssignedVendor,
-                $"🛵 {riderName} a accepté la commande #{orderCode} de {order.ClientName}. Il arrive pour récupérer le colis.",
+                vendorText,
                 new Dictionary<string, string>
                 {
                     ["1"] = riderName,
@@ -173,7 +176,8 @@ namespace Wazap.Application.Services
         /// l'acceptation d'un lot de livraison groupée. Liens Google Maps ajoutés
         /// quand les coordonnées (client / vendeur) existent.
         /// </summary>
-        public async Task SendBatchAssignedAsync(User rider, IReadOnlyList<Order> orders, string? vendorPickupLink = null)
+        public async Task SendBatchAssignedAsync(User rider, IReadOnlyList<Order> orders,
+            string? vendorPickupLink = null, string? riderProfileLine = null)
         {
             if (orders.Count == 0)
                 return;
@@ -196,8 +200,10 @@ namespace Wazap.Application.Services
             // Le vendeur reçoit un seul récapitulatif pour le lot
             var first = orders[0];
             var firstCode = first.Id.ToString("N")[..8].ToUpperInvariant();
+            var batchVendorText = $"🛵 {riderName} a accepté le lot de {orders.Count} commandes (dont #{firstCode} de {first.ClientName}). Il arrive pour récupérer les colis."
+                + (string.IsNullOrWhiteSpace(riderProfileLine) ? string.Empty : $"\n{riderProfileLine}");
             await SendStatusAsync(first.VendorWhatsAppNumber, _whatsAppOptions.TemplateRiderAssignedVendor,
-                $"🛵 {riderName} a accepté le lot de {orders.Count} commandes (dont #{firstCode} de {first.ClientName}). Il arrive pour récupérer les colis.",
+                batchVendorText,
                 new Dictionary<string, string>
                 {
                     ["1"] = riderName,

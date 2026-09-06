@@ -89,11 +89,41 @@ public sealed class LeadConversionService
                 user.Id, trialCredits, $"TRIAL-{user.ReferralCode}", "Offre découverte - 15 commandes offertes"));
         }
 
+        // Parrainage : si le lead a mentionné un code (WA-XXXX), on lie le nouveau compte au
+        // parrain et on lui crédite +5 — même règle que l'inscription classique.
+        User? sponsor = null;
+        if (!string.IsNullOrWhiteSpace(lead.ReferralCode))
+        {
+            sponsor = await _context.Users.FirstOrDefaultAsync(u => u.ReferralCode == lead.ReferralCode, ct);
+            if (sponsor is null || sponsor.Id == user.Id || string.IsNullOrWhiteSpace(sponsor.PhoneNumber))
+            {
+                sponsor = null;
+            }
+            else
+            {
+                user.SetReferral(sponsor.Id);
+                sponsor.AddCredits(5);
+            }
+        }
+
         lead.SetStatus(LeadStatus.Converted);
         await _context.SaveChangesAsync(ct);
 
         if (sendWelcome)
             await SendWelcomeAsync(lead, user, trialCredits);
+
+        if (sponsor is not null)
+        {
+            try
+            {
+                await _whatsApp.SendTextMessageAsync(sponsor.PhoneNumber!,
+                    $"🎉 {username} s'est inscrit(e) sur WAZAP grâce à vous ! Vous avez reçu 5 crédits supplémentaires.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Notification de parrainage WhatsApp impossible pour {Sponsor}.", sponsor.Username);
+            }
+        }
 
         _logger.LogInformation("Lead {LeadId} converti en vendeur {UserId} ({Username}).", lead.Id, user.Id, user.Username);
         return new LeadConversionResult(user.Id, username, tempPassword, user.Credits,

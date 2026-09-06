@@ -459,7 +459,8 @@ namespace Wazap.Application.Services
                     ? MapLink(lat, lng)
                     : null;
 
-                await _orchestrator.SendRiderAssignedAsync(order, rider, pickupLink, dropoffLink);
+                var profileLine = await BuildRiderProfileLineAsync(rider.Id);
+                await _orchestrator.SendRiderAssignedAsync(order, rider, pickupLink, dropoffLink, profileLine);
             }
             catch (Exception ex)
             {
@@ -529,7 +530,8 @@ namespace Wazap.Application.Services
                     ? MapLink(vendor.Latitude.Value, vendor.Longitude.Value)
                     : null;
 
-                await _orchestrator.SendBatchAssignedAsync(rider, orders, pickupLink);
+                var profileLine = await BuildRiderProfileLineAsync(rider.Id);
+                await _orchestrator.SendBatchAssignedAsync(rider, orders, pickupLink, profileLine);
             }
             catch (Exception ex)
             {
@@ -583,6 +585,27 @@ namespace Wazap.Application.Services
 
         private static string? MapLink(double latitude, double longitude)
             => $"https://www.google.com/maps/search/?api=1&query={latitude.ToString("F6", CultureInfo.InvariantCulture)},{longitude.ToString("F6", CultureInfo.InvariantCulture)}";
+
+        /// <summary>
+        /// Ligne « profil livreur » affichée au vendeur avant la remise du colis :
+        /// certification (Garantie Colis Sûr) + nombre de livraisons réalisées.
+        /// </summary>
+        private async Task<string> BuildRiderProfileLineAsync(Guid riderId)
+        {
+            var cert = await _context.RiderIdentities.AsNoTracking()
+                .FirstOrDefaultAsync(i => i.UserId == riderId);
+            var deliveries = await _context.Orders
+                .CountAsync(o => o.RiderUserId == riderId && o.Status == OrderStatus.Delivered);
+
+            var statusText = cert?.Status switch
+            {
+                RiderIdentityStatus.Verified => "Livreur certifié 🛡️",
+                RiderIdentityStatus.Blacklisted => "Compte suspendu",
+                _ => "Livreur WAZAP (vérification en cours)"
+            };
+
+            return $"{statusText} · {deliveries} livraison(s)";
+        }
 
         /// <summary>
         /// Livreurs disponibles, partage activé, position fraîche (&lt; Geo:LocationFreshnessMinutes)
