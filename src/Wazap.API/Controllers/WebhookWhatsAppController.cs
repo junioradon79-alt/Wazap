@@ -26,6 +26,7 @@ public class WebhookWhatsAppController : ControllerBase
     private readonly WhatsAppOrchestrationService _whatsApp;
     private readonly ProspectAutoService _prospects;
     private readonly LeadConversionService _leadConversion;
+    private readonly ColisSurService _colisSur;
     private readonly IWhatsAppSender _whatsAppSender;
     private readonly ILogger<WebhookWhatsAppController> _logger;
     private readonly string _webhookToken;
@@ -40,6 +41,7 @@ public class WebhookWhatsAppController : ControllerBase
         WhatsAppOrchestrationService whatsApp,
         ProspectAutoService prospects,
         LeadConversionService leadConversion,
+        ColisSurService colisSur,
         IWhatsAppSender whatsAppSender,
         ILogger<WebhookWhatsAppController> logger,
         IConfiguration config)
@@ -52,6 +54,7 @@ public class WebhookWhatsAppController : ControllerBase
         _whatsApp = whatsApp;
         _prospects = prospects;
         _leadConversion = leadConversion;
+        _colisSur = colisSur;
         _whatsAppSender = whatsAppSender;
         _logger = logger;
         _webhookToken = config["WhatChimp:WebhookToken"] ?? "<REDACTED-TOKEN>";
@@ -397,6 +400,14 @@ public class WebhookWhatsAppController : ControllerBase
             return true;
         }
 
+        // Sinistre (Garantie Colis Sûr) : « SINISTRE <code> » → colis perdu/volé signalé par le vendeur.
+        if (user.Role == UserRole.Vendor && (upper == "SINISTRE" || upper.StartsWith("SINISTRE ")))
+        {
+            var result = await _colisSur.DeclareAsync(user.Id, command);
+            await ReplyAsync(user, result.Message);
+            return true;
+        }
+
         // Statuts automatiques livreur : « RECU » = colis récupéré (en route),
         // « LIVRE » = livraison effectuée. Option : code court de la course.
         if (user.Role == UserRole.Rider
@@ -476,7 +487,11 @@ public class WebhookWhatsAppController : ControllerBase
         if (upper is "AIDE" or "HELP" or "MENU")
         {
             var menu = user.Role == UserRole.Vendor
-                ? "📱 Menu vendeur :\n• LIVRAISON <détail + adresse client> : demander une course (1 crédit)\n• ZONE <quartier> : votre zone de livraison\n• AIDE : ce menu"
+                ? "📱 Menu vendeur :\n"
+                  + "• LIVRAISON <détail + adresse client> : demander une course (1 crédit)\n"
+                  + "• ZONE <quartier> : votre zone de livraison\n"
+                  + "• SINISTRE <code> : signaler un colis perdu/volé (Garantie Colis Sûr)\n"
+                  + "• AIDE : ce menu"
                 : "📱 Menu livreur :\n• ZONE <quartier> : définir ta zone\n• DISPO / INDISPO : en ligne / hors ligne\n• ACCEPTE <code> : accepter une course";
 
             await ReplyAsync(user, menu);

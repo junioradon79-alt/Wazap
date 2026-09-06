@@ -144,6 +144,26 @@ export interface RiderCertification {
   reviewedAt: string | null
 }
 
+export type DeliveryClaimStatus = 'Pending' | 'Approved' | 'Rejected'
+
+export interface ClaimListItem {
+  claimId: string
+  orderId: string
+  orderCode: string
+  vendorUserId: string
+  vendorName: string
+  vendorPhone: string | null
+  riderUserId: string
+  riderName: string
+  status: DeliveryClaimStatus
+  compensationCredits: number | null
+  description: string | null
+  vendorNote: string | null
+  reviewNote: string | null
+  createdAt: string
+  reviewedAt: string | null
+}
+
 export interface VendorDashboard {
   id: string
   username: string

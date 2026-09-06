@@ -109,6 +109,7 @@ builder.Services.AddScoped<HealthDetailsService>();
 builder.Services.AddScoped<MetricsService>();
 builder.Services.AddScoped<ProspectAutoService>();
 builder.Services.AddScoped<LeadConversionService>();
+builder.Services.AddScoped<ColisSurService>();
 
 // Options rétention / archivage des données (purge opt-in, désactivée par défaut)
 var retentionOptions = builder.Configuration.GetSection(RetentionOptions.SectionName).Get<RetentionOptions>() ?? new RetentionOptions();

@@ -11,6 +11,7 @@ import VendorsPage from './pages/VendorsPage'
 import RidersPage from './pages/RidersPage'
 import OrdersPage from './pages/OrdersPage'
 import LeadsPage from './pages/LeadsPage'
+import ClaimsPage from './pages/ClaimsPage'
 import AccountPage from './pages/AccountPage'
 import SuiviPage from './pages/SuiviPage'
 import VentePage from './pages/VentePage'
@@ -48,6 +49,7 @@ export default function App() {
         <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/vendors" element={<VendorsPage />} />
         <Route path="/leads" element={<LeadsPage />} />
+        <Route path="/claims" element={<ClaimsPage />} />
         <Route path="/riders" element={<RidersPage />} />
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/account" element={<AccountPage />} />

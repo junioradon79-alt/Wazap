@@ -649,6 +649,14 @@ namespace Wazap.Application.Services
                 .ToListAsync();
             exclude.UnionWith(blacklisted);
 
+            // Sinistre en cours d'enquête : le livreur est suspendu tant que le
+            // dossier « Garantie Colis Sûr » n'est pas tranché.
+            var underInvestigation = await _context.DeliveryClaims.AsNoTracking()
+                .Where(c => c.Status == DeliveryClaimStatus.Pending)
+                .Select(c => c.RiderUserId)
+                .ToListAsync();
+            exclude.UnionWith(underInvestigation);
+
             // Tier 1 — GPS (Haversine) : uniquement si le vendeur a une position.
             if (vendor.Latitude is not null && vendor.Longitude is not null)
             {

@@ -24,6 +24,7 @@ namespace Wazap.Infrastructure.Data
         public DbSet<WebhookSubscriber> WebhookSubscribers { get; set; }
         public DbSet<Lead> Leads { get; set; }
         public DbSet<RiderIdentity> RiderIdentities { get; set; }
+        public DbSet<DeliveryClaim> DeliveryClaims { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -127,6 +128,22 @@ namespace Wazap.Infrastructure.Data
 
             modelBuilder.Entity<RiderIdentity>()
                 .HasIndex(i => i.Status);
+
+            // Dossiers de sinistre « Garantie Colis Sûr » : un seul dossier par commande.
+            modelBuilder.Entity<DeliveryClaim>()
+                .HasIndex(c => c.OrderId)
+                .IsUnique();
+
+            modelBuilder.Entity<DeliveryClaim>()
+                .HasIndex(c => c.Status);
+
+            modelBuilder.Entity<DeliveryClaim>()
+                .Property(c => c.VendorNote)
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<DeliveryClaim>()
+                .Property(c => c.ReviewNote)
+                .HasMaxLength(300);
 
             modelBuilder.Entity<DeliveryOffer>()
                 .HasIndex(o => o.OrderId);

@@ -18,6 +18,7 @@ public interface IApplicationDbContext
     DbSet<DeliveryBatch> DeliveryBatches { get; }
     DbSet<CreditTransaction> CreditTransactions { get; }
     DbSet<RiderIdentity> RiderIdentities { get; }
+    DbSet<DeliveryClaim> DeliveryClaims { get; }
 
     DatabaseFacade Database { get; }
 
