@@ -1,0 +1,156 @@
+// Campagne WhatsApp : envoie le template "prospect_approach" à chaque prospect du CSV via WhatChimp.
+// Entrée : CSV (colonne WhatsApp_Number) — sortie : Prospects_relances.csv + relance_log.txt
+// Prérequis : template "prospect_approach" créé et approuvé dans WhatChimp/Meta.
+// Config (env) : WHATCHIMP_API_TOKEN (obligatoire), WHATCHIMP_PHONE_NUMBER_ID,
+//                TEMPLATE_NAME, COMMERCIAL, VIDEO_URL.
+// Options : <csv> [--zone=Marcory] [--limit=20] [--dry-run]
+using System.Text;
+
+var input = "Prospects.csv";
+var zoneFilter = "";
+var limit = 0;
+var dryRun = false;
+
+foreach (var arg in args)
+{
+    if (arg.StartsWith("--zone=", StringComparison.OrdinalIgnoreCase)) zoneFilter = arg["--zone=".Length..];
+    else if (arg.StartsWith("--limit=", StringComparison.OrdinalIgnoreCase)) int.TryParse(arg["--limit=".Length..], out limit);
+    else if (arg.Equals("--dry-run", StringComparison.OrdinalIgnoreCase)) dryRun = true;
+    else input = arg;
+}
+
+var apiToken = Environment.GetEnvironmentVariable("WHATCHIMP_API_TOKEN");
+var phoneNumberId = Environment.GetEnvironmentVariable("WHATCHIMP_PHONE_NUMBER_ID") ?? "735886129615120";
+var baseUrl = Environment.GetEnvironmentVariable("WHATCHIMP_BASE_URL") ?? "https://app.whatchimp.com/api/v1/whatsapp/";
+var template = Environment.GetEnvironmentVariable("TEMPLATE_NAME") ?? "prospect_approach";
+var commercial = Environment.GetEnvironmentVariable("COMMERCIAL") ?? "L'équipe WAZAP";
+var videoUrl = Environment.GetEnvironmentVariable("VIDEO_URL") ?? "";
+
+if (string.IsNullOrWhiteSpace(videoUrl))
+{
+    Console.WriteLine("⚠️  VIDEO_URL non définie — la variable {{3}} du template sera vide.");
+}
+
+// Lecture CSV (séparateur ';', guillemets tolérés).
+var rawLines = File.ReadAllLines(input, Encoding.UTF8);
+var prospects = new List<(string Nom, string Phone, string Zone)>();
+foreach (var raw in rawLines.Skip(1))
+{
+    if (string.IsNullOrWhiteSpace(raw)) continue;
+    var line = raw.Trim();
+
+    // Découpe en respectant les champs entre guillemets.
+    var fields = new List<string>();
+    var cur = new StringBuilder();
+    var inQuotes = false;
+    foreach (var ch in line)
+    {
+        if (ch == '"') inQuotes = !inQuotes;
+        else if (ch == ';' && !inQuotes) { fields.Add(cur.ToString().Trim()); cur.Clear(); }
+        else cur.Append(ch);
+    }
+    fields.Add(cur.ToString().Trim());
+    if (fields.Count < 2) continue;
+
+    var nom = fields[0].Trim('"').Trim();
+    var phone = fields[1].Trim('"').Trim();
+    var zone = fields.Count >= 5 ? fields[4].Trim('"').Trim() : "";
+    if (string.IsNullOrWhiteSpace(phone)) continue;
+
+    // Filtre zone.
+    if (!string.IsNullOrWhiteSpace(zoneFilter)
+        && !string.Equals(zone, zoneFilter, StringComparison.OrdinalIgnoreCase))
+        continue;
+
+    prospects.Add((nom, phone, zone));
+}
+
+if (limit > 0) prospects = prospects.Take(limit).ToList();
+
+Console.WriteLine($"Prospects sélectionnés : {prospects.Count}" + (string.IsNullOrWhiteSpace(zoneFilter) ? "" : $" (zone {zoneFilter})"));
+
+// Vérification du format : +225 + 10 chiffres mobiles (01/05/07).
+var valides = new List<(string Nom, string Phone, string Zone)>();
+var ignores = new List<(string Nom, string Phone, string Raison)>();
+foreach (var p in prospects)
+{
+    var digits = new string(p.Phone.Where(char.IsDigit).ToArray());
+    if (digits.Length == 13 && digits.StartsWith("225") && (digits[3..].StartsWith("01") || digits[3..].StartsWith("05") || digits[3..].StartsWith("07")))
+        valides.Add(p);
+    else
+        ignores.Add((p.Nom, p.Phone, "format non mobile 10 chiffres (attendu +225 0x...)"));
+}
+
+foreach (var i in ignores)
+    Console.WriteLine($"  ⚠️  Ignoré : {i.Nom} — {i.Phone} ({i.Raison})");
+
+if (valides.Count == 0)
+{
+    Console.Error.WriteLine("Aucun prospect valide à contacter.");
+    return 1;
+}
+
+if (dryRun)
+{
+    Console.WriteLine("\n=== MODE DRY-RUN (aucun envoi) ===");
+    foreach (var (nom, phone, zone) in valides)
+        Console.WriteLine($"  -> {phone} | {nom} | {zone}");
+    Console.WriteLine($"Total : {valides.Count} envoi(s) simulé(s).");
+    return 0;
+}
+
+if (!File.Exists(input))
+{
+    Console.Error.WriteLine($"Fichier introuvable : {input}");
+    return 1;
+}
+if (string.IsNullOrWhiteSpace(apiToken))
+{
+    Console.Error.WriteLine("WHATCHIMP_API_TOKEN manquante (variable d'environnement).");
+    return 1;
+}
+
+Console.WriteLine($"Prospects à contacter : {valides.Count}");
+
+using var http = new HttpClient();
+http.Timeout = TimeSpan.FromSeconds(30);
+var log = new StringBuilder();
+var outLines = new StringBuilder();
+outLines.AppendLine("WhatsApp_Number;Statut;Date_dernier_contact");
+var now = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+for (var i = 0; i < valides.Count; i++)
+{
+    var (nom, phone, _) = valides[i];
+    var url = $"{baseUrl}send?apiToken={Uri.EscapeDataString(apiToken)}" +
+              $"&phone_number_id={Uri.EscapeDataString(phoneNumberId)}" +
+              $"&phone_number={Uri.EscapeDataString(phone)}" +
+              $"&message_type=template&template_name={Uri.EscapeDataString(template)}" +
+              $"&variable1={Uri.EscapeDataString(nom)}" +
+              $"&variable2={Uri.EscapeDataString(commercial)}" +
+              $"&variable3={Uri.EscapeDataString(videoUrl)}";
+
+    try
+    {
+        var res = await http.GetAsync(url);
+        var content = await res.Content.ReadAsStringAsync();
+        var statut = res.IsSuccessStatusCode ? "OK" : $"ECHEC_{res.StatusCode}";
+        log.AppendLine($"{now} | {phone} | {statut} | {content[..Math.Min(200, content.Length)]}");
+        outLines.AppendLine($"{phone};{statut};{now}");
+        Console.WriteLine($"[{i + 1}/{valides.Count}] {phone} : {statut}");
+    }
+    catch (Exception ex)
+    {
+        log.AppendLine($"{now} | {phone} | ERREUR | {ex.Message}");
+        outLines.AppendLine($"{phone};ERREUR;{now}");
+        Console.WriteLine($"[{i + 1}/{valides.Count}] {phone} : ERREUR {ex.Message}");
+    }
+
+    if (i < valides.Count - 1)
+        await Task.Delay(TimeSpan.FromSeconds(2)); // anti rate-limiting
+}
+
+File.WriteAllText("relance_log.txt", log.ToString(), Encoding.UTF8);
+File.WriteAllText("Prospects_relances.csv", outLines.ToString(), Encoding.UTF8);
+Console.WriteLine($"Terminé : {valides.Count} envoi(s) → relance_log.txt + Prospects_relances.csv");
+return 0;

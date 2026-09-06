@@ -32,10 +32,24 @@ namespace Wazap.API.Services
             using var timer = new PeriodicTimer(TimeSpan.FromHours(1));
             while (await timer.WaitForNextTickAsync(stoppingToken))
             {
+                using var scope = _scopeFactory.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+                // Multi-instances : une seule instance purge à la fois (verrou advisory de session).
+                await using var guard = await AdvisoryLockScope.TryAcquireAsync(db, 77_001, stoppingToken);
+                if (!guard.Acquired)
+                {
+                    _logger.LogDebug("Purge RGPD sautée (une autre instance la réalise).");
+                    continue;
+                }
+
                 try
                 {
-                    await PurgeAsync(stoppingToken);
+                    var purged = await PurgeAsync(db, stoppingToken);
+                    await guard.CompleteAsync(stoppingToken);
                     WorkerHeartbeats.Beat(nameof(LocationPurgeWorker));
+                    if (purged > 0)
+                        _logger.LogInformation("RGPD : {Count} position(s) de livreurs purgées.", purged);
                 }
                 catch (Exception ex)
                 {
@@ -45,14 +59,11 @@ namespace Wazap.API.Services
             }
         }
 
-        private async Task PurgeAsync(CancellationToken ct)
+        private async Task<int> PurgeAsync(ApplicationDbContext db, CancellationToken ct)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
             var cutoff = DateTime.UtcNow.AddHours(-_geo.LocationRetentionHours);
 
-            var purged = await db.Users
+            return await db.Users
                 .Where(u => u.Role == UserRole.Rider
                          && u.Latitude != null
                          && u.LocationUpdatedAt < cutoff)
@@ -60,9 +71,6 @@ namespace Wazap.API.Services
                     .SetProperty(u => u.Latitude, (double?)null)
                     .SetProperty(u => u.Longitude, (double?)null)
                     .SetProperty(u => u.LocationUpdatedAt, (DateTime?)null), ct);
-
-            if (purged > 0)
-                _logger.LogInformation("RGPD : {Count} position(s) de livreurs purgées (antérieures à {Cutoff:u}).", purged, cutoff);
         }
     }
 }

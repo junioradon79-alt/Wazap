@@ -40,9 +40,21 @@ public sealed class RetentionWorker : BackgroundService
 
         while (await timer.WaitForNextTickAsync(stoppingToken))
         {
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            // Multi-instances : une seule instance purge à la fois (verrou advisory de session).
+            await using var guard = await AdvisoryLockScope.TryAcquireAsync(db, 77_002, stoppingToken);
+            if (!guard.Acquired)
+            {
+                _logger.LogDebug("Rétention sautée (une autre instance la réalise).");
+                continue;
+            }
+
             try
             {
-                await PurgeAsync(stoppingToken);
+                await PurgeAsync(db, stoppingToken);
+                await guard.CompleteAsync(stoppingToken);
                 WorkerHeartbeats.Beat(nameof(RetentionWorker));
             }
             catch (Exception ex)
@@ -53,10 +65,8 @@ public sealed class RetentionWorker : BackgroundService
         }
     }
 
-    private async Task PurgeAsync(CancellationToken ct)
+    private async Task PurgeAsync(ApplicationDbContext db, CancellationToken ct)
     {
-        using var scope = _scopeFactory.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var now = DateTime.UtcNow;
 
         var ordersCutoff = now.AddDays(-Math.Max(0, _retention.DeliveredOrdersDays));

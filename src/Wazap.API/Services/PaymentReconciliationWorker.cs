@@ -42,9 +42,23 @@ namespace Wazap.API.Services
 
             while (await timer.WaitForNextTickAsync(stoppingToken))
             {
+                using var scope = _scopeFactory.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var paymentService = scope.ServiceProvider.GetRequiredService<IPaymentService>();
+                var packService = scope.ServiceProvider.GetRequiredService<PackService>();
+
+                // Multi-instances : une seule instance réconcilie à la fois (évite les crédits doublés).
+                await using var guard = await AdvisoryLockScope.TryAcquireAsync(db, 77_003, stoppingToken);
+                if (!guard.Acquired)
+                {
+                    _logger.LogDebug("Réconciliation sautée (une autre instance la réalise).");
+                    continue;
+                }
+
                 try
                 {
-                    await ReconcileAsync(stoppingToken);
+                    await ReconcileAsync(db, paymentService, packService, stoppingToken);
+                    await guard.CompleteAsync(stoppingToken);
                     WorkerHeartbeats.Beat(nameof(PaymentReconciliationWorker));
                 }
                 catch (Exception ex)
@@ -55,13 +69,9 @@ namespace Wazap.API.Services
             }
         }
 
-        private async Task ReconcileAsync(CancellationToken ct)
+        private async Task ReconcileAsync(
+            ApplicationDbContext db, IPaymentService paymentService, PackService packService, CancellationToken ct)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var paymentService = scope.ServiceProvider.GetRequiredService<IPaymentService>();
-            var packService = scope.ServiceProvider.GetRequiredService<PackService>();
-
             // Transactions Pending avec une vraie référence (pas la provisoire PENDING-…).
             var pending = await db.CreditTransactions
                 .Where(t => t.Status == TransactionStatus.Pending

@@ -16,6 +16,7 @@ public sealed class OutboxBackgroundWorker : BackgroundService
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<OutboxBackgroundWorker> _logger;
     private readonly int _maxRetries;
+    private readonly int _batchSize;
     private readonly TimeSpan _pollingInterval;
     private DateTime _lastWatchUtc = DateTime.MinValue;
 
@@ -27,6 +28,7 @@ public sealed class OutboxBackgroundWorker : BackgroundService
         _scopeFactory = scopeFactory;
         _logger = logger;
         _maxRetries = config.GetValue("Outbox:MaxRetries", 5);
+        _batchSize = Math.Max(1, config.GetValue("Outbox:BatchSize", 10));
         _pollingInterval = TimeSpan.FromSeconds(config.GetValue("Outbox:PollingIntervalSeconds", 5));
     }
 
@@ -101,7 +103,7 @@ public sealed class OutboxBackgroundWorker : BackgroundService
                 SELECT "Id" FROM "OutboxMessages"
                 WHERE "Status" = 1 AND "AvailableAt" <= NOW()
                 ORDER BY "CreatedAt"
-                LIMIT 10
+                LIMIT {_batchSize}
                 FOR UPDATE SKIP LOCKED
                 """)
             .ToListAsync(ct);

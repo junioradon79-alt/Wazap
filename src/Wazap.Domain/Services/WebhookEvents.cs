@@ -5,10 +5,13 @@ public static class WebhookEvents
 {
     public const string OrderCreated = "order.created";
     public const string OrderStatusChanged = "order.status_changed";
+    public const string VendorRegistered = "vendor.registered";
+    public const string RiderRegistered = "rider.registered";
+    public const string CreditPurchased = "credit.purchased";
 
     public const string TypeWebhookDelivery = "WebhookDelivery";
 
-    public static readonly string[] All = { OrderCreated, OrderStatusChanged };
+    public static readonly string[] All = { OrderCreated, OrderStatusChanged, VendorRegistered, RiderRegistered, CreditPurchased };
 
     public static bool IsKnown(string eventName)
         => All.Contains(eventName, StringComparer.OrdinalIgnoreCase);

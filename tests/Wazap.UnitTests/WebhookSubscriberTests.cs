@@ -42,6 +42,9 @@ public class WebhookSubscriberTests
     {
         Assert.True(WebhookEvents.IsKnown(WebhookEvents.OrderCreated));
         Assert.True(WebhookEvents.IsKnown(WebhookEvents.OrderStatusChanged));
+        Assert.True(WebhookEvents.IsKnown(WebhookEvents.VendorRegistered));
+        Assert.True(WebhookEvents.IsKnown(WebhookEvents.RiderRegistered));
+        Assert.True(WebhookEvents.IsKnown(WebhookEvents.CreditPurchased));
         Assert.False(WebhookEvents.IsKnown("order.deleted"));
     }
 }

@@ -20,11 +20,11 @@
 
 ## B. À relancer (service externe / timing)
 1. **Collecte Overpass complète** (33 secteurs, 13 communes) — Overpass public saturé depuis le 03/09.
-   Outil **durci le 06/09** : sonde de disponibilité des miroirs (ordre dynamique, sortie rapide si tout
+   Outil **durci (06/09)** : sonde de disponibilité des miroirs (ordre dynamique, sortie rapide si tout
    est down), option `--timeout=<s>` (défaut 120), réponses « busy/timeout » d'Overpass traitées comme
-   de vrais échecs réessayables (plus de zone marquée « terminée » sans données). Relancer quand la
-   charge baisse :
-   `dotnet run --project tools\ProspectCollectorOsm -- --out-dir=prospection\out_osm`
+   de vrais échecs réessayables. **Outils versionnés dans le repo** (`WazapSln/tools/*`). Relancer quand
+   la charge baisse (depuis `WazapSln`) :
+   `dotnet run --project tools\ProspectCollectorOsm -- --out-dir=c:\Dev\Wazap\prospection\out_osm`
 2. **Campagne WhatsApp prospects** (72 mobiles qualifiés `Prospects_campagne_mobiles_20260902.csv`) — dès approbation de `prospect_approach` :
    `$env:WHATCHIMP_API_TOKEN=… ; dotnet run --project tools\WhatsAppCampaign -- prospection\Prospects_campagne_mobiles_20260902.csv --zone=Marcory`
 3. **Purge des comptes de test** en base prod (`test_reel_utilisateur`, `test_vendeur_cocody`) après la fin des essais réels (CleanupTestVendors).

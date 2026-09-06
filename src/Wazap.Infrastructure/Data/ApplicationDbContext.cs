@@ -178,27 +178,49 @@ namespace Wazap.Infrastructure.Data
             var now = DateTime.UtcNow;
             var events = new List<(string Event, object Data)>();
 
-            foreach (var entry in ChangeTracker.Entries<Order>())
+            foreach (var entry in ChangeTracker.Entries())
             {
-                if (entry.State == EntityState.Added)
+                var state = entry.State;
+                switch (entry.Entity)
                 {
-                    events.Add((WebhookEvents.OrderCreated, new
-                    {
-                        orderId = entry.Entity.Id,
-                        status = entry.Entity.Status.ToString(),
-                        createdAt = entry.Entity.CreatedAt,
-                        amount = entry.Entity.Amount
-                    }));
-                }
-                else if (entry.State == EntityState.Modified && OriginalStatusOf(entry) is { } before && before != entry.Entity.Status)
-                {
-                    events.Add((WebhookEvents.OrderStatusChanged, new
-                    {
-                        orderId = entry.Entity.Id,
-                        from = before.ToString(),
-                        to = entry.Entity.Status.ToString(),
-                        at = now
-                    }));
+                    case Order order when state == EntityState.Added:
+                        events.Add((WebhookEvents.OrderCreated, new
+                        {
+                            orderId = order.Id, status = order.Status.ToString(),
+                            createdAt = order.CreatedAt, amount = order.Amount
+                        }));
+                        break;
+
+                    case Order order when state == EntityState.Modified
+                                          && OriginalStatusOf(entry) is { } before && before != order.Status:
+                        events.Add((WebhookEvents.OrderStatusChanged, new
+                        {
+                            orderId = order.Id, from = before.ToString(),
+                            to = order.Status.ToString(), at = now
+                        }));
+                        break;
+
+                    case User user when state == EntityState.Added && user.Role == UserRole.Vendor:
+                        events.Add((WebhookEvents.VendorRegistered, new
+                        { userId = user.Id, zone = user.Zone, createdAt = user.CreatedAt }));
+                        break;
+
+                    case User user when state == EntityState.Added && user.Role == UserRole.Rider:
+                        events.Add((WebhookEvents.RiderRegistered, new
+                        { userId = user.Id, zone = user.Zone, createdAt = user.CreatedAt }));
+                        break;
+
+                    case CreditTransaction txn when
+                        (state == EntityState.Added && txn.Status == TransactionStatus.Completed)
+                        || (state == EntityState.Modified
+                            && OriginalTransactionStatus(entry) == TransactionStatus.Pending
+                            && txn.Status == TransactionStatus.Completed):
+                        events.Add((WebhookEvents.CreditPurchased, new
+                        {
+                            transactionId = txn.Id, vendorId = txn.VendorId, packName = txn.PackName,
+                            credits = txn.CreditsPurchased, amount = txn.Amount, createdAt = txn.CreatedAt
+                        }));
+                        break;
                 }
             }
 
@@ -235,13 +257,24 @@ namespace Wazap.Infrastructure.Data
             }
         }
 
-        private static OrderStatus? OriginalStatusOf(Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<Order> entry)
+        private static OrderStatus? OriginalStatusOf(Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry)
         {
             var raw = entry.OriginalValues["Status"];
             return raw switch
             {
                 OrderStatus status => status,
                 int i => (OrderStatus)i,
+                _ => null
+            };
+        }
+
+        private static TransactionStatus? OriginalTransactionStatus(Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry)
+        {
+            var raw = entry.OriginalValues["Status"];
+            return raw switch
+            {
+                TransactionStatus status => status,
+                int i => (TransactionStatus)i,
                 _ => null
             };
         }

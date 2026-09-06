@@ -30,7 +30,8 @@ WAZAP notifie vos serveurs par HTTP POST dès qu'un événement se produit. Livr
 POST /api/admin/webhooks        # { "name": "...", "url": "https://.../hook", "secret": "...", "events": ["order.created","order.status_changed"] }
 GET/PUT/DELETE /api/admin/webhooks[/{id}]   ; PUT /api/admin/webhooks/{id}/enabled {"enabled":true}
 ```
-Événements disponibles : `order.created`, `order.status_changed` (majuscules insensibles).
+Événements disponibles : `order.created`, `order.status_changed`, `vendor.registered`,
+`rider.registered`, `credit.purchased` (majuscules insensibles).
 
 ### Payload reçu
 ```json
