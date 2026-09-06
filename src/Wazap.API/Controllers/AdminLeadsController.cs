@@ -3,14 +3,15 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Wazap.Domain.Entities;
+using Wazap.API.Services;
 using Wazap.Domain.Enums;
 using Wazap.Infrastructure.Data;
 
 namespace Wazap.API.Controllers;
 
 /// <summary>
-/// Gestion des leads d'acquisition (réservé à l'équipe/admin) : liste, statut, export CSV.
+/// Gestion des leads d'acquisition (réservé à l'équipe/admin) : liste, statut, export CSV,
+/// conversion d'un lead qualifié en compte vendeur.
 /// </summary>
 [ApiController]
 [Route("api/admin/leads")]
@@ -18,10 +19,12 @@ namespace Wazap.API.Controllers;
 public class AdminLeadsController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly LeadConversionService _conversion;
 
-    public AdminLeadsController(ApplicationDbContext context)
+    public AdminLeadsController(ApplicationDbContext context, LeadConversionService conversion)
     {
         _context = context;
+        _conversion = conversion;
     }
 
     [HttpGet]
@@ -66,6 +69,24 @@ public class AdminLeadsController : ControllerBase
         lead.SetStatus(request.Status);
         await _context.SaveChangesAsync(ct);
         return NoContent();
+    }
+
+    /// <summary>
+    /// Convertit un lead qualifié en compte vendeur (crédits offerts, code parrainage,
+    /// mot de passe temporaire, bienvenue WhatsApp). Idempotent.
+    /// </summary>
+    [HttpPost("{id:guid}/convert")]
+    public async Task<IActionResult> Convert(Guid id, [FromBody] ConvertLeadRequest? request, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _conversion.ConvertAsync(id, request?.SendWelcome ?? true, ct);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     [HttpGet("export")]
@@ -116,3 +137,5 @@ public sealed record LeadListItem(
     DateTime CreatedAt);
 
 public sealed record SetLeadStatusRequest(LeadStatus Status);
+
+public sealed record ConvertLeadRequest(bool SendWelcome = true);

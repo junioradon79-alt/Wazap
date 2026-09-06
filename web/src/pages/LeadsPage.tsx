@@ -14,6 +14,16 @@ interface LeadListItem {
   createdAt: string
 }
 
+interface ConversionResult {
+  vendorId: string
+  username: string
+  temporaryPassword: string | null
+  credits: number
+  referralCode: string
+  zone: string | null
+  alreadyExisted: boolean
+}
+
 const STATUS_OPTIONS: LeadStatus[] = ['New', 'Contacted', 'Converted', 'Discarded']
 const STATUS_LABEL: Record<LeadStatus, string> = {
   New: 'Nouveau',
@@ -27,6 +37,8 @@ export default function LeadsPage() {
   const [filterStatus, setFilterStatus] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [convertingId, setConvertingId] = useState<string | null>(null)
+  const [conversion, setConversion] = useState<ConversionResult | null>(null)
 
   const load = async (): Promise<void> => {
     try {
@@ -52,6 +64,21 @@ export default function LeadsPage() {
       setError(err instanceof Error ? err.message : 'Mise à jour impossible')
     } finally {
       setBusy(false)
+    }
+  }
+
+  const convertLead = async (l: LeadListItem): Promise<void> => {
+    if (!window.confirm(`Créer le compte vendeur pour « ${l.businessName} » (${l.whatsappNumber}) ?\nDes crédits d'offre découverte seront octroyés et un message de bienvenue WhatsApp sera envoyé.`)) return
+    setConvertingId(l.id)
+    setError('')
+    try {
+      const data = await api.post<ConversionResult>(`/admin/leads/${l.id}/convert`, { sendWelcome: true })
+      setConversion(data)
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Conversion impossible')
+    } finally {
+      setConvertingId(null)
     }
   }
 
@@ -116,6 +143,7 @@ export default function LeadsPage() {
                   <th>Source</th>
                   <th>Statut</th>
                   <th>Reçu le</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -138,6 +166,22 @@ export default function LeadsPage() {
                       </select>
                     </td>
                     <td style={{ fontSize: 13 }}>{formatDateTime(l.createdAt)}</td>
+                    <td>
+                      {l.status === 'New' || l.status === 'Contacted' ? (
+                        <button
+                          className="btn btn--primary"
+                          style={{ padding: '6px 10px', fontSize: 13 }}
+                          disabled={busy || convertingId !== null}
+                          onClick={() => void convertLead(l)}
+                        >
+                          {convertingId === l.id ? '…' : '🛍️ Créer le compte'}
+                        </button>
+                      ) : l.status === 'Converted' ? (
+                        <span style={{ fontSize: 13 }}>✅ Compte créé</span>
+                      ) : (
+                        <span style={{ fontSize: 13, color: 'var(--muted, #888)' }}>—</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -145,6 +189,44 @@ export default function LeadsPage() {
           </div>
         )}
       </section>
+
+      {conversion && (
+        <div className="modal-backdrop" onClick={() => setConversion(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3>{conversion.alreadyExisted ? 'ℹ️ Vendeur déjà existant' : '🎉 Compte vendeur créé'}</h3>
+            <p style={{ marginBottom: 12 }}>
+              {conversion.alreadyExisted
+                ? 'Un compte vendeur existait déjà pour ce numéro — le lead a été marqué Converti.'
+                : 'Le lead est marqué Converti. Un message de bienvenue WhatsApp a été envoyé au vendeur.'}
+            </p>
+            <table className="table" style={{ marginBottom: 16 }}>
+              <tbody>
+                <tr><th style={{ width: 160 }}>Identifiant</th><td><code>{conversion.username}</code></td></tr>
+                {conversion.temporaryPassword && (
+                  <tr><th>Mot de passe temporaire</th><td><code>{conversion.temporaryPassword}</code></td></tr>
+                )}
+                <tr><th>Crédits</th><td>{conversion.credits}</td></tr>
+                <tr><th>Code parrainage</th><td><code>{conversion.referralCode}</code></td></tr>
+                {conversion.zone && <tr><th>Zone</th><td>{conversion.zone}</td></tr>}
+              </tbody>
+            </table>
+            <p style={{ fontSize: 13, marginBottom: 12 }}>
+              💡 Communiquez le mot de passe temporaire au vendeur uniquement s'il demande un accès au tableau de bord.
+            </p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              {conversion.temporaryPassword && (
+                <button
+                  className="btn"
+                  onClick={() => void navigator.clipboard.writeText(`Identifiant : ${conversion.username}\nMot de passe : ${conversion.temporaryPassword}`)}
+                >
+                  📋 Copier identifiants
+                </button>
+              )}
+              <button className="btn btn--primary" onClick={() => setConversion(null)}>OK</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
