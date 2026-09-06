@@ -68,10 +68,13 @@
   DeliveryBatches(Status+CreatedAt), RefreshTokens(ExpiresAtUtc). **Rétention** : `RetentionWorker` opt-in
   (`Retention:Enabled=false`) — commandes livrées/lots vides/outbox envoyée (90/90/30 j). Reste : partitionnement
   si >1M lignes, activation rétention après validation.
-- **API publique** : ✅ **v1 lecture seule FAIT (06/09)** — `GET /api/v1/{overview,zones,vendors,orders,packs}`
+- **API publique & webhooks** : ✅ **v1 lecture seule FAIT (06/09)** — `GET /api/v1/{overview,zones,vendors,orders,packs}`
   protégée par **clé API** (`X-Api-Key`, middleware dédié) + rate limit `publicapi` (240/min, configurable).
-  Sans données personnelles (pas de clients/téléphones/adresses). Reste : **webhooks sortants** pour
-  intégrations (événements commande) et versioning des endpoints d'écriture si besoin.
+  Sans données personnelles. ✅ **Webhooks sortants FAIT (06/09)** : abonnés (`WebhookSubscribers`, CRUD admin
+  `/api/admin/webhooks`) + événements `order.created` / `order.status_changed` émis automatiquement à chaque
+  `SaveChanges` (aucun point d'appel à maintenir) → livraison HTTP fiable via l'**outbox** (retries, signature
+  HMAC `X-Wazap-Signature`, rejets 4xx permanents marqués Failed + alerte). Migration 12 `AddWebhookSubscribers`.
+  Reste (option) : versioning des endpoints d'écriture, événements complémentaires.
 
 ## E. Scaling business (30/60/90 — objectifs 10× révisés, cf. MARKETING_STRATEGY §10)
 | Phase | Vendeurs actifs | Livreurs | Commandes/sem | Zones |

@@ -1,9 +1,12 @@
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Wazap.API.Health;
 using Wazap.Application.Dtos;
 using Wazap.Application.Services;
 using Wazap.Domain.Entities;
+using Wazap.Domain.Services;
 using Wazap.Infrastructure.Data;
 
 namespace Wazap.API.Services;
@@ -86,6 +89,7 @@ public sealed class OutboxBackgroundWorker : BackgroundService
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var notificationService = scope.ServiceProvider.GetRequiredService<WhatsAppOrchestrationService>();
         var alerts = scope.ServiceProvider.GetRequiredService<MonitoringAlertService>();
+        var httpFactory = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>();
 
         // Réclamation atomique compatible multi-instances : les lignes sont verrouillées
         // (FOR UPDATE SKIP LOCKED) jusqu'au commit — deux instances ne traitent jamais
@@ -117,23 +121,33 @@ public sealed class OutboxBackgroundWorker : BackgroundService
         {
             try
             {
-                var notification = JsonSerializer.Deserialize<OrderCreatedNotification>(message.Payload)
-                    ?? throw new InvalidOperationException("Payload outbox invalide.");
-
-                await notificationService.SendOrderCreatedNotificationAsync(notification);
+                if (message.Type == WebhookEvents.TypeWebhookDelivery)
+                    await DeliverWebhookAsync(message, httpFactory, ct);
+                else
+                    await DeliverWhatsAppNotificationAsync(message, notificationService);
 
                 message.MarkSent();
-                _logger.LogInformation("Message outbox {MessageId} envoyé.", message.Id);
+                _logger.LogInformation("Message outbox {MessageId} ({Type}) envoyé.", message.Id, message.Type);
+            }
+            catch (Exception ex) when (message.Type == WebhookEvents.TypeWebhookDelivery && ex is WebhookPermanentException)
+            {
+                // Rejet définitif du destinataire (400/401/403/404/405/410) → inutile de réessayer.
+                message.MarkFailed(ex.Message);
+                await alerts.NotifyAsync("webhook.failed", Truncate($"Livraison webhook en échec permanent : {ex.Message}"), ct);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Échec d'envoi du message outbox {MessageId} (tentative {Retry}).", message.Id, message.RetryCount + 1);
+                _logger.LogError(ex, "Échec d'envoi du message outbox {MessageId} ({Type}, tentative {Retry}).",
+                    message.Id, message.Type, message.RetryCount + 1);
 
                 if (message.RetryCount >= _maxRetries)
                 {
                     message.MarkFailed(ex.Message);
-                    await alerts.NotifyAsync("outbox.failed",
-                        $"Message outbox {message.Id} en échec définitif après {_maxRetries + 1} tentatives : {Truncate(ex.Message)}", ct);
+                    if (message.Type == WebhookEvents.TypeWebhookDelivery)
+                        await alerts.NotifyAsync("webhook.failed", Truncate($"Livraison webhook en échec définitif après {_maxRetries + 1} tentatives : {ex.Message}"), ct);
+                    else
+                        await alerts.NotifyAsync("outbox.failed",
+                            $"Message outbox {message.Id} en échec définitif après {_maxRetries + 1} tentatives : {Truncate(ex.Message)}", ct);
                 }
                 else
                     message.MarkRetry(ex.Message, DateTime.UtcNow.Add(Backoff(message.RetryCount)));
@@ -150,4 +164,58 @@ public sealed class OutboxBackgroundWorker : BackgroundService
 
     private static string Truncate(string? value, int maxLength = 400)
         => value is null ? string.Empty : value.Length <= maxLength ? value : value[..maxLength] + "…";
+
+    // --- Canal WhatsApp (comportement historique) -------------------------------------
+    private static async Task DeliverWhatsAppNotificationAsync(
+        OutboxMessage message, WhatsAppOrchestrationService notificationService)
+    {
+        var notification = JsonSerializer.Deserialize<OrderCreatedNotification>(message.Payload)
+            ?? throw new InvalidOperationException("Payload outbox invalide.");
+        await notificationService.SendOrderCreatedNotificationAsync(notification);
+    }
+
+    // --- Canal webhooks sortants (intégrations partenaires) ----------------------------
+    private static readonly JsonSerializerOptions WebhookJson = new(JsonSerializerDefaults.Web);
+
+    private static async Task DeliverWebhookAsync(
+        OutboxMessage message, IHttpClientFactory httpFactory, CancellationToken ct)
+    {
+        var envelope = JsonSerializer.Deserialize<WebhookDeliveryEnvelope>(message.Payload, WebhookJson)
+            ?? throw new InvalidOperationException("Payload webhook invalide.");
+
+        var body = JsonSerializer.Serialize(new
+        {
+            @event = envelope.Event,
+            occurredAt = envelope.OccurredAt,
+            data = envelope.Data
+        }, WebhookJson);
+
+        using var http = httpFactory.CreateClient("webhook-delivery");
+        http.Timeout = TimeSpan.FromSeconds(10);
+        using var content = new StringContent(body, Encoding.UTF8, "application/json");
+
+        if (!string.IsNullOrWhiteSpace(envelope.Secret))
+            content.Headers.TryAddWithoutValidation("X-Wazap-Signature", "sha256=" + Sign(envelope.Secret!, body));
+
+        using var response = await http.PostAsync(envelope.Url, content, ct);
+        if (response.IsSuccessStatusCode)
+            return;
+
+        var code = (int)response.StatusCode;
+        if (code is 400 or 401 or 403 or 404 or 405 or 410)
+            throw new WebhookPermanentException($"{envelope.Url} a rejeté l'événement {envelope.Event} (HTTP {code}).");
+        throw new HttpRequestException($"Webhook {envelope.Url} : HTTP {code}.");
+    }
+
+    private static string Sign(string secret, string body)
+    {
+        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
+        return Convert.ToHexString(hmac.ComputeHash(Encoding.UTF8.GetBytes(body))).ToLowerInvariant();
+    }
+}
+
+/// <summary>Rejet HTTP permanent d'un destinataire webhook (pas de nouvelle tentative).</summary>
+public sealed class WebhookPermanentException : Exception
+{
+    public WebhookPermanentException(string message) : base(message) { }
 }

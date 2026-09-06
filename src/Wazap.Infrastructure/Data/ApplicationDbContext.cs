@@ -1,6 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Wazap.Application.Abstractions;
 using Wazap.Domain.Entities;
+using Wazap.Domain.Enums;
+using Wazap.Domain.Services;
 
 namespace Wazap.Infrastructure.Data
 {
@@ -17,6 +20,7 @@ namespace Wazap.Infrastructure.Data
         public DbSet<DeliveryBatch> DeliveryBatches { get; set; }
         public DbSet<CreditTransaction> CreditTransactions { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<WebhookSubscriber> WebhookSubscribers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -140,6 +144,118 @@ namespace Wazap.Infrastructure.Data
 
             modelBuilder.Entity<RefreshToken>()
                 .HasIndex(r => r.UserId);
+
+            modelBuilder.Entity<WebhookSubscriber>()
+                .Property(s => s.Name)
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<WebhookSubscriber>()
+                .Property(s => s.Url)
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<WebhookSubscriber>()
+                .Property(s => s.Secret)
+                .HasMaxLength(200);
+
+            modelBuilder.Entity<WebhookSubscriber>()
+                .Property(s => s.Events)
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<WebhookSubscriber>()
+                .HasIndex(s => s.Url)
+                .IsUnique();
+        }
+
+        // --- Webhooks sortants : détection des événements commande à la sauvegarde ----------
+        // Point d'appel UNIQUE (aucun contrôleur/service à modifier) : quand une commande est
+        // créée ou change de statut dans ce contexte, on ajoute dans la MÊME transaction un
+        // OutboxMessage « WebhookDelivery » par abonné concerné (livraison fiable, retries).
+        private static readonly JsonSerializerOptions WebhookJson = new(JsonSerializerDefaults.Web);
+
+        private void QueueWebhookDeliveries()
+        {
+            var now = DateTime.UtcNow;
+            var events = new List<(string Event, object Data)>();
+
+            foreach (var entry in ChangeTracker.Entries<Order>())
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    events.Add((WebhookEvents.OrderCreated, new
+                    {
+                        orderId = entry.Entity.Id,
+                        status = entry.Entity.Status.ToString(),
+                        createdAt = entry.Entity.CreatedAt,
+                        amount = entry.Entity.Amount
+                    }));
+                }
+                else if (entry.State == EntityState.Modified && OriginalStatusOf(entry) is { } before && before != entry.Entity.Status)
+                {
+                    events.Add((WebhookEvents.OrderStatusChanged, new
+                    {
+                        orderId = entry.Entity.Id,
+                        from = before.ToString(),
+                        to = entry.Entity.Status.ToString(),
+                        at = now
+                    }));
+                }
+            }
+
+            if (events.Count == 0)
+                return;
+
+            var subscribers = WebhookSubscribers.Where(s => s.Enabled).ToList();
+            if (subscribers.Count == 0)
+                return;
+
+            foreach (var (eventName, data) in events)
+            {
+                foreach (var subscriber in subscribers)
+                {
+                    if (!subscriber.Wants(eventName))
+                        continue;
+
+                    var envelope = new WebhookDeliveryEnvelope(subscriber.Url, subscriber.Secret, eventName, now, data);
+                    OutboxMessages.Add(new OutboxMessage(
+                        WebhookEvents.TypeWebhookDelivery,
+                        JsonSerializer.Serialize(envelope, WebhookJson)));
+                }
+            }
+        }
+
+        private static OrderStatus? OriginalStatusOf(Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<Order> entry)
+        {
+            var raw = entry.OriginalValues["Status"];
+            return raw switch
+            {
+                OrderStatus status => status,
+                int i => (OrderStatus)i,
+                _ => null
+            };
+        }
+
+        public override int SaveChanges()
+        {
+            QueueWebhookDeliveries();
+            return base.SaveChanges();
+        }
+
+        public override int SaveChanges(bool acceptAllChangesOnSuccess)
+        {
+            QueueWebhookDeliveries();
+            return base.SaveChanges(acceptAllChangesOnSuccess);
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            QueueWebhookDeliveries();
+            return base.SaveChangesAsync(cancellationToken);
+        }
+
+        public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+        {
+            QueueWebhookDeliveries();
+            return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
         }
     }
 }
