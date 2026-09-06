@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Wazap.API.Health;
 using Wazap.Application.Configuration;
 using Wazap.Domain.Enums;
 using Wazap.Infrastructure.Data;
@@ -34,10 +35,12 @@ namespace Wazap.API.Services
                 try
                 {
                     await PurgeAsync(stoppingToken);
+                    WorkerHeartbeats.Beat(nameof(LocationPurgeWorker));
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Erreur lors de la purge RGPD des positions.");
+                    WorkerHeartbeats.Fail(nameof(LocationPurgeWorker), ex.Message);
                 }
             }
         }

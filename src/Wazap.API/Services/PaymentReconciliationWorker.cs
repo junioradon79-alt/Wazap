@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Wazap.API.Health;
 using Wazap.Application.Abstractions;
 using Wazap.Application.Configuration;
 using Wazap.Domain.Enums;
@@ -44,10 +45,12 @@ namespace Wazap.API.Services
                 try
                 {
                     await ReconcileAsync(stoppingToken);
+                    WorkerHeartbeats.Beat(nameof(PaymentReconciliationWorker));
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Erreur lors de la réconciliation des paiements.");
+                    WorkerHeartbeats.Fail(nameof(PaymentReconciliationWorker), ex.Message);
                 }
             }
         }

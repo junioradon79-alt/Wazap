@@ -55,7 +55,13 @@
   changent. Option `--full` (ou input `full_deploy`) pour forcer un déploiement complet. Seed effectué (395 fichiers),
   déploiement courant : ~1-2 min.
 - **Hébergement** : passer de SmarterASP (self-contained, upload FTP lent) à **PaaS managé** (Azure App Service / Render / Railway) + PostgreSQL managé (scalable, backups auto). Maturer d'abord sur SmarterASP pour valider le marché.
-- **Monitoring / alerting** : logs structurés + métriques (OpenTelemetry → Application Insights/Sentry) ; alertes sur échecs webhook et file d'attente.
+- **Monitoring / observabilité** : ✅ **FAIT (06/09)** — `GET /health/details` (JSON) expose base de
+  données, file outbox (pending/retry/**failed**) et **battements des 4 workers** (lag) ; statut de
+  synthèse healthy/degraded. Logs **structurés JSON en production** (`AddJsonConsole`, une ligne par
+  événement). **Alertes** : `MonitoringAlertService` — log `ALERTE [type]` + POST webhook optionnel
+  (`Monitoring:WebhookUrl`, anti-rebond) déclenchées sur échec définitif d'un message outbox.
+  `/health` minimal conservé (compatibilité scripts de déploiement). En option : brancher un collecteur
+  externe (Sentry/App Insights) sur les logs JSON / `/health/details`.
 - **Multi-instances** : déjà compatible outbox `SKIP LOCKED` + workers → prêt à horizontaliser ; ajouter un bus de messages si le volume explose.
 - **Performance données** : index supplémentaires, archivage des commandes livrées (rétention), partitionnement si >1M lignes.
 - **API publique** versionnée pour intégrations (agrégateurs, grossistes) + webhooks sortants.

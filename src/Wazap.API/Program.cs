@@ -22,6 +22,19 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Logs structurés JSON en production (une ligne JSON par événement, collectable tel quel) ;
+// en développement on garde la console lisible.
+if (builder.Environment.IsProduction())
+{
+    builder.Logging.ClearProviders();
+    builder.Logging.AddJsonConsole(options =>
+    {
+        options.TimestampFormat = "yyyy-MM-dd'T'HH:mm:ss.fff'Z'";
+        options.UseUtcTimestamp = true;
+        options.IncludeScopes = false;
+    });
+}
+
 // Ajout des services
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -79,6 +92,12 @@ builder.Services.AddSingleton(geniusPayOptions);
 // Options numérotation ivoirienne (conversion 8 → 10 chiffres, table officielle ARTCI à venir)
 var ciNumberingOptions = builder.Configuration.GetSection(IvoryCoastNumberingOptions.SectionName).Get<IvoryCoastNumberingOptions>() ?? new IvoryCoastNumberingOptions();
 builder.Services.AddSingleton(ciNumberingOptions);
+
+// Options monitoring / alertes (webhook optionnel + service d'alerte)
+var monitoringOptions = builder.Configuration.GetSection(MonitoringOptions.SectionName).Get<MonitoringOptions>() ?? new MonitoringOptions();
+builder.Services.AddSingleton(monitoringOptions);
+builder.Services.AddScoped<MonitoringAlertService>();
+builder.Services.AddScoped<HealthDetailsService>();
 
 // Géocodage d'adresses (Nominatim / OpenStreetMap)
 builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>();
@@ -261,6 +280,10 @@ app.UseAntiforgery();
 
 app.MapControllers();
 app.MapHealthChecks("/health");
+
+// Métriques de supervision détaillées (DB, file outbox, workers) — pour uptime monitors et dashboards.
+app.MapGet("/health/details", async (HealthDetailsService service, CancellationToken ct)
+    => await service.BuildAsync(ct));
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

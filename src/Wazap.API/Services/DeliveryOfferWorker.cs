@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Wazap.API.Health;
 using Wazap.Application.Configuration;
 using Wazap.Application.Services;
 using Wazap.Domain.Enums;
@@ -40,10 +41,12 @@ namespace Wazap.API.Services
                 try
                 {
                     await ProcessAsync(stoppingToken);
+                    WorkerHeartbeats.Beat(nameof(DeliveryOfferWorker));
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Erreur dans DeliveryOfferWorker.");
+                    WorkerHeartbeats.Fail(nameof(DeliveryOfferWorker), ex.Message);
                 }
             }
         }

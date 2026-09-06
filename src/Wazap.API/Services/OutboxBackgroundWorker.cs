@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Wazap.API.Health;
 using Wazap.Application.Dtos;
 using Wazap.Application.Services;
 using Wazap.Domain.Entities;
@@ -32,6 +33,7 @@ public sealed class OutboxBackgroundWorker : BackgroundService
             try
             {
                 var processed = await ProcessPendingAsync(stoppingToken);
+                WorkerHeartbeats.Beat(nameof(OutboxBackgroundWorker));
                 if (!processed)
                     await Task.Delay(_pollingInterval, stoppingToken);
             }
@@ -42,6 +44,7 @@ public sealed class OutboxBackgroundWorker : BackgroundService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erreur lors du traitement de l'outbox.");
+                WorkerHeartbeats.Fail(nameof(OutboxBackgroundWorker), ex.Message);
                 await Task.Delay(_pollingInterval, stoppingToken);
             }
         }
@@ -52,6 +55,7 @@ public sealed class OutboxBackgroundWorker : BackgroundService
         using var scope = _scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var notificationService = scope.ServiceProvider.GetRequiredService<WhatsAppOrchestrationService>();
+        var alerts = scope.ServiceProvider.GetRequiredService<MonitoringAlertService>();
 
         // Réclamation atomique compatible multi-instances : les lignes sont verrouillées
         // (FOR UPDATE SKIP LOCKED) jusqu'au commit — deux instances ne traitent jamais
@@ -96,7 +100,11 @@ public sealed class OutboxBackgroundWorker : BackgroundService
                 _logger.LogError(ex, "Échec d'envoi du message outbox {MessageId} (tentative {Retry}).", message.Id, message.RetryCount + 1);
 
                 if (message.RetryCount >= _maxRetries)
+                {
                     message.MarkFailed(ex.Message);
+                    await alerts.NotifyAsync("outbox.failed",
+                        $"Message outbox {message.Id} en échec définitif après {_maxRetries + 1} tentatives : {Truncate(ex.Message)}", ct);
+                }
                 else
                     message.MarkRetry(ex.Message, DateTime.UtcNow.Add(Backoff(message.RetryCount)));
             }
@@ -109,4 +117,7 @@ public sealed class OutboxBackgroundWorker : BackgroundService
 
     private static TimeSpan Backoff(int retryCount) =>
         TimeSpan.FromSeconds(Math.Min(300, Math.Pow(2, retryCount) * 5));
+
+    private static string Truncate(string? value, int maxLength = 400)
+        => value is null ? string.Empty : value.Length <= maxLength ? value : value[..maxLength] + "…";
 }
