@@ -150,7 +150,7 @@ public sealed class OutboxBackgroundWorker : BackgroundService
                             $"Message outbox {message.Id} en échec définitif après {_maxRetries + 1} tentatives : {Truncate(ex.Message)}", ct);
                 }
                 else
-                    message.MarkRetry(ex.Message, DateTime.UtcNow.Add(Backoff(message.RetryCount)));
+                    message.MarkRetry(ex.Message, DateTime.UtcNow.Add(NextRetryDelay(message.RetryCount, (ex as WebhookDeliveryException)?.RetryAfterSeconds)));
             }
         }
 
@@ -159,8 +159,18 @@ public sealed class OutboxBackgroundWorker : BackgroundService
         return true;
     }
 
-    private static TimeSpan Backoff(int retryCount) =>
-        TimeSpan.FromSeconds(Math.Min(300, Math.Pow(2, retryCount) * 5));
+    /// <summary>
+    /// Délai avant la prochaine tentative : honore l'en-tête <c>Retry-After</c> du destinataire
+    /// (webhook) quand il est fourni, sinon backoff exponentiel borné avec un léger jitter.
+    /// </summary>
+    private static TimeSpan NextRetryDelay(int retryCount, int? retryAfterSeconds)
+    {
+        if (retryAfterSeconds is > 0)
+            return TimeSpan.FromSeconds(Math.Min(retryAfterSeconds.Value, 3600));
+
+        var baseSeconds = Math.Min(300, Math.Pow(2, retryCount) * 5);
+        return TimeSpan.FromSeconds(baseSeconds * (0.9 + Random.Shared.NextDouble() * 0.2));
+    }
 
     private static string Truncate(string? value, int maxLength = 400)
         => value is null ? string.Empty : value.Length <= maxLength ? value : value[..maxLength] + "…";
@@ -194,6 +204,12 @@ public sealed class OutboxBackgroundWorker : BackgroundService
         http.Timeout = TimeSpan.FromSeconds(10);
         using var content = new StringContent(body, Encoding.UTF8, "application/json");
 
+        // En-têtes utiles au destinataire : traçabilité (id de livraison/outbox), type d'événement,
+        // horodatage et signature HMAC (si secret configuré).
+        content.Headers.TryAddWithoutValidation("X-Wazap-Delivery", message.Id.ToString());
+        content.Headers.TryAddWithoutValidation("X-Wazap-Event", envelope.Event);
+        content.Headers.TryAddWithoutValidation("X-Wazap-Timestamp",
+            new DateTimeOffset(envelope.OccurredAt).ToUnixTimeSeconds().ToString());
         if (!string.IsNullOrWhiteSpace(envelope.Secret))
             content.Headers.TryAddWithoutValidation("X-Wazap-Signature", "sha256=" + Sign(envelope.Secret!, body));
 
@@ -204,6 +220,23 @@ public sealed class OutboxBackgroundWorker : BackgroundService
         var code = (int)response.StatusCode;
         if (code is 400 or 401 or 403 or 404 or 405 or 410)
             throw new WebhookPermanentException($"{envelope.Url} a rejeté l'événement {envelope.Event} (HTTP {code}).");
+
+        // Erreurs temporaires (429/5xx/408…) : on repart de l'en-tête Retry-After si présent.
+        if (code is 408 or 425 or 429 or 500 or 502 or 503 or 504)
+        {
+            int? retryAfterSeconds = null;
+            if (response.Headers.RetryAfter is { } retryAfter)
+            {
+                if (retryAfter.Delta is { } delta)
+                    retryAfterSeconds = (int)Math.Min(delta.TotalSeconds, 3600);
+                else if (retryAfter.Date is { } date)
+                    retryAfterSeconds = (int)Math.Max(0, (date.ToUniversalTime() - DateTime.UtcNow).TotalSeconds);
+            }
+
+            throw new WebhookDeliveryException(
+                $"{envelope.Url} temporairement indisponible pour {envelope.Event} (HTTP {code}).", retryAfterSeconds);
+        }
+
         throw new HttpRequestException($"Webhook {envelope.Url} : HTTP {code}.");
     }
 
@@ -218,4 +251,14 @@ public sealed class OutboxBackgroundWorker : BackgroundService
 public sealed class WebhookPermanentException : Exception
 {
     public WebhookPermanentException(string message) : base(message) { }
+}
+
+/// <summary>Erreur HTTP temporaire d'un destinataire webhook (nouvelle tentative plus tard).</summary>
+public sealed class WebhookDeliveryException : Exception
+{
+    public WebhookDeliveryException(string message, int? retryAfterSeconds = null) : base(message)
+        => RetryAfterSeconds = retryAfterSeconds;
+
+    /// <summary>Valeur de l'en-tête Retry-After du destinataire (secondes), si fournie.</summary>
+    public int? RetryAfterSeconds { get; }
 }

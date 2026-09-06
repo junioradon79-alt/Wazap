@@ -1,0 +1,36 @@
+# WAZAP — stack de développement locale (PostgreSQL + API), optionnelle.
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: wazapdev
+      POSTGRES_USER: wazapdev
+      POSTGRES_PASSWORD: WazapDev2026!
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wazapdev"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=wazapdev;Username=wazapdev;Password=WazapDev2026!"
+      SeedAdmin__Username: "admin"
+      SeedAdmin__Password: "<REDACTED-PASSWORD>"
+      WhatChimp__ApiToken: ""
+      WhatChimp__PhoneNumberId: ""
+      Jwt__Key: "dev-only-key-please-override-in-real-deploy-0123456789abcdef"
+      GeniusPay__Enabled: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

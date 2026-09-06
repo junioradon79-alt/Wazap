@@ -55,7 +55,13 @@
   ne transfère que les fichiers nouveaux/modifiés + nettoie les périmés ; `app_offline` seulement si des binaires
   changent. Option `--full` (ou input `full_deploy`) pour forcer un déploiement complet. Seed effectué (395 fichiers),
   déploiement courant : ~1-2 min.
-- **Hébergement** : passer de SmarterASP (self-contained, upload FTP lent) à **PaaS managé** (Azure App Service / Render / Railway) + PostgreSQL managé (scalable, backups auto). Maturer d'abord sur SmarterASP pour valider le marché.
+- **Hébergement** : passer de SmarterASP à un **PaaS managé** (Azure App Service / Render / Railway) + PostgreSQL
+  managé. ✅ **Préparation faite (06/09)** : `Dockerfile` multi-stage, `.dockerignore`, `docker-compose.dev.yml`,
+  guide `docs/PAAS_DEPLOYMENT.md` (env vars, migrations, health). Reste : décision de migration effective
+  (maturer d'abord sur SmarterASP pour valider le marché).
+- **Docs partenaires & outils** : ✅ `docs/INTEGRATIONS.md` (API v1 : endpoints, exemples curl, clé ;
+  webhooks : abonnement, payload, en-têtes, **vérification HMAC C#**, gestion d'échec) + outil
+  `tools/GenerateApiKey` (génère `PublicApi__Keys__0`).
 - **Monitoring / observabilité** : ✅ **FAIT (06/09)** — `GET /health/details` (JSON : base, outbox,
   workers, uptime) + `GET /metrics` (Prometheus texte 0.0.4, sans dépendance) + logs JSON en prod.
   **Alertes** : `MonitoringAlertService` (log `ALERTE [type]` + webhook optionnel `Monitoring:WebhookUrl`,

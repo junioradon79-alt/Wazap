@@ -1,0 +1,13 @@
+**/.git
+**/bin
+**/obj
+**/artifacts
+**/node_modules
+**/web/dist
+**/backups
+.vs/
+.vscode/
+*.user
+DEPLOYMENT.md
+**/secrets.json
+appsettings.Development.json
