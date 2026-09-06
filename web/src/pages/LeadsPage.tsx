@@ -167,7 +167,9 @@ export default function LeadsPage() {
                     </td>
                     <td style={{ fontSize: 13 }}>{formatDateTime(l.createdAt)}</td>
                     <td>
-                      {l.status === 'New' || l.status === 'Contacted' ? (
+                      {l.status === 'Converted' ? (
+                        <span style={{ fontSize: 13 }}>✅ Compte créé</span>
+                      ) : (l.status === 'New' || l.status === 'Contacted') && l.source !== 'whatsapp-livreur' ? (
                         <button
                           className="btn btn--primary"
                           style={{ padding: '6px 10px', fontSize: 13 }}
@@ -176,8 +178,6 @@ export default function LeadsPage() {
                         >
                           {convertingId === l.id ? '…' : '🛍️ Créer le compte'}
                         </button>
-                      ) : l.status === 'Converted' ? (
-                        <span style={{ fontSize: 13 }}>✅ Compte créé</span>
                       ) : (
                         <span style={{ fontSize: 13, color: 'var(--muted, #888)' }}>—</span>
                       )}

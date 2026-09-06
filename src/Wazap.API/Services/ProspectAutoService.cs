@@ -89,7 +89,10 @@ public sealed class ProspectAutoService
             : "Bonjour 👋 Bienvenue chez WAZAP ⚡ La livraison de votre quartier, 100 % WhatsApp.\nPour activer vos 15 premières commandes OFFERTES, répondez en un message :\n1️⃣ Le nom de votre commerce\n2️⃣ Votre quartier (ex. Marcory)\nEx. « Chez Awa, Marcory ».\n(Psst : écrivez « je veux livrer » si vous cherchez à livrer 🛵)";
 
         await SendBestEffortAsync(phone, reply);
-        await NotifyTeamAsync($"Nouveau prospect ({source}) — {phone}{(zone.Length > 0 ? " · " + zone : "")}");
+        var convertHint = source == "whatsapp-livreur"
+            ? string.Empty
+            : $"\n👉 Répondez « CONVERTIR {phone} » pour créer son compte vendeur en 1 clic.";
+        await NotifyTeamAsync($"Nouveau prospect ({source}) — {phone}{(zone.Length > 0 ? " · " + zone : "")}{convertHint}");
         _logger.LogInformation("Lead WhatsApp créé : {Phone} (source {Source}).", phone, source);
         return true;
     }
@@ -114,7 +117,10 @@ public sealed class ProspectAutoService
             : $"Merci{(name is null ? "" : " " + name)} ! ✅ J’ai bien noté votre demande d’activation. Notre équipe vous confirme sous 24 h (vérifiez aussi vos spams). En attendant, envoyez « LIVRAISON + produit + quartier » pour un test !";
 
         await SendBestEffortAsync(lead.WhatsAppNumber, reply);
-        await NotifyTeamAsync($"Lead qualifié ✅ {lead.WhatsAppNumber} — {lead.BusinessName}{(zone.Length > 0 ? " · " + zone : "")}");
+        var convertHint = lead.Source == "whatsapp-livreur"
+            ? string.Empty
+            : $"\n👉 Répondez « CONVERTIR {lead.WhatsAppNumber} » pour créer son compte vendeur en 1 clic.";
+        await NotifyTeamAsync($"Lead qualifié ✅ {lead.WhatsAppNumber} — {lead.BusinessName}{(zone.Length > 0 ? " · " + zone : "")}{convertHint}");
         return true;
     }
 

@@ -44,6 +44,9 @@ public sealed class LeadConversionService
         if (lead.Status == LeadStatus.Discarded)
             throw new InvalidOperationException("Un lead écarté ne peut pas être converti.");
 
+        if (lead.Source == "whatsapp-livreur")
+            throw new InvalidOperationException("Ce lead vise un profil livreur — la création d'un compte vendeur est impossible.");
+
         var phone = lead.WhatsAppNumber;
         if (string.IsNullOrWhiteSpace(phone))
             throw new InvalidOperationException("Le lead n'a pas de numéro WhatsApp.");

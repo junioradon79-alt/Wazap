@@ -29,17 +29,28 @@ export default function Layout() {
         </div>
 
         <nav className="sidebar__nav">
-          <span className="nav__section">Pilotage</span>
-          {NAV.filter((item) => item.to !== '/leads' || user?.role === 'Admin').map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              className={({ isActive }) => `nav__item${isActive ? ' active' : ''}`}
-            >
-              <span className="nav__icon">{item.icon}</span> {item.label}
-            </NavLink>
-          ))}
+          <span className="nav__section">{user?.role === 'Vendor' ? 'Mon activité' : 'Pilotage'}</span>
+          {user?.role === 'Vendor'
+            ? NAV.filter((item) => item.to === '/' || item.to === '/account').map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  className={({ isActive }) => `nav__item${isActive ? ' active' : ''}`}
+                >
+                  <span className="nav__icon">{item.icon}</span> {item.label}
+                </NavLink>
+              ))
+            : NAV.filter((item) => item.to !== '/leads' || user?.role === 'Admin').map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  className={({ isActive }) => `nav__item${isActive ? ' active' : ''}`}
+                >
+                  <span className="nav__icon">{item.icon}</span> {item.label}
+                </NavLink>
+              ))}
         </nav>
 
         <div className="sidebar__footer">

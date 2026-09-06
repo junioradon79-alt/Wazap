@@ -116,3 +116,24 @@ export interface ChangePasswordRequest {
   currentPassword: string
   newPassword: string
 }
+
+export interface VendorOrderItem {
+  id: string
+  code: string
+  clientName: string | null
+  description: string
+  status: string
+  createdAt: string
+}
+
+export interface VendorDashboard {
+  id: string
+  username: string
+  phoneNumber: string | null
+  zone: string | null
+  credits: number
+  referralCode: string
+  inProgressOrders: number
+  deliveredThisMonth: number
+  recentOrders: VendorOrderItem[]
+}

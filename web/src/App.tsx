@@ -4,6 +4,7 @@ import Layout from './components/Layout'
 import { useAuth } from './auth/AuthContext'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
+import VendorDashboardPage from './pages/VendorDashboardPage'
 import PacksPage from './pages/PacksPage'
 import TransactionsPage from './pages/TransactionsPage'
 import VendorsPage from './pages/VendorsPage'
@@ -42,7 +43,7 @@ export default function App() {
           </Protected>
         }
       >
-        <Route path="/" element={<DashboardPage />} />
+        <Route path="/" element={user?.role === 'Vendor' ? <VendorDashboardPage /> : <DashboardPage />} />
         <Route path="/packs" element={<PacksPage />} />
         <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/vendors" element={<VendorsPage />} />

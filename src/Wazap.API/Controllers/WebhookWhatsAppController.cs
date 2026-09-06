@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Wazap.API.Services;
+using Wazap.Application.Abstractions;
 using Wazap.Application.Exceptions;
 using Wazap.Application.Helpers;
 using Wazap.Application.Services;
@@ -24,8 +25,11 @@ public class WebhookWhatsAppController : ControllerBase
     private readonly OrderService _orderService;
     private readonly WhatsAppOrchestrationService _whatsApp;
     private readonly ProspectAutoService _prospects;
+    private readonly LeadConversionService _leadConversion;
+    private readonly IWhatsAppSender _whatsAppSender;
     private readonly ILogger<WebhookWhatsAppController> _logger;
     private readonly string _webhookToken;
+    private readonly string? _teamPhone;
 
     public WebhookWhatsAppController(
         ApplicationDbContext context,
@@ -35,6 +39,8 @@ public class WebhookWhatsAppController : ControllerBase
         OrderService orderService,
         WhatsAppOrchestrationService whatsApp,
         ProspectAutoService prospects,
+        LeadConversionService leadConversion,
+        IWhatsAppSender whatsAppSender,
         ILogger<WebhookWhatsAppController> logger,
         IConfiguration config)
     {
@@ -45,8 +51,11 @@ public class WebhookWhatsAppController : ControllerBase
         _orderService = orderService;
         _whatsApp = whatsApp;
         _prospects = prospects;
+        _leadConversion = leadConversion;
+        _whatsAppSender = whatsAppSender;
         _logger = logger;
         _webhookToken = config["WhatChimp:WebhookToken"] ?? "<REDACTED-TOKEN>";
+        _teamPhone = config["Prospect:TeamPhone"];
     }
 
     // GET: api/webhook/whatsapp — vérification WhatChimp
@@ -113,7 +122,16 @@ public class WebhookWhatsAppController : ControllerBase
             return Ok();
         }
 
-        // 3) Commandes texte (téléphones basiques sans GPS) : ZONE, DISPO, INDISPO, AIDE
+        // 3) Numéro de l'ÉQUIPE (Prospect:TeamPhone) → commande « CONVERTIR [+numéro] » :
+        //    « bouton » texte pour créer le compte vendeur d'un lead qualifié directement
+        //    depuis l'alerte WhatsApp (résultat renvoyé à l'équipe).
+        if (!string.IsNullOrWhiteSpace(phone) && !string.IsNullOrWhiteSpace(text)
+            && IsTeamPhone(phone) && await TryHandleTeamConversionAsync(text))
+        {
+            return Ok();
+        }
+
+        // 4) Commandes texte (téléphones basiques sans GPS) : ZONE, DISPO, INDISPO, AIDE
         if (!string.IsNullOrWhiteSpace(text))
         {
             var user = await FindUserByPhoneAsync(phone, UserRole.Rider)
@@ -154,6 +172,92 @@ public class WebhookWhatsAppController : ControllerBase
         }
 
         return Ok();
+    }
+
+    private bool IsTeamPhone(string? phone)
+        => !string.IsNullOrWhiteSpace(_teamPhone) && !string.IsNullOrWhiteSpace(phone)
+           && PhoneNumberNormalizer.SameSubscriber(_teamPhone, phone);
+
+    /// <summary>
+    /// Commande interne « CONVERTIR [+numéro] » envoyée depuis le téléphone de l'équipe.
+    /// Sans numéro : le lead commerçant qualifié le plus récent est converti.
+    /// </summary>
+    private async Task<bool> TryHandleTeamConversionAsync(string text)
+    {
+        var lower = text.Trim().ToLowerInvariant();
+        if (!lower.Contains("convertir"))
+            return false;
+
+        var teamPhone = "+" + PhoneNumberNormalizer.DigitsOnly(_teamPhone!);
+        try
+        {
+            var candidates = await _context.Leads
+                .Where(l => l.Status != LeadStatus.Discarded && l.Source != "whatsapp-livreur")
+                .OrderByDescending(l => l.CreatedAt)
+                .ToListAsync();
+
+            var target = TryExtractClientPhone(text) ?? teamPhone;
+            var byNumber = PhoneNumberNormalizer.DigitsOnly(target) != PhoneNumberNormalizer.DigitsOnly(teamPhone);
+            Lead? lead;
+            if (byNumber)
+            {
+                lead = candidates.FirstOrDefault(l =>
+                    PhoneNumberNormalizer.SameSubscriber(l.WhatsAppNumber, target));
+
+                if (lead is null)
+                {
+                    await TeamReplyAsync($"❌ Aucun lead vendeur trouvé pour {target} — vérifiez le numéro.");
+                    return true;
+                }
+            }
+            else
+            {
+                // Sans numéro : le lead commerçant qualifié le plus récent.
+                lead = candidates.FirstOrDefault(l => l.Status is LeadStatus.New or LeadStatus.Contacted);
+            }
+
+            if (lead is null)
+            {
+                await TeamReplyAsync("❌ Aucun lead convertissable trouvé (répondez « CONVERTIR +numéro »).");
+                return true;
+            }
+
+            var result = await _leadConversion.ConvertAsync(lead.Id, sendWelcome: true);
+            await TeamReplyAsync(result.AlreadyExisted
+                ? $"ℹ️ Le vendeur {result.Username} existait déjà — lead {lead.WhatsAppNumber} marqué Converti."
+                : $"✅ Compte vendeur créé pour {lead.BusinessName} ({lead.WhatsAppNumber}) :\n"
+                  + $"• Identifiant : {result.Username}\n"
+                  + $"• Mot de passe : {result.TemporaryPassword}\n"
+                  + $"• Crédits : {result.Credits}\n"
+                  + $"• Parrainage : {result.ReferralCode}\n"
+                  + "Bienvenue WhatsApp envoyée au vendeur. 🎉");
+        }
+        catch (InvalidOperationException ex)
+        {
+            await TeamReplyAsync("❌ " + ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Commande CONVERTIR de l'équipe en échec.");
+            await TeamReplyAsync("❌ Conversion en échec (voir logs).");
+        }
+
+        return true;
+    }
+
+    private async Task TeamReplyAsync(string message)
+    {
+        if (string.IsNullOrWhiteSpace(_teamPhone))
+            return;
+
+        try
+        {
+            await _whatsAppSender.SendTextMessageAsync("+" + PhoneNumberNormalizer.DigitsOnly(_teamPhone), message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Réponse à l'équipe impossible.");
+        }
     }
 
     private async Task ConfirmOrRejectAsync(string? phone, bool confirm)
