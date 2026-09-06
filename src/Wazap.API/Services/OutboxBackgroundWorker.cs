@@ -14,6 +14,7 @@ public sealed class OutboxBackgroundWorker : BackgroundService
     private readonly ILogger<OutboxBackgroundWorker> _logger;
     private readonly int _maxRetries;
     private readonly TimeSpan _pollingInterval;
+    private DateTime _lastWatchUtc = DateTime.MinValue;
 
     public OutboxBackgroundWorker(
         IServiceScopeFactory scopeFactory,
@@ -34,6 +35,15 @@ public sealed class OutboxBackgroundWorker : BackgroundService
             {
                 var processed = await ProcessPendingAsync(stoppingToken);
                 WorkerHeartbeats.Beat(nameof(OutboxBackgroundWorker));
+
+                // Watchdog des workers cœur métier (coût négligeable : ~1 fois/minute).
+                var now = DateTime.UtcNow;
+                if (now - _lastWatchUtc >= TimeSpan.FromSeconds(60))
+                {
+                    _lastWatchUtc = now;
+                    await WatchWorkersAsync(stoppingToken);
+                }
+
                 if (!processed)
                     await Task.Delay(_pollingInterval, stoppingToken);
             }
@@ -47,6 +57,26 @@ public sealed class OutboxBackgroundWorker : BackgroundService
                 WorkerHeartbeats.Fail(nameof(OutboxBackgroundWorker), ex.Message);
                 await Task.Delay(_pollingInterval, stoppingToken);
             }
+        }
+    }
+
+    /// <summary>
+    /// Vérifie que les workers cœur métier battent toujours (voir <see cref="WorkerLagPolicy"/>)
+    /// et déclenche une alerte (log + webhook optionnel) si l'un d'eux est bloqué/mort.
+    /// </summary>
+    private async Task WatchWorkersAsync(CancellationToken ct)
+    {
+        try
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var alerts = scope.ServiceProvider.GetRequiredService<MonitoringAlertService>();
+            var stale = WorkerLagPolicy.EvaluateStale(DateTime.UtcNow, WorkerHeartbeats.Snapshot());
+            if (stale.Count > 0)
+                await alerts.NotifyAsync("worker.stale", "Workers sans cycle récent : " + string.Join(" ; ", stale), ct);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogWarning(ex, "Watchdog des workers indisponible (cycle ignoré).");
         }
     }
 

@@ -98,6 +98,7 @@ var monitoringOptions = builder.Configuration.GetSection(MonitoringOptions.Secti
 builder.Services.AddSingleton(monitoringOptions);
 builder.Services.AddScoped<MonitoringAlertService>();
 builder.Services.AddScoped<HealthDetailsService>();
+builder.Services.AddScoped<MetricsService>();
 
 // Options rétention / archivage des données (purge opt-in, désactivée par défaut)
 var retentionOptions = builder.Configuration.GetSection(RetentionOptions.SectionName).Get<RetentionOptions>() ?? new RetentionOptions();
@@ -289,6 +290,10 @@ app.MapHealthChecks("/health");
 // Métriques de supervision détaillées (DB, file outbox, workers) — pour uptime monitors et dashboards.
 app.MapGet("/health/details", async (HealthDetailsService service, CancellationToken ct)
     => await service.BuildAsync(ct));
+
+// Métriques Prometheus au format texte (0.0.4) — pour Prometheus/Grafana.
+app.MapGet("/metrics", async (MetricsService service, CancellationToken ct)
+    => Results.Text(await service.BuildTextAsync(ct), "text/plain; version=0.0.4"));
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

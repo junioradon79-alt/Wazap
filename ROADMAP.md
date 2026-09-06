@@ -55,15 +55,19 @@
   changent. Option `--full` (ou input `full_deploy`) pour forcer un déploiement complet. Seed effectué (395 fichiers),
   déploiement courant : ~1-2 min.
 - **Hébergement** : passer de SmarterASP (self-contained, upload FTP lent) à **PaaS managé** (Azure App Service / Render / Railway) + PostgreSQL managé (scalable, backups auto). Maturer d'abord sur SmarterASP pour valider le marché.
-- **Monitoring / observabilité** : ✅ **FAIT (06/09)** — `GET /health/details` (JSON) expose base de
-  données, file outbox (pending/retry/**failed**) et **battements des 4 workers** (lag) ; statut de
-  synthèse healthy/degraded. Logs **structurés JSON en production** (`AddJsonConsole`, une ligne par
-  événement). **Alertes** : `MonitoringAlertService` — log `ALERTE [type]` + POST webhook optionnel
-  (`Monitoring:WebhookUrl`, anti-rebond) déclenchées sur échec définitif d'un message outbox.
-  `/health` minimal conservé (compatibilité scripts de déploiement). En option : brancher un collecteur
-  externe (Sentry/App Insights) sur les logs JSON / `/health/details`.
+- **Monitoring / observabilité** : ✅ **FAIT (06/09)** — `GET /health/details` (JSON : base, outbox,
+  workers, uptime) + `GET /metrics` (Prometheus texte 0.0.4, sans dépendance) + logs JSON en prod.
+  **Alertes** : `MonitoringAlertService` (log `ALERTE [type]` + webhook optionnel `Monitoring:WebhookUrl`,
+  anti-rebond) — déclencheurs : échec définitif outbox (`outbox.failed`) et **worker bloqué/mort**
+  (`worker.stale`, watchdog `WorkerLagPolicy` 1×/min).
+  `/health` minimal conservé (compatibilité scripts de déploiement). Option : collecteur externe
+  (Sentry/App Insights) sur les logs JSON / `/metrics`.
 - **Multi-instances** : déjà compatible outbox `SKIP LOCKED` + workers → prêt à horizontaliser ; ajouter un bus de messages si le volume explose.
-- **Performance données** : index supplémentaires, archivage des commandes livrées (rétention), partitionnement si >1M lignes.
+- **Performance données** : ✅ **index composites ajoutés (06/09, migration 11 `AddRetentionAndIndexes`)** —
+  Users(Role/Role+IsAvailable), Orders(Vendor/Rider+Status, Status+DeliveredAt), DeliveryOffers(RiderUserId+Status),
+  DeliveryBatches(Status+CreatedAt), RefreshTokens(ExpiresAtUtc). **Rétention** : `RetentionWorker` opt-in
+  (`Retention:Enabled=false`) — commandes livrées/lots vides/outbox envoyée (90/90/30 j). Reste : partitionnement
+  si >1M lignes, activation rétention après validation.
 - **API publique** versionnée pour intégrations (agrégateurs, grossistes) + webhooks sortants.
 
 ## E. Scaling business (30/60/90 — objectifs 10× révisés, cf. MARKETING_STRATEGY §10)
