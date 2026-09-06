@@ -126,6 +126,21 @@ export interface VendorOrderItem {
   createdAt: string
 }
 
+export interface RiderCertification {
+  riderId: string
+  username: string
+  phoneNumber: string | null
+  zone: string | null
+  isAvailable: boolean
+  status: 'Pending' | 'Verified' | 'Rejected' | 'Blacklisted'
+  fullName: string | null
+  cniNumber: string | null
+  motorcyclePlate: string | null
+  blacklistReason: string | null
+  createdAt: string | null
+  reviewedAt: string | null
+}
+
 export interface VendorDashboard {
   id: string
   username: string

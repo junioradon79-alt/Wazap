@@ -26,6 +26,7 @@ namespace Wazap.Application.Services
         private readonly GroupingOptions _grouping;
         private readonly ClientOptions _client;
         private readonly WhatsAppOrchestrationService _orchestrator;
+        private readonly RiderSecurityOptions _riderSecurity;
         private readonly ILogger<DeliveryOfferService> _logger;
 
         public DeliveryOfferService(
@@ -36,6 +37,7 @@ namespace Wazap.Application.Services
             GroupingOptions grouping,
             ClientOptions client,
             WhatsAppOrchestrationService orchestrator,
+            RiderSecurityOptions riderSecurity,
             ILogger<DeliveryOfferService> logger)
         {
             _context = context;
@@ -45,6 +47,7 @@ namespace Wazap.Application.Services
             _grouping = grouping;
             _client = client;
             _orchestrator = orchestrator;
+            _riderSecurity = riderSecurity;
             _logger = logger;
         }
 
@@ -603,6 +606,26 @@ namespace Wazap.Application.Services
             var exclude = excludeRiderIds?.ToHashSet() ?? new HashSet<Guid>();
             var byGps = new List<NearestRiderDto>();
 
+            // Certification obligatoire (« Garantie Colis Sûr ») : seuls les livreurs dont le
+            // dossier d'identité est Verified reçoivent des offres.
+            var certifiedIds = new HashSet<Guid>();
+            if (_riderSecurity.RequireCertifiedRiders)
+            {
+                var certified = await _context.RiderIdentities.AsNoTracking()
+                    .Where(i => i.Status == RiderIdentityStatus.Verified)
+                    .Select(i => i.UserId)
+                    .ToListAsync();
+                certifiedIds = certified.ToHashSet();
+            }
+
+            // Blacklist : un livreur exclu (vol/fraude) ne reçoit PLUS aucune offre,
+            // quelle que soit la configuration.
+            var blacklisted = await _context.RiderIdentities.AsNoTracking()
+                .Where(i => i.Status == RiderIdentityStatus.Blacklisted)
+                .Select(i => i.UserId)
+                .ToListAsync();
+            exclude.UnionWith(blacklisted);
+
             // Tier 1 — GPS (Haversine) : uniquement si le vendeur a une position.
             if (vendor.Latitude is not null && vendor.Longitude is not null)
             {
@@ -617,7 +640,8 @@ namespace Wazap.Application.Services
                     .ToListAsync();
 
                 byGps.AddRange(riders
-                    .Where(r => !exclude.Contains(r.Id))
+                    .Where(r => !exclude.Contains(r.Id)
+                             && (!_riderSecurity.RequireCertifiedRiders || certifiedIds.Contains(r.Id)))
                     .Select(r => new NearestRiderDto(
                         r.Id,
                         GeoDistance.DistanceKm(
@@ -648,6 +672,7 @@ namespace Wazap.Application.Services
 
                 byGps.AddRange(zoneRiders
                     .Where(r => !contacted.Contains(r.Id)
+                             && (!_riderSecurity.RequireCertifiedRiders || certifiedIds.Contains(r.Id))
                              && string.Equals(r.Zone?.Trim(), vendor.Zone.Trim(), StringComparison.OrdinalIgnoreCase))
                     .Select(r => new NearestRiderDto(r.Id, double.MaxValue))
                     .Take(remaining));

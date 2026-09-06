@@ -23,6 +23,7 @@ namespace Wazap.Infrastructure.Data
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<WebhookSubscriber> WebhookSubscribers { get; set; }
         public DbSet<Lead> Leads { get; set; }
+        public DbSet<RiderIdentity> RiderIdentities { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -89,6 +90,35 @@ namespace Wazap.Infrastructure.Data
 
             modelBuilder.Entity<User>()
                 .HasIndex(u => new { u.Role, u.IsAvailable });
+
+            // Certification des livreurs (1:1 User → RiderIdentity).
+            modelBuilder.Entity<RiderIdentity>()
+                .HasKey(i => i.UserId);
+
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.RiderIdentity)
+                .WithOne()
+                .HasForeignKey<RiderIdentity>(i => i.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<RiderIdentity>()
+                .Property(i => i.FullName)
+                .HasMaxLength(80);
+
+            modelBuilder.Entity<RiderIdentity>()
+                .Property(i => i.CniNumber)
+                .HasMaxLength(30);
+
+            modelBuilder.Entity<RiderIdentity>()
+                .Property(i => i.MotorcyclePlate)
+                .HasMaxLength(30);
+
+            modelBuilder.Entity<RiderIdentity>()
+                .Property(i => i.BlacklistReason)
+                .HasMaxLength(300);
+
+            modelBuilder.Entity<RiderIdentity>()
+                .HasIndex(i => i.Status);
 
             modelBuilder.Entity<DeliveryOffer>()
                 .HasIndex(o => o.OrderId);

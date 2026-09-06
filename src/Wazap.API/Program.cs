@@ -93,6 +93,10 @@ builder.Services.AddSingleton(geniusPayOptions);
 var ciNumberingOptions = builder.Configuration.GetSection(IvoryCoastNumberingOptions.SectionName).Get<IvoryCoastNumberingOptions>() ?? new IvoryCoastNumberingOptions();
 builder.Services.AddSingleton(ciNumberingOptions);
 
+// Options sécurité des coursiers (certification « Garantie Colis Sûr »)
+var riderSecurityOptions = builder.Configuration.GetSection(RiderSecurityOptions.SectionName).Get<RiderSecurityOptions>() ?? new RiderSecurityOptions();
+builder.Services.AddSingleton(riderSecurityOptions);
+
 // Options monitoring / alertes (webhook optionnel + service d'alerte)
 var monitoringOptions = builder.Configuration.GetSection(MonitoringOptions.SectionName).Get<MonitoringOptions>() ?? new MonitoringOptions();
 builder.Services.AddSingleton(monitoringOptions);

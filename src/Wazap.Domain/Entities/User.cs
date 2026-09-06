@@ -41,6 +41,9 @@ public class User
     // Navigation : achats de crédits (vendeur)
     public ICollection<CreditTransaction> Transactions { get; } = new List<CreditTransaction>();
 
+    // Certification livreur (Garantie Colis Sûr) : dossier 1:1 optionnel
+    public RiderIdentity? RiderIdentity { get; private set; }
+
     private User() { }
 
     public User(string username, string passwordHash, UserRole role, string? phoneNumber = null)

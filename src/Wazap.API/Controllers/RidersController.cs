@@ -68,6 +68,43 @@ public class RidersController : ControllerBase
         return NoContent();
     }
 
+    // GET: api/riders/certifications — dossiers d'identité (Garantie Colis Sûr)
+    [HttpGet("certifications")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    public async Task<IActionResult> GetCertifications()
+        => Ok(await _riderService.GetCertificationsAsync());
+
+    // POST: api/riders/{id}/verify — certification après contrôle d'identité (badge « certifié »)
+    [HttpPost("{id:guid}/verify")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    public async Task<IActionResult> Verify(Guid id, [FromBody] VerifyRiderRequest request)
+    {
+        await _riderService.VerifyRiderAsync(id, request.FullName, request.CniNumber, request.MotorcyclePlate,
+            _currentUser.Id);
+        return NoContent();
+    }
+
+    // POST: api/riders/{id}/reject — certification refusée (dossier incomplet/incohérent)
+    [HttpPost("{id:guid}/reject")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    public async Task<IActionResult> Reject(Guid id, [FromBody] RejectRiderRequest request)
+    {
+        await _riderService.RejectRiderAsync(id, request.Reason, _currentUser.Id);
+        return NoContent();
+    }
+
+    // POST: api/riders/{id}/blacklist — exclusion définitive (vol/fraude) : hors-ligne + plus d'offres
+    [HttpPost("{id:guid}/blacklist")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    public async Task<IActionResult> Blacklist(Guid id, [FromBody] BlacklistRiderRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Reason))
+            return BadRequest(new { error = "Un motif est requis pour exclure un livreur." });
+
+        await _riderService.BlacklistRiderAsync(id, request.Reason.Trim(), _currentUser.Id);
+        return NoContent();
+    }
+
     private Guid ResolveRiderId(Guid? explicitId)
     {
         if (_currentUser.Role == UserRole.Admin && explicitId.HasValue)
@@ -95,3 +132,9 @@ public sealed record SetAvailabilityRequest(bool IsAvailable);
 public sealed record SetLocationSharingRequest(bool IsEnabled);
 
 public sealed record SetZoneRequest(string Zone);
+
+public sealed record VerifyRiderRequest(string? FullName, string? CniNumber, string? MotorcyclePlate);
+
+public sealed record RejectRiderRequest(string? Reason);
+
+public sealed record BlacklistRiderRequest(string Reason);
