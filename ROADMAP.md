@@ -42,7 +42,12 @@
 4. **Webhook média WhatChimp** (photos CNI en auto) — sinon rester sur l'upload admin.
 5. **Onboarding vendeur activable** dès templates Meta approuvés + relance des inactifs.
 6. **Tests** : ✅ services couverts (LeadConversion, ColisSur, RiderService, AuthService, preuve de livraison) — reste l'**E2E webhook**.
-7. **Sécurité/RGPD CNI** : ✅ chiffrement au repos — reste **durées de conservation** (les scans ne sont pas purgés par `RetentionWorker`) et **consentement**.
+7. **Sécurité/RGPD CNI** : ✅ chiffrement au repos + ✅ **durée de conservation (07/09)** — le scan est
+   supprimé du disque et déréférencé après `Retention:RiderScansDays` (90 j) suivant la **décision** de
+   certification ; la décision, elle, reste tracée. Migration 21 `AddRiderScanRetention`.
+   ⚠️ **La purge n'agit que si `Retention:Enabled=true`** — encore désactivé, donc les scans
+   s'accumulent toujours en production. Reste : **consentement** du livreur (décision produit —
+   aujourd'hui le scan est téléversé par l'admin, le livreur n'a aucun geste de consentement tracé).
 8. Suite ROADMAP historique : Mobile Money client, multi-villes, PWA livreur, réputation, IA prévision.
 
 ### Actions utilisateur (déblocages)

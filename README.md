@@ -49,6 +49,7 @@
 18. `AddDeliveryClaims` (20260906151008) — table `DeliveryClaims` (sinistres)
 19. `AddDeliveryProof` (20260907103725) — `Orders.DeliveryCode`/`DeliveryCodeVerifiedAt`/`DeliveryCodeAttempts` (preuve de remise, DDL idempotent)
 20. `AddRiderRatings` (20260907175043) — table `RiderRatings` (réputation livreur, DDL idempotent)
+21. `AddRiderScanRetention` (20260907183427) — `RiderIdentities.ScanPurgedAt` (rétention RGPD des scans)
 
 Appliquer : `dotnet ef database update --project src\Wazap.Infrastructure --startup-project src\Wazap.API`
 
@@ -132,7 +133,7 @@ d'identité — **vide = stockage en clair**, à renseigner en production), `Del
 
 ## 8. Tests
 
-`dotnet test` → **241 tests** (Order, DeliveryBatch, DeliveryOffer, OutboxMessage, User, CreditTransaction, GeoDistance, MockPayment, WhatsAppOrchestration, PhoneNumberNormalizer + table ARTCI 8→10 exhaustive, validators, auth 2FA/refresh/reset, GeniusPay, LeadConversion, ColisSur, RiderService/certification, preuve de livraison + parsing `LIVRE … CODE …`).
+`dotnet test` → **252 tests** (Order, DeliveryBatch, DeliveryOffer, OutboxMessage, User, CreditTransaction, GeoDistance, MockPayment, WhatsAppOrchestration, PhoneNumberNormalizer + table ARTCI 8→10 exhaustive, validators, auth 2FA/refresh/reset, GeniusPay, LeadConversion, ColisSur, RiderService/certification, preuve de livraison + parsing `LIVRE … CODE …`).
 
 ## 9. Lancer le projet
 

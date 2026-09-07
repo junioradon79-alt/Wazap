@@ -20,6 +20,14 @@ public sealed class RetentionOptions
     /// <summary>Messages outbox envoyés conservés (jours).</summary>
     public int SentOutboxDays { get; set; } = 30;
 
+    /// <summary>
+    /// Scans de pièce d'identité des livreurs conservés (jours) APRÈS la décision de
+    /// certification (RGPD : donnée d'identité, durée de conservation limitée). Le fichier
+    /// est supprimé du disque et la référence effacée ; la décision reste tracée.
+    /// <c>0</c> = ne jamais purger les scans.
+    /// </summary>
+    public int RiderScansDays { get; set; } = 90;
+
     /// <summary>Fréquence du passage du worker (heures).</summary>
     public int RunIntervalHours { get; set; } = 24;
 }

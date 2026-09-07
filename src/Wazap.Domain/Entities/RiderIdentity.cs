@@ -23,6 +23,12 @@ public class RiderIdentity
     public string? ScanFileName { get; private set; }
     public DateTime? ScanReceivedAt { get; private set; }
 
+    /// <summary>
+    /// Date d'effacement du scan (RGPD). Renseignée = la pièce d'identité n'est plus
+    /// conservée ; la décision de certification, elle, reste tracée.
+    /// </summary>
+    public DateTime? ScanPurgedAt { get; private set; }
+
     public string? BlacklistReason { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? ReviewedAt { get; private set; }
@@ -95,7 +101,22 @@ public class RiderIdentity
 
         ScanFileName = Normalize(fileName, 120);
         ScanReceivedAt = DateTime.UtcNow;
+        ScanPurgedAt = null;
         ReopenIfRejected();
+    }
+
+    /// <summary>
+    /// Efface la référence au scan une fois le délai de conservation écoulé (RGPD).
+    /// La pièce d'identité ne doit pas être gardée indéfiniment, mais la DÉCISION de
+    /// certification et sa date restent tracées : c'est elle qui fonde la « Garantie
+    /// Colis Sûr », pas le document lui-même. <see cref="ScanReceivedAt"/> est conservée
+    /// comme trace de la date de réception.
+    /// </summary>
+    public void PurgeScan()
+    {
+        IdScanUrl = null;
+        ScanFileName = null;
+        ScanPurgedAt = DateTime.UtcNow;
     }
 
     private void ReopenIfRejected()

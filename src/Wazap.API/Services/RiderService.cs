@@ -304,6 +304,57 @@ namespace Wazap.API.Services
         }
 
         /// <summary>
+        /// Purge RGPD : supprime du disque les scans de pièce d'identité dont la décision de
+        /// certification remonte à plus de <paramref name="retentionDays"/> jours, et efface
+        /// leur référence en base. Les dossiers encore <c>Pending</c> sont épargnés — leur
+        /// scan sert toujours à l'examen. Retourne le nombre de dossiers réellement purgés.
+        /// </summary>
+        public async Task<int> PurgeExpiredScansAsync(int retentionDays, CancellationToken ct = default)
+        {
+            if (retentionDays <= 0)
+                return 0;
+
+            var cutoff = DateTime.UtcNow.AddDays(-retentionDays);
+
+            var expired = await _context.RiderIdentities
+                .Where(i => i.Status != RiderIdentityStatus.Pending
+                         && i.ReviewedAt != null && i.ReviewedAt < cutoff
+                         && i.ScanPurgedAt == null
+                         && (i.ScanFileName != null || i.IdScanUrl != null))
+                .ToListAsync(ct);
+
+            var purged = 0;
+
+            foreach (var identity in expired)
+            {
+                if (identity.ScanFileName is { } fileName)
+                {
+                    var fullPath = Path.Combine(_env.ContentRootPath, ScanFolder, fileName);
+                    try
+                    {
+                        if (File.Exists(fullPath))
+                            File.Delete(fullPath);
+                    }
+                    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                    {
+                        // Le fichier résiste : on n'efface PAS la référence, sinon il
+                        // resterait sur le disque sans que rien ne le désigne plus.
+                        _logger.LogWarning(ex, "Scan {File} non supprimé — purge reportée.", fileName);
+                        continue;
+                    }
+                }
+
+                identity.PurgeScan();
+                purged++;
+            }
+
+            if (purged > 0)
+                await _context.SaveChangesAsync(ct);
+
+            return purged;
+        }
+
+        /// <summary>
         /// Clé de chiffrement des scans configurée (« RiderScans:EncryptionKey »).
         /// Format accepté : hexadécimal (64 caractères) ou Base64 (44 caractères) → 32 octets.
         /// </summary>

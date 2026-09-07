@@ -53,7 +53,7 @@ public sealed class RetentionWorker : BackgroundService
 
             try
             {
-                await PurgeAsync(db, stoppingToken);
+                await PurgeAsync(db, scope.ServiceProvider.GetRequiredService<RiderService>(), stoppingToken);
                 await guard.CompleteAsync(stoppingToken);
                 WorkerHeartbeats.Beat(nameof(RetentionWorker));
             }
@@ -65,7 +65,7 @@ public sealed class RetentionWorker : BackgroundService
         }
     }
 
-    private async Task PurgeAsync(ApplicationDbContext db, CancellationToken ct)
+    private async Task PurgeAsync(ApplicationDbContext db, RiderService riderService, CancellationToken ct)
     {
         var now = DateTime.UtcNow;
 
@@ -112,9 +112,13 @@ public sealed class RetentionWorker : BackgroundService
             .Where(m => m.Status == OutboxStatus.Sent && m.CreatedAt < outboxCutoff)
             .ExecuteDeleteAsync(ct);
 
-        if (ordersPurged + batchesPurged + outboxPurged > 0)
+        // 4. Scans de pièce d'identité (RGPD) : la donnée d'identité ne se conserve pas
+        //    indéfiniment — la décision de certification, si.
+        var scansPurged = await riderService.PurgeExpiredScansAsync(_retention.RiderScansDays, ct);
+
+        if (ordersPurged + batchesPurged + outboxPurged + scansPurged > 0)
             _logger.LogInformation(
-                "Rétention : {Orders} commande(s), {Batches} lot(s) vide(s), {Outbox} message(s) outbox purgés.",
-                ordersPurged, batchesPurged, outboxPurged);
+                "Rétention : {Orders} commande(s), {Batches} lot(s) vide(s), {Outbox} message(s) outbox, {Scans} scan(s) d'identité purgés.",
+                ordersPurged, batchesPurged, outboxPurged, scansPurged);
     }
 }
