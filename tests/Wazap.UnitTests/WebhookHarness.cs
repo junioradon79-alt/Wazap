@@ -25,10 +25,12 @@ internal sealed class WebhookHarness : IDisposable
     public ApplicationDbContext Context { get; }
     public RecordingWhatsAppSender Sender { get; } = new();
     public WebhookWhatsAppController Controller { get; }
+    public RiderScansOptions Scans { get; }
 
     private readonly string _tempDir = Path.Combine(Path.GetTempPath(), "wazap-webhook-" + Guid.NewGuid().ToString("N"));
 
-    public WebhookHarness(DeliveryProofOptions? deliveryProof = null, string? teamPhone = null)
+    public WebhookHarness(DeliveryProofOptions? deliveryProof = null, string? teamPhone = null,
+        RiderScansOptions? scans = null, IWhatsAppMediaDownloader? mediaDownloader = null)
     {
         Directory.CreateDirectory(_tempDir);
 
@@ -59,10 +61,13 @@ internal sealed class WebhookHarness : IDisposable
         var orders = new OrderService(Context, new CurrentUserStub(), offers, proof,
             NullLogger<OrderService>.Instance);
 
+        Scans = scans ?? new RiderScansOptions { AllowUnencryptedStorage = true };
+        var downloader = mediaDownloader ?? new FakeMediaDownloader();
+
         Controller = new WebhookWhatsAppController(
             Context,
             new RiderService(Context, new FakeWebHostEnvironment(_tempDir), Sender,
-                new RiderScansOptions { AllowUnencryptedStorage = true },
+                Scans,
                 NullLogger<RiderService>.Instance),
             new VendorService(Context, new NoGeocoding(), NullLogger<VendorService>.Instance),
             offers,
@@ -75,8 +80,10 @@ internal sealed class WebhookHarness : IDisposable
                 new ManualPayoutService(NullLogger<ManualPayoutService>.Instance),
                 NullLogger<ColisSurService>.Instance),
             Sender,
+            downloader,
             proof,
             new RiderRatingService(Context, new RiderReputationOptions(), NullLogger<RiderRatingService>.Instance),
+            Scans,
             NullLogger<WebhookWhatsAppController>.Instance,
             config);
     }
@@ -88,9 +95,27 @@ internal sealed class WebhookHarness : IDisposable
         return Controller.Handle(payload);
     }
 
+    /// <summary>
+    /// Simule un message IMAGE entrant (photo de pièce d'identité). Le format réel du
+    /// payload média WhatChimp n'est pas documenté : on utilise les candidats tolérés
+    /// par le contrôleur (`message.media_url` + `message.mime_type`).
+    /// </summary>
+    public Task SendImageAsync(string phone, string url, string? mime = "image/jpeg")
+    {
+        var payload = JsonSerializer.SerializeToElement(new
+        {
+            chat_id = phone,
+            message = new { media_url = url, mime_type = mime }
+        });
+        return Controller.Handle(payload);
+    }
+
     /// <summary>Dernier message envoyé au numéro indiqué (null si aucun).</summary>
     public string? LastMessageTo(string phone)
         => Sender.TextMessages.LastOrDefault(m => m.Phone == phone).Message;
+
+    /// <summary>Dossier racine des fichiers de l'app de test (scans, etc.).</summary>
+    public string TempDir => _tempDir;
 
     public void Dispose()
     {
@@ -109,5 +134,16 @@ internal sealed class WebhookHarness : IDisposable
     {
         public Task<(double Latitude, double Longitude)?> GeocodeAsync(string address, CancellationToken ct = default)
             => Task.FromResult<(double, double)?>(null);
+    }
+
+    /// <summary>Téléchargeur factice : renvoie des octets pour toute URL, sauf si configuré pour échouer.</summary>
+    internal sealed class FakeMediaDownloader : IWhatsAppMediaDownloader
+    {
+        public bool Fail { get; set; }
+
+        public Task<(byte[] Content, string FileName)?> TryDownloadAsync(
+            string? url, string? mediaId, string? mimeType, CancellationToken ct = default)
+            => Task.FromResult<(byte[], string)?>(
+                Fail ? null : ([1, 2, 3, 4], "whatsapp-test.jpg"));
     }
 }

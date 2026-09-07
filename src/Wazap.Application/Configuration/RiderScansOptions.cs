@@ -46,6 +46,16 @@ public sealed class RiderScansOptions
     public bool AllowUnencryptedStorage { get; set; }
 
     /// <summary>
+    /// Accepte la photo de la pièce d'identité envoyée par le livreur lui-même sur
+    /// WhatsApp (webhook média). Le stockage emprunte le même chemin que le téléversement
+    /// admin et reste soumis aux mêmes garde-fous : sans clé exploitable (et sans
+    /// <see cref="AllowUnencryptedStorage"/>), le média est refusé avec une réponse
+    /// explicite au livreur. Défaut : <c>true</c> — le kill-switch reste disponible
+    /// pour couper la voie d'entrée sans redéployer.
+    /// </summary>
+    public bool WhatsAppInboundEnabled { get; set; } = true;
+
+    /// <summary>
     /// Résout la clé configurée en octets. Retourne <c>false</c> et renseigne
     /// <paramref name="problem"/> (message lisible, sans jamais divulguer la clé) si elle est
     /// absente, illisible ou de longueur non conforme.

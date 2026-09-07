@@ -101,4 +101,12 @@ public sealed class RiderScansOptionsTests
 
         Assert.Equal(ScanProtectionStatus.Encrypted, options.GetStatus());
     }
+
+    [Fact]
+    public void WhatsAppInbound_EnabledByDefault()
+    {
+        // La photo WhatsApp est le canal principal de certification : active par défaut,
+        // coupable par configuration (RiderScans:WhatsAppInboundEnabled=false).
+        Assert.True(new RiderScansOptions().WhatsAppInboundEnabled);
+    }
 }

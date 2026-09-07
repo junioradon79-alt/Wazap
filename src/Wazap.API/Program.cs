@@ -254,6 +254,9 @@ builder.Services.AddRateLimiter(options =>
 // Injection du service WhatsApp avec HttpClient
 builder.Services.AddHttpClient<IWhatsAppSender, WhatChimpService>();
 
+// Médias entrants (photo de pièce d'identité d'un livreur reçue sur WhatsApp)
+builder.Services.AddHttpClient<IWhatsAppMediaDownloader, WhatChimpMediaDownloader>();
+
 // Catalogue des packs prépayés (payé à l'usage, sans abonnement)
 var packs = builder.Configuration.GetSection("Packs").Get<List<PackConfiguration>>() ?? new List<PackConfiguration>();
 builder.Services.AddSingleton<IReadOnlyList<PackConfiguration>>(packs);

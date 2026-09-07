@@ -12,6 +12,7 @@ using Wazap.Application.Services;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
 using Wazap.Infrastructure.Data;
+using Wazap.Infrastructure.Services;
 
 namespace Wazap.API.Controllers;
 
@@ -29,8 +30,10 @@ public class WebhookWhatsAppController : ControllerBase
     private readonly LeadConversionService _leadConversion;
     private readonly ColisSurService _colisSur;
     private readonly IWhatsAppSender _whatsAppSender;
+    private readonly IWhatsAppMediaDownloader _mediaDownloader;
     private readonly DeliveryProofOptions _deliveryProof;
     private readonly RiderRatingService _riderRatings;
+    private readonly RiderScansOptions _scans;
     private readonly ILogger<WebhookWhatsAppController> _logger;
     private readonly string? _webhookToken;
     private readonly string? _teamPhone;
@@ -46,8 +49,10 @@ public class WebhookWhatsAppController : ControllerBase
         LeadConversionService leadConversion,
         ColisSurService colisSur,
         IWhatsAppSender whatsAppSender,
+        IWhatsAppMediaDownloader mediaDownloader,
         DeliveryProofOptions deliveryProof,
         RiderRatingService riderRatings,
+        RiderScansOptions scans,
         ILogger<WebhookWhatsAppController> logger,
         IConfiguration config)
     {
@@ -63,6 +68,8 @@ public class WebhookWhatsAppController : ControllerBase
         _leadConversion = leadConversion;
         _colisSur = colisSur;
         _whatsAppSender = whatsAppSender;
+        _mediaDownloader = mediaDownloader;
+        _scans = scans;
         _logger = logger;
         // AUCUNE valeur de repli : un token codé en dur dans un dépôt public n'authentifie
         // rien. Non configuré => la vérification du webhook échoue (fail closed).
@@ -98,7 +105,9 @@ public class WebhookWhatsAppController : ControllerBase
         // Lecture tolérante du payload : accepte camelCase ET snake_case
         var data = Find(raw, "data");
         var subscriber = Find(data, "subscriber");
-        var message = Find(data, "message");
+        // Fallback : certains envois (ex. image) placent « message » à la racine, pas
+        // dans « data ». Même tolérance que phone/text ci-dessous (lecture tolérante).
+        var message = Find(data, "message") ?? Find(raw, "message");
         var location = Find(message, "location");
         var interactive = Find(message, "interactive");
         var buttonReply = Find(interactive, "buttonReply");
@@ -123,6 +132,24 @@ public class WebhookWhatsAppController : ControllerBase
                 await _riderService.UpdateLocationAsync(rider.Id, latitude.Value, longitude.Value);
                 _logger.LogInformation("Position du livreur {RiderId} mise à jour via webhook.", rider.Id);
             }
+            return Ok();
+        }
+
+        // 1b) Média entrant — photo de la pièce d'identité envoyée par un livreur
+        //     (« Garantie Colis Sûr »). Une image n'emprunte jamais le routage texte :
+        //     sans cette branche, elle serait ignorée en silence. Lecture tolérante du
+        //     payload (la passerelle n'a pas de forme média unique et documentée).
+        var mediaNode = Find(message, "media") ?? Find(message, "image") ?? Find(message, "photo");
+        var mediaUrl = Str(message, "mediaUrl") ?? Str(message, "media_url")
+            ?? Str(mediaNode, "url") ?? Str(mediaNode, "link")
+            ?? Str(message, "url") ?? Str(message, "link");
+        var mediaId = Str(mediaNode, "id") ?? Str(message, "mediaId") ?? Str(message, "media_id");
+        var mimeType = Str(message, "mimeType") ?? Str(message, "mime_type")
+            ?? Str(mediaNode, "mimeType") ?? Str(mediaNode, "mime_type");
+
+        if (mediaUrl is not null || mediaId is not null)
+        {
+            await HandleRiderScanPhotoAsync(phone, mediaUrl, mediaId, mimeType);
             return Ok();
         }
 
@@ -293,6 +320,61 @@ public class WebhookWhatsAppController : ControllerBase
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Photo de pièce d'identité reçue d'un livreur connu (« Garantie Colis Sûr ») :
+    /// téléchargement du média puis stockage chiffré par le même chemin que le
+    /// téléversement admin (garde-fous de <see cref="RiderScansOptions"/> inclus).
+    /// Numéro inconnu = silence volontaire (la passerelle ne révèle pas qu'elle accepte
+    /// des images, et le bot prospects reste textuel) ; dossier exclu = refus explicite
+    /// levé par le domaine, transmis tel quel au livreur.
+    /// </summary>
+    private async Task HandleRiderScanPhotoAsync(string? phone, string? mediaUrl, string? mediaId, string? mimeType)
+    {
+        if (!_scans.WhatsAppInboundEnabled)
+        {
+            _logger.LogInformation("Média WhatsApp ignoré (RiderScans:WhatsAppInboundEnabled=false).");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(phone))
+        {
+            _logger.LogWarning("Média WhatsApp reçu sans numéro expéditeur — ignoré.");
+            return;
+        }
+
+        var rider = await FindUserByPhoneAsync(phone, UserRole.Rider);
+        if (rider is null)
+        {
+            _logger.LogInformation("Média WhatsApp ignoré : {Phone} n'est pas un livreur connu.", phone);
+            return;
+        }
+
+        var download = await _mediaDownloader.TryDownloadAsync(mediaUrl, mediaId, mimeType);
+        if (download is null)
+        {
+            await _whatsAppSender.SendTextMessageAsync(phone,
+                "❌ Nous n'avons pas pu récupérer votre photo. Réessayez dans un instant — "
+                + "elle est indispensable à votre certification (Garantie Colis Sûr).");
+            return;
+        }
+
+        try
+        {
+            await using var stream = new MemoryStream(download.Value.Content);
+            await _riderService.StoreScanAsync(rider.Id, stream, download.Value.FileName, mediaUrl);
+            _logger.LogInformation("Scan d'identité du livreur {RiderId} reçu via WhatsApp.", rider.Id);
+            await _whatsAppSender.SendTextMessageAsync(phone,
+                "✅ Photo de votre pièce d'identité reçue ! Notre équipe vérifie votre dossier — "
+                + "vous serez notifié dès votre certification (Garantie Colis Sûr 🛡️).");
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Dossier exclu, format refusé, stockage non configuré : le message du
+            // domaine est rédigé pour être lu par l'expéditeur.
+            await _whatsAppSender.SendTextMessageAsync(phone, "❌ " + ex.Message);
+        }
     }
 
     private async Task TeamReplyAsync(string message)

@@ -193,6 +193,29 @@ public class RiderServiceTests : IDisposable
     }
 
     /// <summary>
+    /// Scan reçu du livreur via WhatsApp : l'URL du média d'origine est conservée comme
+    /// provenance (IdScanUrl), à côté du fichier local chiffré.
+    /// </summary>
+    [Fact]
+    public async Task StoreScan_WithSourceUrl_KeepsProvenance()
+    {
+        var db = new TestDbContext();
+        var context = db.Context;
+        var rider = NewRider(db);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(db, new RecordingWhatsAppSender());
+        using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes("scan-whatsapp"));
+        await service.StoreScanAsync(rider.Id, stream, "photo.jpg", "https://media.example/cni.jpg");
+
+        var identity = await context.RiderIdentities.FindAsync(rider.Id);
+        Assert.NotNull(identity);
+        Assert.Equal("https://media.example/cni.jpg", identity!.IdScanUrl);
+        Assert.NotNull(identity.ScanFileName);
+        Assert.NotNull(identity.ScanReceivedAt);
+    }
+
+    /// <summary>
     /// Garde-fou RGPD : sans clé de chiffrement, le téléversement échoue franchement au lieu
     /// de retomber en silence sur l'écriture en clair. Le disque doit rester intact — le
     /// refus intervient AVANT la moindre création de dossier ou de fichier.

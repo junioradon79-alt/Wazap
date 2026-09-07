@@ -218,10 +218,11 @@ namespace Wazap.API.Services
 
 
         /// <summary>
-        /// Téléverse le scan de la pièce d'identité fourni par l'équipe (photo reçue
-        /// sur WhatsApp). Un dossier refusé est rouvert « à vérifier ».
+        /// Téléverse le scan de la pièce d'identité (photo de l'équipe ou reçue du livreur
+        /// sur WhatsApp). Un dossier refusé est rouvert « à vérifier ». <paramref name="sourceUrl"/>,
+        /// s'il est fourni (média messagerie), est conservé comme provenance du document.
         /// </summary>
-        public async Task StoreScanAsync(Guid riderUserId, Stream file, string fileName)
+        public async Task StoreScanAsync(Guid riderUserId, Stream file, string fileName, string? sourceUrl = null)
         {
             var rider = await _context.Users.FirstOrDefaultAsync(
                     u => u.Id == riderUserId && u.Role == UserRole.Rider)
@@ -283,6 +284,8 @@ namespace Wazap.API.Services
             }
 
             identity.SubmitScanFile(storedName);
+            if (!string.IsNullOrWhiteSpace(sourceUrl))
+                identity.SubmitScanUrl(sourceUrl);
             await _context.SaveChangesAsync();
         }
 
