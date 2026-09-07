@@ -133,7 +133,7 @@ d'identité — **vide = stockage en clair**, à renseigner en production), `Del
 
 ## 8. Tests
 
-`dotnet test` → **252 tests** (Order, DeliveryBatch, DeliveryOffer, OutboxMessage, User, CreditTransaction, GeoDistance, MockPayment, WhatsAppOrchestration, PhoneNumberNormalizer + table ARTCI 8→10 exhaustive, validators, auth 2FA/refresh/reset, GeniusPay, LeadConversion, ColisSur, RiderService/certification, preuve de livraison + parsing `LIVRE … CODE …`).
+`dotnet test` → **265 tests** (Order, DeliveryBatch, DeliveryOffer, OutboxMessage, User, CreditTransaction, GeoDistance, MockPayment, WhatsAppOrchestration, PhoneNumberNormalizer + table ARTCI 8→10 exhaustive, validators, auth 2FA/refresh/reset, GeniusPay, LeadConversion, ColisSur, RiderService/certification, preuve de livraison + parsing `LIVRE … CODE …`).
 
 ## 9. Lancer le projet
 
