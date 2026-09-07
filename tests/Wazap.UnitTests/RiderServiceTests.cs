@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using Wazap.API.Services;
+using Wazap.Application.Configuration;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
 using Xunit;
@@ -32,13 +33,20 @@ public class RiderServiceTests : IDisposable
         }
     }
 
-    private RiderService CreateService(TestDbContext db, RecordingWhatsAppSender sender, string? encryptionKey = null)
+    /// <summary>
+    /// Par défaut le stockage en clair est autorisé : les tests historiques éprouvent la
+    /// mécanique de stockage, pas le garde-fou de configuration (couvert séparément).
+    /// </summary>
+    private RiderService CreateService(TestDbContext db, RecordingWhatsAppSender sender,
+        string? encryptionKey = null, bool allowUnencrypted = true)
     {
-        var config = encryptionKey is null
-            ? new ConfigStub()
-            : new ConfigStub(("RiderScans:EncryptionKey", encryptionKey));
+        var scans = new RiderScansOptions
+        {
+            EncryptionKey = encryptionKey,
+            AllowUnencryptedStorage = allowUnencrypted
+        };
         return new RiderService(db.Context, new FakeWebHostEnvironment(_tempDir), sender,
-            config, NullLogger<RiderService>.Instance);
+            scans, NullLogger<RiderService>.Instance);
     }
 
     private static User NewRider(TestDbContext db, string username = "rider")
@@ -182,6 +190,97 @@ public class RiderServiceTests : IDisposable
 
         Assert.NotNull(content);
         Assert.Null(content!.Value.Content); // échec authentification → lecture refusée (pas de fuite)
+    }
+
+    /// <summary>
+    /// Garde-fou RGPD : sans clé de chiffrement, le téléversement échoue franchement au lieu
+    /// de retomber en silence sur l'écriture en clair. Le disque doit rester intact — le
+    /// refus intervient AVANT la moindre création de dossier ou de fichier.
+    /// </summary>
+    [Fact]
+    public async Task StoreScan_WithoutKey_IsRefused_AndLeavesNothingOnDisk()
+    {
+        var db = new TestDbContext();
+        var context = db.Context;
+        var rider = NewRider(db);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(db, new RecordingWhatsAppSender(), allowUnencrypted: false);
+
+        using var stream = new MemoryStream(new byte[] { 1, 2, 3, 4 });
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.StoreScanAsync(rider.Id, stream, "cni.png"));
+
+        Assert.Contains("Téléversement refusé", ex.Message);
+
+        // Aucune trace : ni fichier, ni dossier, ni référence en base.
+        Assert.False(Directory.Exists(Path.Combine(_tempDir, "App_Data", "rider-scans")));
+        Assert.Null(await context.RiderIdentities.FindAsync(rider.Id));
+    }
+
+    /// <summary>Une clé illisible est traitée comme une absence de clé : refus, pas de repli.</summary>
+    [Fact]
+    public async Task StoreScan_WithUnreadableKey_IsRefused()
+    {
+        var db = new TestDbContext();
+        var context = db.Context;
+        var rider = NewRider(db);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(db, new RecordingWhatsAppSender(),
+            encryptionKey: "ceci-n-est-pas-une-cle", allowUnencrypted: false);
+
+        using var stream = new MemoryStream(new byte[] { 1, 2, 3, 4 });
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.StoreScanAsync(rider.Id, stream, "cni.png"));
+
+        Assert.False(Directory.Exists(Path.Combine(_tempDir, "App_Data", "rider-scans")));
+    }
+
+    /// <summary>
+    /// Une clé de longueur non conforme (ici 8 octets) est refusée : elle ne doit pas être
+    /// « rattrapée » silencieusement, sans quoi on croirait chiffrer sans le faire.
+    /// </summary>
+    [Fact]
+    public async Task StoreScan_WithWrongLengthKey_IsRefused()
+    {
+        var db = new TestDbContext();
+        var context = db.Context;
+        var rider = NewRider(db);
+        await context.SaveChangesAsync();
+
+        var shortKey = Convert.ToBase64String(new byte[8]);
+        var service = CreateService(db, new RecordingWhatsAppSender(),
+            encryptionKey: shortKey, allowUnencrypted: false);
+
+        using var stream = new MemoryStream(new byte[] { 1, 2, 3, 4 });
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.StoreScanAsync(rider.Id, stream, "cni.png"));
+    }
+
+    /// <summary>
+    /// L'écriture en clair reste possible, mais seulement sur autorisation explicite :
+    /// une décision écrite dans la configuration, jamais un défaut.
+    /// </summary>
+    [Fact]
+    public async Task StoreScan_WithoutKey_ButExplicitlyAllowed_StoresInClear()
+    {
+        var db = new TestDbContext();
+        var context = db.Context;
+        var rider = NewRider(db);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(db, new RecordingWhatsAppSender(), allowUnencrypted: true);
+        var original = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
+
+        using (var stream = new MemoryStream(original))
+        {
+            await service.StoreScanAsync(rider.Id, stream, "cni.png");
+        }
+
+        var path = await service.GetStoredScanPathAsync(rider.Id);
+        Assert.NotNull(path);
+        Assert.True((await File.ReadAllBytesAsync(path!)).SequenceEqual(original));
     }
 
     [Fact]

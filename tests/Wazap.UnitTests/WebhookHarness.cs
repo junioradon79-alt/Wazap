@@ -61,7 +61,8 @@ internal sealed class WebhookHarness : IDisposable
 
         Controller = new WebhookWhatsAppController(
             Context,
-            new RiderService(Context, new FakeWebHostEnvironment(_tempDir), Sender, config,
+            new RiderService(Context, new FakeWebHostEnvironment(_tempDir), Sender,
+                new RiderScansOptions { AllowUnencryptedStorage = true },
                 NullLogger<RiderService>.Instance),
             new VendorService(Context, new NoGeocoding(), NullLogger<VendorService>.Instance),
             offers,

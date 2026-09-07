@@ -11,6 +11,7 @@ using Wazap.API.Components;
 using Wazap.Application.Configuration;
 using Wazap.Domain.Configuration;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -100,6 +101,11 @@ builder.Services.AddSingleton(ciNumberingOptions);
 // Options sécurité des coursiers (certification « Garantie Colis Sûr »)
 var riderSecurityOptions = builder.Configuration.GetSection(RiderSecurityOptions.SectionName).Get<RiderSecurityOptions>() ?? new RiderSecurityOptions();
 builder.Services.AddSingleton(riderSecurityOptions);
+
+// Options protection des scans d'identité (chiffrement au repos AES-GCM — RGPD).
+// Sans clé exploitable, le téléversement est refusé : aucun repli silencieux en clair.
+var riderScansOptions = builder.Configuration.GetSection(RiderScansOptions.SectionName).Get<RiderScansOptions>() ?? new RiderScansOptions();
+builder.Services.AddSingleton(riderScansOptions);
 
 // Options Garantie Colis Sûr (barème d'indemnisation FCFA, caution livreur)
 var colisSurOptions = builder.Configuration.GetSection(ColisSurOptions.SectionName).Get<ColisSurOptions>() ?? new ColisSurOptions();
@@ -314,6 +320,29 @@ builder.Services.AddRazorComponents()
 
 var app = builder.Build();
 
+// Témoin de conformité au démarrage : une protection RGPD inactive doit être bruyante
+// immédiatement, et non découverte au premier téléversement de pièce d'identité.
+switch (riderScansOptions.GetStatus())
+{
+    case ScanProtectionStatus.Encrypted:
+        break;
+    case ScanProtectionStatus.UnencryptedAllowed:
+        app.Logger.LogWarning(
+            "ALERTE [config] Scans d'identité stockés EN CLAIR "
+            + "(RiderScans:AllowUnencryptedStorage=true) — développement uniquement.");
+        break;
+    default:
+        app.Logger.LogWarning(
+            "ALERTE [config] RiderScans:EncryptionKey absente ou invalide : les téléversements "
+            + "de scans d'identité seront REFUSÉS. Détail sur /health/details (compliance).");
+        break;
+}
+
+if (!retentionOptions.Enabled)
+    app.Logger.LogWarning(
+        "ALERTE [config] Retention:Enabled=false — aucune purge n'est exécutée : les scans "
+        + "d'identité des livreurs sont conservés sans limite de durée (RGPD).");
+
 // Gestion globale des erreurs (doit être le premier middleware)
 app.UseExceptionHandler();
 
@@ -342,8 +371,23 @@ app.MapControllers();
 app.MapHealthChecks("/health");
 
 // Métriques de supervision détaillées (DB, file outbox, workers) — pour uptime monitors et dashboards.
-app.MapGet("/health/details", async (HealthDetailsService service, CancellationToken ct)
-    => await service.BuildAsync(ct));
+// Endpoint ouvert : le détail de conformité (nature exacte de la faiblesse) n'est servi
+// qu'aux administrateurs authentifiés ; les anonymes reçoivent le seul statut de synthèse.
+// Le schéma par défaut étant le cookie (tableau de bord Blazor), le schéma JWT doit être
+// essayé explicitement : sans cela, un administrateur muni d'un jeton Bearer — supervision,
+// script, curl — serait traité comme anonyme et privé du détail auquel il a droit.
+app.MapGet("/health/details", async (HealthDetailsService service, HttpContext http, CancellationToken ct) =>
+{
+    var isAdmin = http.User.IsInRole("Admin");
+    if (!isAdmin)
+    {
+        // AuthenticateAsync n'émet pas de challenge : sans jeton, le résultat est simplement négatif.
+        var bearer = await http.AuthenticateAsync(JwtBearerDefaults.AuthenticationScheme);
+        isAdmin = bearer.Succeeded && bearer.Principal?.IsInRole("Admin") == true;
+    }
+
+    return await service.BuildAsync(isAdmin, ct);
+});
 
 // Métriques Prometheus au format texte (0.0.4) — pour Prometheus/Grafana.
 app.MapGet("/metrics", async (MetricsService service, CancellationToken ct)

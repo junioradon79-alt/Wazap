@@ -1,9 +1,9 @@
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Wazap.Application.Abstractions;
+using Wazap.Application.Configuration;
 using Wazap.Application.Dtos;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
@@ -14,8 +14,9 @@ namespace Wazap.API.Services
     /// <summary>
     /// Gestion des livreurs : liste, position live, disponibilité, partage RGPD et
     /// certification « Garantie Colis Sûr » (dossier d'identité + scan de la pièce).
-    /// Les scans sont CHIFFRÉS AU REPOS (AES-GCM, clé « RiderScans:EncryptionKey ») ;
-    /// sans clé configurée, le comportement historique (fichier brut) est conservé.
+    /// Les scans sont CHIFFRÉS AU REPOS (AES-GCM, clé « RiderScans:EncryptionKey »).
+    /// Sans clé exploitable, le téléversement est REFUSÉ : il n'existe pas de repli
+    /// silencieux vers l'écriture en clair (voir <see cref="RiderScansOptions"/>).
     /// </summary>
     public sealed class RiderService
     {
@@ -27,16 +28,16 @@ namespace Wazap.API.Services
         private readonly IWebHostEnvironment _env;
         private readonly IWhatsAppSender _whatsApp;
         private readonly ILogger<RiderService> _logger;
-        private readonly string? _encryptionKey;
+        private readonly RiderScansOptions _scans;
 
         public RiderService(ApplicationDbContext context, IWebHostEnvironment env,
-            IWhatsAppSender whatsApp, IConfiguration config, ILogger<RiderService> logger)
+            IWhatsAppSender whatsApp, RiderScansOptions scans, ILogger<RiderService> logger)
         {
             _context = context;
             _env = env;
             _whatsApp = whatsApp;
             _logger = logger;
-            _encryptionKey = config["RiderScans:EncryptionKey"];
+            _scans = scans;
         }
 
         public async Task<List<UserSummaryDto>> GetRidersAsync()
@@ -230,17 +231,39 @@ namespace Wazap.API.Services
             if (extension is not (".jpg" or ".jpeg" or ".png" or ".webp" or ".pdf"))
                 throw new InvalidOperationException("Format non pris en charge (JPG, PNG, WEBP ou PDF attendu).");
 
+            // Garde-fou RGPD : pas de clé exploitable = pas d'écriture. Le contrôle a lieu AVANT
+            // toute création de dossier ou de fichier, pour ne laisser aucune trace sur le disque.
+            var hasKey = _scans.TryResolveKey(out var key, out var keyProblem);
+            if (!hasKey && !_scans.AllowUnencryptedStorage)
+            {
+                _logger.LogError(
+                    "ALERTE [config] Téléversement du scan d'identité refusé pour le livreur {Rider} : {Problem}. "
+                    + "Renseignez RiderScans:EncryptionKey ; hors production uniquement, "
+                    + "RiderScans:AllowUnencryptedStorage=true autorise le stockage en clair.",
+                    riderUserId, keyProblem);
+
+                throw new InvalidOperationException(
+                    "Le stockage sécurisé des scans d'identité n'est pas configuré "
+                    + "(clé de chiffrement absente ou invalide). Téléversement refusé : "
+                    + "contactez l'administrateur système.");
+            }
+
+            if (!hasKey)
+                _logger.LogWarning(
+                    "Scan d'identité du livreur {Rider} stocké EN CLAIR : {Problem}, "
+                    + "et RiderScans:AllowUnencryptedStorage=true l'autorise explicitement.",
+                    riderUserId, keyProblem);
+
             var dir = Path.Combine(_env.ContentRootPath, ScanFolder);
             Directory.CreateDirectory(dir);
 
             var storedName = $"{riderUserId:N}{extension}";
             var fullPath = Path.Combine(dir, storedName);
-            var key = TryGetEncryptionKey(out var encryptionKey) ? encryptionKey : null;
             await using (var output = new FileStream(fullPath, FileMode.Create, FileAccess.Write))
             {
-                if (key is null)
+                if (!hasKey)
                 {
-                    // Comportement historique : aucun chiffrement configuré.
+                    // Stockage en clair, autorisé explicitement par la configuration.
                     await file.CopyToAsync(output);
                 }
                 else
@@ -295,7 +318,7 @@ namespace Wazap.API.Services
 
             var bytes = await File.ReadAllBytesAsync(fullPath);
             var content = bytes.AsSpan().StartsWith(ScanEncryptionMagic)
-                ? DecryptBytes(bytes, _encryptionKey)
+                ? DecryptBytes(bytes)
                 : bytes;
 
             // Contenu null = scan présent mais illisible (mauvaise clé / fichier corrompu) :
@@ -354,40 +377,6 @@ namespace Wazap.API.Services
             return purged;
         }
 
-        /// <summary>
-        /// Clé de chiffrement des scans configurée (« RiderScans:EncryptionKey »).
-        /// Format accepté : hexadécimal (64 caractères) ou Base64 (44 caractères) → 32 octets.
-        /// </summary>
-        private bool TryGetEncryptionKey(out byte[] key)
-        {
-            key = [];
-            if (string.IsNullOrWhiteSpace(_encryptionKey))
-                return false;
-
-            try
-            {
-                var candidate = _encryptionKey.Trim();
-                key = candidate.Length == 64 && candidate.All(Uri.IsHexDigit)
-                    ? Convert.FromHexString(candidate)
-                    : Convert.FromBase64String(candidate);
-
-                if (key.Length is not (16 or 24 or 32))
-                {
-                    _logger.LogWarning("RiderScans:EncryptionKey invalide ({Length} octets) — scans stockés en clair.", key.Length);
-                    key = [];
-                    return false;
-                }
-
-                return true;
-            }
-            catch (FormatException)
-            {
-                _logger.LogWarning("RiderScans:EncryptionKey illisible — scans stockés en clair.");
-                key = [];
-                return false;
-            }
-        }
-
         /// <summary>Chiffre AES-GCM : [en-tête WZSCN1][nonce 12][ciphertext + tag 16].</summary>
         private static byte[] EncryptBytes(byte[] plaintext, byte[] key)
         {
@@ -407,12 +396,15 @@ namespace Wazap.API.Services
         }
 
         /// <summary>Déchiffre un scan chiffré (null si clé absente ou authentification refusée).</summary>
-        private byte[]? DecryptBytes(byte[] encrypted, string? encryptionKey)
+        private byte[]? DecryptBytes(byte[] encrypted)
         {
-            var key = TryGetEncryptionKey(out var parsed) ? parsed : null;
-            if (key is null || encryptionKey is null)
+            if (!_scans.TryResolveKey(out var key, out var keyProblem))
             {
-                _logger.LogError("Scan chiffré rencontré sans clé RiderScans:EncryptionKey configurée — lecture impossible.");
+                _logger.LogError(
+                    "Scan d'identité chiffré illisible : {Problem} (RiderScans:EncryptionKey). "
+                    + "La clé d'origine est indispensable — ne la remplacez jamais sans "
+                    + "rechiffrer les scans déjà stockés.",
+                    keyProblem);
                 return null;
             }
 

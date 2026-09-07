@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Wazap.Application.Configuration;
 using Wazap.Domain.Enums;
 using Wazap.Infrastructure.Data;
 
@@ -6,19 +7,33 @@ namespace Wazap.API.Health;
 
 /// <summary>
 /// Point d'entrée unique des métriques de supervision exposées par <c>/health/details</c> :
-/// accès base, file outbox (pending/retry/failed) et battements des workers. Le endpoint
+/// accès base, file outbox (pending/retry/failed), battements des workers et témoin de
+/// conformité RGPD (chiffrement des scans d'identité, purge de rétention). Le endpoint
 /// <c>/health</c> du framework reste minimal (compatible sondes/scripts existants).
 /// </summary>
 public sealed class HealthDetailsService
 {
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly RiderScansOptions _scans;
+    private readonly RetentionOptions _retention;
 
-    public HealthDetailsService(IServiceScopeFactory scopeFactory)
+    public HealthDetailsService(
+        IServiceScopeFactory scopeFactory,
+        RiderScansOptions scans,
+        RetentionOptions retention)
     {
         _scopeFactory = scopeFactory;
+        _scans = scans;
+        _retention = retention;
     }
 
-    public async Task<object> BuildAsync(CancellationToken ct = default)
+    /// <param name="includeSensitiveDetail">
+    /// Réservé aux administrateurs authentifiés. <c>/health/details</c> est ouvert (sondes de
+    /// disponibilité) : le détail de conformité nommerait publiquement la faiblesse exacte
+    /// (« clé absente »), ce qui renseignerait un attaquant. Les anonymes n'obtiennent que
+    /// le statut de synthèse.
+    /// </param>
+    public async Task<object> BuildAsync(bool includeSensitiveDetail = false, CancellationToken ct = default)
     {
         var now = DateTime.UtcNow;
         var uptime = Math.Max(0, (now - System.Diagnostics.Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalSeconds);
@@ -30,6 +45,7 @@ public sealed class HealthDetailsService
 
         await ProbeDatabaseAndOutboxAsync(details, ct);
         AddWorkerDetails(details, now);
+        AddComplianceDetails(details, includeSensitiveDetail);
 
         // Statut de synthèse : healthy sauf si la base est injoignable ou l'outbox a des échecs.
         details["status"] = details.TryGetValue("outbox", out var outbox)
@@ -89,5 +105,46 @@ public sealed class HealthDetailsService
         details["workers"] = workers;
     }
 
+    /// <summary>
+    /// Témoin de conformité RGPD sur les données d'identité des livreurs. Volontairement
+    /// séparé du <c>status</c> opérationnel : une protection incomplète est un problème de
+    /// conformité, pas une panne — les sondes de disponibilité ne doivent pas s'en alarmer,
+    /// mais le fait doit être visible sans avoir à ouvrir le web.config du serveur.
+    /// </summary>
+    private void AddComplianceDetails(IDictionary<string, object?> details, bool includeSensitiveDetail)
+    {
+        var scanStatus = _scans.GetStatus();
+        var scans = scanStatus switch
+        {
+            ScanProtectionStatus.Encrypted => "chiffrés au repos (AES-GCM)",
+            ScanProtectionStatus.UnencryptedAllowed =>
+                "NON CHIFFRÉS — autorisé explicitement (RiderScans:AllowUnencryptedStorage=true)",
+            ScanProtectionStatus.MissingKey =>
+                "clé absente (RiderScans:EncryptionKey) — téléversements refusés",
+            ScanProtectionStatus.InvalidKey =>
+                "clé invalide (RiderScans:EncryptionKey) — téléversements refusés",
+            _ => "état inconnu"
+        };
+
+        var retention = _retention.Enabled
+            ? _retention.RiderScansDays > 0
+                ? $"active — scans d'identité purgés {_retention.RiderScansDays} j après décision"
+                : "active, mais les scans d'identité ne sont JAMAIS purgés (RiderScansDays=0)"
+            : "INACTIVE (Retention:Enabled=false) — aucune purge, scans d'identité conservés sans limite";
+
+        // « ok » exige les deux protections : chiffrer sans purger, ou purger sans chiffrer,
+        // ne suffit pas — ce sont deux obligations distinctes sur la même donnée.
+        var compliant = scanStatus == ScanProtectionStatus.Encrypted
+                        && _retention.Enabled
+                        && _retention.RiderScansDays > 0;
+
+        details["compliance"] = new ComplianceSnapshot(
+            compliant ? "ok" : "attention",
+            includeSensitiveDetail ? scans : null,
+            includeSensitiveDetail ? retention : null);
+    }
+
     public sealed record OutboxSnapshot(int PendingDue, int Retrying, int Failed);
+
+    public sealed record ComplianceSnapshot(string Status, string? RiderScans, string? Retention);
 }

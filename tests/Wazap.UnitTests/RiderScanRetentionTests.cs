@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using Wazap.API.Services;
+using Wazap.Application.Configuration;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
 using Xunit;
@@ -27,7 +28,8 @@ public sealed class RiderScanRetentionTests : IDisposable
 
     private RiderService CreateService(TestDbContext db)
         => new(db.Context, new FakeWebHostEnvironment(_tempDir), new RecordingWhatsAppSender(),
-            new ConfigStub(), NullLogger<RiderService>.Instance);
+            new RiderScansOptions { AllowUnencryptedStorage = true },
+            NullLogger<RiderService>.Instance);
 
     /// <summary>Dossier certifié il y a <paramref name="reviewedDaysAgo"/> jours, avec un scan sur le disque.</summary>
     private async Task<(RiderIdentity Identity, string ScanPath)> CreateReviewedScanAsync(
