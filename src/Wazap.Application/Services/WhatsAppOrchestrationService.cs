@@ -1,7 +1,9 @@
 using System.Globalization;
+using Microsoft.Extensions.Logging;
 using Wazap.Application.Abstractions;
 using Wazap.Application.Configuration;
 using Wazap.Application.Dtos;
+using Wazap.Application.Exceptions;
 using Wazap.Domain.Configuration;
 using Wazap.Domain.Entities;
 
@@ -15,11 +17,47 @@ namespace Wazap.Application.Services
     {
         private readonly IWhatsAppSender _whatsAppSender;
         private readonly WhatsAppOptions _whatsAppOptions;
+        private readonly ILogger<WhatsAppOrchestrationService> _logger;
 
-        public WhatsAppOrchestrationService(IWhatsAppSender whatsAppSender, WhatsAppOptions whatsAppOptions)
+        public WhatsAppOrchestrationService(IWhatsAppSender whatsAppSender, WhatsAppOptions whatsAppOptions,
+            ILogger<WhatsAppOrchestrationService> logger)
         {
             _whatsAppSender = whatsAppSender;
             _whatsAppOptions = whatsAppOptions;
+            _logger = logger;
+        }
+
+        /// <summary>
+        /// Envoie un template et, si celui-ci est DÉFINITIVEMENT refusé (non approuvé, en
+        /// cours d'examen, suspendu, variables incohérentes), bascule sur le message texte.
+        /// Le texte n'aboutit que dans la fenêtre de 24 h du destinataire — mais un texte
+        /// vaut mieux qu'un silence, et la dépendance à l'approbation Meta cesse d'être
+        /// bloquante sur le chemin critique.
+        /// Un refus TRANSITOIRE n'est pas rattrapé ici : il doit remonter pour que l'outbox
+        /// réessaie.
+        /// </summary>
+        private async Task SendTemplateOrTextAsync(string? phoneNumber, string templateName,
+            string textMessage, Dictionary<string, string> variables)
+        {
+            if (string.IsNullOrWhiteSpace(phoneNumber))
+                return;
+
+            if (string.IsNullOrWhiteSpace(templateName))
+            {
+                await _whatsAppSender.SendTextMessageAsync(phoneNumber, textMessage);
+                return;
+            }
+
+            try
+            {
+                await _whatsAppSender.SendTemplateAsync(phoneNumber, templateName, variables);
+            }
+            catch (WhatsAppSendException ex) when (ex.IsPermanent)
+            {
+                _logger.LogWarning(ex,
+                    "Template {Template} refusé — repli en message texte (fenêtre 24 h requise).", templateName);
+                await _whatsAppSender.SendTextMessageAsync(phoneNumber, textMessage);
+            }
         }
 
         public async Task SendOrderCreatedNotificationAsync(OrderCreatedNotification notification)
@@ -42,9 +80,21 @@ namespace Wazap.Application.Services
                 ["3"] = "15-30 minutes"
             };
 
+            var orderCode = clientTemplateData["1"];
+            var vendorName = clientTemplateData["2"];
+
+            // Repli texte si le template n'est pas (encore) approuvé : le vendeur répond
+            // « Confirmer » / « Refuser », que le webhook comprend aussi bien qu'un bouton.
             await Task.WhenAll(
-                _whatsAppSender.SendTemplateAsync(notification.VendorWhatsAppNumber, _whatsAppOptions.TemplateOrderConfirm, vendorTemplateData),
-                _whatsAppSender.SendTemplateAsync(notification.ClientWhatsAppNumber, _whatsAppOptions.TemplateOrderReceived, clientTemplateData));
+                SendTemplateOrTextAsync(notification.VendorWhatsAppNumber, _whatsAppOptions.TemplateOrderConfirm,
+                    $"🛎️ Nouvelle commande de {notification.ClientName} : {notification.Description} — "
+                    + $"{notification.Amount.ToString("0.##", CultureInfo.InvariantCulture)} F.\n"
+                    + "Répondez Confirmer ou Refuser.",
+                    vendorTemplateData),
+                SendTemplateOrTextAsync(notification.ClientWhatsAppNumber, _whatsAppOptions.TemplateOrderReceived,
+                    $"✅ {vendorName} a bien reçu votre commande #{orderCode}. "
+                    + "Livraison estimée : 15-30 minutes.",
+                    clientTemplateData));
         }
 
         /// <summary>
@@ -96,6 +146,18 @@ namespace Wazap.Application.Services
                 return;
 
             await _whatsAppSender.SendTextMessageAsync(user.PhoneNumber, message);
+        }
+
+        /// <summary>
+        /// Propose une course simple à un livreur (template « rider_offer », repli texte).
+        /// C'est le message le plus volumineux du système : sans repli, une course non
+        /// diffusée est une course perdue.
+        /// </summary>
+        public async Task SendRiderOfferAsync(string riderPhoneNumber, string offerCode)
+        {
+            await SendTemplateOrTextAsync(riderPhoneNumber, _whatsAppOptions.TemplateRiderOffer,
+                $"🛵 Nouvelle course à proximité. Répondez ACCEPTE {offerCode} pour la prendre.",
+                new Dictionary<string, string> { ["1"] = offerCode });
         }
 
         /// <summary>
@@ -378,43 +440,21 @@ namespace Wazap.Application.Services
         /// <summary>
         /// Envoie un template si un nom est configuré (templates approuvés), sinon un texte.
         /// </summary>
-        private async Task SendStatusAsync(
+        private Task SendStatusAsync(
             string? phoneNumber,
             string templateName,
             string textMessage,
             Dictionary<string, string> variables)
-        {
-            if (string.IsNullOrWhiteSpace(phoneNumber))
-                return;
-
-            if (!string.IsNullOrWhiteSpace(templateName))
-            {
-                await _whatsAppSender.SendTemplateAsync(phoneNumber, templateName, variables);
-                return;
-            }
-
-            await _whatsAppSender.SendTextMessageAsync(phoneNumber, textMessage);
-        }
+            => SendTemplateOrTextAsync(phoneNumber, templateName, textMessage, variables);
 
         /// <summary>
         /// Envoie un template si un nom est configuré (templates approuvés), sinon un texte.
         /// </summary>
-        private async Task SendAlertAsync(
+        private Task SendAlertAsync(
             User vendor,
             string templateName,
             string textMessage,
             Dictionary<string, string> variables)
-        {
-            if (string.IsNullOrWhiteSpace(vendor.PhoneNumber))
-                return;
-
-            if (!string.IsNullOrWhiteSpace(templateName))
-            {
-                await _whatsAppSender.SendTemplateAsync(vendor.PhoneNumber, templateName, variables);
-                return;
-            }
-
-            await _whatsAppSender.SendTextMessageAsync(vendor.PhoneNumber, textMessage);
-        }
+            => SendTemplateOrTextAsync(vendor.PhoneNumber, templateName, textMessage, variables);
     }
 }

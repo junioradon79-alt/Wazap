@@ -119,13 +119,11 @@ namespace Wazap.Application.Services
 
                 try
                 {
-                    await _whatsApp.SendTemplateAsync(
+                    // Passe par l'orchestrateur : repli texte si « rider_offer » est refusé
+                    // ou en cours d'examen chez Meta.
+                    await _orchestrator.SendRiderOfferAsync(
                         rider.PhoneNumber,
-                        _whatsAppOptions.TemplateRiderOffer,
-                        new Dictionary<string, string>
-                        {
-                            ["1"] = offer.Id.ToString("N")[..8].ToUpperInvariant()
-                        });
+                        offer.Id.ToString("N")[..8].ToUpperInvariant());
                 }
                 catch (Exception ex)
                 {

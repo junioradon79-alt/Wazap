@@ -19,7 +19,7 @@ public class AuthServiceRegistrationTests
 {
     private static AuthService CreateService(TestDbContext db, RecordingWhatsAppSender sender)
     {
-        var whatsApp = new WhatsAppOrchestrationService(sender, new WhatsAppOptions());
+        var whatsApp = new WhatsAppOrchestrationService(sender, new WhatsAppOptions(), NullLogger<WhatsAppOrchestrationService>.Instance);
         return new AuthService(
             db.Context,
             new FakePasswordHasher(),

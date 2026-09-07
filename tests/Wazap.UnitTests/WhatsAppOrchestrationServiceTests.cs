@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using Wazap.Application.Abstractions;
 using Wazap.Application.Configuration;
 using Wazap.Application.Services;
@@ -11,7 +12,7 @@ namespace Wazap.UnitTests;
 public class WhatsAppOrchestrationServiceTests
 {
     private static WhatsAppOrchestrationService CreateService(RecordingWhatsAppSender sender)
-        => new(sender, new WhatsAppOptions());
+        => new(sender, new WhatsAppOptions(), NullLogger<WhatsAppOrchestrationService>.Instance);
     [Fact]
     public async Task SendCreditPurchaseConfirmation_ShouldSendExpectedMessage()
     {
