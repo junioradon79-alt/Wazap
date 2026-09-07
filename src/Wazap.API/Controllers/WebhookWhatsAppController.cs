@@ -31,7 +31,7 @@ public class WebhookWhatsAppController : ControllerBase
     private readonly IWhatsAppSender _whatsAppSender;
     private readonly DeliveryProofOptions _deliveryProof;
     private readonly ILogger<WebhookWhatsAppController> _logger;
-    private readonly string _webhookToken;
+    private readonly string? _webhookToken;
     private readonly string? _teamPhone;
 
     public WebhookWhatsAppController(
@@ -61,14 +61,28 @@ public class WebhookWhatsAppController : ControllerBase
         _colisSur = colisSur;
         _whatsAppSender = whatsAppSender;
         _logger = logger;
-        _webhookToken = config["WhatChimp:WebhookToken"] ?? "<REDACTED-TOKEN>";
+        // AUCUNE valeur de repli : un token codé en dur dans un dépôt public n'authentifie
+        // rien. Non configuré => la vérification du webhook échoue (fail closed).
+        _webhookToken = config["WhatChimp:WebhookToken"];
         _teamPhone = config["Prospect:TeamPhone"];
     }
 
     // GET: api/webhook/whatsapp — vérification WhatChimp
     [HttpGet]
     public IActionResult Verify([FromQuery] string token, [FromQuery] string challenge)
-        => token == _webhookToken ? Ok(challenge) : BadRequest("Token invalide.");
+    {
+        if (string.IsNullOrWhiteSpace(_webhookToken))
+        {
+            // Fail closed : mieux vaut un webhook non vérifiable qu'un webhook validé
+            // par un secret connu de tous.
+            _logger.LogError("WhatChimp:WebhookToken non configuré — vérification du webhook refusée.");
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, "Webhook non configuré.");
+        }
+
+        return SecurityHelper.FixedTimeEquals(token ?? string.Empty, _webhookToken)
+            ? Ok(challenge)
+            : BadRequest("Token invalide.");
+    }
 
     // POST: api/webhook/whatsapp — événements (live location, boutons vendeur, ACCEPTE livreur)
     [HttpPost]
