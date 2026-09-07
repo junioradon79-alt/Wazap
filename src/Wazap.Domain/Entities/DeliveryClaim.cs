@@ -24,6 +24,19 @@ public class DeliveryClaim
     public int? CompensationCredits { get; private set; }
     public string? ReviewNote { get; private set; }
 
+    /// <summary>Indemnisation en FCFA (étape 3), calculée depuis le barème puis versée au vendeur.</summary>
+    public decimal? CompensationAmountFcfa { get; private set; }
+
+    /// <summary>Part prélevée sur la caution du livreur au moment de la confirmation.</summary>
+    public decimal? RiderDepositDebitedFcfa { get; private set; }
+
+    public ClaimPayoutStatus PayoutStatus { get; private set; }
+
+    /// <summary>Référence du virement (Orange Money, ou transaction GeniusPay le jour venu).</summary>
+    public string? PayoutReference { get; private set; }
+    public DateTime? PaidAt { get; private set; }
+    public string? PayoutError { get; private set; }
+
     public DateTime CreatedAt { get; private set; }
     public DateTime? ReviewedAt { get; private set; }
     public Guid? ReviewedByUserId { get; private set; }
@@ -42,19 +55,54 @@ public class DeliveryClaim
     }
 
     /// <summary>Confirme le sinistre : exclusion du livreur + remboursement au vendeur.</summary>
-    public void Approve(int compensationCredits, string? note, Guid reviewerId)
+    public void Approve(int compensationCredits, string? note, Guid reviewerId,
+        decimal compensationAmountFcfa = 0m, decimal riderDepositDebitedFcfa = 0m)
     {
         CompensationCredits = Math.Max(0, compensationCredits);
+        CompensationAmountFcfa = Math.Max(0m, compensationAmountFcfa);
+        RiderDepositDebitedFcfa = Math.Max(0m, riderDepositDebitedFcfa);
         ReviewNote = Normalize(note);
         Status = DeliveryClaimStatus.Approved;
         ReviewedAt = DateTime.UtcNow;
         ReviewedByUserId = reviewerId;
+
+        // Un versement n'est dû que s'il y a un montant : une indemnisation en crédits
+        // seuls ne crée pas de ligne de versement à suivre.
+        PayoutStatus = CompensationAmountFcfa > 0m ? ClaimPayoutStatus.Pending : ClaimPayoutStatus.None;
+    }
+
+    /// <summary>Enregistre le versement effectué (référence du virement Orange Money / GeniusPay).</summary>
+    public void MarkPayoutPaid(string reference)
+    {
+        if (PayoutStatus is not (ClaimPayoutStatus.Pending or ClaimPayoutStatus.Failed))
+            throw new InvalidOperationException($"Aucun versement en attente sur ce dossier (état : {PayoutStatus}).");
+
+        if (string.IsNullOrWhiteSpace(reference))
+            throw new ArgumentException("Une référence de versement est requise (traçabilité comptable).", nameof(reference));
+
+        PayoutStatus = ClaimPayoutStatus.Paid;
+        PayoutReference = Normalize(reference);
+        PayoutError = null;
+        PaidAt = DateTime.UtcNow;
+    }
+
+    /// <summary>Marque une tentative de versement en échec : le dossier reste à reprendre.</summary>
+    public void MarkPayoutFailed(string? error)
+    {
+        if (PayoutStatus == ClaimPayoutStatus.Paid)
+            throw new InvalidOperationException("Versement déjà effectué : impossible de le passer en échec.");
+
+        PayoutStatus = ClaimPayoutStatus.Failed;
+        PayoutError = Normalize(error);
     }
 
     /// <summary>Rejette après enquête : le livreur est dégelé, aucun remboursement.</summary>
     public void Reject(string? note, Guid reviewerId)
     {
         CompensationCredits = null;
+        CompensationAmountFcfa = null;
+        RiderDepositDebitedFcfa = null;
+        PayoutStatus = ClaimPayoutStatus.None;
         ReviewNote = Normalize(note);
         Status = DeliveryClaimStatus.Rejected;
         ReviewedAt = DateTime.UtcNow;

@@ -15,6 +15,7 @@ export default function ClaimsPage() {
   const [busy, setBusy] = useState(false)
   const [approveTarget, setApproveTarget] = useState<ClaimListItem | null>(null)
   const [compensation, setCompensation] = useState('0')
+  const [amountFcfa, setAmountFcfa] = useState('0')
   const [note, setNote] = useState('')
 
   const load = async (): Promise<void> => {
@@ -34,6 +35,8 @@ export default function ClaimsPage() {
   const openApprove = (c: ClaimListItem): void => {
     setCompensation('0')
     setNote('')
+    // Le barème propose le montant ; l'équipe peut le corriger avant de valider.
+    setAmountFcfa(String(c.suggestedCompensationFcfa ?? 0))
     setApproveTarget(c)
   }
 
@@ -45,6 +48,7 @@ export default function ClaimsPage() {
       await api.post(`/admin/claims/${approveTarget.claimId}/approve`, {
         compensationCredits: credits,
         note: note || null,
+        compensationAmountFcfa: Number(amountFcfa) || 0,
       })
       setApproveTarget(null)
       await load()
@@ -69,7 +73,25 @@ export default function ClaimsPage() {
     }
   }
 
+  const markPaid = async (c: ClaimListItem): Promise<void> => {
+    const reference = window.prompt(
+      `Versement de ${c.compensationAmountFcfa} FCFA à ${c.vendorName} (${c.vendorPhone ?? 'numéro inconnu'}).\n` +
+        'Référence de la transaction Mobile Money :',
+    )
+    if (!reference || !reference.trim()) return
+    setBusy(true)
+    try {
+      await api.post(`/admin/claims/${c.claimId}/payout`, { reference: reference.trim() })
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Confirmation impossible')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const pending = claims.filter((c) => c.status === 'Pending').length
+  const toPay = claims.filter((c) => c.payoutStatus === 'Pending' || c.payoutStatus === 'Failed').length
 
   return (
     <>
@@ -79,7 +101,7 @@ export default function ClaimsPage() {
           <p>
             {claims.length} dossiers · 🚨 {pending} à traiter · ✅{' '}
             {claims.filter((c) => c.status === 'Approved').length} indemnisés ·{' '}
-            {claims.filter((c) => c.status === 'Rejected').length} rejetés
+            {claims.filter((c) => c.status === 'Rejected').length} rejetés{toPay > 0 ? ` · 💰 ${toPay} versement(s) à effectuer` : ''}
           </p>
         </div>
         <button className="btn" onClick={() => void load()} disabled={busy}>⟳ Actualiser</button>
@@ -118,9 +140,33 @@ export default function ClaimsPage() {
                     <td style={{ fontSize: 13 }}>{c.description || '—'}</td>
                     <td><span className={`badge ${meta.badge}`}>{meta.label}</span></td>
                     <td style={{ fontSize: 13 }}>
-                      {c.status === 'Approved'
-                        ? <>1 (remb.){c.compensationCredits ? ` + ${c.compensationCredits}` : ''} crédits</>
-                        : '—'}
+                      {c.status === 'Approved' ? (
+                        <>
+                          1 (remb.){c.compensationCredits ? ` + ${c.compensationCredits}` : ''} crédits
+                          {c.compensationAmountFcfa ? (
+                            <div style={{ marginTop: 2 }}>
+                              💰 {c.compensationAmountFcfa.toLocaleString('fr-FR')} FCFA
+                              {c.payoutStatus === 'Paid' ? (
+                                <span className="badge badge--ok" style={{ marginLeft: 6 }}>versé</span>
+                              ) : (
+                                <span className="badge badge--warn" style={{ marginLeft: 6 }}>
+                                  {c.payoutStatus === 'Failed' ? 'échec' : 'à verser'}
+                                </span>
+                              )}
+                              {c.riderDepositDebitedFcfa ? (
+                                <div style={{ fontSize: 11, color: 'var(--muted, #888)' }}>
+                                  dont {c.riderDepositDebitedFcfa.toLocaleString('fr-FR')} F sur la caution livreur
+                                </div>
+                              ) : null}
+                              {c.payoutReference ? (
+                                <div style={{ fontSize: 11, color: 'var(--muted, #888)' }}>réf. {c.payoutReference}</div>
+                              ) : null}
+                            </div>
+                          ) : null}
+                        </>
+                      ) : (
+                        '—'
+                      )}
                     </td>
                     <td style={{ fontSize: 13 }}>{formatDateTime(c.createdAt)}</td>
                     <td>
@@ -143,6 +189,15 @@ export default function ClaimsPage() {
                             Rejeter
                           </button>
                         </div>
+                      ) : c.payoutStatus === 'Pending' || c.payoutStatus === 'Failed' ? (
+                        <button
+                          className="btn btn--primary"
+                          style={{ padding: '6px 8px', fontSize: 12 }}
+                          disabled={busy}
+                          onClick={() => void markPaid(c)}
+                        >
+                          💰 Confirmer le versement
+                        </button>
                       ) : (
                         <span style={{ fontSize: 12, color: 'var(--muted, #888)' }}>
                           {c.reviewNote || 'Traité'}
@@ -174,6 +229,22 @@ export default function ClaimsPage() {
                 value={compensation}
                 onChange={(e) => setCompensation(e.target.value)}
               />
+            </div>
+            <div className="field">
+              <label>
+                Indemnisation en FCFA — barème :{' '}
+                {approveTarget.suggestedCompensationFcfa.toLocaleString('fr-FR')} F
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={amountFcfa}
+                onChange={(e) => setAmountFcfa(e.target.value)}
+              />
+              <small style={{ color: 'var(--muted, #888)' }}>
+                0 = pas de versement. Sinon le dossier reste « à verser » jusqu'à confirmation
+                du virement Mobile Money.
+              </small>
             </div>
             <div className="field">
               <label>Note de décision (optionnel)</label>

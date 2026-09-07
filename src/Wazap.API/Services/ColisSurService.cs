@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Wazap.Application.Abstractions;
+using Wazap.Application.Configuration;
 using Wazap.Application.Helpers;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
@@ -25,14 +26,19 @@ public sealed class ColisSurService
     private readonly ApplicationDbContext _context;
     private readonly IWhatsAppSender _whatsApp;
     private readonly ILogger<ColisSurService> _logger;
+    private readonly ColisSurOptions _colisSur;
+    private readonly IPayoutService _payouts;
     private readonly string? _teamPhone;
 
     public ColisSurService(ApplicationDbContext context, IWhatsAppSender whatsApp,
-        IConfiguration config, ILogger<ColisSurService> logger)
+        IConfiguration config, ColisSurOptions colisSur, IPayoutService payouts,
+        ILogger<ColisSurService> logger)
     {
         _context = context;
         _whatsApp = whatsApp;
         _logger = logger;
+        _colisSur = colisSur;
+        _payouts = payouts;
         _teamPhone = config["Prospect:TeamPhone"];
     }
 
@@ -103,8 +109,26 @@ public sealed class ColisSurService
             $"🚨 Sinistre #{orderCode} enregistré.\nLe livreur {rider.Username} est suspendu le temps de l'enquête.\n" +
             "Si le sinistre est confirmé : remboursement du crédit + indemnisation sous 48 h (notre équipe vous contacte).");
     }
-    /// <summary>Confirme un sinistre : rembourse + indemnise le vendeur, exclut le livreur.</summary>
-    public async Task ApproveAsync(Guid claimId, int compensationCredits, string? note, Guid reviewerId)
+    /// <summary>
+    /// Indemnisation en FCFA suggérée par le barème : valeur de la commande moins la
+    /// franchise, bornée par le plafond. Le plafond limite l'exposition de WAZAP, la
+    /// franchise décourage les déclarations abusives sur les petits montants.
+    /// </summary>
+    public decimal ComputeCompensationFcfa(decimal orderAmount)
+    {
+        var afterDeductible = Math.Max(0m, orderAmount - Math.Max(0m, _colisSur.DeductibleFcfa));
+
+        return _colisSur.MaxCompensationFcfa > 0m
+            ? Math.Min(afterDeductible, _colisSur.MaxCompensationFcfa)
+            : afterDeductible;
+    }
+
+    /// <summary>
+    /// Confirme un sinistre : rembourse + indemnise le vendeur (crédits ET FCFA), prélève
+    /// la caution du livreur et l'exclut définitivement.
+    /// </summary>
+    public async Task ApproveAsync(Guid claimId, int compensationCredits, string? note, Guid reviewerId,
+        decimal? compensationAmountFcfa = null)
     {
         var claim = await _context.DeliveryClaims.FirstOrDefaultAsync(c => c.Id == claimId)
             ?? throw new InvalidOperationException("Dossier introuvable.");
@@ -144,14 +168,74 @@ public sealed class ColisSurService
         identity.Blacklist($"Sinistre #{orderCode} confirmé — colis perdu/volé.", reviewerId);
         rider.SetAvailability(false);
 
-        claim.Approve(compensation, note, reviewerId);
+        // 4. Indemnisation en FCFA : montant décidé par l'équipe, sinon le barème.
+        var amountFcfa = Math.Max(0m, compensationAmountFcfa ?? ComputeCompensationFcfa(order.Amount));
+
+        // 5. Caution du livreur : prélevée à hauteur du disponible. Le solde ne devient
+        //    jamais négatif — au-delà, l'indemnisation reste à la charge de WAZAP.
+        var debited = identity.DebitDeposit(amountFcfa);
+
+        claim.Approve(compensation, note, reviewerId, amountFcfa, debited);
         await _context.SaveChangesAsync();
+
+        // 6. Demande de versement. Sans API de disbursement chez GeniusPay, le virement
+        //    est fait à la main puis confirmé dans /app/claims : le dossier reste en
+        //    attente jusque-là, un versement dû ne peut donc pas être oublié.
+        if (amountFcfa > 0m)
+        {
+            try
+            {
+                var payout = await _payouts.RequestPayoutAsync(new PayoutRequest(
+                    claim.Id, vendor.Id, vendor.PhoneNumber, amountFcfa,
+                    $"Indemnisation Garantie Colis Sûr — sinistre #{orderCode}"));
+
+                if (!payout.RequiresManualTransfer && !string.IsNullOrWhiteSpace(payout.Reference))
+                    claim.MarkPayoutPaid(payout.Reference);
+                else if (!string.IsNullOrWhiteSpace(payout.Error))
+                    claim.MarkPayoutFailed(payout.Error);
+
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                // L'échec du versement ne doit pas annuler la décision : le dossier reste
+                // approuvé, avec un versement à reprendre.
+                _logger.LogError(ex, "Demande de versement impossible pour le sinistre {ClaimId}.", claim.Id);
+                claim.MarkPayoutFailed(ex.Message);
+                await _context.SaveChangesAsync();
+            }
+        }
 
         await NotifyVendorAsync(vendor,
             $"✅ Garantie Colis Sûr — sinistre #{orderCode} CONFIRMÉ.\n" +
             "Vous avez été remboursé : 1 crédit (course)"
-            + (compensation > 0 ? $" + {compensation} crédit(s) d'indemnisation" : "") + ".\n" +
-            "Merci de votre confiance.");
+            + (compensation > 0 ? $" + {compensation} crédit(s) d'indemnisation" : "")
+            + (amountFcfa > 0m ? $"\n💰 Indemnisation de {amountFcfa:0} FCFA en cours de versement." : "")
+            + ".\nMerci de votre confiance.");
+    }
+
+    /// <summary>
+    /// Confirme le versement de l'indemnisation (virement Mobile Money effectué à la main).
+    /// La référence est obligatoire : sans elle, aucune traçabilité comptable.
+    /// </summary>
+    public async Task MarkPayoutPaidAsync(Guid claimId, string reference, Guid reviewerId)
+    {
+        var claim = await _context.DeliveryClaims.FirstOrDefaultAsync(c => c.Id == claimId)
+            ?? throw new InvalidOperationException("Dossier introuvable.");
+
+        claim.MarkPayoutPaid(reference);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Versement du sinistre {ClaimId} confirmé par {Reviewer} (réf. {Reference}).",
+            claimId, reviewerId, reference);
+
+        var vendor = await _context.Users.FirstOrDefaultAsync(u => u.Id == claim.VendorUserId);
+        if (vendor is not null)
+        {
+            await NotifyVendorAsync(vendor,
+                $"💰 Votre indemnisation de {claim.CompensationAmountFcfa:0} FCFA a été versée.\n" +
+                $"Référence : {reference}");
+        }
     }
 
     /// <summary>Rejette un sinistre après enquête (livreur dégelé, aucun remboursement).</summary>
@@ -211,7 +295,13 @@ public sealed class ColisSurService
                     c.VendorNote,
                     c.ReviewNote,
                     c.CreatedAt,
-                    c.ReviewedAt);
+                    c.ReviewedAt,
+                    c.CompensationAmountFcfa,
+                    c.RiderDepositDebitedFcfa,
+                    c.PayoutStatus.ToString(),
+                    c.PayoutReference,
+                    c.PaidAt,
+                    ComputeCompensationFcfa(order?.Amount ?? 0m));
             })
             .ToList();
     }
@@ -264,5 +354,11 @@ public sealed record ClaimListItem(
     string? VendorNote,
     string? ReviewNote,
     DateTime CreatedAt,
-    DateTime? ReviewedAt);
+    DateTime? ReviewedAt,
+    decimal? CompensationAmountFcfa,
+    decimal? RiderDepositDebitedFcfa,
+    string PayoutStatus,
+    string? PayoutReference,
+    DateTime? PaidAt,
+    decimal SuggestedCompensationFcfa);
 

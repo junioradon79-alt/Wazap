@@ -105,6 +105,33 @@ public class RiderIdentity
         ReopenIfRejected();
     }
 
+    /// <summary>Caution versée par le livreur, en FCFA (« Garantie Colis Sûr »).</summary>
+    public decimal DepositFcfa { get; private set; }
+
+    /// <summary>Enregistre le dépôt de caution (montant total détenu, non cumulatif).</summary>
+    public void SetDeposit(decimal amountFcfa)
+    {
+        if (amountFcfa < 0m)
+            throw new ArgumentOutOfRangeException(nameof(amountFcfa), "Caution négative impossible.");
+
+        DepositFcfa = amountFcfa;
+    }
+
+    /// <summary>
+    /// Prélève sur la caution à hauteur du disponible et retourne le montant réellement
+    /// débité. Le solde ne devient jamais négatif : la caution plafonne ce que le livreur
+    /// supporte, le reste de l'indemnisation est à la charge de WAZAP.
+    /// </summary>
+    public decimal DebitDeposit(decimal amountFcfa)
+    {
+        if (amountFcfa <= 0m || DepositFcfa <= 0m)
+            return 0m;
+
+        var debited = Math.Min(amountFcfa, DepositFcfa);
+        DepositFcfa -= debited;
+        return debited;
+    }
+
     /// <summary>
     /// Efface la référence au scan une fois le délai de conservation écoulé (RGPD).
     /// La pièce d'identité ne doit pas être gardée indéfiniment, mais la DÉCISION de

@@ -1,3 +1,4 @@
+using Wazap.Infrastructure.Services;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -69,7 +70,9 @@ internal sealed class WebhookHarness : IDisposable
             new ProspectAutoService(Context, Sender, config, NullLogger<ProspectAutoService>.Instance),
             new LeadConversionService(Context, new FakePasswordHasher(), new TrialOptions(), Sender,
                 NullLogger<LeadConversionService>.Instance),
-            new ColisSurService(Context, Sender, config, NullLogger<ColisSurService>.Instance),
+            new ColisSurService(Context, Sender, config, new ColisSurOptions(),
+                new ManualPayoutService(NullLogger<ManualPayoutService>.Instance),
+                NullLogger<ColisSurService>.Instance),
             Sender,
             proof,
             new RiderRatingService(Context, new RiderReputationOptions(), NullLogger<RiderRatingService>.Instance),

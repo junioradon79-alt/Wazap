@@ -33,7 +33,16 @@
 
 ## ⏭️ Chantiers restants à couvrir
 ### Code (par impact)
-1. **Garantie Colis Sûr étape 3** : versement FCFA sortant (Orange Money via GeniusPay), plafond/franchise configurables, caution livreur, conditions affichées sur `/app/vente`.
+1. ✅ **FAIT (07/09) — Garantie Colis Sûr étape 3** : barème FCFA (`ColisSur:MaxCompensationFcfa`
+   plafond / `DeductibleFcfa` franchise), caution livreur (`RiderIdentity.DepositFcfa`, prélevée à
+   hauteur du disponible), cycle de versement (`PayoutStatus` None/Pending/Paid/Failed + référence),
+   conditions affichées sur `/app/vente`. Migration 22 `AddColisSurPayout`.
+   ⚠️ **Le versement se fait À LA MAIN** (Mobile Money) puis se confirme dans `/app/claims` :
+   **GeniusPay n'expose aucune API de disbursement** — l'intégration ne couvre que `/payments`
+   (encaissement). Le port `IPayoutService` est prêt : le jour où l'API existe, une implémentation
+   suffit, sans toucher au domaine ni au service. **Action utilisateur** : confirmer auprès de
+   GeniusPay si un endpoint de versement existe, et fixer plafond/franchise/caution (défauts :
+   50 000 F / 0 / 0).
 2. **Preuves de livraison — volet photo** : photo du colis au retrait (dépend du webhook média ci-dessous).
 3. ✅ **FAIT (07/09)** — **Notes / réputation livreur** : commande client `NOTE <1-5>` après livraison
    (une note par commande, fenêtre 48 h), moyenne affichée au vendeur dans le profil livreur, filtre

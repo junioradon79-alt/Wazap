@@ -101,6 +101,13 @@ builder.Services.AddSingleton(ciNumberingOptions);
 var riderSecurityOptions = builder.Configuration.GetSection(RiderSecurityOptions.SectionName).Get<RiderSecurityOptions>() ?? new RiderSecurityOptions();
 builder.Services.AddSingleton(riderSecurityOptions);
 
+// Options Garantie Colis Sûr (barème d'indemnisation FCFA, caution livreur)
+var colisSurOptions = builder.Configuration.GetSection(ColisSurOptions.SectionName).Get<ColisSurOptions>() ?? new ColisSurOptions();
+builder.Services.AddSingleton(colisSurOptions);
+
+// Versement sortant : aucune API de disbursement chez GeniusPay → virement manuel tracé.
+builder.Services.AddScoped<IPayoutService, ManualPayoutService>();
+
 // Options réputation livreur (notes clients après livraison)
 var riderReputationOptions = builder.Configuration.GetSection(RiderReputationOptions.SectionName).Get<RiderReputationOptions>() ?? new RiderReputationOptions();
 builder.Services.AddSingleton(riderReputationOptions);

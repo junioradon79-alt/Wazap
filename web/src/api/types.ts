@@ -162,6 +162,13 @@ export interface ClaimListItem {
   reviewNote: string | null
   createdAt: string
   reviewedAt: string | null
+  compensationAmountFcfa: number | null
+  riderDepositDebitedFcfa: number | null
+  payoutStatus: 'None' | 'Pending' | 'Paid' | 'Failed'
+  payoutReference: string | null
+  paidAt: string | null
+  /** Montant proposé par le barème (valeur de la course − franchise, borné par le plafond). */
+  suggestedCompensationFcfa: number
 }
 
 export interface ReferredVendorItem {

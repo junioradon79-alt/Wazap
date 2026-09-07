@@ -152,6 +152,33 @@ export default function VentePage() {
       </section>
 
       <section style={t.card}>
+        <h2 style={{ margin: '0 0 10px' }}>🛡️ Garantie Colis Sûr</h2>
+        <p style={{ margin: '0 0 10px', color: '#5d7164', fontSize: 14 }}>
+          Vos colis sont confiés à des livreurs dont l'identité est vérifiée. Si un colis est
+          perdu ou volé, vous êtes indemnisé.
+        </p>
+        <ul style={{ margin: 0, paddingLeft: 18, color: '#5d7164', fontSize: 14, lineHeight: 1.7 }}>
+          <li>Livreurs <strong>certifiés</strong> : pièce d'identité vérifiée avant toute course.</li>
+          <li>
+            <strong>Code de livraison</strong> à 4 chiffres : le livreur ne clôture la course
+            qu'en donnant le code que vous avez reçu.
+          </li>
+          <li>
+            Déclaration en un message WhatsApp : <strong>SINISTRE + code de la course</strong>.
+            Le livreur est suspendu immédiatement, le temps de l'enquête.
+          </li>
+          <li>
+            Sinistre confirmé : <strong>crédit de la course remboursé</strong> et indemnisation
+            versée par Mobile Money sous 48 h.
+          </li>
+        </ul>
+        <p style={{ margin: '10px 0 0', color: '#8a978e', fontSize: 12 }}>
+          Indemnisation plafonnée et soumise à enquête. La garantie s'applique aux courses
+          confiées à un livreur certifié, du retrait à la remise.
+        </p>
+      </section>
+
+      <section style={t.card}>
         <h2 style={{ margin: '0 0 10px' }}>Zones desservies</h2>
         <div style={t.chips}>{ZONES.map((z) => <span key={z} style={t.chip}>{z}</span>)}</div>
         <p style={t.muted}>D’autres communes arrivent — laissez-nous vos coordonnées pour être prévenu.</p>

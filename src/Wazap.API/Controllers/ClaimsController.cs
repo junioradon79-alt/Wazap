@@ -35,10 +35,26 @@ public class ClaimsController : ControllerBase
     {
         try
         {
-            await _colisSur.ApproveAsync(id, request.CompensationCredits, request.Note, _currentUser.Id!.Value);
+            await _colisSur.ApproveAsync(id, request.CompensationCredits, request.Note, _currentUser.Id!.Value,
+                request.CompensationAmountFcfa);
             return NoContent();
         }
         catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    // POST: api/admin/claims/{id}/payout — confirme le versement de l'indemnisation (FCFA)
+    [HttpPost("{id:guid}/payout")]
+    public async Task<IActionResult> MarkPayoutPaid(Guid id, [FromBody] MarkPayoutPaidRequest request)
+    {
+        try
+        {
+            await _colisSur.MarkPayoutPaidAsync(id, request.Reference, _currentUser.Id!.Value);
+            return NoContent();
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { error = ex.Message });
         }
@@ -60,6 +76,15 @@ public class ClaimsController : ControllerBase
     }
 }
 
-public sealed record ApproveClaimRequest(int CompensationCredits = 0, string? Note = null);
+/// <summary>
+/// <paramref name="CompensationAmountFcfa"/> null = laisser le barème décider
+/// (valeur de la commande − franchise, borné par le plafond).
+/// </summary>
+public sealed record ApproveClaimRequest(
+    int CompensationCredits = 0,
+    string? Note = null,
+    decimal? CompensationAmountFcfa = null);
+
+public sealed record MarkPayoutPaidRequest(string Reference);
 
 public sealed record RejectClaimRequest(string? Note = null);

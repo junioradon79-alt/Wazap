@@ -1,3 +1,5 @@
+using Wazap.Application.Configuration;
+using Wazap.Infrastructure.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 using Wazap.API.Services;
 using Wazap.Domain.Entities;
@@ -14,7 +16,9 @@ namespace Wazap.UnitTests;
 public class ColisSurServiceTests
 {
     private static ColisSurService CreateService(TestDbContext db, RecordingWhatsAppSender sender)
-        => new(db.Context, sender, new ConfigStub(), NullLogger<ColisSurService>.Instance);
+        => new(db.Context, sender, new ConfigStub(), new ColisSurOptions(),
+            new ManualPayoutService(NullLogger<ManualPayoutService>.Instance),
+            NullLogger<ColisSurService>.Instance);
 
     private static User CreateVendor(TestDbContext db, string username = "vendeur", string phone = "+2250700000001")
     {
