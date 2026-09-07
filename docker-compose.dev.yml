@@ -23,7 +23,8 @@ services:
     environment:
       ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=wazapdev;Username=wazapdev;Password=WazapDev2026!"
       SeedAdmin__Username: "admin"
-      SeedAdmin__Password: "<REDACTED-PASSWORD>"
+      # Jamais de mot de passe réel ici : ce fichier est versionné dans un dépôt public.
+      SeedAdmin__Password: "${SEED_ADMIN_PASSWORD:-dev-only-change-me}"
       WhatChimp__ApiToken: ""
       WhatChimp__PhoneNumberId: ""
       Jwt__Key: "dev-only-key-please-override-in-real-deploy-0123456789abcdef"

@@ -60,7 +60,7 @@ Clés stockées via `dotnet user-secrets set` :
 - `WhatChimp:WebhookToken`
 - `Jwt:Key`
 - `SeedAdmin:Username` = `admin`
-- `SeedAdmin:Password` = `<REDACTED-PASSWORD>` (voir DEPLOYMENT.md — gitignoré)
+- `SeedAdmin:Password` = **jamais dans ce dépôt** (dépôt public) — voir `DEPLOYMENT.md`, gitignoré
 
 `appsettings.json` contient le non-secret : `WhatChimp:PhoneNumberId`, `WhatChimp:BaseUrl`, `Jwt:Issuer`, `Jwt:Audience`, `Outbox:MaxRetries`, `Outbox:PollingIntervalSeconds`, `Geo` (rayon/fraîcheur/exclusivité/timeout/rétention), `Packs` (catalogue 6 packs : Mini 1000 F/6 · Découverte 2500/15 · Petit 5000/35 · Moyen 10000/80 · Grand 25000/220 · Pro 100000/1000), `GeniusPay` (BaseUrl/Enabled, clés en user-secrets), `Payments:SimulateAsync` (test flux asynchrone), `RiderScans:EncryptionKey` (chiffrement des scans
 d'identité — **vide = stockage en clair**, à renseigner en production), `DeliveryProof:RequireClientCode`
@@ -130,7 +130,7 @@ d'identité — **vide = stockage en clair**, à renseigner en production), `Del
 ```powershell
 dotnet ef database update --project src\Wazap.Infrastructure --startup-project src\Wazap.API
 dotnet run --project src\Wazap.API
-# POST /api/auth/login { "username":"admin", "password":"<REDACTED-PASSWORD>" }  (voir DEPLOYMENT.md)
+# POST /api/auth/login { "username":"admin", "password":"<voir DEPLOYMENT.md>" }
 # UI : http://localhost:5297/ (dashboard) et /share-location
 ```
 
