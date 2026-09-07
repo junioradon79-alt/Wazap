@@ -101,6 +101,10 @@ builder.Services.AddSingleton(ciNumberingOptions);
 var riderSecurityOptions = builder.Configuration.GetSection(RiderSecurityOptions.SectionName).Get<RiderSecurityOptions>() ?? new RiderSecurityOptions();
 builder.Services.AddSingleton(riderSecurityOptions);
 
+// Options réputation livreur (notes clients après livraison)
+var riderReputationOptions = builder.Configuration.GetSection(RiderReputationOptions.SectionName).Get<RiderReputationOptions>() ?? new RiderReputationOptions();
+builder.Services.AddSingleton(riderReputationOptions);
+
 // Options preuve de livraison (code client à 4 chiffres restitué par le livreur)
 var deliveryProofOptions = builder.Configuration.GetSection(DeliveryProofOptions.SectionName).Get<DeliveryProofOptions>() ?? new DeliveryProofOptions();
 builder.Services.AddSingleton(deliveryProofOptions);
@@ -114,6 +118,7 @@ builder.Services.AddScoped<MetricsService>();
 builder.Services.AddScoped<ProspectAutoService>();
 builder.Services.AddScoped<LeadConversionService>();
 builder.Services.AddScoped<ColisSurService>();
+builder.Services.AddScoped<RiderRatingService>();
 
 // Options rétention / archivage des données (purge opt-in, désactivée par défaut)
 var retentionOptions = builder.Configuration.GetSection(RetentionOptions.SectionName).Get<RetentionOptions>() ?? new RetentionOptions();

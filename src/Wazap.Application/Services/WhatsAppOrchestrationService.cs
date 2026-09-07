@@ -355,7 +355,8 @@ namespace Wazap.Application.Services
         {
             var orderCode = order.Id.ToString("N")[..8].ToUpperInvariant();
             await SendStatusAsync(order.ClientWhatsAppNumber, string.Empty,
-                $"✅ Votre colis #{orderCode} a été livré. Merci d'avoir choisi WAZAP !",
+                $"✅ Votre colis #{orderCode} a été livré. Merci d'avoir choisi WAZAP !\n" +
+                "⭐ Notez votre livreur en répondant NOTE suivi de 1 à 5 (ex : NOTE 5).",
                 new Dictionary<string, string>());
         }
 

@@ -30,6 +30,7 @@ public class WebhookWhatsAppController : ControllerBase
     private readonly ColisSurService _colisSur;
     private readonly IWhatsAppSender _whatsAppSender;
     private readonly DeliveryProofOptions _deliveryProof;
+    private readonly RiderRatingService _riderRatings;
     private readonly ILogger<WebhookWhatsAppController> _logger;
     private readonly string? _webhookToken;
     private readonly string? _teamPhone;
@@ -46,10 +47,12 @@ public class WebhookWhatsAppController : ControllerBase
         ColisSurService colisSur,
         IWhatsAppSender whatsAppSender,
         DeliveryProofOptions deliveryProof,
+        RiderRatingService riderRatings,
         ILogger<WebhookWhatsAppController> logger,
         IConfiguration config)
     {
         _deliveryProof = deliveryProof;
+        _riderRatings = riderRatings;
         _context = context;
         _riderService = riderService;
         _vendorService = vendorService;
@@ -183,11 +186,37 @@ public class WebhookWhatsAppController : ControllerBase
             _logger.LogInformation("Offre {OfferId} acceptée via webhook.", offerId);
         }
 
-        // 5) Numéro INCONNU → automatisation des échanges prospects (commerçant / livreur /
+        // 5) Note du client à son livreur (« NOTE 5 ») — AVANT le bot prospects : un client
+        //    n'est pas un utilisateur enregistré, sa note serait sinon prise pour un
+        //    premier contact commercial et créerait un Lead.
+        if (!string.IsNullOrWhiteSpace(phone) && RiderRatingService.IsRatingCommand(text))
+        {
+            var ratingReply = await _riderRatings.TryRateAsync(phone, text!);
+            if (ratingReply is not null)
+            {
+                await _whatsAppSender.SendTextMessageAsync(phone, ratingReply);
+                return Ok();
+            }
+            // null = aucune course notable pour ce numéro : on laisse suivre le flux normal.
+        }
+
+        // 6) Numéro INCONNU → automatisation des échanges prospects (commerçant / livreur /
         //    parrainage) : création/qualification d'un Lead + réponse contextuelle.
         if (!string.IsNullOrWhiteSpace(phone) && !string.IsNullOrWhiteSpace(text))
         {
-            var knownUser = await _context.Users.AnyAsync(u => PhoneNumberNormalizer.SameSubscriber(u.PhoneNumber, phone));
+            // SameSubscriber est une méthode C# : EF Core ne sait pas la traduire en SQL.
+            // Employée directement dans un prédicat LINQ-to-Entities, elle faisait lever
+            // « The LINQ expression could not be translated ». On rapproche donc en mémoire,
+            // comme FindUserByPhoneAsync, après un pré-filtre SQL sur les 8 derniers chiffres.
+            var digits = PhoneNumberNormalizer.DigitsOnly(phone);
+            var suffix = digits.Length >= 8 ? digits[^8..] : digits;
+
+            var candidates = await _context.Users.AsNoTracking()
+                .Where(u => u.PhoneNumber != null && u.PhoneNumber.EndsWith(suffix))
+                .Select(u => u.PhoneNumber)
+                .ToListAsync();
+
+            var knownUser = candidates.Any(p => PhoneNumberNormalizer.SameSubscriber(p, phone));
             if (!knownUser)
                 await _prospects.HandleAsync(phone, text);
         }

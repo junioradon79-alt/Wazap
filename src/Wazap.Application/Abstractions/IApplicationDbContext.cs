@@ -19,6 +19,7 @@ public interface IApplicationDbContext
     DbSet<CreditTransaction> CreditTransactions { get; }
     DbSet<RiderIdentity> RiderIdentities { get; }
     DbSet<DeliveryClaim> DeliveryClaims { get; }
+    DbSet<RiderRating> RiderRatings { get; }
 
     DatabaseFacade Database { get; }
 

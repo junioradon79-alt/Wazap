@@ -25,6 +25,7 @@ namespace Wazap.Infrastructure.Data
         public DbSet<Lead> Leads { get; set; }
         public DbSet<RiderIdentity> RiderIdentities { get; set; }
         public DbSet<DeliveryClaim> DeliveryClaims { get; set; }
+        public DbSet<RiderRating> RiderRatings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -134,6 +135,23 @@ namespace Wazap.Infrastructure.Data
                 .HasIndex(i => i.Status);
 
             // Dossiers de sinistre « Garantie Colis Sûr » : un seul dossier par commande.
+            // Une seule note par commande : le client note la course, pas le livreur en général.
+            modelBuilder.Entity<RiderRating>()
+                .HasIndex(r => r.OrderId)
+                .IsUnique();
+
+            // Moyenne par livreur (profil affiché au vendeur, filtre de réputation).
+            modelBuilder.Entity<RiderRating>()
+                .HasIndex(r => r.RiderUserId);
+
+            modelBuilder.Entity<RiderRating>()
+                .Property(r => r.ClientWhatsAppNumber)
+                .HasMaxLength(30);
+
+            modelBuilder.Entity<RiderRating>()
+                .Property(r => r.Comment)
+                .HasMaxLength(300);
+
             modelBuilder.Entity<DeliveryClaim>()
                 .HasIndex(c => c.OrderId)
                 .IsUnique();

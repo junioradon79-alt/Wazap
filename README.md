@@ -48,6 +48,7 @@
 17. `AddReferralToLeads` (20260906150530) — `Leads.ReferralCode` (parrainage capté par le bot)
 18. `AddDeliveryClaims` (20260906151008) — table `DeliveryClaims` (sinistres)
 19. `AddDeliveryProof` (20260907103725) — `Orders.DeliveryCode`/`DeliveryCodeVerifiedAt`/`DeliveryCodeAttempts` (preuve de remise, DDL idempotent)
+20. `AddRiderRatings` (20260907175043) — table `RiderRatings` (réputation livreur, DDL idempotent)
 
 Appliquer : `dotnet ef database update --project src\Wazap.Infrastructure --startup-project src\Wazap.API`
 
@@ -64,7 +65,8 @@ Clés stockées via `dotnet user-secrets set` :
 
 `appsettings.json` contient le non-secret : `WhatChimp:PhoneNumberId`, `WhatChimp:BaseUrl`, `Jwt:Issuer`, `Jwt:Audience`, `Outbox:MaxRetries`, `Outbox:PollingIntervalSeconds`, `Geo` (rayon/fraîcheur/exclusivité/timeout/rétention), `Packs` (catalogue 6 packs : Mini 1000 F/6 · Découverte 2500/15 · Petit 5000/35 · Moyen 10000/80 · Grand 25000/220 · Pro 100000/1000), `GeniusPay` (BaseUrl/Enabled, clés en user-secrets), `Payments:SimulateAsync` (test flux asynchrone), `RiderScans:EncryptionKey` (chiffrement des scans
 d'identité — **vide = stockage en clair**, à renseigner en production), `DeliveryProof:RequireClientCode`
-(exiger le code du client pour clôturer une livraison, défaut `false`).
+(exiger le code du client pour clôturer une livraison, défaut `false`), `RiderReputation`
+(fenêtre de notation, seuil de filtrage des livreurs — filtre désactivé par défaut).
 
 ## 5. Endpoints & autorisation
 
@@ -99,6 +101,13 @@ d'identité — **vide = stockage en clair**, à renseigner en production), `Del
 - **Pay-per-use à l'acceptation** : le crédit n'est **débité que lorsqu'un livreur accepte** la course (1 crédit par commande, par lot au prorata) ; la création d'une commande/course est **gratuite** (402 « Crédits insuffisants » uniquement si le solde est insuffisant au moment de l'acceptation).
 - **Matching livreurs à 2 niveaux** : GPS frais (Haversine) puis **ZONE déclarée** (téléphones basiques sans GPS) — commandes WhatsApp `ZONE <quartier>`, `DISPO`, `INDISPO`, `AIDE`. Une course est possible avec une **zone seule** (pas de GPS vendeur requis).
 - **Livraison à la demande (vendeur)** : commande WhatsApp **`LIVRAISON <détail + adresse client>`** → commande confirmée → diffusion **immédiate** aux livreurs. Le **téléphone du client** peut être inclus (`… tel 0708091011`) pour les notifications automatiques.
+- **Réputation livreur** : à la confirmation de livraison, le client est invité à répondre
+  **`NOTE <1-5>`** (commentaire libre optionnel). Une seule note par commande, fenêtre de
+  `RiderReputation:RatingWindowHours` (48 h). La moyenne (`⭐ 4,6/5 (12 avis)`) est ajoutée au profil
+  livreur envoyé au vendeur avant la remise du colis. Filtre de matching `MinimumAverageScore`
+  **désactivé par défaut** et jamais appliqué en dessous de `MinimumRatingsBeforeFiltering` (5) avis.
+  La note est interceptée **avant** le bot prospects, sinon le client — qui n'est pas un utilisateur
+  enregistré — serait pris pour un premier contact commercial.
 - **Preuve de remise** : à l'assignation, un **code à 4 chiffres** est généré et envoyé au client
   (message dédié, template `TemplateDeliveryCode` sinon texte) ; le livreur clôture avec
   **`LIVRE <code> CODE <4 chiffres>`**. Comparaison à temps constant, **5 tentatives** puis blocage
@@ -123,7 +132,7 @@ d'identité — **vide = stockage en clair**, à renseigner en production), `Del
 
 ## 8. Tests
 
-`dotnet test` → **199 tests** (Order, DeliveryBatch, DeliveryOffer, OutboxMessage, User, CreditTransaction, GeoDistance, MockPayment, WhatsAppOrchestration, PhoneNumberNormalizer + table ARTCI 8→10 exhaustive, validators, auth 2FA/refresh/reset, GeniusPay, LeadConversion, ColisSur, RiderService/certification, preuve de livraison + parsing `LIVRE … CODE …`).
+`dotnet test` → **241 tests** (Order, DeliveryBatch, DeliveryOffer, OutboxMessage, User, CreditTransaction, GeoDistance, MockPayment, WhatsAppOrchestration, PhoneNumberNormalizer + table ARTCI 8→10 exhaustive, validators, auth 2FA/refresh/reset, GeniusPay, LeadConversion, ColisSur, RiderService/certification, preuve de livraison + parsing `LIVRE … CODE …`).
 
 ## 9. Lancer le projet
 

@@ -35,7 +35,10 @@
 ### Code (par impact)
 1. **Garantie Colis Sûr étape 3** : versement FCFA sortant (Orange Money via GeniusPay), plafond/franchise configurables, caution livreur, conditions affichées sur `/app/vente`.
 2. **Preuves de livraison — volet photo** : photo du colis au retrait (dépend du webhook média ci-dessous).
-3. **Notes / réputation livreur** (étoiles) affichées au vendeur avant remise du colis.
+3. ✅ **FAIT (07/09)** — **Notes / réputation livreur** : commande client `NOTE <1-5>` après livraison
+   (une note par commande, fenêtre 48 h), moyenne affichée au vendeur dans le profil livreur, filtre
+   de matching `RiderReputation:MinimumAverageScore` **désactivé par défaut**. Migration 20
+   `AddRiderRatings`. Reste possible : page admin des avis, réponse du livreur, pondération du matching.
 4. **Webhook média WhatChimp** (photos CNI en auto) — sinon rester sur l'upload admin.
 5. **Onboarding vendeur activable** dès templates Meta approuvés + relance des inactifs.
 6. **Tests** : ✅ services couverts (LeadConversion, ColisSur, RiderService, AuthService, preuve de livraison) — reste l'**E2E webhook**.

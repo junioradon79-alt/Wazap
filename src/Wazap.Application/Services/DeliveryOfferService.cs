@@ -27,6 +27,7 @@ namespace Wazap.Application.Services
         private readonly ClientOptions _client;
         private readonly WhatsAppOrchestrationService _orchestrator;
         private readonly RiderSecurityOptions _riderSecurity;
+        private readonly RiderReputationOptions _reputation;
         private readonly ILogger<DeliveryOfferService> _logger;
 
         public DeliveryOfferService(
@@ -38,6 +39,7 @@ namespace Wazap.Application.Services
             ClientOptions client,
             WhatsAppOrchestrationService orchestrator,
             RiderSecurityOptions riderSecurity,
+            RiderReputationOptions reputation,
             ILogger<DeliveryOfferService> logger)
         {
             _context = context;
@@ -48,6 +50,7 @@ namespace Wazap.Application.Services
             _client = client;
             _orchestrator = orchestrator;
             _riderSecurity = riderSecurity;
+            _reputation = reputation;
             _logger = logger;
         }
 
@@ -611,7 +614,19 @@ namespace Wazap.Application.Services
                 _ => "Livreur WAZAP (vérification en cours)"
             };
 
-            return $"{statusText} · {deliveries} livraison(s)";
+            var line = $"{statusText} · {deliveries} livraison(s)";
+
+            // Réputation : affichée seulement s'il existe des notes, pour ne pas afficher
+            // « 0/5 » à un livreur qui n'a simplement jamais été noté.
+            var scores = await _context.RiderRatings.AsNoTracking()
+                .Where(r => r.RiderUserId == riderId)
+                .Select(r => r.Score)
+                .ToListAsync();
+
+            if (scores.Count > 0)
+                line += $" · ⭐ {scores.Average():0.#}/5 ({scores.Count} avis)";
+
+            return line;
         }
 
         /// <summary>
@@ -663,6 +678,21 @@ namespace Wazap.Application.Services
                 .Select(c => c.RiderUserId)
                 .ToListAsync();
             exclude.UnionWith(underInvestigation);
+
+            // Réputation : écarte les livreurs sous la moyenne minimale. Désactivé par
+            // défaut (MinimumAverageScore = 0) et jamais appliqué en dessous d'un nombre
+            // suffisant d'avis — un nouveau livreur ne doit pas sortir du vivier sur une
+            // seule mauvaise note.
+            if (_reputation.MinimumAverageScore > 0)
+            {
+                var poorlyRated = await _context.RiderRatings.AsNoTracking()
+                    .GroupBy(r => r.RiderUserId)
+                    .Where(g => g.Count() >= _reputation.MinimumRatingsBeforeFiltering
+                             && g.Average(r => r.Score) < _reputation.MinimumAverageScore)
+                    .Select(g => g.Key)
+                    .ToListAsync();
+                exclude.UnionWith(poorlyRated);
+            }
 
             // Tier 1 — GPS (Haversine) : uniquement si le vendeur a une position.
             if (vendor.Latitude is not null && vendor.Longitude is not null)
