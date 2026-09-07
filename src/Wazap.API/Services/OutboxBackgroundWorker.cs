@@ -4,6 +4,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Wazap.API.Health;
 using Wazap.Application.Dtos;
+using Wazap.Application.Exceptions;
 using Wazap.Application.Services;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Services;
@@ -145,6 +146,15 @@ public sealed class OutboxBackgroundWorker : BackgroundService
                 // Rejet définitif du destinataire (400/401/403/404/405/410) → inutile de réessayer.
                 message.MarkFailed(ex.Message);
                 await alerts.NotifyAsync("webhook.failed", Truncate($"Livraison webhook en échec permanent : {ex.Message}"), ct);
+            }
+            catch (WhatsAppSendException ex) when (ex.IsPermanent)
+            {
+                // Template non approuvé, variables incorrectes, hors fenêtre 24 h : réessayer
+                // ne changera rien. Échec immédiat + alerte, plutôt que 5 tentatives muettes.
+                _logger.LogError(ex, "Envoi WhatsApp définitivement refusé pour le message outbox {MessageId}.", message.Id);
+                message.MarkFailed(ex.Message);
+                await alerts.NotifyAsync("whatsapp.failed",
+                    $"Envoi WhatsApp refusé (message outbox {message.Id}) : {Truncate(ex.Message)}", ct);
             }
             catch (Exception ex)
             {

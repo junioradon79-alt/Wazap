@@ -62,7 +62,8 @@ public sealed class OrderService
             order.ClientWhatsAppNumber,
             order.VendorWhatsAppNumber,
             order.Description,
-            order.Amount);
+            order.Amount,
+            vendor.Username);
 
         // L'intention de notification est persistée dans le même commit que la commande (outbox).
         var outboxMessage = new OutboxMessage(

@@ -151,7 +151,12 @@ dotnet run --project src\Wazap.API
   outbox (log `ALERTE` + webhook optionnel `Monitoring:WebhookUrl`).
 - **Rétention** : purge opt-in (`Retention:Enabled=false` par défaut) — commandes livrées/lots vides/outbox envoyée.
 - Alertes WhatsApp crédits en **message texte** — templates approuvés requis en production.
-- Approbation Meta des **15 templates** (tous `Submitted`) en attente — dès approbation, activation des noms dans
+- **Templates Meta : 14 REJETÉS sur 15** (constat 07/09). Cause : **aucun exemple de contenu variable**
+  n'avait été fourni — `no_credit`, seul template sans variable, est aussi le seul approuvé. À corriger
+  dans WhatsApp Manager (« Modifier le modèle » → exemple par variable → soumettre). En prime,
+  `rider_assigned_client`/`_vendor` étaient rejetés aussi pour variables **hors ordre d'apparition**
+  (règle Meta) : textes renumérotés, code aligné en conséquence.
+- Approbation Meta des **15 templates** en attente — dès approbation, activation des noms dans
   `appsettings` puis déploiement.
 
 ## 11. CI/CD & scripts d'automatisation

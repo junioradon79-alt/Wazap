@@ -66,7 +66,9 @@
 ---
 
 ## A. Actions utilisateur (dashboards externes) — me prévenir pour activer
-1. **Approbation Meta des 15 templates** (tous `Submitted`) → dès `Approved`, j'active dans appsettings + déploie (5 min) :
+1. **Templates Meta — 14 rejetés sur 15** (constat 07/09, remplace « tous Submitted »). Cause identifiée :
+   **exemples de contenu variable manquants** (le seul approuvé, `no_credit`, est le seul sans variable).
+   Corriger dans WhatsApp Manager puis resoumettre ; dès `Approved`, activer dans appsettings + déployer :
    - `order_received`, `order_confirm`, `rider_offer`, `rider_batch_offer` (+ `_btn` bouton), `rider_assigned_client`, `rider_assigned_vendor`
    - crédits : `credit_purchase`, `low_credit`, `no_credit` ; prospection : `prospect_approach/followup/offer` ; recrutement : `rider_recruit`, `rider_company`
 2. **Clé API Google Places** (`AIza…`, carte bancaire requise) → collecte complète 13 zones × 33 secteurs.

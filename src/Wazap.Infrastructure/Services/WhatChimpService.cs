@@ -1,6 +1,8 @@
 using System.Text;
+using System.Text.Json;
 using Wazap.Application.Abstractions;
 using Wazap.Application.Configuration;
+using Wazap.Application.Exceptions;
 using Wazap.Application.Helpers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -46,10 +48,12 @@ public class WhatChimpService : IWhatsAppSender
                 .Append("&phone_number=").Append(Uri.EscapeDataString(recipient))
                 .Append("&message_type=template&template_name=").Append(Uri.EscapeDataString(templateName));
 
-            int index = 1;
-            foreach (var variable in variables)
+            // L'indice provient de la CLÉ (« 1 », « 2 »…), jamais de l'ordre d'énumération
+            // du dictionnaire : celui-ci n'est pas garanti par .NET, et une variable
+            // déplacée enverrait le nom du client à la place du code de commande.
+            foreach (var variable in variables.OrderBy(v => ParseVariableIndex(v.Key)))
             {
-                sb.Append("&variable").Append(index++)
+                sb.Append("&variable").Append(ParseVariableIndex(variable.Key))
                   .Append('=').Append(Uri.EscapeDataString(variable.Value));
             }
 
@@ -57,6 +61,7 @@ public class WhatChimpService : IWhatsAppSender
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
+            EnsureGatewayAccepted(content, $"template {templateName} vers {recipient}");
             _logger.LogInformation($"Template {templateName} envoyé à {recipient}. Réponse : {content}");
         }
         catch (Exception ex)
@@ -81,6 +86,7 @@ public class WhatChimpService : IWhatsAppSender
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
+            EnsureGatewayAccepted(content, $"message texte vers {recipient}");
             _logger.LogInformation($"Message texte envoyé à {recipient}. Réponse : {content}");
         }
         catch (Exception ex)
@@ -88,5 +94,74 @@ public class WhatChimpService : IWhatsAppSender
             _logger.LogError(ex, $"Erreur lors de l'envoi du message à {toPhoneNumber}");
             throw;
         }
+    }
+
+    /// <summary>Indice d'une variable de template, tiré de sa clé (« 1 », « 2 »…).</summary>
+    private static int ParseVariableIndex(string key)
+        => int.TryParse(key, out var index) && index > 0
+            ? index
+            : throw new ArgumentException($"Clé de variable de template invalide : « {key} » (attendu : 1, 2, 3…).");
+
+    /// <summary>
+    /// WhatChimp répond <c>HTTP 200</c> même quand l'envoi échoue, en plaçant le verdict
+    /// dans le corps (<c>{"status":"0","message":"…"}</c>). Sans cette vérification, un
+    /// template refusé par Meta était compté comme envoyé : l'outbox marquait le message
+    /// « Sent » et personne n'apprenait que le destinataire n'avait rien reçu.
+    /// </summary>
+    internal static void EnsureGatewayAccepted(string? content, string context)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+            return;
+
+        string? status = null;
+        string? gatewayMessage = null;
+
+        try
+        {
+            using var document = JsonDocument.Parse(content);
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
+                return;
+
+            if (document.RootElement.TryGetProperty("status", out var statusElement))
+            {
+                status = statusElement.ValueKind switch
+                {
+                    JsonValueKind.String => statusElement.GetString(),
+                    JsonValueKind.Number => statusElement.GetRawText(),
+                    JsonValueKind.False => "0",
+                    JsonValueKind.True => "1",
+                    _ => null
+                };
+            }
+
+            if (document.RootElement.TryGetProperty("message", out var messageElement)
+                && messageElement.ValueKind == JsonValueKind.String)
+            {
+                gatewayMessage = messageElement.GetString();
+            }
+        }
+        catch (JsonException)
+        {
+            // Corps non JSON : on ne peut rien conclure, on laisse passer plutôt que de
+            // faire échouer des envois qui fonctionnent.
+            return;
+        }
+
+        // Prudence délibérée : seul un « status » explicitement négatif est un échec.
+        // Une réponse sans « status » reste considérée comme un succès.
+        if (status is not "0")
+            return;
+
+        var reason = string.IsNullOrWhiteSpace(gatewayMessage) ? content : gatewayMessage;
+        throw new WhatsAppSendException($"WhatChimp a refusé l'envoi ({context}) : {reason}", IsPermanent(reason));
+    }
+
+    /// <summary>Refus qu'un nouvel essai ne peut pas lever (fenêtre 24 h, template, variables).</summary>
+    private static bool IsPermanent(string reason)
+    {
+        var text = reason.ToLowerInvariant();
+        return text.Contains("24 hour") || text.Contains("24 hours")
+            || text.Contains("template")
+            || text.Contains("parameter") || text.Contains("variable");
     }
 }

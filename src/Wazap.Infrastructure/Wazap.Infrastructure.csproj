@@ -20,4 +20,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- Expose les détails internes testables (ex. lecture du verdict WhatChimp). -->
+    <InternalsVisibleTo Include="Wazap.UnitTests" />
+  </ItemGroup>
+
 </Project>

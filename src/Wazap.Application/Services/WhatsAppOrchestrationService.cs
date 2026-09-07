@@ -36,7 +36,9 @@ namespace Wazap.Application.Services
             var clientTemplateData = new Dictionary<string, string>
             {
                 ["1"] = notification.OrderId.ToString("N")[..8].ToUpperInvariant(),
-                ["2"] = "Vendeur",
+                ["2"] = string.IsNullOrWhiteSpace(notification.VendorName)
+                    ? "Votre vendeur"
+                    : notification.VendorName,
                 ["3"] = "15-30 minutes"
             };
 
@@ -136,25 +138,29 @@ namespace Wazap.Application.Services
             var orderCode = order.Id.ToString("N")[..8].ToUpperInvariant();
             var riderName = rider.Username;
 
-            // Client : votre livreur arrive
+            // Client : votre livreur arrive.
+            // Numérotation alignée sur le template Meta « Bonjour, votre livreur {{1}} a
+            // accepté votre commande #{{2}} » — les variables DOIVENT y apparaître dans
+            // l'ordre du texte, sous peine de rejet à la revue.
             await SendStatusAsync(order.ClientWhatsAppNumber, _whatsAppOptions.TemplateRiderAssignedClient,
                 $"🛵 {riderName} a accepté votre commande #{orderCode}. Livraison en route !",
                 new Dictionary<string, string>
                 {
-                    ["1"] = orderCode,
-                    ["2"] = riderName
+                    ["1"] = riderName,
+                    ["2"] = orderCode
                 });
 
             // Vendeur : préparez le colis
             var vendorText = $"🛵 {riderName} a accepté la commande #{orderCode} de {order.ClientName}. Il arrive pour récupérer le colis."
                 + (string.IsNullOrWhiteSpace(riderProfileLine) ? string.Empty : $"\n{riderProfileLine}");
+            // Template Meta « Le livreur {{1}} a accepté la commande #{{2}} de {{3}} ».
             await SendStatusAsync(order.VendorWhatsAppNumber, _whatsAppOptions.TemplateRiderAssignedVendor,
                 vendorText,
                 new Dictionary<string, string>
                 {
                     ["1"] = riderName,
-                    ["2"] = order.ClientName,
-                    ["3"] = orderCode
+                    ["2"] = orderCode,
+                    ["3"] = order.ClientName
                 });
 
             // Livreur : confirmation de course + détails + liens cartographiques
@@ -220,8 +226,8 @@ namespace Wazap.Application.Services
                     $"🛵 {riderName} a accepté votre commande #{orderCode}. Livraison en route !",
                     new Dictionary<string, string>
                     {
-                        ["1"] = orderCode,
-                        ["2"] = riderName
+                        ["1"] = riderName,
+                        ["2"] = orderCode
                     });
 
                 // Code de livraison propre à chaque client de la tournée.
@@ -238,8 +244,8 @@ namespace Wazap.Application.Services
                 new Dictionary<string, string>
                 {
                     ["1"] = riderName,
-                    ["2"] = first.ClientName,
-                    ["3"] = firstCode
+                    ["2"] = firstCode,
+                    ["3"] = first.ClientName
                 });
 
             // Livreur : confirmation de la tournée groupée + liste détaillée par client
