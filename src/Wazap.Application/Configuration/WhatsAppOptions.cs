@@ -21,6 +21,12 @@ namespace Wazap.Application.Configuration
         public string TemplateRiderAssignedClient { get; set; } = "";
         public string TemplateRiderAssignedVendor { get; set; } = "";
 
+        // Code de livraison remis au client (variables : 1 = id court, 2 = code à 4 chiffres).
+        // Message DÉDIÉ (et non un ajout au message d'assignation) pour que le code parvienne
+        // au client aussi bien en mode texte qu'une fois les templates approuvés par Meta.
+        // Vide = envoi en texte.
+        public string TemplateDeliveryCode { get; set; } = "";
+
         // Templates de crédits (vide = envoi en texte). À renseigner quand les templates
         // sont créés et approuvés par Meta.
         public string TemplateCreditPurchase { get; set; } = "";

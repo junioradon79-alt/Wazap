@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Wazap.API.Services;
 using Wazap.Application.Abstractions;
+using Wazap.Application.Configuration;
 using Wazap.Application.Exceptions;
 using Wazap.Application.Helpers;
 using Wazap.Application.Services;
@@ -28,6 +29,7 @@ public class WebhookWhatsAppController : ControllerBase
     private readonly LeadConversionService _leadConversion;
     private readonly ColisSurService _colisSur;
     private readonly IWhatsAppSender _whatsAppSender;
+    private readonly DeliveryProofOptions _deliveryProof;
     private readonly ILogger<WebhookWhatsAppController> _logger;
     private readonly string _webhookToken;
     private readonly string? _teamPhone;
@@ -43,9 +45,11 @@ public class WebhookWhatsAppController : ControllerBase
         LeadConversionService leadConversion,
         ColisSurService colisSur,
         IWhatsAppSender whatsAppSender,
+        DeliveryProofOptions deliveryProof,
         ILogger<WebhookWhatsAppController> logger,
         IConfiguration config)
     {
+        _deliveryProof = deliveryProof;
         _context = context;
         _riderService = riderService;
         _vendorService = vendorService;
@@ -415,6 +419,12 @@ public class WebhookWhatsAppController : ControllerBase
         {
             var marker = upper.StartsWith("RECU") ? "RECU" : "LIVRE";
             var code = command.Length > marker.Length ? command[marker.Length..].Trim() : string.Empty;
+
+            // Preuve de livraison : « LIVRE <code course> CODE <4 chiffres> ».
+            string? clientCode = null;
+            if (marker == "LIVRE")
+                (code, clientCode) = RiderCommandParser.SplitDeliveryCommand(code);
+
             var targetStatus = marker == "RECU"
                 ? OrderStatus.RiderAssigned
                 : OrderStatus.InTransit;
@@ -431,9 +441,12 @@ public class WebhookWhatsAppController : ControllerBase
             // (sauf « LIVRE TOUT » explicite) pour notifier chaque client au bon moment.
             if (marker == "LIVRE" && orders.Count > 1 && string.IsNullOrWhiteSpace(code))
             {
+                var proofActive = _deliveryProof.RequireClientCode || clientCode is not null;
                 await ReplyAsync(user,
                     "ℹ️ Plusieurs livraisons en cours.\n" +
-                    "Envoyez LIVRE <code> après CHAQUE livraison (ex : LIVRE A1B2C3D4), ou LIVRE TOUT pour tout clôturer.");
+                    (proofActive
+                        ? "Envoyez LIVRE <code> CODE <4 chiffres> après CHAQUE livraison (ex : LIVRE A1B2C3D4 CODE 1234)."
+                        : "Envoyez LIVRE <code> après CHAQUE livraison (ex : LIVRE A1B2C3D4), ou LIVRE TOUT pour tout clôturer."));
                 return true;
             }
 
@@ -443,6 +456,42 @@ public class WebhookWhatsAppController : ControllerBase
                     ? "ℹ️ Aucune course à récupérer pour le moment."
                     : "ℹ️ Aucune course en cours de livraison.");
                 return true;
+            }
+
+            // Preuve de remise : le code du client est vérifié dès qu'il est fourni, et
+            // exigé quand « DeliveryProof:RequireClientCode » est actif.
+            if (marker == "LIVRE" && (_deliveryProof.RequireClientCode || clientCode is not null))
+            {
+                if (_deliveryProof.RequireClientCode && closeAll)
+                {
+                    await ReplyAsync(user,
+                        "🔐 Clôture groupée impossible : chaque livraison se confirme avec le code de son client.\n" +
+                        "Envoyez LIVRE <code> CODE <4 chiffres> après chaque remise.");
+                    return true;
+                }
+
+                if (orders.Count != 1)
+                {
+                    await ReplyAsync(user,
+                        "ℹ️ Précisez la course : LIVRE <code> CODE <4 chiffres> (ex : LIVRE A1B2C3D4 CODE 1234).");
+                    return true;
+                }
+
+                // NotSet = course antérieure à la preuve de livraison (aucun code envoyé au
+                // client) : on laisse clôturer, sans quoi ces courses resteraient bloquées.
+                var verification = orders[0].VerifyDeliveryCode(clientCode);
+                if (verification is DeliveryCodeResult.Mismatch or DeliveryCodeResult.Locked)
+                {
+                    // Persiste la tentative erronée (compteur anti-force brute).
+                    await _context.SaveChangesAsync();
+
+                    var remaining = Order.MaxDeliveryCodeAttempts - orders[0].DeliveryCodeAttempts;
+                    await ReplyAsync(user, verification == DeliveryCodeResult.Mismatch
+                        ? $"❌ Code incorrect. Demandez au client le code à 4 chiffres reçu par WhatsApp.\n" +
+                          $"Tentative(s) restante(s) : {remaining}."
+                        : "🔒 Trop de tentatives erronées. Contactez le vendeur : lui seul peut clôturer cette course.");
+                    return true;
+                }
             }
 
             foreach (var order in orders)
@@ -492,7 +541,9 @@ public class WebhookWhatsAppController : ControllerBase
                   + "• ZONE <quartier> : votre zone de livraison\n"
                   + "• SINISTRE <code> : signaler un colis perdu/volé (Garantie Colis Sûr)\n"
                   + "• AIDE : ce menu"
-                : "📱 Menu livreur :\n• ZONE <quartier> : définir ta zone\n• DISPO / INDISPO : en ligne / hors ligne\n• ACCEPTE <code> : accepter une course";
+                : "📱 Menu livreur :\n• ZONE <quartier> : définir ta zone\n• DISPO / INDISPO : en ligne / hors ligne\n"
+                  + "• ACCEPTE <code> : accepter une course\n• RECU : colis récupéré\n"
+                  + "• LIVRE <code> CODE <4 chiffres> : livré (code donné par le client)";
 
             await ReplyAsync(user, menu);
             return true;

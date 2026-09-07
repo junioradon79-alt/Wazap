@@ -13,18 +13,34 @@
 7. `a173243` — **Parrainage au converti WhatsApp** (+5 crédits au parrain, capture code `WA-XXXX`) + **profil livreur visible au vendeur** (« certifié · N livraisons »).
 8. `6b8bf0b` — **Garantie Colis Sûr étape 2 — SINISTRES** : commande `SINISTRE <code>`, suspension pendant enquête, page admin `/app/claims`, indemnisation (crédits) + exclusion.
 
-## ⏭️ Chantiers restants à couvrir (au retour de pause)
+## ✅ Livré le 07/09 (session « preuve de remise »)
+9. **Suivi des filleuls** (chantier 1) : octroi +5 au parrain tracé en `CreditTransaction`
+   (réf. `REF-<code>-<filleul>`, unique par couple → anti-abus) à l'inscription comme à la
+   conversion d'un lead ; `GET /api/vendors/dashboard` expose filleuls + crédits gagnés, affichés dans `/app`.
+10. **Dashboard leads enrichi** (chantier 7) : filtres source / code parrainage / recherche libre
+    (commerce, contact, numéro) sur la liste et l'export, colonne `code_parrainage` au CSV.
+11. **RGPD — scans CNI chiffrés au repos** (chantier 9, partiel) : AES-GCM (en-tête `WZSCN1`),
+    clé `RiderScans:EncryptionKey` (hex 64 ou base64). Sans clé → comportement historique ;
+    les scans déjà en clair restent lisibles. Lecture admin déchiffrée à la volée.
+12. **Preuves de livraison** (chantier 3, volet code client) : code à 4 chiffres généré à
+    l'assignation du livreur, envoyé au client dans un message dédié (template
+    `TemplateDeliveryCode`, texte tant que Meta n'a pas approuvé), restitué par le livreur via
+    **`LIVRE <code> CODE <4 chiffres>`**. Vérification à temps constant, **5 tentatives** puis
+    blocage (recours : clôture par le vendeur/admin). Option `DeliveryProof:RequireClientCode`
+    (défaut **false** : le code est envoyé et vérifié s'il est fourni, sans rompre le flux en place ;
+    à **true**, `LIVRE` sans code et `LIVRE TOUT` sont refusés, et un livreur ne peut plus non plus
+    clôturer via l'API). Migration 19 `AddDeliveryProof`.
+
+## ⏭️ Chantiers restants à couvrir
 ### Code (par impact)
-1. **Suivi des filleuls dans l'espace vendeur** (liste filleuls + historique +5, éventuelle limite anti-abus).
-2. **Garantie Colis Sûr étape 3** : versement FCFA sortant (Orange Money via GeniusPay), plafond/franchise configurables, caution livreur, conditions affichées sur `/app/vente`.
-3. **Preuves de livraison** : code client (`LIVRE <code> CODE <4 chiffres>`) + photo colis au retrait.
-4. **Notes / réputation livreur** (étoiles) affichées au vendeur avant remise du colis.
-5. **Webhook média WhatChimp** (photos CNI en auto) — sinon rester sur l'upload admin.
-6. **Onboarding vendeur activable** dès templates Meta approuvés + relance des inactifs.
-7. **Dashboard leads enrichi** : filtre source, code parrainage visible, attribution.
-8. **Tests unitaires** des nouveaux services (LeadConversion, ColisSur, certification) + E2E webhook.
-9. **Sécurité/RGPD CNI** : chiffrement au repos des scans, durées de conservation, consentement.
-10. Suite ROADMAP historique : Mobile Money client, multi-villes, PWA livreur, réputation, IA prévision.
+1. **Garantie Colis Sûr étape 3** : versement FCFA sortant (Orange Money via GeniusPay), plafond/franchise configurables, caution livreur, conditions affichées sur `/app/vente`.
+2. **Preuves de livraison — volet photo** : photo du colis au retrait (dépend du webhook média ci-dessous).
+3. **Notes / réputation livreur** (étoiles) affichées au vendeur avant remise du colis.
+4. **Webhook média WhatChimp** (photos CNI en auto) — sinon rester sur l'upload admin.
+5. **Onboarding vendeur activable** dès templates Meta approuvés + relance des inactifs.
+6. **Tests** : ✅ services couverts (LeadConversion, ColisSur, RiderService, AuthService, preuve de livraison) — reste l'**E2E webhook**.
+7. **Sécurité/RGPD CNI** : ✅ chiffrement au repos — reste **durées de conservation** (les scans ne sont pas purgés par `RetentionWorker`) et **consentement**.
+8. Suite ROADMAP historique : Mobile Money client, multi-villes, PWA livreur, réputation, IA prévision.
 
 ### Actions utilisateur (déblocages)
 - **Meta** : statut des 15 templates → dès `Approved`, renseigner les noms dans le web.config distant.

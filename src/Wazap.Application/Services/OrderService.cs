@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Wazap.Application.Abstractions;
+using Wazap.Application.Configuration;
 using Wazap.Application.Dtos;
 using Wazap.Application.Exceptions;
 using Wazap.Application.Helpers;
@@ -16,17 +17,20 @@ public sealed class OrderService
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUser _currentUser;
     private readonly DeliveryOfferService _deliveryOfferService;
+    private readonly DeliveryProofOptions _deliveryProof;
     private readonly ILogger<OrderService> _logger;
 
     public OrderService(
         IApplicationDbContext context,
         ICurrentUser currentUser,
         DeliveryOfferService deliveryOfferService,
+        DeliveryProofOptions deliveryProof,
         ILogger<OrderService> logger)
     {
         _context = context;
         _currentUser = currentUser;
         _deliveryOfferService = deliveryOfferService;
+        _deliveryProof = deliveryProof;
         _logger = logger;
     }
 
@@ -263,6 +267,19 @@ public sealed class OrderService
 
             if (order.RiderUserId != userId)
                 throw new ForbiddenException("Vous ne pouvez modifier que vos propres courses.");
+
+            // Preuve de livraison : un livreur ne clôture pas une course sans le code du
+            // client. Sans cette règle, l'API contournerait la vérification WhatsApp.
+            // Vendeur et Admin conservent la clôture manuelle (recours si code bloqué).
+            if (_deliveryProof.RequireClientCode
+                && request.Status == OrderStatus.Delivered
+                && order.DeliveryCode is not null
+                && order.DeliveryCodeVerifiedAt is null)
+            {
+                throw new ForbiddenException(
+                    "Le code de livraison du client est requis : envoyez « LIVRE <code> CODE <4 chiffres> » par WhatsApp.");
+            }
+
             return;
         }
 

@@ -40,6 +40,14 @@
 9. `AddBuyerTracking` (20260902154648) — colonnes `Orders.ClientLatitude/Longitude/Landmark` (parcours acheteur PWA, DDL idempotent)
 10. `AddAuthSecurity` (20260902162510) — table `RefreshTokens` (hash), colonnes 2FA TOTP + reset mdp (DDL idempotent)
 11. `AddRetentionAndIndexes` (20260906125100) — index composites de performance + purge de rétention (DDL idempotent)
+12. `AddWebhookSubscribers` (20260906131156) — table `WebhookSubscribers` (webhooks sortants)
+13. `AddLeads` (20260906133950) — table `Leads` (acquisition, page de vente + bot prospects)
+14. `AddRiderCertification` (20260906144556) — table `RiderIdentities` (Garantie Colis Sûr)
+15. `AddRiderIdentityScan` (20260906145417) — scan de la pièce (`IdScanUrl`/`ScanFileName`/`ScanReceivedAt`)
+16. `AddVendorOnboarding` (20260906150043) — `Users.OnboardingStage`/`NextAt` (séquence J+1/J+3/J+7)
+17. `AddReferralToLeads` (20260906150530) — `Leads.ReferralCode` (parrainage capté par le bot)
+18. `AddDeliveryClaims` (20260906151008) — table `DeliveryClaims` (sinistres)
+19. `AddDeliveryProof` (20260907103725) — `Orders.DeliveryCode`/`DeliveryCodeVerifiedAt`/`DeliveryCodeAttempts` (preuve de remise, DDL idempotent)
 
 Appliquer : `dotnet ef database update --project src\Wazap.Infrastructure --startup-project src\Wazap.API`
 
@@ -54,7 +62,9 @@ Clés stockées via `dotnet user-secrets set` :
 - `SeedAdmin:Username` = `admin`
 - `SeedAdmin:Password` = `<REDACTED-PASSWORD>` (voir DEPLOYMENT.md — gitignoré)
 
-`appsettings.json` contient le non-secret : `WhatChimp:PhoneNumberId`, `WhatChimp:BaseUrl`, `Jwt:Issuer`, `Jwt:Audience`, `Outbox:MaxRetries`, `Outbox:PollingIntervalSeconds`, `Geo` (rayon/fraîcheur/exclusivité/timeout/rétention), `Packs` (catalogue 6 packs : Mini 1000 F/6 · Découverte 2500/15 · Petit 5000/35 · Moyen 10000/80 · Grand 25000/220 · Pro 100000/1000), `GeniusPay` (BaseUrl/Enabled, clés en user-secrets), `Payments:SimulateAsync` (test flux asynchrone).
+`appsettings.json` contient le non-secret : `WhatChimp:PhoneNumberId`, `WhatChimp:BaseUrl`, `Jwt:Issuer`, `Jwt:Audience`, `Outbox:MaxRetries`, `Outbox:PollingIntervalSeconds`, `Geo` (rayon/fraîcheur/exclusivité/timeout/rétention), `Packs` (catalogue 6 packs : Mini 1000 F/6 · Découverte 2500/15 · Petit 5000/35 · Moyen 10000/80 · Grand 25000/220 · Pro 100000/1000), `GeniusPay` (BaseUrl/Enabled, clés en user-secrets), `Payments:SimulateAsync` (test flux asynchrone), `RiderScans:EncryptionKey` (chiffrement des scans
+d'identité — **vide = stockage en clair**, à renseigner en production), `DeliveryProof:RequireClientCode`
+(exiger le code du client pour clôturer une livraison, défaut `false`).
 
 ## 5. Endpoints & autorisation
 
@@ -89,6 +99,12 @@ Clés stockées via `dotnet user-secrets set` :
 - **Pay-per-use à l'acceptation** : le crédit n'est **débité que lorsqu'un livreur accepte** la course (1 crédit par commande, par lot au prorata) ; la création d'une commande/course est **gratuite** (402 « Crédits insuffisants » uniquement si le solde est insuffisant au moment de l'acceptation).
 - **Matching livreurs à 2 niveaux** : GPS frais (Haversine) puis **ZONE déclarée** (téléphones basiques sans GPS) — commandes WhatsApp `ZONE <quartier>`, `DISPO`, `INDISPO`, `AIDE`. Une course est possible avec une **zone seule** (pas de GPS vendeur requis).
 - **Livraison à la demande (vendeur)** : commande WhatsApp **`LIVRAISON <détail + adresse client>`** → commande confirmée → diffusion **immédiate** aux livreurs. Le **téléphone du client** peut être inclus (`… tel 0708091011`) pour les notifications automatiques.
+- **Preuve de remise** : à l'assignation, un **code à 4 chiffres** est généré et envoyé au client
+  (message dédié, template `TemplateDeliveryCode` sinon texte) ; le livreur clôture avec
+  **`LIVRE <code> CODE <4 chiffres>`**. Comparaison à temps constant, **5 tentatives** puis blocage
+  (recours : clôture par le vendeur/admin). Option `DeliveryProof:RequireClientCode` (défaut `false` :
+  code envoyé et vérifié s'il est fourni ; à `true`, `LIVRE` nu et `LIVRE TOUT` sont refusés et le
+  livreur ne peut pas non plus clôturer via l'API). Les courses antérieures (sans code) restent clôturables.
 - **Automatisations livreur** : `ACCEPTE <code>` (prendre) · `RECU` (colis récupéré → `InTransit`) · `LIVRE <code>` (livré → `Delivered`, **par client**) / `LIVRE TOUT`. **Tournée multi-clients** : le livreur reçoit la liste détaillée des livraisons (#code — client — adresse) et chaque client est notifié à sa livraison. `LIVRE` sans code est refusé si plusieurs courses sont en cours.
 - **Livraisons groupées fiabilisées** (validation 02/09) : un lot déjà diffusé n'accepte plus de nouvelles commandes (late-join), les vagues d'élargissement re-fonctionnent par lot, l'acceptation d'un lot ignore les commandes annulées et pose `RiderUserId`, l'annulation de la dernière commande active clôt le lot et expire ses offres. Vérifié par E2E : `scripts/e2e-batch-validation.ps1`.
 - **Parcours acheteur (SPA)** : à la confirmation d'une commande client, WAZAP envoie au client le lien **`/app/suivi/{id}`** (page React publique) ; le client valide **position/adresse** → déclenchement **automatique** de la recherche des livreurs (`/api/client/orders/{id}/coordinates`, migration `AddBuyerTracking`). **Liens Google Maps** (retrait vendeur + livraison client) envoyés au livreur ; le **vendeur est notifié** dès la validation client.
@@ -107,7 +123,7 @@ Clés stockées via `dotnet user-secrets set` :
 
 ## 8. Tests
 
-`dotnet test` → **149 tests** (Order, DeliveryBatch, DeliveryOffer, OutboxMessage, User, CreditTransaction, GeoDistance, MockPayment, WhatsAppOrchestration, PhoneNumberNormalizer + table ARTCI 8→10 exhaustive, validators, auth 2FA/refresh/reset, GeniusPay).
+`dotnet test` → **199 tests** (Order, DeliveryBatch, DeliveryOffer, OutboxMessage, User, CreditTransaction, GeoDistance, MockPayment, WhatsAppOrchestration, PhoneNumberNormalizer + table ARTCI 8→10 exhaustive, validators, auth 2FA/refresh/reset, GeniusPay, LeadConversion, ColisSur, RiderService/certification, preuve de livraison + parsing `LIVRE … CODE …`).
 
 ## 9. Lancer le projet
 

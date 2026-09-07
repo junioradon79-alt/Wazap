@@ -437,6 +437,10 @@ namespace Wazap.Application.Services
             order.AssignRider(riderPhone);
             order.LinkRider(rider.Id);
 
+            // Preuve de livraison : le code est généré AVANT le SaveChanges pour être
+            // persisté, puis envoyé au client dans les notifications d'acceptation.
+            order.EnsureDeliveryCode();
+
             var otherPending = await _context.DeliveryOffers
                 .Where(o => o.OrderId == order.Id && o.Id != offer.Id && o.Status == DeliveryOfferStatus.Pending)
                 .ToListAsync();
@@ -504,6 +508,9 @@ namespace Wazap.Application.Services
             {
                 order.AssignRider(riderPhone);
                 order.LinkRider(rider.Id);
+
+                // Un code de livraison distinct par client de la tournée.
+                order.EnsureDeliveryCode();
             }
 
             batch.AssignRider(rider.Id, riderPhone);

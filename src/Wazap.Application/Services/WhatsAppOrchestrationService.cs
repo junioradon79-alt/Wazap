@@ -168,7 +168,35 @@ namespace Wazap.Application.Services
             if (!string.IsNullOrWhiteSpace(dropoffLink))
                 riderText += $"\n🗺️ Client : {dropoffLink}";
 
+            if (!string.IsNullOrWhiteSpace(order.DeliveryCode))
+                riderText += $"\n🔐 À la remise : demandez son code au client, puis envoyez"
+                          + $" LIVRE {orderCode} CODE <4 chiffres>.";
+
             await SendTextAsync(rider, riderText);
+
+            // Code de livraison au client, en message séparé (preuve de remise).
+            await SendDeliveryCodeAsync(order);
+        }
+
+        /// <summary>
+        /// Transmet au client le code à 4 chiffres qu'il devra donner au livreur à la
+        /// remise du colis. Sans effet si la commande n'a pas de code.
+        /// </summary>
+        public async Task SendDeliveryCodeAsync(Order order)
+        {
+            if (string.IsNullOrWhiteSpace(order.DeliveryCode))
+                return;
+
+            var orderCode = order.Id.ToString("N")[..8].ToUpperInvariant();
+
+            await SendStatusAsync(order.ClientWhatsAppNumber, _whatsAppOptions.TemplateDeliveryCode,
+                $"🔐 Votre code de livraison pour la commande #{orderCode} : {order.DeliveryCode}\n" +
+                "Donnez-le au livreur UNIQUEMENT quand vous avez le colis en main.",
+                new Dictionary<string, string>
+                {
+                    ["1"] = orderCode,
+                    ["2"] = order.DeliveryCode
+                });
         }
 
         /// <summary>
@@ -195,6 +223,9 @@ namespace Wazap.Application.Services
                         ["1"] = orderCode,
                         ["2"] = riderName
                     });
+
+                // Code de livraison propre à chaque client de la tournée.
+                await SendDeliveryCodeAsync(order);
             }
 
             // Le vendeur reçoit un seul récapitulatif pour le lot
@@ -219,9 +250,12 @@ namespace Wazap.Application.Services
                 return link is null ? line : $"{line}\n     🗺️ {link}";
             }));
 
+            var withCode = orders.Any(o => !string.IsNullOrWhiteSpace(o.DeliveryCode));
             var tourText = $"✅ Tournée acceptée : {orders.Count} commandes à récupérer chez le vendeur.\n" +
                            $"📋 Livraisons :\n{details}\n" +
-                           "🔄 Envoyez LIVRE <code> après CHAQUE livraison effectuée.";
+                           (withCode
+                               ? "🔄 Après CHAQUE livraison : demandez son code au client et envoyez LIVRE <code> CODE <4 chiffres>."
+                               : "🔄 Envoyez LIVRE <code> après CHAQUE livraison effectuée.");
 
             if (!string.IsNullOrWhiteSpace(vendorPickupLink))
                 tourText += $"\n📍 Retrait : {vendorPickupLink}";

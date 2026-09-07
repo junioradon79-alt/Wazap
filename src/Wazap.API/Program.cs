@@ -101,6 +101,10 @@ builder.Services.AddSingleton(ciNumberingOptions);
 var riderSecurityOptions = builder.Configuration.GetSection(RiderSecurityOptions.SectionName).Get<RiderSecurityOptions>() ?? new RiderSecurityOptions();
 builder.Services.AddSingleton(riderSecurityOptions);
 
+// Options preuve de livraison (code client à 4 chiffres restitué par le livreur)
+var deliveryProofOptions = builder.Configuration.GetSection(DeliveryProofOptions.SectionName).Get<DeliveryProofOptions>() ?? new DeliveryProofOptions();
+builder.Services.AddSingleton(deliveryProofOptions);
+
 // Options monitoring / alertes (webhook optionnel + service d'alerte)
 var monitoringOptions = builder.Configuration.GetSection(MonitoringOptions.SectionName).Get<MonitoringOptions>() ?? new MonitoringOptions();
 builder.Services.AddSingleton(monitoringOptions);

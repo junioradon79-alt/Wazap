@@ -35,6 +35,10 @@ namespace Wazap.Infrastructure.Data
                 .HasPrecision(18, 2);
 
             modelBuilder.Entity<Order>()
+                .Property(o => o.DeliveryCode)
+                .HasMaxLength(4);
+
+            modelBuilder.Entity<Order>()
                 .HasIndex(o => o.Status);
 
             modelBuilder.Entity<Order>()

@@ -1,4 +1,7 @@
-﻿using Wazap.Domain.Enums;
+﻿using System.Globalization;
+using System.Security.Cryptography;
+using System.Text;
+using Wazap.Domain.Enums;
 
 namespace Wazap.Domain.Entities;
 
@@ -31,6 +34,15 @@ public class Order
     public double? ClientLatitude { get; private set; }
     public double? ClientLongitude { get; private set; }
     public string? ClientAddress { get; private set; }
+
+    // Preuve de livraison : code à 4 chiffres remis au client à l'assignation du livreur,
+    // que le livreur doit restituer pour clôturer la course (« LIVRE <code> CODE <4 chiffres> »).
+    public string? DeliveryCode { get; private set; }
+    public DateTime? DeliveryCodeVerifiedAt { get; private set; }
+    public int DeliveryCodeAttempts { get; private set; }
+
+    /// <summary>Tentatives erronées au-delà desquelles le code est bloqué (anti-force brute).</summary>
+    public const int MaxDeliveryCodeAttempts = 5;
 
     public OrderStatus Status
     {
@@ -144,4 +156,41 @@ public class Order
     /// Rattache la commande à un lot de livraison groupée (groupage par vendeur + fenêtre).
     /// </summary>
     public void JoinBatch(Guid batchId) => BatchId = batchId;
+
+    /// <summary>
+    /// Génère (une seule fois) le code de livraison à 4 chiffres remis au client.
+    /// Idempotent : un code déjà attribué est conservé, pour qu'une re-notification
+    /// n'invalide jamais le code que le client a sous les yeux.
+    /// </summary>
+    public string EnsureDeliveryCode()
+    {
+        DeliveryCode ??= RandomNumberGenerator.GetInt32(0, 10_000).ToString("D4", CultureInfo.InvariantCulture);
+        return DeliveryCode;
+    }
+
+    /// <summary>
+    /// Vérifie le code annoncé par le livreur. Une erreur incrémente le compteur de
+    /// tentatives ; au-delà de <see cref="MaxDeliveryCodeAttempts"/> le code est bloqué
+    /// (même correct) et seule une clôture par le vendeur ou l'admin reste possible.
+    /// </summary>
+    public DeliveryCodeResult VerifyDeliveryCode(string? candidate)
+    {
+        if (string.IsNullOrWhiteSpace(DeliveryCode))
+            return DeliveryCodeResult.NotSet;
+
+        if (DeliveryCodeAttempts >= MaxDeliveryCodeAttempts)
+            return DeliveryCodeResult.Locked;
+
+        var submitted = Encoding.ASCII.GetBytes((candidate ?? string.Empty).Trim());
+        var expected = Encoding.ASCII.GetBytes(DeliveryCode);
+
+        if (!CryptographicOperations.FixedTimeEquals(submitted, expected))
+        {
+            DeliveryCodeAttempts++;
+            return DeliveryCodeResult.Mismatch;
+        }
+
+        DeliveryCodeVerifiedAt = DateTime.UtcNow;
+        return DeliveryCodeResult.Ok;
+    }
 }
