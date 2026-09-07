@@ -88,6 +88,14 @@
    Corriger dans WhatsApp Manager puis resoumettre ; dès `Approved`, activer dans appsettings + déployer :
    - `order_received`, `order_confirm`, `rider_offer`, `rider_batch_offer` (+ `_btn` bouton), `rider_assigned_client`, `rider_assigned_vendor`
    - crédits : `credit_purchase`, `low_credit`, `no_credit` ; prospection : `prospect_approach/followup/offer` ; recrutement : `rider_recruit`, `rider_company`
+   - ✅ **10 Utility resoumis (07/09)**. Restent les **5 Marketing** (`prospect_approach/followup/offer`,
+     `rider_recruit`, `rider_company`) : corps corrigés + exemples prêts à coller dans
+     `prospection/TEMPLATES_MARKETING_A_CORRIGER.md`. **Seconde cause de rejet identifiée** :
+     3 de ces corps **se terminent par une variable**, ce que Meta refuse — les exemples seuls
+     n'auraient pas suffi.
+   - ⚠️ `rider_offer`, `low_credit`, `no_credit` sont en **Marketing** alors que ce sont des
+     notifications de service : à **recréer en Utility** (throttling et coût par message sinon,
+     sur le plus gros volume du système).
 2. **Clé API Google Places** (`AIza…`, carte bancaire requise) → collecte complète 13 zones × 33 secteurs.
 3. **Vidéo démo 30 s** hébergée (URL publique) → variable {{3}} des templates prospect + campagne.
 4. **Nom de domaine** propre (remplacer le jtempurl.com).

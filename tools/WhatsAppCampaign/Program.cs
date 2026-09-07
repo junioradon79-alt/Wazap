@@ -5,6 +5,7 @@
 //                TEMPLATE_NAME, COMMERCIAL, VIDEO_URL.
 // Options : <csv> [--zone=Marcory] [--limit=20] [--dry-run]
 using System.Text;
+using System.Text.Json;
 
 var input = "Prospects.csv";
 var zoneFilter = "";
@@ -26,9 +27,30 @@ var template = Environment.GetEnvironmentVariable("TEMPLATE_NAME") ?? "prospect_
 var commercial = Environment.GetEnvironmentVariable("COMMERCIAL") ?? "L'équipe WAZAP";
 var videoUrl = Environment.GetEnvironmentVariable("VIDEO_URL") ?? "";
 
-if (string.IsNullOrWhiteSpace(videoUrl))
+// Chaque template déclare son propre nombre de variables : en envoyer plus (ou moins)
+// fait rejeter l'envoi par Meta (« parameter count mismatch »). La table reflète les
+// corps soumis dans WhatsApp Manager — à mettre à jour si un corps change.
+static string[] BuildVariables(string templateName, string nom, string commercial, string lien)
+    => templateName switch
+    {
+        "prospect_approach" => [nom, commercial, lien],
+        "prospect_followup" => [nom, commercial],
+        "prospect_offer" => [nom],
+        "rider_recruit" or "rider_company" => [nom, lien],
+        _ => [nom, commercial, lien],
+    };
+
+var variableCount = BuildVariables(template, "x", "x", "x").Length;
+var usesLink = BuildVariables(template, "", "", "LIEN").Contains("LIEN");
+
+if (usesLink && string.IsNullOrWhiteSpace(videoUrl))
 {
-    Console.WriteLine("⚠️  VIDEO_URL non définie — la variable {{3}} du template sera vide.");
+    Console.WriteLine($"⚠️  VIDEO_URL non définie — la dernière variable de « {template} » sera vide.");
+}
+if (template is not ("prospect_approach" or "prospect_followup" or "prospect_offer"
+    or "rider_recruit" or "rider_company"))
+{
+    Console.WriteLine($"⚠️  Template « {template} » inconnu de la table : {variableCount} variables envoyées par défaut.");
 }
 
 // Lecture CSV (séparateur ';', guillemets tolérés).
@@ -122,22 +144,31 @@ var now = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 for (var i = 0; i < valides.Count; i++)
 {
     var (nom, phone, _) = valides[i];
-    var url = $"{baseUrl}send?apiToken={Uri.EscapeDataString(apiToken)}" +
-              $"&phone_number_id={Uri.EscapeDataString(phoneNumberId)}" +
-              $"&phone_number={Uri.EscapeDataString(phone)}" +
-              $"&message_type=template&template_name={Uri.EscapeDataString(template)}" +
-              $"&variable1={Uri.EscapeDataString(nom)}" +
-              $"&variable2={Uri.EscapeDataString(commercial)}" +
-              $"&variable3={Uri.EscapeDataString(videoUrl)}";
+    var sb = new StringBuilder($"{baseUrl}send?apiToken={Uri.EscapeDataString(apiToken)}")
+        .Append($"&phone_number_id={Uri.EscapeDataString(phoneNumberId)}")
+        .Append($"&phone_number={Uri.EscapeDataString(phone)}")
+        .Append($"&message_type=template&template_name={Uri.EscapeDataString(template)}");
+
+    var variables = BuildVariables(template, nom, commercial, videoUrl);
+    for (var v = 0; v < variables.Length; v++)
+        sb.Append($"&variable{v + 1}={Uri.EscapeDataString(variables[v])}");
+
+    var url = sb.ToString();
 
     try
     {
         var res = await http.GetAsync(url);
         var content = await res.Content.ReadAsStringAsync();
-        var statut = res.IsSuccessStatusCode ? "OK" : $"ECHEC_{res.StatusCode}";
+        // WhatChimp répond HTTP 200 même quand la passerelle refuse l'envoi : le verdict
+        // est dans le corps ({"status":"0","message":"…"}). Sans cette lecture, une campagne
+        // intégralement rejetée par Meta serait journalisée « OK » sur les 72 numéros.
+        var refus = GatewayRefusal(content);
+        var statut = !res.IsSuccessStatusCode ? $"ECHEC_{res.StatusCode}"
+            : refus is not null ? "REFUSE"
+            : "OK";
         log.AppendLine($"{now} | {phone} | {statut} | {content[..Math.Min(200, content.Length)]}");
         outLines.AppendLine($"{phone};{statut};{now}");
-        Console.WriteLine($"[{i + 1}/{valides.Count}] {phone} : {statut}");
+        Console.WriteLine($"[{i + 1}/{valides.Count}] {phone} : {statut}" + (refus is null ? "" : $" — {refus}"));
     }
     catch (Exception ex)
     {
@@ -152,5 +183,39 @@ for (var i = 0; i < valides.Count; i++)
 
 File.WriteAllText("relance_log.txt", log.ToString(), Encoding.UTF8);
 File.WriteAllText("Prospects_relances.csv", outLines.ToString(), Encoding.UTF8);
-Console.WriteLine($"Terminé : {valides.Count} envoi(s) → relance_log.txt + Prospects_relances.csv");
+
+var lignes = outLines.ToString().Split('\n').Skip(1).Where(l => !string.IsNullOrWhiteSpace(l)).ToList();
+var ok = lignes.Count(l => l.Contains(";OK;"));
+var refuses = lignes.Count(l => l.Contains(";REFUSE;"));
+Console.WriteLine($"Terminé : {ok} délivré(s), {refuses} refusé(s) par la passerelle, "
+    + $"{lignes.Count - ok - refuses} en erreur → relance_log.txt + Prospects_relances.csv");
+if (refuses > 0)
+    Console.WriteLine("⚠️  Refus de passerelle : template non approuvé, nombre de variables incorrect, ou fenêtre 24 h.");
 return 0;
+
+/// <summary>
+/// Motif de refus renvoyé par WhatChimp dans un corps HTTP 200, ou <c>null</c> si l'envoi
+/// est accepté. Comme <c>WhatChimpService.EnsureGatewayAccepted</c>, ne conclut au refus
+/// que si <c>status</c> vaut explicitement « 0 » : un corps inattendu n'est pas un échec.
+/// </summary>
+static string? GatewayRefusal(string? content)
+{
+    if (string.IsNullOrWhiteSpace(content)) return null;
+    try
+    {
+        using var doc = JsonDocument.Parse(content);
+        if (doc.RootElement.ValueKind != JsonValueKind.Object) return null;
+        if (!doc.RootElement.TryGetProperty("status", out var status)) return null;
+
+        var value = status.ValueKind == JsonValueKind.String ? status.GetString() : status.ToString();
+        if (value != "0") return null;
+
+        return doc.RootElement.TryGetProperty("message", out var m) && m.ValueKind == JsonValueKind.String
+            ? (m.GetString() ?? "refus non détaillé")
+            : "refus non détaillé";
+    }
+    catch (JsonException)
+    {
+        return null;
+    }
+}
