@@ -103,16 +103,16 @@ public class RidersController : ControllerBase
         }
     }
 
-    // GET: api/riders/{id}/scan — lecture du scan stocké (réservé admin)
+    // GET: api/riders/{id}/scan — lecture du scan stocké (réservé admin, déchiffré à la volée)
     [HttpGet("{id:guid}/scan")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> GetScan(Guid id)
     {
-        var path = await _riderService.GetStoredScanPathAsync(id);
-        if (path is null)
+        var scan = await _riderService.GetScanContentAsync(id);
+        if (scan is not { } content || content.Content is null || content.FileName is null)
             return NotFound();
 
-        var extension = Path.GetExtension(path).ToLowerInvariant();
+        var extension = Path.GetExtension(content.FileName).ToLowerInvariant();
         var contentType = extension switch
         {
             ".jpg" or ".jpeg" => "image/jpeg",
@@ -121,7 +121,7 @@ public class RidersController : ControllerBase
             ".pdf" => "application/pdf",
             _ => "application/octet-stream"
         };
-        return PhysicalFile(path, contentType, Path.GetFileName(path));
+        return File(content.Content, contentType, Path.GetFileName(content.FileName));
     }
 
     // POST: api/riders/{id}/reject — certification refusée (dossier incomplet/incohérent)

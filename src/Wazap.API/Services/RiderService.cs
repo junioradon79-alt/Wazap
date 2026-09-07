@@ -1,4 +1,7 @@
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Wazap.Application.Abstractions;
 using Wazap.Application.Dtos;
@@ -11,23 +14,29 @@ namespace Wazap.API.Services
     /// <summary>
     /// Gestion des livreurs : liste, position live, disponibilité, partage RGPD et
     /// certification « Garantie Colis Sûr » (dossier d'identité + scan de la pièce).
+    /// Les scans sont CHIFFRÉS AU REPOS (AES-GCM, clé « RiderScans:EncryptionKey ») ;
+    /// sans clé configurée, le comportement historique (fichier brut) est conservé.
     /// </summary>
     public sealed class RiderService
     {
         private const string ScanFolder = "App_Data/rider-scans";
+        private const string ScanEncryptionHeader = "WZSCN1";
+        private static readonly byte[] ScanEncryptionMagic = Encoding.ASCII.GetBytes(ScanEncryptionHeader);
 
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _env;
         private readonly IWhatsAppSender _whatsApp;
         private readonly ILogger<RiderService> _logger;
+        private readonly string? _encryptionKey;
 
         public RiderService(ApplicationDbContext context, IWebHostEnvironment env,
-            IWhatsAppSender whatsApp, ILogger<RiderService> logger)
+            IWhatsAppSender whatsApp, IConfiguration config, ILogger<RiderService> logger)
         {
             _context = context;
             _env = env;
             _whatsApp = whatsApp;
             _logger = logger;
+            _encryptionKey = config["RiderScans:EncryptionKey"];
         }
 
         public async Task<List<UserSummaryDto>> GetRidersAsync()
@@ -226,9 +235,21 @@ namespace Wazap.API.Services
 
             var storedName = $"{riderUserId:N}{extension}";
             var fullPath = Path.Combine(dir, storedName);
+            var key = TryGetEncryptionKey(out var encryptionKey) ? encryptionKey : null;
             await using (var output = new FileStream(fullPath, FileMode.Create, FileAccess.Write))
             {
-                await file.CopyToAsync(output);
+                if (key is null)
+                {
+                    // Comportement historique : aucun chiffrement configuré.
+                    await file.CopyToAsync(output);
+                }
+                else
+                {
+                    using var memory = new MemoryStream();
+                    await file.CopyToAsync(memory);
+                    var encrypted = EncryptBytes(memory.ToArray(), key);
+                    await output.WriteAsync(encrypted);
+                }
             }
 
             var identity = await _context.RiderIdentities.FirstOrDefaultAsync(i => i.UserId == riderUserId);
@@ -253,6 +274,114 @@ namespace Wazap.API.Services
 
             var fullPath = Path.Combine(_env.ContentRootPath, ScanFolder, identity.ScanFileName);
             return File.Exists(fullPath) ? fullPath : null;
+        }
+
+        /// <summary>
+        /// Contenu déchiffré du scan (null si absent). Les fichiers chiffrés (en-tête
+        /// « WZSCN1 ») sont déchiffrés avec la clé configurée ; les fichiers historiques
+        /// en clair sont servis tels quels (compatibilité ascendante).
+        /// </summary>
+        public async Task<(byte[]? Content, string? FileName)?> GetScanContentAsync(Guid riderUserId)
+        {
+            var identity = await _context.RiderIdentities.AsNoTracking()
+                .FirstOrDefaultAsync(i => i.UserId == riderUserId);
+
+            if (identity?.ScanFileName is null)
+                return null;
+
+            var fullPath = Path.Combine(_env.ContentRootPath, ScanFolder, identity.ScanFileName);
+            if (!File.Exists(fullPath))
+                return null;
+
+            var bytes = await File.ReadAllBytesAsync(fullPath);
+            var content = bytes.AsSpan().StartsWith(ScanEncryptionMagic)
+                ? DecryptBytes(bytes, _encryptionKey)
+                : bytes;
+
+            // Contenu null = scan présent mais illisible (mauvaise clé / fichier corrompu) :
+            // distinct de « null » qui signifie scan absent. Le contrôleur répond 404 dans les deux cas.
+            return (content, identity.ScanFileName);
+        }
+
+        /// <summary>
+        /// Clé de chiffrement des scans configurée (« RiderScans:EncryptionKey »).
+        /// Format accepté : hexadécimal (64 caractères) ou Base64 (44 caractères) → 32 octets.
+        /// </summary>
+        private bool TryGetEncryptionKey(out byte[] key)
+        {
+            key = [];
+            if (string.IsNullOrWhiteSpace(_encryptionKey))
+                return false;
+
+            try
+            {
+                var candidate = _encryptionKey.Trim();
+                key = candidate.Length == 64 && candidate.All(Uri.IsHexDigit)
+                    ? Convert.FromHexString(candidate)
+                    : Convert.FromBase64String(candidate);
+
+                if (key.Length is not (16 or 24 or 32))
+                {
+                    _logger.LogWarning("RiderScans:EncryptionKey invalide ({Length} octets) — scans stockés en clair.", key.Length);
+                    key = [];
+                    return false;
+                }
+
+                return true;
+            }
+            catch (FormatException)
+            {
+                _logger.LogWarning("RiderScans:EncryptionKey illisible — scans stockés en clair.");
+                key = [];
+                return false;
+            }
+        }
+
+        /// <summary>Chiffre AES-GCM : [en-tête WZSCN1][nonce 12][ciphertext + tag 16].</summary>
+        private static byte[] EncryptBytes(byte[] plaintext, byte[] key)
+        {
+            var nonce = RandomNumberGenerator.GetBytes(12);
+            var ciphertext = new byte[plaintext.Length];
+            var tag = new byte[16];
+
+            using var aes = new AesGcm(key, 16);
+            aes.Encrypt(nonce, plaintext, ciphertext, tag);
+
+            using var output = new MemoryStream();
+            output.Write(ScanEncryptionMagic);
+            output.Write(nonce);
+            output.Write(tag);
+            output.Write(ciphertext);
+            return output.ToArray();
+        }
+
+        /// <summary>Déchiffre un scan chiffré (null si clé absente ou authentification refusée).</summary>
+        private byte[]? DecryptBytes(byte[] encrypted, string? encryptionKey)
+        {
+            var key = TryGetEncryptionKey(out var parsed) ? parsed : null;
+            if (key is null || encryptionKey is null)
+            {
+                _logger.LogError("Scan chiffré rencontré sans clé RiderScans:EncryptionKey configurée — lecture impossible.");
+                return null;
+            }
+
+            try
+            {
+                var offset = ScanEncryptionHeader.Length;
+                var nonce = encrypted.AsSpan(offset, 12);
+                var tag = encrypted.AsSpan(offset + 12, 16);
+                var ciphertext = encrypted.AsSpan(offset + 28);
+
+                var plaintext = new byte[ciphertext.Length];
+                using var aes = new AesGcm(key, 16);
+                aes.Decrypt(nonce, ciphertext, tag, plaintext);
+                return plaintext;
+            }
+            catch (CryptographicException ex)
+            {
+                _logger.LogError(ex, "Échec de déchiffrement d'un scan (mauvaise clé ou fichier corrompu).");
+                return null;
+            }
         }
 
         private async Task NotifyRiderAsync(User rider, string message)

@@ -30,6 +30,9 @@ public class AdminLeadsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> List(
         [FromQuery] string? zone,
+        [FromQuery] string? source,
+        [FromQuery] string? referral,
+        [FromQuery] string? search,
         [FromQuery] LeadStatus? status,
         [FromQuery] DateTime? from,
         [FromQuery] DateTime? to,
@@ -39,6 +42,17 @@ public class AdminLeadsController : ControllerBase
         var query = _context.Leads.AsNoTracking();
         if (!string.IsNullOrWhiteSpace(zone))
             query = query.Where(l => l.Zone == zone);
+        if (!string.IsNullOrWhiteSpace(source))
+            query = query.Where(l => l.Source == source);
+        if (!string.IsNullOrWhiteSpace(referral))
+            query = query.Where(l => l.ReferralCode != null && l.ReferralCode.StartsWith(referral.Trim()));
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim();
+            query = query.Where(l => l.BusinessName.Contains(term)
+                || (l.ContactName != null && l.ContactName.Contains(term))
+                || l.WhatsAppNumber.Contains(term));
+        }
         if (status.HasValue)
             query = query.Where(l => l.Status == status.Value);
         if (from.HasValue)
@@ -50,7 +64,8 @@ public class AdminLeadsController : ControllerBase
             .OrderByDescending(l => l.CreatedAt)
             .Take(Math.Clamp(limit, 1, 1000))
             .Select(l => new LeadListItem(
-                l.Id, l.BusinessName, l.ContactName, l.WhatsAppNumber, l.Zone, l.Source, l.Status, l.CreatedAt))
+                l.Id, l.BusinessName, l.ContactName, l.WhatsAppNumber, l.Zone, l.Source,
+                l.ReferralCode, l.Status, l.CreatedAt))
             .ToListAsync(ct);
 
         return Ok(leads);
@@ -92,19 +107,33 @@ public class AdminLeadsController : ControllerBase
     [HttpGet("export")]
     public async Task<IActionResult> Export(
         [FromQuery] string? zone,
+        [FromQuery] string? source,
+        [FromQuery] string? referral,
+        [FromQuery] string? search,
         [FromQuery] LeadStatus? status,
         CancellationToken ct)
     {
         var query = _context.Leads.AsNoTracking();
         if (!string.IsNullOrWhiteSpace(zone))
             query = query.Where(l => l.Zone == zone);
+        if (!string.IsNullOrWhiteSpace(source))
+            query = query.Where(l => l.Source == source);
+        if (!string.IsNullOrWhiteSpace(referral))
+            query = query.Where(l => l.ReferralCode != null && l.ReferralCode.StartsWith(referral.Trim()));
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim();
+            query = query.Where(l => l.BusinessName.Contains(term)
+                || (l.ContactName != null && l.ContactName.Contains(term))
+                || l.WhatsAppNumber.Contains(term));
+        }
         if (status.HasValue)
             query = query.Where(l => l.Status == status.Value);
 
         var leads = await query.OrderByDescending(l => l.CreatedAt).Take(10_000).ToListAsync(ct);
 
         var sb = new StringBuilder();
-        sb.AppendLine("id;commerce;contact;whatsapp;zone;source;statut;cree_le");
+        sb.AppendLine("id;commerce;contact;whatsapp;zone;source;code_parrainage;statut;cree_le");
         foreach (var l in leads)
         {
             sb.AppendLine(string.Join(';',
@@ -114,6 +143,7 @@ public class AdminLeadsController : ControllerBase
                 l.WhatsAppNumber,
                 Csv(l.Zone),
                 Csv(l.Source),
+                Csv(l.ReferralCode ?? string.Empty),
                 l.Status,
                 l.CreatedAt.ToString("s")));
         }
@@ -133,6 +163,7 @@ public sealed record LeadListItem(
     string WhatsAppNumber,
     string Zone,
     string Source,
+    string? ReferralCode,
     LeadStatus Status,
     DateTime CreatedAt);
 

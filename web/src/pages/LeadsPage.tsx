@@ -10,6 +10,7 @@ interface LeadListItem {
   whatsappNumber: string
   zone: string
   source: string
+  referralCode: string | null
   status: LeadStatus
   createdAt: string
 }
@@ -32,18 +33,38 @@ const STATUS_LABEL: Record<LeadStatus, string> = {
   Discarded: 'Écarté',
 }
 
+// Canaux connus (le sélecteur est complété par les sources réellement présentes).
+const KNOWN_SOURCES = ['page-vente', 'whatsapp-prospect', 'whatsapp-livreur', 'whatsapp-parrainage']
+const SOURCE_LABEL: Record<string, string> = {
+  'page-vente': 'Page de vente',
+  'whatsapp-prospect': 'WhatsApp prospect',
+  'whatsapp-livreur': 'WhatsApp livreur',
+  'whatsapp-parrainage': 'WhatsApp parrainage',
+}
+
 export default function LeadsPage() {
   const [leads, setLeads] = useState<LeadListItem[]>([])
   const [filterStatus, setFilterStatus] = useState('')
+  const [filterSource, setFilterSource] = useState('')
+  const [search, setSearch] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [convertingId, setConvertingId] = useState<string | null>(null)
   const [conversion, setConversion] = useState<ConversionResult | null>(null)
 
+  const buildQuery = (): string => {
+    const params = new URLSearchParams()
+    if (filterStatus) params.set('status', filterStatus)
+    if (filterSource) params.set('source', filterSource)
+    const term = search.trim()
+    if (term) params.set('search', term)
+    const qs = params.toString()
+    return qs ? `?${qs}` : ''
+  }
+
   const load = async (): Promise<void> => {
     try {
-      const q = filterStatus ? `?status=${filterStatus}` : ''
-      const data = await api.get<LeadListItem[]>(`/admin/leads${q}`)
+      const data = await api.get<LeadListItem[]>(`/admin/leads${buildQuery()}`)
       setLeads(data)
       setError('')
     } catch (err) {
@@ -51,9 +72,14 @@ export default function LeadsPage() {
     }
   }
 
+  // Recherche avec léger débounce (300 ms) pour ne pas marteler l'API à chaque frappe.
   useEffect(() => {
-    void load()
-  }, [filterStatus])
+    const t = setTimeout(() => void load(), 300)
+    return () => clearTimeout(t)
+  }, [filterStatus, filterSource, search])
+
+  // Les sources connues + celles réellement présentes dans les résultats courants.
+  const sources = Array.from(new Set([...KNOWN_SOURCES, ...leads.map((l) => l.source)])).sort()
 
   const setStatus = async (id: string, status: LeadStatus): Promise<void> => {
     setBusy(true)
@@ -85,7 +111,7 @@ export default function LeadsPage() {
   const exportCsv = async (): Promise<void> => {
     const token = getToken()
     try {
-      const res = await fetch(`/api/admin/leads/export${filterStatus ? `?status=${filterStatus}` : ''}`, {
+      const res = await fetch(`/api/admin/leads/export${buildQuery()}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       })
       if (!res.ok) throw new Error('Export impossible')
@@ -115,14 +141,28 @@ export default function LeadsPage() {
         <button className="btn btn--primary" onClick={() => void exportCsv()}>⬇️ Exporter CSV</button>
       </div>
 
-      <div className="page-head" style={{ marginTop: -6 }}>
+      <div className="page-head" style={{ marginTop: -6, gap: 10, flexWrap: 'wrap' }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
           Statut :
-          <select className="input" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} style={{ width: 180 }}>
+          <select className="input" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} style={{ width: 150 }}>
             <option value="">Tous</option>
             {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
           </select>
         </label>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
+          Source :
+          <select className="input" value={filterSource} onChange={(e) => setFilterSource(e.target.value)} style={{ width: 190 }}>
+            <option value="">Toutes</option>
+            {sources.map((s) => <option key={s} value={s}>{SOURCE_LABEL[s] ?? s}</option>)}
+          </select>
+        </label>
+        <input
+          className="input"
+          placeholder="🔎 Commerce, contact ou numéro…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ width: 260 }}
+        />
         <button className="btn" onClick={() => void load()} disabled={busy}>⟳ Actualiser</button>
       </div>
 
@@ -141,6 +181,7 @@ export default function LeadsPage() {
                   <th>WhatsApp</th>
                   <th>Zone</th>
                   <th>Source</th>
+                  <th>Code parrainage</th>
                   <th>Statut</th>
                   <th>Reçu le</th>
                   <th>Action</th>
@@ -153,7 +194,8 @@ export default function LeadsPage() {
                     <td>{l.contactName || '—'}</td>
                     <td>{l.whatsappNumber}</td>
                     <td>{l.zone}</td>
-                    <td style={{ fontSize: 13 }}>{l.source}</td>
+                    <td style={{ fontSize: 13 }} title={l.source}>{SOURCE_LABEL[l.source] ?? l.source}</td>
+                    <td style={{ fontSize: 13 }}>{l.referralCode ? <code>{l.referralCode}</code> : '—'}</td>
                     <td>
                       <select
                         className="input"

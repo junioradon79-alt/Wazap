@@ -164,6 +164,14 @@ export interface ClaimListItem {
   reviewedAt: string | null
 }
 
+export interface ReferredVendorItem {
+  id: string
+  username: string
+  phoneNumber: string | null
+  zone: string | null
+  createdAt: string
+}
+
 export interface VendorDashboard {
   id: string
   username: string
@@ -174,4 +182,7 @@ export interface VendorDashboard {
   inProgressOrders: number
   deliveredThisMonth: number
   recentOrders: VendorOrderItem[]
+  totalReferrals: number
+  referralCreditsEarned: number
+  referrals: ReferredVendorItem[]
 }

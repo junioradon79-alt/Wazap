@@ -103,6 +103,12 @@ public sealed class LeadConversionService
             {
                 user.SetReferral(sponsor.Id);
                 sponsor.AddCredits(5);
+
+                // Trace l'octroi +5 dans l'historique du parrain (référence unique par couple
+                // parrain/filleul → « suivi des filleuls » côté espace vendeur, anti-abus).
+                _context.CreditTransactions.Add(CreditTransaction.ForFreeGrant(
+                    sponsor.Id, 5, $"REF-{sponsor.ReferralCode}-{user.Id:N}",
+                    "Parrainage — filleul inscrit"));
             }
         }
 

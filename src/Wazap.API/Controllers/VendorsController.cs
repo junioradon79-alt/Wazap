@@ -82,6 +82,22 @@ public class VendorsController : ControllerBase
                 o.CreatedAt))
             .ToList();
 
+        // Suivi des filleuls : vendeurs inscrits via le code parrainage + octrois +5 tracés.
+        var referralTotal = await _context.Users.AsNoTracking()
+            .CountAsync(u => u.ReferredByUserId == vendor.Id && u.Role == UserRole.Vendor);
+
+        var referrals = await _context.Users.AsNoTracking()
+            .Where(u => u.ReferredByUserId == vendor.Id && u.Role == UserRole.Vendor)
+            .OrderByDescending(u => u.CreatedAt)
+            .Take(50)
+            .Select(u => new ReferredVendorItem(
+                u.Id, u.Username, u.PhoneNumber, u.Zone, u.CreatedAt))
+            .ToListAsync();
+
+        var referralTransactions = await _context.CreditTransactions.AsNoTracking()
+            .Where(t => t.VendorId == vendor.Id && t.TransactionReference.StartsWith("REF-"))
+            .ToListAsync();
+
         return Ok(new VendorDashboardDto(
             vendor.Id,
             vendor.Username,
@@ -91,7 +107,10 @@ public class VendorsController : ControllerBase
             vendor.ReferralCode,
             orders.Count(o => o.Status != OrderStatus.Delivered && o.Status != OrderStatus.Cancelled),
             orders.Count(o => o.DeliveredAt.HasValue && o.DeliveredAt.Value >= monthStart),
-            recent));
+            recent,
+            referralTotal,
+            referralTransactions.Sum(t => t.CreditsPurchased),
+            referrals));
     }
 
     [HttpPut("{id:guid}/address")]
@@ -154,6 +173,13 @@ public sealed record VendorOrderItem(
     string Status,
     DateTime CreatedAt);
 
+public sealed record ReferredVendorItem(
+    Guid Id,
+    string Username,
+    string? PhoneNumber,
+    string? Zone,
+    DateTime CreatedAt);
+
 public sealed record VendorDashboardDto(
     Guid Id,
     string Username,
@@ -163,4 +189,7 @@ public sealed record VendorDashboardDto(
     string ReferralCode,
     int InProgressOrders,
     int DeliveredThisMonth,
-    List<VendorOrderItem> RecentOrders);
+    List<VendorOrderItem> RecentOrders,
+    int TotalReferrals,
+    int ReferralCreditsEarned,
+    List<ReferredVendorItem> Referrals);

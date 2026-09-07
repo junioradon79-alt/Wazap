@@ -111,7 +111,7 @@ export default function VendorDashboardPage() {
           <header className="panel__header">
             <div>
               <h2 className="panel__title">Parrainage</h2>
-              <p className="panel__subtitle">Vos filleuls reçoivent 15 commandes offertes — vous aussi</p>
+              <p className="panel__subtitle">Chaque filleul inscrit vous rapporte +5 crédits</p>
             </div>
           </header>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '8px 0 4px' }}>
@@ -124,8 +124,62 @@ export default function VendorDashboardPage() {
           <code style={{ fontSize: 13, wordBreak: 'break-all' }}>
             {waLink(`Bonjour WAZAP ! Je vous recommande WAZAP pour vos livraisons. Mon code parrainage : ${dash.referralCode}`)}
           </code>
+          <div className="stats" style={{ marginTop: 14, gridTemplateColumns: '1fr 1fr' }}>
+            <article className="stat-card stat-card--green">
+              <div className="stat-card__body">
+                <span className="stat-card__label">Filleuls inscrits</span>
+                <span className="stat-card__value">{dash.totalReferrals}</span>
+              </div>
+            </article>
+            <article className="stat-card stat-card--dark">
+              <div className="stat-card__body">
+                <span className="stat-card__label">Crédits gagnés</span>
+                <span className="stat-card__value">+{dash.referralCreditsEarned}</span>
+              </div>
+            </article>
+          </div>
         </section>
       </div>
+
+      <section className="panel" style={{ marginTop: 16 }}>
+        <header className="panel__header">
+          <div>
+            <h2 className="panel__title">Vos filleuls</h2>
+            <p className="panel__subtitle">
+              Vendeurs inscrits avec votre code parrainage ({dash.totalReferrals} au total)
+            </p>
+          </div>
+        </header>
+        <div className="table-wrap">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Commerce</th>
+                <th>WhatsApp</th>
+                <th>Zone</th>
+                <th>Inscrit le</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dash.referrals.map((r) => (
+                <tr key={r.id}>
+                  <td>{r.username}</td>
+                  <td>{r.phoneNumber || '—'}</td>
+                  <td>{r.zone || '—'}</td>
+                  <td style={{ fontSize: 13 }}>{formatDateTime(r.createdAt)}</td>
+                </tr>
+              ))}
+              {dash.referrals.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="empty">
+                    Aucun filleul pour le moment — partagez votre code parrainage ci-dessus 🎁
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <section className="panel" style={{ marginTop: 16 }}>
         <header className="panel__header">
