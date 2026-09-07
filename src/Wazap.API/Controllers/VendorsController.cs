@@ -104,7 +104,7 @@ public class VendorsController : ControllerBase
             vendor.PhoneNumber,
             vendor.Zone,
             vendor.Credits,
-            vendor.ReferralCode,
+            vendor.ReferralCode ?? string.Empty,
             orders.Count(o => o.Status != OrderStatus.Delivered && o.Status != OrderStatus.Cancelled),
             orders.Count(o => o.DeliveredAt.HasValue && o.DeliveredAt.Value >= monthStart),
             recent,

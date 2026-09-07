@@ -60,7 +60,7 @@ public sealed class LeadConversionService
             lead.SetStatus(LeadStatus.Converted);
             await _context.SaveChangesAsync(ct);
             return new LeadConversionResult(existing.Id, existing.Username, null, existing.Credits,
-                existing.ReferralCode, existing.Zone ?? lead.Zone, true);
+                existing.ReferralCode ?? string.Empty, existing.Zone ?? lead.Zone, true);
         }
 
         // Username dérivé du commerce (unique).
@@ -133,7 +133,7 @@ public sealed class LeadConversionService
 
         _logger.LogInformation("Lead {LeadId} converti en vendeur {UserId} ({Username}).", lead.Id, user.Id, user.Username);
         return new LeadConversionResult(user.Id, username, tempPassword, user.Credits,
-            user.ReferralCode, lead.Zone, false);
+            user.ReferralCode ?? string.Empty, lead.Zone, false);
     }
 
     private async Task<string> BuildUniqueUsernameAsync(string businessName, CancellationToken ct)
