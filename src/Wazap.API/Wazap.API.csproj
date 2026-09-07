@@ -23,4 +23,9 @@
     <ProjectReference Include="..\Wazap.Application\Wazap.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Expose les détails internes testables (ex. gabarit SQL de l'outbox). -->
+    <InternalsVisibleTo Include="Wazap.UnitTests" />
+  </ItemGroup>
+
 </Project>

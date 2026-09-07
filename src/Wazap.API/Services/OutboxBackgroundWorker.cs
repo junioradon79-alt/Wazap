@@ -13,6 +13,21 @@ namespace Wazap.API.Services;
 
 public sealed class OutboxBackgroundWorker : BackgroundService
 {
+    /// <summary>
+    /// Réclamation atomique des messages dus. Passée à <c>SqlQueryRaw</c>, cette chaîne est
+    /// un gabarit de composition : <c>{0}</c> devient un PARAMÈTRE SQL (taille du lot).
+    /// Ne jamais y écrire <c>{nomDeVariable}</c> — la chaîne n'est pas interpolée et la
+    /// requête échouerait à l'exécution (« Expected an ASCII digit »), silencieusement,
+    /// l'outbox cessant alors de traiter le moindre message.
+    /// </summary>
+    internal const string ClaimSql = """
+        SELECT "Id" FROM "OutboxMessages"
+        WHERE "Status" = 1 AND "AvailableAt" <= NOW()
+        ORDER BY "CreatedAt"
+        LIMIT {0}
+        FOR UPDATE SKIP LOCKED
+        """;
+
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<OutboxBackgroundWorker> _logger;
     private readonly int _maxRetries;
@@ -99,13 +114,7 @@ public sealed class OutboxBackgroundWorker : BackgroundService
         await using var transaction = await context.Database.BeginTransactionAsync(ct);
 
         var ids = await context.Database
-            .SqlQueryRaw<Guid>("""
-                SELECT "Id" FROM "OutboxMessages"
-                WHERE "Status" = 1 AND "AvailableAt" <= NOW()
-                ORDER BY "CreatedAt"
-                LIMIT {_batchSize}
-                FOR UPDATE SKIP LOCKED
-                """)
+            .SqlQueryRaw<Guid>(ClaimSql, _batchSize)
             .ToListAsync(ct);
 
         if (ids.Count == 0)
