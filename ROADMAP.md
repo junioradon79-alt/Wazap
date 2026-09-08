@@ -78,6 +78,17 @@
     (identifiants WhatsApp, scan chiffré, consentement « whatsapp » tracé) → alerte équipe →
     certification en 1 clic dans /app/certifications. Zéro intervention manuelle sur le
     recrutement ; le Lead reste visible dans /app/leads. Tests 370/370.
+12. ✅ **FAIT (08/09, commit `5978e20`) — Preuve photo de livraison (volet photo, chantier C)** :
+    un livreur avec une course en cours (assignée ou en transit) envoie la photo du colis sur
+    WhatsApp → stockage chiffré (même protection que les scans CNI), provenance gardée, garde
+    d'état dans le domaine (une course clôturée n'accepte plus de photo), consultation admin
+    `GET /api/orders/{id}/proof-photo` (litiges « Garantie Colis Sûr »), rétention alignée sur
+    la purge des commandes (90 j). Sans course en cours, la photo reste un scan CNI.
+    Migration 26 `AddDeliveryProofPhoto`. Tests 377/377.
+13. ✅ **FAIT (08/09, commit `e59e7e2`) — Bouton « Demander le lien » (P3-16.1)** : depuis
+    `/app/orders`, le vendeur initie le paiement Mobile Money de son client
+    (`POST /api/vendors/orders/{id}/pay`, ownership vérifiée, admin autorisé) — le lien est
+    envoyé au client sur WhatsApp (idempotent : même lien tant que Pending). Tests 382/382.
 
 ### Actions utilisateur (déblocages)
 - **Meta** : 13 templates soumis (10 Utility + 5 Marketing + 3 onboarding) → attendre `Approved`.
