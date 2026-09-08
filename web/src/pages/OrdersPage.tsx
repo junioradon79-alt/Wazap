@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { api } from '../api/client'
+import { api, getToken, getUser } from '../api/client'
 import type { CreateOrderRequest, OrderDto, PagedResult } from '../api/types'
 import { StatusBadge, formatDateTime, formatMoney, shortId } from '../components/ui'
 
@@ -87,6 +87,23 @@ export default function OrdersPage() {
     }
   }
 
+  // Photo de preuve de livraison (réservée admin, litiges « Garantie Colis Sûr ») :
+  // fetch direct avec le JWT (l'endpoint renvoie l'image, pas du JSON).
+  const viewProof = async (id: string): Promise<void> => {
+    try {
+      const token = getToken()
+      const res = await fetch(`/api/orders/${id}/proof-photo`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+      if (!res.ok) throw new Error('Photo de preuve indisponible.')
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      window.open(url, '_blank', 'noopener')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Photo indisponible.')
+    }
+  }
+
   const set = (field: keyof CreateOrderRequest, value: string | number): void => {
     setForm((f) => ({ ...f, [field]: value }))
   }
@@ -128,6 +145,11 @@ export default function OrdersPage() {
                   <td><StatusBadge status={o.status} /></td>
                   <td>{formatDateTime(o.createdAt)}</td>
                   <td>
+                    {getUser()?.role === 'Admin' && o.hasProofPhoto && (
+                      <button className="btn btn--ghost" onClick={() => void viewProof(o.id)} title="Photo de preuve">
+                        📸
+                      </button>
+                    )}
                     {o.status !== 'Delivered' && o.status !== 'Cancelled' && (
                       <button
                         className="btn btn--primary"

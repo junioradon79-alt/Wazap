@@ -160,7 +160,8 @@ public sealed class OrderService
                 Description = o.Description,
                 Amount = o.Amount,
                 Status = o.Status,
-                CreatedAt = o.CreatedAt
+                CreatedAt = o.CreatedAt,
+                HasProofPhoto = o.DeliveryProofPhotoFileName != null
             })
             .ToListAsync();
 

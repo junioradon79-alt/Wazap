@@ -81,6 +81,7 @@ export interface OrderDto {
   amount: number
   status: OrderStatus
   createdAt: string
+  hasProofPhoto: boolean
 }
 
 export interface PagedResult<T> {

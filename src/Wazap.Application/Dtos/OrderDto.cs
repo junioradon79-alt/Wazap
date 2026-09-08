@@ -10,4 +10,7 @@ public class OrderDto
     public decimal Amount { get; init; }
     public OrderStatus Status { get; init; }
     public DateTime CreatedAt { get; init; }
+
+    /// <summary>Une photo de preuve de livraison accompagne la commande (litiges).</summary>
+    public bool HasProofPhoto { get; init; }
 }
