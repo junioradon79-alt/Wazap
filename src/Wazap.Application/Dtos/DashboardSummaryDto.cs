@@ -2,9 +2,6 @@ using Wazap.Domain.Enums;
 
 namespace Wazap.Application.Dtos
 {
-    /// <summary>
-    /// Vue d'ensemble du tableau de bord administrateur.
-    /// </summary>
     public sealed class DashboardSummaryDto
     {
         public int InProgressOrdersCount { get; init; }
@@ -12,7 +9,6 @@ namespace Wazap.Application.Dtos
         public decimal MonthlyRevenue { get; init; }
         public IReadOnlyList<OrderInProgressDto> RecentOrders { get; init; } = [];
 
-        // KPI acquisition & activité (pilotage marketing)
         public int TotalVendors { get; init; }
         public int NewVendors30d { get; init; }
         public int ActiveVendors30d { get; init; }
@@ -20,18 +16,35 @@ namespace Wazap.Application.Dtos
         public int OrdersThisWeek { get; init; }
         public int OrdersLast30d { get; init; }
         public IReadOnlyList<ZoneMetricDto> OrdersByZone30d { get; init; } = [];
+
+        public decimal AverageBasket30d { get; init; }
+        public double DeliveryRate30d { get; init; }
+        public decimal Revenue30d { get; init; }
+        public double RevenueChangePercent { get; init; }
+        public IReadOnlyList<TopVendorDto> TopVendors30d { get; init; } = [];
+        public double LeadConversionRate30d { get; init; }
+        public IReadOnlyList<ZoneRevenueDto> RevenueByZone30d { get; init; } = [];
     }
 
-    /// <summary>Métrique par zone (commandes des 30 derniers jours).</summary>
     public sealed class ZoneMetricDto
     {
-        public string Zone { get; init; } = "Inconnue";
+        public string Zone { get; init; } = "";
         public int Orders { get; init; }
     }
 
-    /// <summary>
-    /// Ligne « commande en cours » affichée dans le tableau de bord.
-    /// </summary>
+    public sealed class ZoneRevenueDto
+    {
+        public string Zone { get; init; } = "";
+        public decimal Revenue { get; init; }
+    }
+
+    public sealed class TopVendorDto
+    {
+        public string Username { get; init; } = "";
+        public int DeliveredOrders { get; init; }
+        public decimal Revenue { get; init; }
+    }
+
     public sealed class OrderInProgressDto
     {
         public Guid Id { get; init; }

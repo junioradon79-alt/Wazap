@@ -47,7 +47,7 @@ public class VendorsController : ControllerBase
         return Ok(vendors);
     }
 
-    // GET: api/vendors/dashboard — espace vendeur connecté (crédits, parrainage, courses récentes).
+    // GET: api/vendors/dashboard — espace vendeur connecté (crédits, analytics, parrainage, courses).
     [HttpGet("dashboard")]
     public async Task<IActionResult> GetMyDashboard()
     {
@@ -59,8 +59,6 @@ public class VendorsController : ControllerBase
         if (vendor is null)
             return NotFound();
 
-        // Courses rattachées au compte vendeur + commandes clients en attente de confirmation
-        // (numéro) pas encore liées à un compte.
         var orders = await _context.Orders.AsNoTracking()
             .Where(o => o.VendorUserId == vendor.Id)
             .ToListAsync();
@@ -73,7 +71,32 @@ public class VendorsController : ControllerBase
             !string.IsNullOrWhiteSpace(vendor.PhoneNumber)
             && PhoneNumberNormalizer.SameSubscriber(o.VendorWhatsAppNumber, vendor.PhoneNumber)));
 
-        var monthStart = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+        // Analytics mensuels
+        var now = DateTime.UtcNow;
+        var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var now30d = now.AddDays(-30);
+
+        var monthlyRevenue = orders
+            .Where(o => o.Status == OrderStatus.Delivered && o.DeliveredAt >= monthStart)
+            .Sum(o => o.Amount);
+        var ordersThisWeek = orders.Count(o => o.CreatedAt >= now.AddDays(-7));
+        var ordersLastMonth = orders.Count(o => o.CreatedAt >= now30d);
+        var deliveredLastMonth = orders.Count(o => o.Status == OrderStatus.Delivered && o.DeliveredAt >= now30d);
+        var avgBasket = deliveredLastMonth > 0 ? monthlyRevenue / deliveredLastMonth : 0;
+        var deliveryRate = ordersLastMonth > 0 ? (double)deliveredLastMonth / ordersLastMonth : 0;
+
+        // Top clients (max 5)
+        var topClients = orders
+            .Where(o => !string.IsNullOrWhiteSpace(o.ClientName))
+            .GroupBy(o => o.ClientName)
+            .Select(g => new VendorClientItem(
+                g.Key,
+                g.Count(),
+                g.Sum(o => o.Amount)))
+            .OrderByDescending(c => c.OrderCount)
+            .Take(5)
+            .ToList();
+
         var recent = orders
             .OrderByDescending(o => o.CreatedAt)
             .Take(15)
@@ -86,7 +109,7 @@ public class VendorsController : ControllerBase
                 o.CreatedAt))
             .ToList();
 
-        // Suivi des filleuls : vendeurs inscrits via le code parrainage + octrois +5 tracés.
+        // Parrainage
         var referralTotal = await _context.Users.AsNoTracking()
             .CountAsync(u => u.ReferredByUserId == vendor.Id && u.Role == UserRole.Vendor);
 
@@ -114,7 +137,14 @@ public class VendorsController : ControllerBase
             recent,
             referralTotal,
             referralTransactions.Sum(t => t.CreditsPurchased),
-            referrals));
+            referrals,
+            monthlyRevenue,
+            Math.Round(avgBasket, 0),
+            Math.Round(deliveryRate, 2),
+            ordersThisWeek,
+            ordersLastMonth,
+            deliveredLastMonth,
+            topClients));
     }
 
     [HttpPut("{id:guid}/address")]
@@ -183,32 +213,3 @@ public sealed record UpdateVendorAddressRequest(string Address);
 public sealed record TopUpCreditsRequest(int Credits);
 
 public sealed record SetVendorZoneRequest(string Zone);
-
-public sealed record VendorOrderItem(
-    Guid Id,
-    string Code,
-    string? ClientName,
-    string Description,
-    string Status,
-    DateTime CreatedAt);
-
-public sealed record ReferredVendorItem(
-    Guid Id,
-    string Username,
-    string? PhoneNumber,
-    string? Zone,
-    DateTime CreatedAt);
-
-public sealed record VendorDashboardDto(
-    Guid Id,
-    string Username,
-    string? PhoneNumber,
-    string? Zone,
-    int Credits,
-    string ReferralCode,
-    int InProgressOrders,
-    int DeliveredThisMonth,
-    List<VendorOrderItem> RecentOrders,
-    int TotalReferrals,
-    int ReferralCreditsEarned,
-    List<ReferredVendorItem> Referrals);

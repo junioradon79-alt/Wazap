@@ -90,6 +90,75 @@ export default function VendorDashboardPage() {
         </article>
       </section>
 
+      <section className="stats">
+        <article className="stat-card stat-card--dark">
+          <div className="stat-card__icon">💰</div>
+          <div className="stat-card__body">
+            <span className="stat-card__label">CA mensuel</span>
+            <span className="stat-card__value">{dash.monthlyRevenue.toLocaleString()} F</span>
+            <span className="stat-card__hint">Chiffre d'affaires du mois</span>
+          </div>
+        </article>
+
+        <article className="stat-card stat-card--blue">
+          <div className="stat-card__icon">🛒</div>
+          <div className="stat-card__body">
+            <span className="stat-card__label">Panier moyen</span>
+            <span className="stat-card__value">{dash.averageBasket.toLocaleString()} F</span>
+            <span className="stat-card__hint">Montant moyen par livraison</span>
+          </div>
+        </article>
+
+        <article className="stat-card stat-card--green">
+          <div className="stat-card__icon">✅</div>
+          <div className="stat-card__body">
+            <span className="stat-card__label">Taux livraison</span>
+            <span className="stat-card__value">{Math.round(dash.deliveryRate * 100)} %</span>
+            <span className="stat-card__hint">Commandes livrées sur 30j</span>
+          </div>
+        </article>
+
+        <article className="stat-card stat-card--blue">
+          <div className="stat-card__icon">📊</div>
+          <div className="stat-card__body">
+            <span className="stat-card__label">Commandes 30j</span>
+            <span className="stat-card__value">{dash.ordersLastMonth}</span>
+            <span className="stat-card__hint">{dash.ordersThisWeek} cette semaine</span>
+          </div>
+        </article>
+      </section>
+
+      {dash.topClients.length > 0 && (
+        <section className="panel" style={{ marginTop: 16 }}>
+          <header className="panel__header">
+            <div>
+              <h2 className="panel__title">🎯 Meilleurs clients</h2>
+              <p className="panel__subtitle">Ceux qui commandent le plus chez vous</p>
+            </div>
+          </header>
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Commandes</th>
+                  <th>Total dépensé</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dash.topClients.map((c, i) => (
+                  <tr key={i}>
+                    <td>{c.clientName}</td>
+                    <td>{c.orderCount}</td>
+                    <td>{c.totalSpent.toLocaleString()} F</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
       <div className="grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         <section className="panel">
           <header className="panel__header">

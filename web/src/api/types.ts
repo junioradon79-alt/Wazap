@@ -64,6 +64,37 @@ export interface DashboardSummary {
   activeRiders: number
   monthlyRevenue: number
   recentOrders: OrderInProgress[]
+  totalVendors: number
+  newVendors30d: number
+  activeVendors30d: number
+  totalRiders: number
+  ordersThisWeek: number
+  ordersLast30d: number
+  ordersByZone30d: ZoneMetric[]
+
+  averageBasket30d: number
+  deliveryRate30d: number
+  revenue30d: number
+  revenueChangePercent: number
+  topVendors30d: TopVendor[]
+  leadConversionRate30d: number
+  revenueByZone30d: ZoneRevenue[]
+}
+
+export interface TopVendor {
+  username: string
+  deliveredOrders: number
+  revenue: number
+}
+
+export interface ZoneMetric {
+  zone: string
+  orders: number
+}
+
+export interface ZoneRevenue {
+  zone: string
+  revenue: number
 }
 
 export type OrderStatus =
@@ -235,4 +266,18 @@ export interface VendorDashboard {
   totalReferrals: number
   referralCreditsEarned: number
   referrals: ReferredVendorItem[]
+
+  monthlyRevenue: number
+  averageBasket: number
+  deliveryRate: number
+  ordersThisWeek: number
+  ordersLastMonth: number
+  deliveredLastMonth: number
+  topClients: VendorClientItem[]
+}
+
+export interface VendorClientItem {
+  clientName: string
+  orderCount: number
+  totalSpent: number
 }

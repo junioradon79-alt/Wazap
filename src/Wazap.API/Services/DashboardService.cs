@@ -22,37 +22,35 @@ namespace Wazap.API.Services
         {
             var now = DateTime.UtcNow;
             var startOfMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+            var now30d = now.AddDays(-30);
+            var now60d = now.AddDays(-60);
+            var now7d = now.AddDays(-7);
 
-            // Commandes « en cours » : tout sauf livrées et annulées.
             var inProgressOrdersCount = await _context.Orders
                 .CountAsync(o => o.Status != OrderStatus.Delivered
                               && o.Status != OrderStatus.Cancelled);
 
-            // Livreurs actifs : livreurs distincts actuellement assignés à une commande en cours.
             var activeRiders = await _context.Orders
-                .Where(o => o.Status != OrderStatus.Delivered
-                         && o.Status != OrderStatus.Cancelled
-                         && o.RiderWhatsAppNumber != null)
+                .Where(o => o.Status != OrderStatus.Delivered && o.Status != OrderStatus.Cancelled && o.RiderWhatsAppNumber != null)
                 .Select(o => o.RiderWhatsAppNumber)
                 .Distinct()
                 .CountAsync();
 
-            // Chiffre d'affaires du mois : commandes livrées dans le mois courant.
             var monthlyRevenue = await _context.Orders
-                .Where(o => o.Status == OrderStatus.Delivered
-                         && o.DeliveredAt >= startOfMonth)
+                .Where(o => o.Status == OrderStatus.Delivered && o.DeliveredAt >= startOfMonth)
                 .SumAsync(o => o.Amount);
-
-            // ---- KPI acquisition & activité (pilotage marketing) ----
-            var now30d = now.AddDays(-30);
-            var now7d = now.AddDays(-7);
+            var revenue30d = await _context.Orders
+                .Where(o => o.Status == OrderStatus.Delivered && o.DeliveredAt >= now30d)
+                .SumAsync(o => o.Amount);
+            var revenuePrev30d = await _context.Orders
+                .Where(o => o.Status == OrderStatus.Delivered && o.DeliveredAt >= now60d && o.DeliveredAt < now30d)
+                .SumAsync(o => o.Amount);
+            var revenueChangePercent = revenuePrev30d > 0 ? (double)((revenue30d - revenuePrev30d) / revenuePrev30d * 100) : 0;
 
             var totalVendors = await _context.Users.CountAsync(u => u.Role == UserRole.Vendor);
             var totalRiders = await _context.Users.CountAsync(u => u.Role == UserRole.Rider);
-            var newVendors30d = await _context.Users.CountAsync(
-                u => u.Role == UserRole.Vendor && u.CreatedAt >= now30d);
+            var newVendors30d = await _context.Users.CountAsync(u => u.Role == UserRole.Vendor && u.CreatedAt >= now30d);
 
-            // Vendeurs actifs = ayant au moins 1 commande créée dans les 30 derniers jours.
             var activeVendorIds30d = await _context.Orders
                 .Where(o => o.CreatedAt >= now30d && o.VendorUserId != null)
                 .Select(o => o.VendorUserId!.Value)
@@ -63,18 +61,46 @@ namespace Wazap.API.Services
             var ordersThisWeek = await _context.Orders.CountAsync(o => o.CreatedAt >= now7d);
             var ordersLast30d = await _context.Orders.CountAsync(o => o.CreatedAt >= now30d);
 
-            // Répartition des commandes (30 j) par zone du vendeur.
+            var delivered30d = await _context.Orders.CountAsync(o => o.Status == OrderStatus.Delivered && o.DeliveredAt >= now30d);
+            var confirmed30d = await _context.Orders.CountAsync(o => o.CreatedAt >= now30d
+                && o.Status != OrderStatus.PendingVendorConfirmation);
+            var deliveryRate30d = confirmed30d > 0 ? (double)delivered30d / confirmed30d : 0;
+            var avgBasket30d = delivered30d > 0 ? revenue30d / delivered30d : 0;
+
+            var topVendors = await _context.Orders
+                .Where(o => o.Status == OrderStatus.Delivered && o.DeliveredAt >= now30d && o.VendorUserId != null)
+                .GroupBy(o => o.VendorUserId!.Value)
+                .Select(g => new { VendorId = g.Key, Delivered = g.Count(), Revenue = g.Sum(o => o.Amount) })
+                .OrderByDescending(x => x.Delivered)
+                .Take(5)
+                .ToListAsync();
+            var topVendorIds = topVendors.Select(x => x.VendorId).ToList();
+            var vendorNameLookup = new Dictionary<Guid, string>();
+            if (topVendorIds.Count > 0)
+            {
+                vendorNameLookup = await _context.Users
+                    .Where(u => topVendorIds.Contains(u.Id))
+                    .ToDictionaryAsync(u => u.Id, u => u.Username);
+            }
+
+            var leadsConverted30d = await _context.Leads
+                .CountAsync(l => l.Status == LeadStatus.Converted && l.CreatedAt >= now30d);
+            var leadsTotal30d = await _context.Leads
+                .CountAsync(l => l.CreatedAt >= now30d);
+            var leadConversionRate30d = leadsTotal30d > 0 ? (double)leadsConverted30d / leadsTotal30d : 0;
+
             var recentVendorZones = await _context.Users.AsNoTracking()
                 .Where(u => u.Role == UserRole.Vendor)
                 .Select(u => new { u.Id, u.Zone })
                 .ToListAsync();
+            var zoneMap = recentVendorZones
+                .GroupBy(v => v.Zone ?? "Inconnue")
+                .ToDictionary(g => g.Key, g => g.Select(v => v.Id).ToHashSet());
+
             var orders30d = await _context.Orders.AsNoTracking()
                 .Where(o => o.CreatedAt >= now30d && o.VendorUserId != null)
                 .Select(o => o.VendorUserId!.Value)
                 .ToListAsync();
-            var zoneMap = recentVendorZones
-                .GroupBy(v => v.Zone ?? "Inconnue")
-                .ToDictionary(g => g.Key, g => g.Select(v => v.Id).ToHashSet());
             var ordersByZone = zoneMap
                 .Select(kv => new ZoneMetricDto
                 {
@@ -85,29 +111,54 @@ namespace Wazap.API.Services
                 .OrderByDescending(z => z.Orders)
                 .ToList();
 
-            // Dernières commandes non annulées (les 10 plus récentes).
+            var ordersWithZone = await _context.Orders.AsNoTracking()
+                .Where(o => o.Status == OrderStatus.Delivered && o.DeliveredAt >= now30d && o.VendorUserId != null)
+                .ToListAsync();
+            var zoneRevenue = zoneMap
+                .Select(kv => new ZoneRevenueDto
+                {
+                    Zone = string.IsNullOrWhiteSpace(kv.Key) ? "Inconnue" : kv.Key,
+                    Revenue = ordersWithZone
+                        .Where(o => o.VendorUserId != null && kv.Value.Contains(o.VendorUserId.Value))
+                        .Sum(o => o.Amount)
+                })
+                .Where(z => z.Revenue > 0)
+                .OrderByDescending(z => z.Revenue)
+                .ToList();
+
             var recentOrders = await _context.Orders
                 .AsNoTracking()
                 .Where(o => o.Status != OrderStatus.Cancelled)
                 .OrderByDescending(o => o.CreatedAt)
                 .Take(10)
                 .ToListAsync();
-
-            var vendorNames = await LoadVendorNamesAsync(recentOrders);
+            var recentVendorNames = await LoadVendorNamesAsync(recentOrders);
 
             return new DashboardSummaryDto
             {
                 InProgressOrdersCount = inProgressOrdersCount,
                 ActiveRiders = activeRiders,
                 MonthlyRevenue = monthlyRevenue,
-                RecentOrders = recentOrders.Select(o => Map(o, vendorNames)).ToList(),
+                RecentOrders = recentOrders.Select(o => Map(o, recentVendorNames)).ToList(),
                 TotalVendors = totalVendors,
                 NewVendors30d = newVendors30d,
                 ActiveVendors30d = activeVendors30d,
                 TotalRiders = totalRiders,
                 OrdersThisWeek = ordersThisWeek,
                 OrdersLast30d = ordersLast30d,
-                OrdersByZone30d = ordersByZone
+                OrdersByZone30d = ordersByZone,
+                AverageBasket30d = avgBasket30d,
+                DeliveryRate30d = deliveryRate30d,
+                Revenue30d = revenue30d,
+                RevenueChangePercent = Math.Round(revenueChangePercent, 1),
+                TopVendors30d = topVendors.Select(x => new TopVendorDto
+                {
+                    Username = vendorNameLookup.TryGetValue(x.VendorId, out var n) ? n : "—",
+                    DeliveredOrders = x.Delivered,
+                    Revenue = x.Revenue
+                }).ToList(),
+                LeadConversionRate30d = Math.Round(leadConversionRate30d, 3),
+                RevenueByZone30d = zoneRevenue
             };
         }
 
