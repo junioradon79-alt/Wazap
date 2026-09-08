@@ -22,6 +22,7 @@ public class WebhookWhatsAppController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
     private readonly RiderService _riderService;
+    private readonly RiderRecruitmentService _riderRecruitment;
     private readonly VendorService _vendorService;
     private readonly DeliveryOfferService _deliveryOfferService;
     private readonly OrderService _orderService;
@@ -41,6 +42,7 @@ public class WebhookWhatsAppController : ControllerBase
     public WebhookWhatsAppController(
         ApplicationDbContext context,
         RiderService riderService,
+        RiderRecruitmentService riderRecruitment,
         VendorService vendorService,
         DeliveryOfferService deliveryOfferService,
         OrderService orderService,
@@ -60,6 +62,7 @@ public class WebhookWhatsAppController : ControllerBase
         _riderRatings = riderRatings;
         _context = context;
         _riderService = riderService;
+        _riderRecruitment = riderRecruitment;
         _vendorService = vendorService;
         _deliveryOfferService = deliveryOfferService;
         _orderService = orderService;
@@ -245,7 +248,12 @@ public class WebhookWhatsAppController : ControllerBase
 
             var knownUser = candidates.Any(p => PhoneNumberNormalizer.SameSubscriber(p, phone));
             if (!knownUser)
+            {
+                // 6a) Candidat livreur (bot de recrutement : intention → nom/quartier → photo).
+                if (await _riderRecruitment.TryHandleCandidateAsync(phone, text))
+                    return Ok();
                 await _prospects.HandleAsync(phone, text);
+            }
         }
 
         return Ok();
@@ -347,7 +355,11 @@ public class WebhookWhatsAppController : ControllerBase
         var rider = await FindUserByPhoneAsync(phone, UserRole.Rider);
         if (rider is null)
         {
-            _logger.LogInformation("Média WhatsApp ignoré : {Phone} n'est pas un livreur connu.", phone);
+            // Numéro sans compte : peut-être un candidat livreur en cours de recrutement
+            // (bot WhatsApp : intention → nom/quartier → photo CNI → compte créé).
+            var candidateHandled = await _riderRecruitment.HandleCandidatePhotoAsync(phone, mediaUrl, mediaId, mimeType);
+            if (!candidateHandled)
+                _logger.LogInformation("Média WhatsApp ignoré : {Phone} n'est ni un livreur connu ni un candidat livreur.", phone);
             return;
         }
 
@@ -364,6 +376,7 @@ public class WebhookWhatsAppController : ControllerBase
         {
             await using var stream = new MemoryStream(download.Value.Content);
             await _riderService.StoreScanAsync(rider.Id, stream, download.Value.FileName, mediaUrl);
+            await _riderService.RecordWhatsAppConsentAsync(rider.Id);
             _logger.LogInformation("Scan d'identité du livreur {RiderId} reçu via WhatsApp.", rider.Id);
             await _whatsAppSender.SendTextMessageAsync(phone,
                 "✅ Photo de votre pièce d'identité reçue ! Notre équipe vérifie votre dossier — "

@@ -272,6 +272,7 @@ builder.Services.AddScoped<AuthService>();
 
 // Services géolocalisation / matching / tableau de bord
 builder.Services.AddScoped<RiderService>();
+builder.Services.AddScoped<RiderRecruitmentService>();
 builder.Services.AddScoped<VendorService>();
 builder.Services.AddScoped<DeliveryOfferService>();
 builder.Services.AddScoped<DashboardService>();

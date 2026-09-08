@@ -291,6 +291,20 @@ namespace Wazap.API.Services
             await _context.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Trace le consentement RGPD « whatsapp » : le scan a été envoyé par le livreur
+        /// lui-même depuis WhatsApp (candidature spontanée ou livreur existant).
+        /// Sans dossier d'identité, ne fait rien.
+        /// </summary>
+        public async Task RecordWhatsAppConsentAsync(Guid riderUserId)
+        {
+            var identity = await _context.RiderIdentities.FirstOrDefaultAsync(i => i.UserId == riderUserId);
+            if (identity is null)
+                return;
+            identity.RecordConsent("whatsapp");
+            await _context.SaveChangesAsync();
+        }
+
         /// <summary>Chemin du scan local (null si aucun fichier téléversé).</summary>
         public async Task<string?> GetStoredScanPathAsync(Guid riderUserId)
         {

@@ -64,11 +64,15 @@ internal sealed class WebhookHarness : IDisposable
         Scans = scans ?? new RiderScansOptions { AllowUnencryptedStorage = true };
         var downloader = mediaDownloader ?? new FakeMediaDownloader();
 
+        var riderService = new RiderService(Context, new FakeWebHostEnvironment(_tempDir), Sender,
+            Scans, NullLogger<RiderService>.Instance);
+        var recruitment = new RiderRecruitmentService(Context, new FakePasswordHasher(), riderService,
+            Sender, downloader, config, NullLogger<RiderRecruitmentService>.Instance);
+
         Controller = new WebhookWhatsAppController(
             Context,
-            new RiderService(Context, new FakeWebHostEnvironment(_tempDir), Sender,
-                Scans,
-                NullLogger<RiderService>.Instance),
+            riderService,
+            recruitment,
             new VendorService(Context, new NoGeocoding(), NullLogger<VendorService>.Instance),
             offers,
             orders,
