@@ -56,7 +56,9 @@
    kill-switch `RiderScans:WhatsAppInboundEnabled`. Commit `1fddb0c`.
 5. **Onboarding vendeur activable** dès templates Meta approuvés + relance des inactifs.
    - ✅ Code livré (worker `VendorOnboardingWorker`, opt-in `VendorOnboarding:Enabled=false`)
-   - ⏳ **Action utilisateur** : créer/valider les 3 templates (d1/d3/d7) puis activer.
+   - ✅ **Templates (J+1/J+3/J+7) SOUMIS par l'utilisateur** (WhatsApp Manager, attente Meta)
+   - ⏳ **Dès `Approved`** : renseigner les noms (`WhatChimp__TemplateVendorOnboardingDay1/3/7`) puis
+     `VendorOnboarding:Enabled=true`.
 6. **Tests** : ✅ services couverts (LeadConversion, ColisSur, RiderService, AuthService, preuve de livraison) — reste l'**E2E webhook**.
 7. ✅ **Sécurité/RGPD CNI** : ✅ chiffrement au repos + ✅ **durée de conservation activée (07/09)** — le scan est
    supprimé du disque et déréférencé après `Retention:RiderScansDays` (90 j) suivant la **décision** de
@@ -96,7 +98,8 @@
     corps Meta approuvés (client : {{1}}=commande,{{2}}=livreur ; vendeur : {{1}}=livreur,{{2}}=client,
     {{3}}=commande) et `rider_batch_offer` à 2 variables (nb commandes + code ACCEPTE) — plus le template
     à bouton `rider_batch_offer_btn` en fallback antérieur. Tests 389/389.
-    Reste en attente : 5 Marketing (prospect + recrutement) + 3 onboarding.
+    Reste en attente Meta : `delivery_code` + 5 Marketing (prospect + recrutement) +
+    3 onboarding (**soumis par l'utilisateur**, en attente d'approbation).
 15. ✅ **FAIT (08/09, commit `9d8b575`) — Versioning endpoints d'écriture API v1 (P3-15)** :
     `POST /api/v1/orders` (création de commande, protégée par clé API X-Api-Key). Le vendeur
     est résolu par son numéro WhatsApp E.164. La commande active le suivi acheteur (lien envoyé
@@ -108,9 +111,11 @@
     livraison, commandes 30j/semaine, top clients fidèles. Tests 386/386 inchangés.
 
 ### Actions utilisateur (déblocages)
-- **Meta** : 13 templates soumis (10 Utility + 5 Marketing + 3 onboarding) → attendre `Approved`.
-  Détail corps + exemples : `prospection/TEMPLATES_MARKETING_A_CORRIGER.md`.
-- **Créer/valider les 3 templates onboarding vendeur** (d1/d3/d7) puis `VendorOnboarding:Enabled=true`.
+- **Meta — état au 08/09** : 9 Utility approuvés & activés ✓ (item 14) · `delivery_code` en attente ·
+  3 onboarding vendeur (J+1/J+3/J+7) **soumis par l'utilisateur** (attente `Approved`) · 5 Marketing
+  corps corrigés prêts à resoumettre (`prospection/TEMPLATES_MARKETING_A_CORRIGER.md`).
+- ⏳ **Dès approbation onboarding** : renseigner les noms `WhatChimp__TemplateVendorOnboardingDay1/3/7`
+  puis `VendorOnboarding:Enabled=true`.
 - **Certifier les livreurs actuels** (scan CNI via admin OU WhatsApp) puis `RiderSecurity:RequireCertifiedRiders=true`.
 - **Activer le paiement client** : ✅ **ACTIVÉ** (08/09) — `ClientPayments:Enabled=true` configuré en prod.
 - Tests réels : prospect inconnu → `CONVERTIR` → `LIVRAISON` → `SINISTRE` (bout-en-bout). Protocole : `prospection/PROTOCOLE_TEST_REEL.md`.
