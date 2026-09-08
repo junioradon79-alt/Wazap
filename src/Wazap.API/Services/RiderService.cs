@@ -134,6 +134,8 @@ namespace Wazap.API.Services
                         i?.IdScanUrl,
                         i?.ScanFileName,
                         i?.ScanReceivedAt,
+                        i?.ConsentGivenAt,
+                        i?.ConsentMethod,
                         i?.BlacklistReason,
                         i?.CreatedAt,
                         i?.ReviewedAt);
@@ -461,6 +463,8 @@ namespace Wazap.API.Services
         string? IdScanUrl,
         string? ScanFileName,
         DateTime? ScanReceivedAt,
+        DateTime? ConsentGivenAt,
+        string? ConsentMethod,
         string? BlacklistReason,
         DateTime? CreatedAt,
         DateTime? ReviewedAt);

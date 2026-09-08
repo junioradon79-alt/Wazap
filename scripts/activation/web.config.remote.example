@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  MODÈLE du web.config de production (SmarterASP).
+  Usage : copier ce fichier vers `web.config.remote` (gitignoré) et renseigner
+  les vraies valeurs (voir DEPLOYMENT.md — jamais de secret dans le dépôt).
+  Les scripts 01 et 04 téléchargent le vrai web.config distant eux-mêmes.
+-->
+<configuration>
+  <location path="." inheritInChildApplications="false">
+    <system.webServer>
+      <handlers>
+        <add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" />
+      </handlers>
+      <aspNetCore processPath=".\Wazap.API.exe" arguments="" stdoutLogEnabled="false" stdoutLogFile=".\logs\stdout" hostingModel="OutOfProcess">
+        <environmentVariables>
+          <environmentVariable name="ConnectionStrings__DefaultConnection" value="<CHANGER-MOI>" />
+          <environmentVariable name="WhatChimp__ApiToken" value="<CHANGER-MOI>" />
+          <environmentVariable name="WhatChimp__WebhookToken" value="<CHANGER-MOI>" />
+          <environmentVariable name="Jwt__Key" value="<CHANGER-MOI>" />
+          <environmentVariable name="SeedAdmin__Username" value="admin" />
+          <environmentVariable name="SeedAdmin__Password" value="<CHANGER-MOI>" />
+          <environmentVariable name="GeniusPay__ApiKey" value="<CHANGER-MOI>" />
+          <environmentVariable name="GeniusPay__ApiSecret" value="<CHANGER-MOI>" />
+          <environmentVariable name="GeniusPay__WebhookSecret" value="<CHANGER-MOI>" />
+          <environmentVariable name="GeniusPay__SuccessUrl" value="https://junioradon79gm-001-site1.jtempurl.com/login?success=1" />
+          <environmentVariable name="GeniusPay__ErrorUrl" value="https://junioradon79gm-001-site1.jtempurl.com/login?error=1" />
+          <environmentVariable name="Retention__Enabled" value="true" />
+          <environmentVariable name="RiderScans__EncryptionKey" value="<CHANGER-MOI — voir DEPLOYMENT.md>" />
+          <environmentVariable name="ClientPayments__Enabled" value="true" />
+          <environmentVariable name="ClientPayments__CommissionPercent" value="2.0" />
+          <environmentVariable name="ClientPayments__RequirePaymentBeforeDispatch" value="false" />
+        </environmentVariables>
+      </aspNetCore>
+    </system.webServer>
+  </location>
+</configuration>

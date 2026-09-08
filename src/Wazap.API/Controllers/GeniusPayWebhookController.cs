@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Wazap.API.Services;
 using Wazap.Application.Configuration;
+using Wazap.Application.Services;
+using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
 using Wazap.Infrastructure.Data;
 using Wazap.Infrastructure.Services;
@@ -15,17 +17,20 @@ public class GeniusPayWebhookController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
     private readonly PackService _packService;
+    private readonly ClientPaymentService _clientPayments;
     private readonly GeniusPayOptions _options;
     private readonly ILogger<GeniusPayWebhookController> _logger;
 
     public GeniusPayWebhookController(
         ApplicationDbContext context,
         PackService packService,
+        ClientPaymentService clientPayments,
         GeniusPayOptions options,
         ILogger<GeniusPayWebhookController> logger)
     {
         _context = context;
         _packService = packService;
+        _clientPayments = clientPayments;
         _options = options;
         _logger = logger;
     }
@@ -87,8 +92,26 @@ public class GeniusPayWebhookController : ControllerBase
 
         if (transaction is null)
         {
-            _logger.LogWarning("Aucune transaction WAZAP pour le webhook GeniusPay (id={Tid}, ref={Ref}).",
-                info.WazapTransactionId, info.Reference);
+            // Pas une transaction de pack : les paiements du PANIER CLIENT (commandes)
+            // partagent la même passerelle — routage par identifiant interne.
+            var orderPayment = await FindOrderPaymentAsync(info);
+            if (orderPayment is null)
+            {
+                _logger.LogWarning("Aucune transaction WAZAP pour le webhook GeniusPay (id={Tid}, ref={Ref}).",
+                    info.WazapTransactionId, info.Reference);
+                return;
+            }
+
+            // Intégrité : le montant payé doit correspondre au panier.
+            if (info.Amount.HasValue && orderPayment.Amount != info.Amount.Value)
+            {
+                _logger.LogWarning("Montant webhook {Paid} ≠ paiement commande {Expected} pour {Id}. Ignoré.",
+                    info.Amount, orderPayment.Amount, orderPayment.Id);
+                return;
+            }
+
+            await _clientPayments.CompletePaymentAsync(
+                orderPayment.Id, info.Reference ?? $"GENIUS-{orderPayment.Id:N}");
             return;
         }
 
@@ -112,12 +135,50 @@ public class GeniusPayWebhookController : ControllerBase
     private async Task HandleFailedAsync(JsonElement root)
     {
         var info = PaymentWebhookParser.Parse(root);
-        if (info?.WazapTransactionId is null)
+        if (info is null)
         {
-            _logger.LogWarning("Webhook échec sans identifiant WAZAP : ignoré.");
+            _logger.LogWarning("Webhook échec illisible : payload ignoré.");
             return;
         }
 
-        await _packService.FailPurchaseAsync(info.WazapTransactionId.Value);
+        var packTransaction = info.WazapTransactionId.HasValue
+            ? await _context.CreditTransactions.FirstOrDefaultAsync(t => t.Id == info.WazapTransactionId.Value)
+            : null;
+
+        if (packTransaction is not null)
+        {
+            await _packService.FailPurchaseAsync(packTransaction.Id);
+            return;
+        }
+
+        var orderPayment = await FindOrderPaymentAsync(info);
+        if (orderPayment is not null)
+        {
+            await _clientPayments.FailPaymentAsync(orderPayment.Id);
+            return;
+        }
+
+        _logger.LogWarning("Webhook échec sans transaction WAZAP correspondante (id={Tid}, ref={Ref}) : ignoré.",
+            info.WazapTransactionId, info.Reference);
+    }
+
+    /// <summary>
+    /// Retrouve un paiement de panier client via l'identifiant interne (metadata
+    /// wazap_transaction_id) ou la référence de l'agrégateur.
+    /// </summary>
+    private async Task<OrderPayment?> FindOrderPaymentAsync(PaymentWebhookInfo info)
+    {
+        if (info.WazapTransactionId.HasValue)
+        {
+            var byId = await _context.OrderPayments
+                .FirstOrDefaultAsync(p => p.Id == info.WazapTransactionId.Value);
+            if (byId is not null)
+                return byId;
+        }
+
+        return info.Reference is null
+            ? null
+            : await _context.OrderPayments
+                .FirstOrDefaultAsync(p => p.TransactionReference == info.Reference);
     }
 }

@@ -16,15 +16,18 @@ public sealed class HealthDetailsService
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly RiderScansOptions _scans;
     private readonly RetentionOptions _retention;
+    private readonly ClientPaymentOptions _clientPayments;
 
     public HealthDetailsService(
         IServiceScopeFactory scopeFactory,
         RiderScansOptions scans,
-        RetentionOptions retention)
+        RetentionOptions retention,
+        ClientPaymentOptions clientPayments)
     {
         _scopeFactory = scopeFactory;
         _scans = scans;
         _retention = retention;
+        _clientPayments = clientPayments;
     }
 
     /// <param name="includeSensitiveDetail">
@@ -46,6 +49,7 @@ public sealed class HealthDetailsService
         await ProbeDatabaseAndOutboxAsync(details, ct);
         AddWorkerDetails(details, now);
         AddComplianceDetails(details, includeSensitiveDetail);
+        AddClientPaymentDetails(details);
 
         // Statut de synthèse : healthy sauf si la base est injoignable ou l'outbox a des échecs.
         details["status"] = details.TryGetValue("outbox", out var outbox)
@@ -142,6 +146,16 @@ public sealed class HealthDetailsService
             compliant ? "ok" : "attention",
             includeSensitiveDetail ? scans : null,
             includeSensitiveDetail ? retention : null);
+    }
+
+    private void AddClientPaymentDetails(IDictionary<string, object?> details)
+    {
+        details["clientPayments"] = new
+        {
+            enabled = _clientPayments.Enabled,
+            requireBeforeDispatch = _clientPayments.RequirePaymentBeforeDispatch,
+            commissionPercent = _clientPayments.CommissionPercent
+        };
     }
 
     public sealed record OutboxSnapshot(int PendingDue, int Retrying, int Failed);

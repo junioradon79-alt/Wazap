@@ -26,6 +26,7 @@ namespace Wazap.Infrastructure.Data
         public DbSet<RiderIdentity> RiderIdentities { get; set; }
         public DbSet<DeliveryClaim> DeliveryClaims { get; set; }
         public DbSet<RiderRating> RiderRatings { get; set; }
+        public DbSet<OrderPayment> OrderPayments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -64,6 +65,24 @@ namespace Wazap.Infrastructure.Data
                 .WithMany(b => b.Orders)
                 .HasForeignKey(o => o.BatchId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Paiements client (panier Mobile Money) : montants exacts + index de service.
+            modelBuilder.Entity<OrderPayment>(entity =>
+            {
+                entity.Property(p => p.Amount).HasPrecision(18, 2);
+                entity.Property(p => p.CommissionAmount).HasPrecision(18, 2);
+                entity.Property(p => p.VendorPayoutDue).HasPrecision(18, 2);
+                entity.Property(p => p.TransactionReference).HasMaxLength(200);
+                entity.Property(p => p.PaymentLink).HasMaxLength(1000);
+
+                entity.HasIndex(p => p.OrderId);
+                entity.HasIndex(p => new { p.Status, p.CreatedAt });
+
+                entity.HasOne(p => p.Order)
+                    .WithMany()
+                    .HasForeignKey(p => p.OrderId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
             modelBuilder.Entity<OutboxMessage>()
                 .HasIndex(m => new { m.Status, m.AvailableAt });
@@ -329,6 +348,89 @@ namespace Wazap.Infrastructure.Data
                 }
             }
 
+            // Paiements client (commandes Mobile Money)
+            foreach (var entry in ChangeTracker.Entries<OrderPayment>())
+            {
+                var payment = entry.Entity;
+                if (entry.State == EntityState.Modified)
+                {
+                    var originalStatus = OriginalPaymentStatus(entry);
+                    if (originalStatus == TransactionStatus.Pending && payment.Status == TransactionStatus.Completed)
+                    {
+                        events.Add((WebhookEvents.ClientPaymentCompleted, new
+                        {
+                            paymentId = payment.Id,
+                            orderId = payment.OrderId,
+                            amount = payment.Amount,
+                            commissionAmount = payment.CommissionAmount,
+                            vendorPayoutDue = payment.VendorPayoutDue,
+                            transactionReference = payment.TransactionReference,
+                            completedAt = payment.CompletedAt
+                        }));
+                    }
+                    else if (originalStatus == TransactionStatus.Pending && payment.Status == TransactionStatus.Failed)
+                    {
+                        events.Add((WebhookEvents.ClientPaymentFailed, new
+                        {
+                            paymentId = payment.Id,
+                            orderId = payment.OrderId,
+                            amount = payment.Amount,
+                            errorMessage = payment.ErrorMessage,
+                            failedAt = payment.CompletedAt
+                        }));
+                    }
+                }
+            }
+
+            // Certification livreurs
+            foreach (var entry in ChangeTracker.Entries<RiderIdentity>())
+            {
+                if (entry.State == EntityState.Modified)
+                {
+                    var identity = entry.Entity;
+                    if (identity.Status == RiderIdentityStatus.Verified)
+                    {
+                        events.Add((WebhookEvents.RiderCertified, new
+                        {
+                            riderUserId = identity.UserId,
+                            fullName = identity.FullName,
+                            verifiedAt = identity.ReviewedAt
+                        }));
+                    }
+                }
+            }
+
+            // Sinistres Colis Sûr
+            foreach (var entry in ChangeTracker.Entries<DeliveryClaim>())
+            {
+                var claim = entry.Entity;
+                if (entry.State == EntityState.Added)
+                {
+                    events.Add((WebhookEvents.ClaimFiled, new
+                    {
+                        claimId = claim.Id,
+                        orderId = claim.OrderId,
+                        vendorId = claim.VendorUserId,
+                        riderId = claim.RiderUserId,
+                        status = claim.Status.ToString(),
+                        createdAt = claim.CreatedAt
+                    }));
+                }
+                else if (entry.State == EntityState.Modified && claim.Status != DeliveryClaimStatus.Pending)
+                {
+                    events.Add((WebhookEvents.ClaimResolved, new
+                    {
+                        claimId = claim.Id,
+                        orderId = claim.OrderId,
+                        status = claim.Status.ToString(),
+                        compensationCredits = claim.CompensationCredits,
+                        compensationAmountFcfa = claim.CompensationAmountFcfa,
+                        payoutStatus = claim.PayoutStatus.ToString(),
+                        reviewedAt = claim.ReviewedAt
+                    }));
+                }
+            }
+
             if (events.Count == 0)
                 return;
 
@@ -369,6 +471,17 @@ namespace Wazap.Infrastructure.Data
             {
                 OrderStatus status => status,
                 int i => (OrderStatus)i,
+                _ => null
+            };
+        }
+
+        private static TransactionStatus? OriginalPaymentStatus(Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry)
+        {
+            var raw = entry.OriginalValues["Status"];
+            return raw switch
+            {
+                TransactionStatus status => status,
+                int i => (TransactionStatus)i,
                 _ => null
             };
         }

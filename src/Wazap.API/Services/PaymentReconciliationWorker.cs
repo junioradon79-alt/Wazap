@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Wazap.API.Health;
 using Wazap.Application.Abstractions;
 using Wazap.Application.Configuration;
+using Wazap.Application.Services;
+using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
 using Wazap.Infrastructure.Data;
 
@@ -46,6 +48,7 @@ namespace Wazap.API.Services
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 var paymentService = scope.ServiceProvider.GetRequiredService<IPaymentService>();
                 var packService = scope.ServiceProvider.GetRequiredService<PackService>();
+                var clientPayments = scope.ServiceProvider.GetRequiredService<ClientPaymentService>();
 
                 // Multi-instances : une seule instance réconcilie à la fois (évite les crédits doublés).
                 await using var guard = await AdvisoryLockScope.TryAcquireAsync(db, 77_003, stoppingToken);
@@ -57,7 +60,7 @@ namespace Wazap.API.Services
 
                 try
                 {
-                    await ReconcileAsync(db, paymentService, packService, stoppingToken);
+                    await ReconcileAsync(db, paymentService, packService, clientPayments, stoppingToken);
                     await guard.CompleteAsync(stoppingToken);
                     WorkerHeartbeats.Beat(nameof(PaymentReconciliationWorker));
                 }
@@ -70,18 +73,16 @@ namespace Wazap.API.Services
         }
 
         private async Task ReconcileAsync(
-            ApplicationDbContext db, IPaymentService paymentService, PackService packService, CancellationToken ct)
+            ApplicationDbContext db, IPaymentService paymentService, PackService packService,
+            ClientPaymentService clientPayments, CancellationToken ct)
         {
-            // Transactions Pending avec une vraie référence (pas la provisoire PENDING-…).
+            // Transactions de packs Pending avec une vraie référence (pas la provisoire PENDING-…).
             var pending = await db.CreditTransactions
                 .Where(t => t.Status == TransactionStatus.Pending
                          && !t.TransactionReference.StartsWith("PENDING-"))
                 .OrderBy(t => t.CreatedAt)
                 .Take(20)
                 .ToListAsync(ct);
-
-            if (pending.Count == 0)
-                return;
 
             foreach (var transaction in pending)
             {
@@ -96,6 +97,29 @@ namespace Wazap.API.Services
                     await packService.CompletePurchaseAsync(transaction.Id, transaction.TransactionReference);
                 else if (status.Status is "failed" or "cancelled" or "refunded")
                     await packService.FailPurchaseAsync(transaction.Id);
+            }
+
+            // Paiements du panier client (commandes) en attente — même logique que les packs.
+            var pendingOrderPayments = await db.OrderPayments
+                .Where(p => p.Status == TransactionStatus.Pending
+                         && !p.TransactionReference.StartsWith(OrderPayment.PendingReferencePrefix))
+                .OrderBy(p => p.CreatedAt)
+                .Take(20)
+                .ToListAsync(ct);
+
+            foreach (var payment in pendingOrderPayments)
+            {
+                var status = await paymentService.CheckPaymentStatusAsync(payment.TransactionReference);
+                if (status is null || string.IsNullOrWhiteSpace(status.Status))
+                    continue;
+
+                _logger.LogInformation("Réconciliation paiement commande {Ref} : statut {Status}.",
+                    payment.TransactionReference, status.Status);
+
+                if (status.Status.Equals("completed", StringComparison.OrdinalIgnoreCase))
+                    await clientPayments.CompletePaymentAsync(payment.Id, payment.TransactionReference);
+                else if (status.Status is "failed" or "cancelled" or "refunded")
+                    await clientPayments.FailPaymentAsync(payment.Id);
             }
         }
     }

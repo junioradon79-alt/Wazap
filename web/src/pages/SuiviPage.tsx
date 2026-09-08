@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '../api/client'
-import type { ClientOrderStatus } from '../api/types'
+import type { ClientOrderStatus, ClientPaymentResponse } from '../api/types'
 
 const STATUS_FR: Record<string, string> = {
   PendingVendorConfirmation: 'En attente du vendeur',
@@ -27,6 +27,8 @@ const s = {
   btn: { width: '100%', padding: 14, border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', background: '#1db954', color: '#fff', marginTop: 12 },
   btn2: { width: '100%', padding: 14, border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: 'pointer', background: '#eef1f4', color: '#1c2733', marginTop: 8 },
   row: { display: 'flex', justifyContent: 'space-between' as const, alignItems: 'center' as const, gap: 8 },
+  payBtn: { display: 'block', textAlign: 'center' as const, padding: 14, border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', background: '#f7c948', color: '#1c2733', marginTop: 12, textDecoration: 'none' },
+  payDone: { background: '#e7f6ee', color: '#0e7a3e', fontWeight: 700, fontSize: 14, borderRadius: 8, padding: 10, marginTop: 12, textAlign: 'center' as const },
   err: { color: '#c0392b', background: '#fdecea', padding: 10, borderRadius: 8, fontSize: 14, marginTop: 10, whiteSpace: 'pre-wrap' as const },
 }
 export default function SuiviPage() {
@@ -40,6 +42,8 @@ export default function SuiviPage() {
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
   const [rider, setRider] = useState<{ riderName?: string; location?: { latitude: number; longitude: number } | null } | null>(null)
+  const [paying, setPaying] = useState(false)
+  const [payErr, setPayErr] = useState<string | null>(null)
   const timer = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const fetchOrder = useCallback(async () => {
@@ -103,6 +107,19 @@ export default function SuiviPage() {
     }
   }
 
+  const pay = async () => {
+    setPaying(true)
+    setPayErr(null)
+    try {
+      await api.post<ClientPaymentResponse>(`/client/orders/${id}/pay`)
+      await fetchOrder()
+    } catch (e) {
+      setPayErr(e instanceof Error ? e.message : 'Erreur de paiement')
+    } finally {
+      setPaying(false)
+    }
+  }
+
   if (error) return <div style={s.wrap}><div style={{ ...s.card, ...s.err }}>{error}</div></div>
   if (!order) return <div style={s.wrap}><div style={{ ...s.card, ...s.muted }}>Chargement de votre commande…</div></div>
 
@@ -148,6 +165,28 @@ export default function SuiviPage() {
               >📍 Voir le livreur sur la carte</a>
             : <p style={s.muted}>Le livreur se rapproche de chez vous…</p>}
         </div>
+      )}
+      {order.payment && order.payment.status !== 'Completed' && (
+        <div style={s.card}>
+          <div style={s.row}>
+            <span style={{ fontWeight: 700 }}>💳 Paiement de votre commande</span>
+            <span style={s.pill}>{order.payment.amount.toLocaleString('fr-FR')} FCFA</span>
+          </div>
+          {order.payment.paymentLink ? (
+            <a href={order.payment.paymentLink} target="_blank" rel="noreferrer" style={s.payBtn}>
+              Payer par Mobile Money
+            </a>
+          ) : (
+            <button style={{ ...s.payBtn, opacity: paying ? 0.6 : 1 }} disabled={paying} onClick={pay}>
+              {paying ? 'Préparation…' : 'Payer par Mobile Money'}
+            </button>
+          )}
+          <p style={{ ...s.muted, marginTop: 8 }}>Ou en espèces à la livraison.</p>
+          {payErr && <div style={s.err}>{payErr}</div>}
+        </div>
+      )}
+      {order.payment?.status === 'Completed' && (
+        <div style={s.payDone}>✅ Paiement reçu — merci !</div>
       )}
     </div>
   )

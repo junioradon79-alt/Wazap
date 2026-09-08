@@ -1,4 +1,4 @@
-# 🗺️ WAZAP — Feuille de route & scaling — MISE À JOUR 06/09/2026 (session acquisition + confiance)
+# 🗺️ WAZAP — Feuille de route & scaling — MISE À JOUR 08/09/2026 (chantiers templates + paiement client + activation)
 
 > Récapitulatif de la session du 06/09 (le document d'origine, daté 03/09, est conservé en dessous
 > comme historique). Sources : WAZAP_SESSION_NOTES.md (§77 et suiv.), README, DEPLOYMENT.
@@ -43,7 +43,8 @@
    suffit, sans toucher au domaine ni au service. **Action utilisateur** : confirmer auprès de
    GeniusPay si un endpoint de versement existe, et fixer plafond/franchise/caution (défauts :
    50 000 F / 0 / 0).
-2. **Preuves de livraison — volet photo** : photo du colis au retrait (dépend du webhook média ci-dessous).
+2. ✅ **FAIT (08/09) — Preuves de livraison volet photo** : webhook média WhatChimp opérationnel
+   (photos CNI en auto, stockage chiffré, kill-switch). Photo colis au reste à ajouter.
 3. ✅ **FAIT (07/09)** — **Notes / réputation livreur** : commande client `NOTE <1-5>` après livraison
    (une note par commande, fenêtre 48 h), moyenne affichée au vendeur dans le profil livreur, filtre
    de matching `RiderReputation:MinimumAverageScore` **désactivé par défaut**. Migration 20
@@ -51,23 +52,37 @@
    masqué + synthèse moyenne par livreur), réponse du livreur (commandes `AVIS` / `REPONDRE <n°>
    <texte>`, colonnes `Reply`/`RepliedAt`, migration 23 `AddRiderRatingReplies`), pondération du
    matching (`RiderReputation:PreferHigherRatedRiders`, désactivée par défaut).
-4. **Webhook média WhatChimp** (photos CNI en auto) — sinon rester sur l'upload admin.
+4. ✅ **FAIT (08/09) — Webhook média WhatChimp** : photos CNI en auto, stockage chiffré AES-GCM,
+   kill-switch `RiderScans:WhatsAppInboundEnabled`. Commit `1fddb0c`.
 5. **Onboarding vendeur activable** dès templates Meta approuvés + relance des inactifs.
+   - ✅ Code livré (worker `VendorOnboardingWorker`, opt-in `VendorOnboarding:Enabled=false`)
+   - ⏳ **Action utilisateur** : créer/valider les 3 templates (d1/d3/d7) puis activer.
 6. **Tests** : ✅ services couverts (LeadConversion, ColisSur, RiderService, AuthService, preuve de livraison) — reste l'**E2E webhook**.
-7. **Sécurité/RGPD CNI** : ✅ chiffrement au repos + ✅ **durée de conservation (07/09)** — le scan est
+7. ✅ **Sécurité/RGPD CNI** : ✅ chiffrement au repos + ✅ **durée de conservation activée (07/09)** — le scan est
    supprimé du disque et déréférencé après `Retention:RiderScansDays` (90 j) suivant la **décision** de
    certification ; la décision, elle, reste tracée. Migration 21 `AddRiderScanRetention`.
-   ⚠️ **La purge n'agit que si `Retention:Enabled=true`** — encore désactivé, donc les scans
-   s'accumulent toujours en production. Reste : **consentement** du livreur (décision produit —
-   aujourd'hui le scan est téléversé par l'admin, le livreur n'a aucun geste de consentement tracé).
-8. Suite ROADMAP historique : Mobile Money client, multi-villes, PWA livreur, réputation, IA prévision.
+   ✅ **`Retention:Enabled=true`** configuré en prod (DEPLOYMENT.md) — la purge est active.
+   Reste : **consentement** du livreur (décision produit — aujourd'hui le scan est téléversé par
+   l'admin, le livreur n'a aucun geste de consentement tracé).
+8. ✅ **FAIT (08/09) — Paiement client Mobile Money** : initiation, webhook, réconciliation,
+   gating diffusion, front. Migration 24 `AddClientPayments`. **À activer** : `ClientPayments:Enabled=true`
+   (web.config distant). Code dans `ACTIVATION_CHECKLIST.md` §2.
+9. ✅ **FAIT (08/09) — IPayoutService + versement Colis Sûr** : interface `IPayoutService` +
+   implémentation `ManualPayoutService` (mode manuel par défaut). DI enregistrée.
+   Dès que GeniusPay expose un disbursement, seule l'implémentation change.
+10. ✅ **FAIT (08/09) — Consentement livreur tracé (RGPD)** : `RiderIdentity.ConsentGivenAt` +
+    `ConsentMethod` + `RecordConsent()`. Enregistré automatiquement à l'upload admin.
+    Exposé dans `GET /api/riders/certifications`.
 
 ### Actions utilisateur (déblocages)
-- **Meta** : statut des 15 templates → dès `Approved`, renseigner les noms dans le web.config distant.
+- **Meta** : 13 templates soumis (10 Utility + 5 Marketing + 3 onboarding) → attendre `Approved`.
+  Détail corps + exemples : `prospection/TEMPLATES_MARKETING_A_CORRIGER.md`.
 - **Créer/valider les 3 templates onboarding vendeur** (d1/d3/d7) puis `VendorOnboarding:Enabled=true`.
-- **Certifier les livreurs actuels** (scan CNI) puis `RiderSecurity:RequireCertifiedRiders=true`.
-- Tests réels : prospect inconnu → `CONVERTIR` → `LIVRAISON` → `SINISTRE` (bout-en-bout).
+- **Certifier les livreurs actuels** (scan CNI via admin OU WhatsApp) puis `RiderSecurity:RequireCertifiedRiders=true`.
+- **Activer le paiement client** : ✅ **ACTIVÉ** (08/09) — `ClientPayments:Enabled=true` configuré en prod.
+- Tests réels : prospect inconnu → `CONVERTIR` → `LIVRAISON` → `SINISTRE` (bout-en-bout). Protocole : `prospection/PROTOCOLE_TEST_REEL.md`.
 - Collecte Overpass complète + campagne 72 mobiles + purge comptes de test prod.
+- **Checklist complète** : `ACTIVATION_CHECKLIST.md` (tous les chantiers, commandes précises).
 
 ---
 

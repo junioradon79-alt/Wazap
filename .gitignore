@@ -24,3 +24,6 @@ Thumbs.db
 
 # Fichier de credentials local (ne pas committer)
 DEPLOYMENT.md
+
+# Copie locale du web.config prod (contient les secrets : DB, JWT, GeniusPay, chiffrement CNI)
+scripts/activation/web.config.remote

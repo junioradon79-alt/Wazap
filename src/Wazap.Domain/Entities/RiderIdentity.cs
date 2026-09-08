@@ -29,6 +29,19 @@ public class RiderIdentity
     /// </summary>
     public DateTime? ScanPurgedAt { get; private set; }
 
+    /// <summary>
+    /// Date du consentement du livreur pour le traitement de sa pièce d'identité (RGPD).
+    /// Null = aucun consentement tracé (état historique, avant mise en place du suivi).
+    /// Le consentement est recueilli lors de l'envoi du scan (WhatsApp ou upload admin).
+    /// </summary>
+    public DateTime? ConsentGivenAt { get; private set; }
+
+    /// <summary>
+    /// Méthode de recueil du consentement : "whatsapp" (message du livreur),
+    /// "admin" (upload par l'équipe), "onboarding" (formulaire d'inscription).
+    /// </summary>
+    public string? ConsentMethod { get; private set; }
+
     public string? BlacklistReason { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? ReviewedAt { get; private set; }
@@ -93,6 +106,7 @@ public class RiderIdentity
     /// <summary>
     /// Scan téléversé par l'équipe (fichier local). Un dossier refusé est rouvert
     /// en « à vérifier » si un nouveau scan est fourni.
+    /// Le consentement est enregistré automatiquement (méthode "admin").
     /// </summary>
     public void SubmitScanFile(string fileName)
     {
@@ -102,11 +116,20 @@ public class RiderIdentity
         ScanFileName = Normalize(fileName, 120);
         ScanReceivedAt = DateTime.UtcNow;
         ScanPurgedAt = null;
+        RecordConsent("admin");
         ReopenIfRejected();
     }
 
-    /// <summary>Caution versée par le livreur, en FCFA (« Garantie Colis Sûr »).</summary>
-    public decimal DepositFcfa { get; private set; }
+    /// <summary>
+    /// Enregistre le consentement du livreur pour le traitement de sa pièce d'identité.
+    /// À appeler lors de l'envoi du scan (WhatsApp ou upload admin).
+    /// </summary>
+    /// <param name="method">Méthode de recueil : "whatsapp", "admin" ou "onboarding".</param>
+    public void RecordConsent(string method)
+    {
+        ConsentGivenAt = DateTime.UtcNow;
+        ConsentMethod = string.IsNullOrWhiteSpace(method) ? null : method.Trim().ToLowerInvariant();
+    }
 
     /// <summary>Enregistre le dépôt de caution (montant total détenu, non cumulatif).</summary>
     public void SetDeposit(decimal amountFcfa)
@@ -116,6 +139,9 @@ public class RiderIdentity
 
         DepositFcfa = amountFcfa;
     }
+
+    /// <summary>Caution versée par le livreur, en FCFA (« Garantie Colis Sûr »).</summary>
+    public decimal DepositFcfa { get; private set; }
 
     /// <summary>
     /// Prélève sur la caution à hauteur du disponible et retourne le montant réellement

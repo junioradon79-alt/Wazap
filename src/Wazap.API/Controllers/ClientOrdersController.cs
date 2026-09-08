@@ -8,8 +8,9 @@ using Wazap.Infrastructure.Data;
 namespace Wazap.API.Controllers;
 
 /// <summary>
-/// Parcours acheteur (page de suivi PWA) : le client consulte sa commande et valide
-/// ses coordonnées — ce qui déclenche AUTOMATIQUEMENT la recherche des livreurs.
+/// Parcours acheteur (page de suivi PWA) : le client consulte sa commande, valide
+/// ses coordonnées — ce qui déclenche AUTOMATIQUEMENT la recherche des livreurs —
+/// et peut payer son panier par Mobile Money (non bloquant par défaut).
 /// </summary>
 [ApiController]
 [Route("api/client/orders")]
@@ -17,11 +18,16 @@ public class ClientOrdersController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
     private readonly DeliveryOfferService _deliveryOfferService;
+    private readonly ClientPaymentService _clientPayments;
 
-    public ClientOrdersController(ApplicationDbContext context, DeliveryOfferService deliveryOfferService)
+    public ClientOrdersController(
+        ApplicationDbContext context,
+        DeliveryOfferService deliveryOfferService,
+        ClientPaymentService clientPayments)
     {
         _context = context;
         _deliveryOfferService = deliveryOfferService;
+        _clientPayments = clientPayments;
     }
 
     // GET: api/client/orders/{id} — état visible par le client (public, id non devinable)
@@ -42,6 +48,12 @@ public class ClientOrdersController : ControllerBase
                 .FirstOrDefaultAsync()
             : null;
 
+        var payment = await _context.OrderPayments.AsNoTracking()
+            .Where(p => p.OrderId == id)
+            .OrderByDescending(p => p.CreatedAt)
+            .Select(p => new { p.Status, p.Amount, p.PaymentLink })
+            .FirstOrDefaultAsync();
+
         return Ok(new
         {
             id = order.Id,
@@ -53,7 +65,15 @@ public class ClientOrdersController : ControllerBase
             hasCoordinates = order.ClientLatitude is not null && order.ClientLongitude is not null,
             address = order.ClientAddress,
             riderAssigned = order.Status == OrderStatus.RiderAssigned,
-            delivered = order.Status == OrderStatus.Delivered
+            delivered = order.Status == OrderStatus.Delivered,
+            payment = payment is null
+                ? null
+                : new
+                {
+                    status = payment.Status.ToString(),
+                    amount = payment.Amount,
+                    paymentLink = payment.PaymentLink
+                }
         });
     }
 
@@ -87,6 +107,35 @@ public class ClientOrdersController : ControllerBase
             offersCreated = result.OffersCreated,
             code = order.Id.ToString("N")[..8].ToUpperInvariant()
         });
+    }
+
+    // POST: api/client/orders/{id}/pay — le client paie son panier par Mobile Money
+    // (idempotent : un paiement en attente renvoie le même lien).
+    [HttpPost("{id:guid}/pay")]
+    [EnableRateLimiting("client")]
+    public async Task<IActionResult> Pay(Guid id)
+    {
+        try
+        {
+            var result = await _clientPayments.RequestPaymentAsync(id);
+            if (!result.Success)
+                return BadRequest(new { message = result.ErrorMessage });
+
+            return Ok(new
+            {
+                status = result.Status,
+                amount = result.Amount,
+                paymentLink = result.PaymentLink
+            });
+        }
+        catch (InvalidOperationException)
+        {
+            return BadRequest(new { message = "Le paiement ne peut pas être initié pour cette commande." });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { message = "Erreur lors de l'initiation du paiement." });
+        }
     }
 
     // GET: api/client/orders/{id}/rider-location — position live du livreur (suivi client)

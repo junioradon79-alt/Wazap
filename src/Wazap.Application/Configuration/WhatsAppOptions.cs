@@ -41,5 +41,18 @@ namespace Wazap.Application.Configuration
         public string TemplateVendorOnboardingDay1 { get; set; } = "";
         public string TemplateVendorOnboardingDay3 { get; set; } = "";
         public string TemplateVendorOnboardingDay7 { get; set; } = "";
+
+        // Templates de prospection (catégorie Marketing) — variables :
+        //   prospect_approach : 1 = nom commerce, 2 = commercial, 3 = lien démo/vente
+        //   prospect_followup : 1 = nom commerce, 2 = commercial
+        //   prospect_offer    : 1 = nom commerce
+        //   rider_recruit     : 1 = prénom, 2 = lien WhatsApp inscription
+        //   rider_company     : 1 = nom entreprise, 2 = lien WhatsApp partenariat
+        // Vides = envoi texte best-effort (le bot / l'outil de campagne les ignore).
+        public string TemplateProspectApproach { get; set; } = "";
+        public string TemplateProspectFollowup { get; set; } = "";
+        public string TemplateProspectOffer { get; set; } = "";
+        public string TemplateRiderRecruit { get; set; } = "";
+        public string TemplateRiderCompany { get; set; } = "";
     }
 }

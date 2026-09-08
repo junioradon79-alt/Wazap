@@ -99,6 +99,14 @@ export interface CreateOrderRequest {
   amount: number
 }
 
+export type ClientPaymentStatus = 'Pending' | 'Completed' | 'Failed' | 'NotFound' | 'Disabled' | 'Error'
+
+export interface ClientPaymentInfo {
+  status: ClientPaymentStatus
+  amount: number
+  paymentLink: string | null
+}
+
 export interface ClientOrderStatus {
   id: string
   code: string
@@ -110,6 +118,13 @@ export interface ClientOrderStatus {
   address: string | null
   riderAssigned: boolean
   delivered: boolean
+  payment: ClientPaymentInfo | null
+}
+
+export interface ClientPaymentResponse {
+  status: ClientPaymentStatus
+  amount: number
+  paymentLink: string | null
 }
 
 export interface ChangePasswordRequest {
@@ -139,6 +154,8 @@ export interface RiderCertification {
   idScanUrl: string | null
   scanFileName: string | null
   scanReceivedAt: string | null
+  consentGivenAt: string | null
+  consentMethod: string | null
   blacklistReason: string | null
   createdAt: string | null
   reviewedAt: string | null

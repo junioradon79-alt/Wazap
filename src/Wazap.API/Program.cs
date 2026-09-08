@@ -114,6 +114,10 @@ builder.Services.AddSingleton(colisSurOptions);
 // Versement sortant : aucune API de disbursement chez GeniusPay → virement manuel tracé.
 builder.Services.AddScoped<IPayoutService, ManualPayoutService>();
 
+// Options paiement du panier client (Mobile Money via GeniusPay, non bloquant par défaut)
+var clientPaymentOptions = builder.Configuration.GetSection(ClientPaymentOptions.SectionName).Get<ClientPaymentOptions>() ?? new ClientPaymentOptions();
+builder.Services.AddSingleton(clientPaymentOptions);
+
 // Options réputation livreur (notes clients après livraison)
 var riderReputationOptions = builder.Configuration.GetSection(RiderReputationOptions.SectionName).Get<RiderReputationOptions>() ?? new RiderReputationOptions();
 builder.Services.AddSingleton(riderReputationOptions);
@@ -274,6 +278,7 @@ builder.Services.AddScoped<DashboardService>();
 
 // Packs prépayés : catalogue + achat
 builder.Services.AddScoped<PackService>();
+builder.Services.AddScoped<ClientPaymentService>();
 
 // Paiement des packs : GeniusPay si activé, sinon mock (dev/test)
 if (geniusPayOptions.Enabled)

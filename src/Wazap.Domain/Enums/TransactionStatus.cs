@@ -1,7 +1,7 @@
 namespace Wazap.Domain.Enums;
 
 /// <summary>
-/// Statut d'une transaction d'achat de pack de crédits.
+/// Statut d'une transaction d'encaissement (achat de pack de crédits ou panier client).
 /// </summary>
 public enum TransactionStatus
 {

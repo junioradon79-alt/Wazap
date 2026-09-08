@@ -28,6 +28,7 @@ namespace Wazap.Application.Services
         private readonly WhatsAppOrchestrationService _orchestrator;
         private readonly RiderSecurityOptions _riderSecurity;
         private readonly RiderReputationOptions _reputation;
+        private readonly ClientPaymentOptions _clientPayments;
         private readonly ILogger<DeliveryOfferService> _logger;
 
         public DeliveryOfferService(
@@ -40,6 +41,7 @@ namespace Wazap.Application.Services
             WhatsAppOrchestrationService orchestrator,
             RiderSecurityOptions riderSecurity,
             RiderReputationOptions reputation,
+            ClientPaymentOptions clientPayments,
             ILogger<DeliveryOfferService> logger)
         {
             _context = context;
@@ -51,6 +53,7 @@ namespace Wazap.Application.Services
             _orchestrator = orchestrator;
             _riderSecurity = riderSecurity;
             _reputation = reputation;
+            _clientPayments = clientPayments;
             _logger = logger;
         }
 
@@ -176,6 +179,10 @@ namespace Wazap.Application.Services
             if (order.VendorUserId is null)
                 throw new InvalidOperationException("La commande n'a pas de vendeur lié.");
 
+            // Paiement client bloquant : pas de diffusion tant que le panier n'est pas réglé.
+            if (await IsWaitingForClientPaymentAsync(orderId))
+                throw new InvalidOperationException(RequiresClientPaymentMessage);
+
             var windowCutoff = DateTime.UtcNow.AddMinutes(-_grouping.WindowMinutes);
 
             var openBatch = await _context.DeliveryBatches
@@ -282,6 +289,10 @@ namespace Wazap.Application.Services
             if (order.Status != OrderStatus.VendorConfirmed)
                 throw new InvalidOperationException($"État actuel : {order.Status}. Diffusion impossible.");
 
+            // Paiement client bloquant : pas de diffusion tant que le panier n'est pas réglé.
+            if (await IsWaitingForClientPaymentAsync(orderId))
+                throw new InvalidOperationException(RequiresClientPaymentMessage);
+
             var batchId = await JoinOrCreateBatchAsync(order.Id);
 
             // Diffusion différée : le worker (DeliveryOfferWorker) diffusera le lot après le
@@ -337,6 +348,27 @@ namespace Wazap.Application.Services
             var activeOrders = orders
                 .Where(o => o.Status is OrderStatus.VendorConfirmed or OrderStatus.AwaitingRiderAcceptance)
                 .ToList();
+
+            // Paiement client bloquant : les commandes impayées du lot sont laissées de côté
+            // (elles seront diffusées quand leur paiement sera complété — ClientPaymentService).
+            if (_clientPayments.RequirePaymentBeforeDispatch && activeOrders.Count > 0)
+            {
+                var batchOrderIds = activeOrders.Select(o => o.Id).ToList();
+                var paidOrderIds = (await _context.OrderPayments.AsNoTracking()
+                        .Where(p => p.Status == TransactionStatus.Completed && batchOrderIds.Contains(p.OrderId))
+                        .Select(p => p.OrderId)
+                        .ToListAsync())
+                    .ToHashSet();
+
+                activeOrders = activeOrders.Where(o => paidOrderIds.Contains(o.Id)).ToList();
+
+                if (activeOrders.Count == 0)
+                {
+                    _logger.LogInformation("Lot {BatchId} non diffusé : aucun paiement client complété (option bloquante).",
+                        batchId);
+                    return new BroadcastResultDto(0, 0);
+                }
+            }
 
             if (activeOrders.Count == 0)
                 throw new InvalidOperationException("Aucune commande active dans le lot.");
@@ -807,6 +839,19 @@ namespace Wazap.Application.Services
         /// <summary>Comparaison numérique réutilisable (le langage n'a pas de CompareTo sur double).</summary>
         private static int CompareDouble(double a, double b)
             => a < b ? -1 : (a > b ? 1 : 0);
+
+        /// <summary>Message d'erreur quand la diffusion attend un paiement client (option bloquante).</summary>
+        private const string RequiresClientPaymentMessage =
+            "Le paiement du client est requis avant la diffusion des livreurs " +
+            "(ClientPayments:RequirePaymentBeforeDispatch).";
+
+        /// <summary>
+        /// Option bloquante activée ET aucun paiement client complété pour la commande.
+        /// </summary>
+        private async Task<bool> IsWaitingForClientPaymentAsync(Guid orderId)
+            => _clientPayments.RequirePaymentBeforeDispatch
+               && !await _context.OrderPayments.AsNoTracking()
+                   .AnyAsync(p => p.OrderId == orderId && p.Status == TransactionStatus.Completed);
 
         private async Task<User?> ResolveVendorAsync(string vendorWhatsApp)
         {
