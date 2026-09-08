@@ -161,16 +161,16 @@ namespace Wazap.Application.Services
         }
 
         /// <summary>
-        /// Propose une livraison groupée à un livreur. Le template approuvé
-        /// « rider_batch_offer_btn » porte une seule variable (le nombre de commandes) et un
-        /// bouton « Accepter » — le webhook résout l'offre en attente du livreur au clic, le
-        /// code d'offre n'embarque donc pas dans le message. Repli texte avec le code sinon.
+        /// Propose une livraison groupée à un livreur. Template approuvé « rider_batch_offer » :
+        /// {{1}} = nombre de commandes, {{2}} = code de l'offre (à répondre « ACCEPTE <code> »).
+        /// Repli texte avec le code sinon.
         /// </summary>
         public async Task SendBatchOfferAsync(string riderPhoneNumber, int orderCount, string offerCode)
         {
             var templateData = new Dictionary<string, string>
             {
-                ["1"] = orderCount.ToString()
+                ["1"] = orderCount.ToString(),
+                ["2"] = offerCode
             };
 
             var message = orderCount > 1
@@ -197,28 +197,28 @@ namespace Wazap.Application.Services
             var riderName = rider.Username;
 
             // Client : votre livreur arrive.
-            // Numérotation alignée sur le template Meta « Bonjour, votre livreur {{1}} a
-            // accepté votre commande #{{2}} » — les variables DOIVENT y apparaître dans
-            // l'ordre du texte, sous peine de rejet à la revue.
+            // Template Meta approuvé « Bonjour, votre livreur {{2}} a accepté votre commande
+            // #{{1}} » → 1 = code court de commande, 2 = nom du livreur.
             await SendStatusAsync(order.ClientWhatsAppNumber, _whatsAppOptions.TemplateRiderAssignedClient,
                 $"🛵 {riderName} a accepté votre commande #{orderCode}. Livraison en route !",
                 new Dictionary<string, string>
                 {
-                    ["1"] = riderName,
-                    ["2"] = orderCode
+                    ["1"] = orderCode,
+                    ["2"] = riderName
                 });
 
             // Vendeur : préparez le colis
             var vendorText = $"🛵 {riderName} a accepté la commande #{orderCode} de {order.ClientName}. Il arrive pour récupérer le colis."
                 + (string.IsNullOrWhiteSpace(riderProfileLine) ? string.Empty : $"\n{riderProfileLine}");
-            // Template Meta « Le livreur {{1}} a accepté la commande #{{2}} de {{3}} ».
+            // Template Meta approuvé « Le livreur {{1}} a accepté la commande #{{3}} de {{2}} »
+            // → 1 = livreur, 2 = client, 3 = code court de commande.
             await SendStatusAsync(order.VendorWhatsAppNumber, _whatsAppOptions.TemplateRiderAssignedVendor,
                 vendorText,
                 new Dictionary<string, string>
                 {
                     ["1"] = riderName,
-                    ["2"] = orderCode,
-                    ["3"] = order.ClientName
+                    ["2"] = order.ClientName,
+                    ["3"] = orderCode
                 });
 
             // Livreur : confirmation de course + détails + liens cartographiques
@@ -280,12 +280,13 @@ namespace Wazap.Application.Services
             foreach (var order in orders)
             {
                 var orderCode = order.Id.ToString("N")[..8].ToUpperInvariant();
+                // Template approuvé « Bonjour, votre livreur {{2}} a accepté votre commande #{{1}} ».
                 await SendStatusAsync(order.ClientWhatsAppNumber, _whatsAppOptions.TemplateRiderAssignedClient,
                     $"🛵 {riderName} a accepté votre commande #{orderCode}. Livraison en route !",
                     new Dictionary<string, string>
                     {
-                        ["1"] = riderName,
-                        ["2"] = orderCode
+                        ["1"] = orderCode,
+                        ["2"] = riderName
                     });
 
                 // Code de livraison propre à chaque client de la tournée.
@@ -302,8 +303,8 @@ namespace Wazap.Application.Services
                 new Dictionary<string, string>
                 {
                     ["1"] = riderName,
-                    ["2"] = firstCode,
-                    ["3"] = first.ClientName
+                    ["2"] = first.ClientName,
+                    ["3"] = firstCode
                 });
 
             // Livreur : confirmation de la tournée groupée + liste détaillée par client

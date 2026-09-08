@@ -14,10 +14,28 @@ public class WhatsAppOrchestrationServiceTests
     private static WhatsAppOrchestrationService CreateService(RecordingWhatsAppSender sender, WhatsAppOptions? options = null)
         => new(sender, options ?? new WhatsAppOptions(), NullLogger<WhatsAppOrchestrationService>.Instance);
     [Fact]
-    public async Task SendCreditPurchaseConfirmation_ShouldSendExpectedMessage()
+    public async Task SendCreditPurchaseConfirmation_WithApprovedTemplate_SendsTemplate()
     {
         var sender = new RecordingWhatsAppSender();
-        var service = CreateService(sender);
+        var service = CreateService(sender); // défaut : credit_purchase (approuvé)
+        var vendor = CreateVendor("Vendeur Test", "+33612345678", credits: 15);
+        var pack = new PackConfiguration { Name = "Découverte", Price = 2500m, Credits = 15 };
+
+        await service.SendCreditPurchaseConfirmationAsync(vendor, pack);
+
+        var sent = Assert.Single(sender.TemplateMessages);
+        Assert.Equal("credit_purchase", sent.Template);
+        // Corps Meta : « Bonjour, votre pack {{1}} est actif. Vous disposez maintenant de {{2}} commandes. »
+        Assert.Equal("Découverte", sent.Variables["1"]);
+        Assert.Equal("15", sent.Variables["2"]);
+        Assert.Empty(sender.TextMessages);
+    }
+
+    [Fact]
+    public async Task SendCreditPurchaseConfirmation_WhenTemplateEmpty_FallsBackToText()
+    {
+        var sender = new RecordingWhatsAppSender();
+        var service = CreateService(sender, new WhatsAppOptions { TemplateCreditPurchase = "" });
         var vendor = CreateVendor("Vendeur Test", "+33612345678", credits: 15);
         var pack = new PackConfiguration { Name = "Découverte", Price = 2500m, Credits = 15 };
 
@@ -71,10 +89,42 @@ public class WhatsAppOrchestrationServiceTests
     }
 
     [Fact]
-    public async Task SendRiderAssigned_ShouldNotifyClientVendorAndRider()
+    public async Task SendRiderAssigned_WithApprovedTemplates_SendsMappedVariables()
     {
         var sender = new RecordingWhatsAppSender();
-        var service = CreateService(sender);
+        var service = CreateService(sender); // défauts : rider_assigned_client / rider_assigned_vendor (approuvés)
+        var order = new Order("Client Test", "+33611112222", "+33612345678", "Commande", 10m);
+        var rider = new User("Rider Test", "hash", UserRole.Rider, "+33698765432");
+        var orderCode = order.Id.ToString("N")[..8].ToUpperInvariant();
+
+        await service.SendRiderAssignedAsync(order, rider);
+
+        // Client — corps Meta : « Bonjour, votre livreur {{2}} a accepté votre commande #{{1}} »
+        var client = Assert.Single(sender.TemplateMessages, m => m.Template == "rider_assigned_client");
+        Assert.Equal("+33611112222", client.Phone);
+        Assert.Equal(orderCode, client.Variables["1"]);
+        Assert.Equal("Rider Test", client.Variables["2"]);
+
+        // Vendeur — corps Meta : « Le livreur {{1}} a accepté la commande #{{3}} de {{2}} »
+        var vendor = Assert.Single(sender.TemplateMessages, m => m.Template == "rider_assigned_vendor");
+        Assert.Equal("+33612345678", vendor.Phone);
+        Assert.Equal("Rider Test", vendor.Variables["1"]);
+        Assert.Equal("Client Test", vendor.Variables["2"]);
+        Assert.Equal(orderCode, vendor.Variables["3"]);
+
+        // Livreur : toujours en texte (résumé + liens Maps).
+        Assert.Contains(sender.TextMessages, m => m.Phone == "+33698765432" && m.Message.StartsWith("✅"));
+    }
+
+    [Fact]
+    public async Task SendRiderAssigned_WhenTemplatesEmpty_FallsBackToText()
+    {
+        var sender = new RecordingWhatsAppSender();
+        var service = CreateService(sender, new WhatsAppOptions
+        {
+            TemplateRiderAssignedClient = "",
+            TemplateRiderAssignedVendor = ""
+        });
         var order = new Order("Client Test", "+33611112222", "+33612345678", "Commande", 10m);
         var rider = new User("Rider Test", "hash", UserRole.Rider, "+33698765432");
         var orderCode = order.Id.ToString("N")[..8].ToUpperInvariant();
@@ -89,10 +139,46 @@ public class WhatsAppOrchestrationServiceTests
     }
 
     [Fact]
-    public async Task SendBatchAssigned_ShouldNotifyEachClientOnce_AndVendorOnce()
+    public async Task SendBatchAssigned_WithApprovedTemplates_NotifiesClientsAndVendorOnce()
     {
         var sender = new RecordingWhatsAppSender();
-        var service = CreateService(sender);
+        var service = CreateService(sender); // défauts : rider_assigned_client / rider_assigned_vendor (approuvés)
+        var rider = new User("Rider Test", "hash", UserRole.Rider, "+33698765432");
+        var orders = new List<Order>
+        {
+            new("Client A", "+33611110001", "+33612345678", "C1", 10m),
+            new("Client B", "+33611110002", "+33612345678", "C2", 20m)
+        };
+
+        await service.SendBatchAssignedAsync(rider, orders);
+
+        // 2 clients (template) + 1 vendeur (template) + 1 livreur (texte)
+        Assert.Equal(2, sender.TemplateMessages.Count(m => m.Template == "rider_assigned_client"));
+        Assert.Single(sender.TemplateMessages, m => m.Template == "rider_assigned_vendor");
+        Assert.Contains(sender.TextMessages, m => m.Phone == "+33698765432" && m.Message.Contains("Tournée acceptée"));
+
+        // Variables alignées sur le corps Meta client (« votre livreur {{2}} … commande #{{1}} »).
+        var firstCode = orders[0].Id.ToString("N")[..8].ToUpperInvariant();
+        var clientA = Assert.Single(sender.TemplateMessages, m => m.Phone == "+33611110001");
+        Assert.Equal(firstCode, clientA.Variables["1"]);
+        Assert.Equal("Rider Test", clientA.Variables["2"]);
+
+        // Récap vendeur : « Le livreur {{1}} a accepté la commande #{{3}} de {{2}} ».
+        var vendor = Assert.Single(sender.TemplateMessages, m => m.Template == "rider_assigned_vendor");
+        Assert.Equal("Rider Test", vendor.Variables["1"]);
+        Assert.Equal("Client A", vendor.Variables["2"]);
+        Assert.Equal(firstCode, vendor.Variables["3"]);
+    }
+
+    [Fact]
+    public async Task SendBatchAssigned_WhenTemplatesEmpty_FallsBackToText()
+    {
+        var sender = new RecordingWhatsAppSender();
+        var service = CreateService(sender, new WhatsAppOptions
+        {
+            TemplateRiderAssignedClient = "",
+            TemplateRiderAssignedVendor = ""
+        });
         var rider = new User("Rider Test", "hash", UserRole.Rider, "+33698765432");
         var orders = new List<Order>
         {
@@ -111,20 +197,20 @@ public class WhatsAppOrchestrationServiceTests
     }
 
     [Fact]
-    public async Task SendBatchOffer_WithButtonTemplate_SendsSingleVariableOnly()
+    public async Task SendBatchOffer_WithApprovedTemplate_SendsCountAndOfferCode()
     {
         var sender = new RecordingWhatsAppSender();
-        var service = CreateService(sender); // défaut : rider_batch_offer_btn (approuvé)
+        var service = CreateService(sender); // défaut : rider_batch_offer (approuvé)
 
         await service.SendBatchOfferAsync("+33698765432", 3, "ABCD1234");
 
         var sent = Assert.Single(sender.TemplateMessages);
-        Assert.Equal("rider_batch_offer_btn", sent.Template);
+        Assert.Equal("rider_batch_offer", sent.Template);
         Assert.Empty(sender.TextMessages);
-        // Le bouton « Accepter » remplace le code : UNE seule variable, pas de « 2 ».
-        var variable = Assert.Single(sent.Variables);
-        Assert.Equal("1", variable.Key);
-        Assert.Equal("3", variable.Value);
+        // Corps Meta : « Livraison disponible : {{1}} commandes … Répondez ACCEPTE {{2}} pour accepter. »
+        Assert.Equal(2, sent.Variables.Count);
+        Assert.Equal("3", sent.Variables["1"]);
+        Assert.Equal("ABCD1234", sent.Variables["2"]);
     }
 
     [Fact]

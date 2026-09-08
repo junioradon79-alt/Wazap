@@ -11,16 +11,18 @@ namespace Wazap.Application.Configuration
         public string TemplateOrderReceived { get; set; } = "order_received";
         public string TemplateRiderOffer { get; set; } = "rider_offer";
 
-        // Offre de lot groupé. Le template approuvé « rider_batch_offer_btn » porte UNE
-        // variable (1 = nombre de commandes) et un bouton « Accepter » : le webhook résout
-        // l'offre en attente du livreur au clic. Vide = envoi en texte (avec le code).
-        public string TemplateRiderBatchOffer { get; set; } = "rider_batch_offer_btn";
+        // Offre de lot groupé. Template approuvé « rider_batch_offer » : {{1}} = nombre de
+        // commandes, {{2}} = code de l'offre — le livreur répond « ACCEPTE <code> » (ou
+        // clique, si une variante à bouton des métadonnées du template est activée).
+        public string TemplateRiderBatchOffer { get; set; } = "rider_batch_offer";
 
-        // Notification client/vendeur après acceptation d'un livreur (variables :
-        // client : 1 = id court, 2 = nom livreur ; vendeur : 1 = nom livreur, 2 = client, 3 = id court).
+        // Notification client/vendeur après acceptation d'un livreur (variables alignées
+        // sur les corps Meta approuvés) :
+        //   client : « Bonjour, votre livreur {{2}} a accepté votre commande #{{1}} » → 1 = id court, 2 = nom livreur.
+        //   vendeur : « Le livreur {{1}} a accepté la commande #{{3}} de {{2}} » → 1 = nom livreur, 2 = client, 3 = id court.
         // Vides = envoi en texte.
-        public string TemplateRiderAssignedClient { get; set; } = "";
-        public string TemplateRiderAssignedVendor { get; set; } = "";
+        public string TemplateRiderAssignedClient { get; set; } = "rider_assigned_client";
+        public string TemplateRiderAssignedVendor { get; set; } = "rider_assigned_vendor";
 
         // Code de livraison remis au client (variables : 1 = id court, 2 = code à 4 chiffres).
         // Message DÉDIÉ (et non un ajout au message d'assignation) pour que le code parvienne
@@ -28,9 +30,10 @@ namespace Wazap.Application.Configuration
         // Vide = envoi en texte.
         public string TemplateDeliveryCode { get; set; } = "";
 
-        // Templates de crédits (vide = envoi en texte). `low_credit` : 1 variable
-        // (crédits restants) ; `no_credit` : aucune variable.
-        public string TemplateCreditPurchase { get; set; } = "";
+        // Templates de crédits (vide = envoi en texte). `credit_purchase` : 2 variables
+        // (pack, commandes). `low_credit` : 1 variable (crédits restants) ;
+        // `no_credit` : aucune variable.
+        public string TemplateCreditPurchase { get; set; } = "credit_purchase";
         public string TemplateLowCredit { get; set; } = "low_credit";
         public string TemplateNoCredit { get; set; } = "no_credit";
 

@@ -89,13 +89,14 @@
     `/app/orders`, le vendeur initie le paiement Mobile Money de son client
     (`POST /api/vendors/orders/{id}/pay`, ownership vérifiée, admin autorisé) — le lien est
     envoyé au client sur WhatsApp (idempotent : même lien tant que Pending). Tests 382/382.
-14. ✅ **FAIT (08/09) — Premiers templates Meta approuvés ACTIVÉS** :
-    `rider_batch_offer_btn` (offre de lot avec bouton « Accepter » — une seule variable,
-    le webhook résout l'offre au clic), `low_credit` (1 variable) et `no_credit` (0 variable).
-    Défauts de `WhatsAppOptions` + `appsettings.json` renseignés (déployés par la CI, aucun
-    web.config distant requis) ; `SendBatchOfferAsync` adapté au template à bouton (1 variable,
-    repli texte avec le code si refus permanent). Tests 383/383.
-    Reste en attente Meta : 10 Utility + 5 Marketing + 3 onboarding.
+14. ✅ **FAIT (08/09) — Templates Utility (7/7 approuvés) ACTIVÉS** : `credit_purchase`,
+    `order_confirm`, `order_received`, `rider_offer`, `rider_batch_offer`, `rider_assigned_client`,
+    `rider_assigned_vendor` — défauts `WhatsAppOptions` + `appsettings.json` renseignés (déployé CI,
+    aucun web.config distant requis), avec **correction de l'ordre des variables** aligné sur les
+    corps Meta approuvés (client : {{1}}=commande,{{2}}=livreur ; vendeur : {{1}}=livreur,{{2}}=client,
+    {{3}}=commande) et `rider_batch_offer` à 2 variables (nb commandes + code ACCEPTE) — plus le template
+    à bouton `rider_batch_offer_btn` en fallback antérieur. Tests 389/389.
+    Reste en attente : 5 Marketing (prospect + recrutement) + 3 onboarding.
 15. ✅ **FAIT (08/09, commit `9d8b575`) — Versioning endpoints d'écriture API v1 (P3-15)** :
     `POST /api/v1/orders` (création de commande, protégée par clé API X-Api-Key). Le vendeur
     est résolu par son numéro WhatsApp E.164. La commande active le suivi acheteur (lien envoyé

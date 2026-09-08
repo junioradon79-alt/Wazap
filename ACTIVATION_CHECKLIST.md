@@ -10,7 +10,7 @@
 
 | # | Chantier | Type | Impact | Statut |
 |---|---|---|---|---|
-| 1 | Templates Meta : 3 Utility approuvés + 10 Utility + 5 Marketing + 3 onboarding | Utilisateur | Acquisition bloquée | **3 activés ✓ (08/09)** — reste en attente Meta |
+| 1 | Templates Meta : 7 Utility activés ✓ + 5 Marketing + 3 onboarding restants | Utilisateur | Acquisition (Marketing) | **7 activés ✓ (08/09)** — restent 5 Marketing + 3 onboarding |
 | 2 | Paiement client Mobile Money | Config prod | Encaissement en ligne | **ACTIVÉ** (08/09) ✓ |
 | 3 | Rétention/purge scans CNI | Config prod | RGPD | **DÉJÀ ACTIVÉ** ✓ |
 | 4 | Certification livreurs | Mixte | Confiance Colis Sûr | Code livré, à certifier |
@@ -248,6 +248,8 @@ dotnet run --project tools/CleanupTestVendors
 
 - Clés LIVE : configurées (voir `DEPLOYMENT.md`)
 - URL webhook : `https://junioradon79gm-001-site1.jtempurl.com/api/webhook/geniuspay`
-> ⚠️ Les 10 templates Utility (`order_received`, `order_confirm`, `rider_offer`, etc.) ont été
-> resoumis le 07/09. Une fois approuvés, ajouter leurs noms dans le web.config distant
-> (même pattern : `WhatChimp__Template<Nom>=<nom_template>`).
+> ✅ **Templates Utility activés (08/09)** : `order_received`, `order_confirm`, `rider_offer`,
+> `rider_batch_offer`, `rider_assigned_client`, `rider_assigned_vendor`, `credit_purchase`
+> (défauts `WhatsAppOptions` + `appsettings.json`, déployé par la CI — voir `DEPLOYMENT.md`).
+> ⚠️ Restent en attente/à corriger : les 5 templates **Marketing** (prospect + rider_recruit/company,
+> voir `prospection/TEMPLATES_MARKETING_A_CORRIGER.md`) et les **3 onboarding** vendeur (J+1/J+3/J+7).
