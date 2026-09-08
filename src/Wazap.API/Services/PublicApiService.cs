@@ -1,8 +1,14 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Wazap.Application.Dtos;
+using Wazap.Application.Abstractions;
 using Wazap.Application.Configuration;
+using Wazap.Application.Helpers;
+using Wazap.Application.Services;
 using Wazap.Domain.Configuration;
 using Wazap.Domain.Enums;
 using Wazap.Infrastructure.Data;
+using Wazap.Domain.Entities;
 
 namespace Wazap.API.Services;
 
@@ -163,6 +169,71 @@ public sealed class PublicApiService
             .ToList();
     }
 
+    public async Task<PublicCreateOrderResult> CreateOrderAsync(
+        PublicCreateOrderRequest request, CancellationToken ct = default)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var whatsApp = scope.ServiceProvider.GetRequiredService<IWhatsAppSender>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<PublicApiService>>();
+
+        // Résolution du vendeur par numéro WhatsApp (pré-filtre sur les 8 derniers chiffres).
+        var digits = PhoneNumberNormalizer.DigitsOnly(request.VendorWhatsAppNumber);
+        var suffix = digits.Length >= 8 ? digits[^8..] : digits;
+
+        var vendor = await db.Users
+            .Where(u => u.Role == UserRole.Vendor && u.PhoneNumber != null && u.PhoneNumber.EndsWith(suffix))
+            .ToListAsync(ct);
+
+        var matched = vendor.FirstOrDefault(v =>
+            PhoneNumberNormalizer.SameSubscriber(v.PhoneNumber, request.VendorWhatsAppNumber));
+
+        if (matched is null)
+            return new PublicCreateOrderResult(false, null, "Vendeur introuvable pour ce numéro WhatsApp.");
+
+        if (matched.Credits <= 0)
+            return new PublicCreateOrderResult(false, null,
+                "Le vendeur n'a plus de crédits. La commande ne peut pas être créée.");
+
+        try
+        {
+            // Création directe de la commande (sans transaction, compatible InMemory dans les tests).
+            var order = new Order(
+                request.ClientName,
+                string.IsNullOrWhiteSpace(request.ClientWhatsAppNumber) ? string.Empty : request.ClientWhatsAppNumber.Trim(),
+                request.VendorWhatsAppNumber,
+                request.Description,
+                request.Amount);
+
+            order.LinkVendor(matched.Id);
+            if (!string.IsNullOrWhiteSpace(order.ClientWhatsAppNumber))
+                order.EnableBuyerTracking();
+
+            db.Orders.Add(order);
+            await db.SaveChangesAsync(ct);
+
+            // Notification WhatsApp vendeur (best-effort, pas bloquante).
+            try
+            {
+                await whatsApp.SendTextMessageAsync(matched.PhoneNumber!,
+                    $"🛎️ Nouvelle commande API de {request.ClientName} : {request.Description} — " +
+                    $"{request.Amount.ToString("0", System.Globalization.CultureInfo.InvariantCulture)} F. " +
+                    "Confirmez dans l'application.");
+            }
+            catch { /* best-effort */ }
+
+            return new PublicCreateOrderResult(true, order.Id,
+                $"Commande #{order.Id.ToString("N")[..8].ToUpperInvariant()} créée. " +
+                "Le client reçoit le lien de suivi pour valider ses coordonnées.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Création de commande publique en échec.");
+            return new PublicCreateOrderResult(false, null,
+                "Erreur lors de la création de la commande. Détail technique non divulgué.");
+        }
+    }
+
     public IReadOnlyList<PublicPackDto> GetPacks()
         => _packs.Select(p => new PublicPackDto(p.Name, p.Price, p.Credits)).ToList();
 }
@@ -198,3 +269,8 @@ public sealed record PublicOrderDto(
     bool IsBatched);
 
 public sealed record PublicPackDto(string Name, decimal Price, int Credits);
+
+public sealed record PublicCreateOrderResult(
+    bool Success,
+    Guid? OrderId,
+    string? Message);

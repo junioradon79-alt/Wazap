@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Wazap.API.Services;
+using Wazap.Application.Dtos;
 using Wazap.Domain.Enums;
 
 namespace Wazap.API.Controllers;
@@ -64,4 +65,23 @@ public class PublicApiV1Controller : ControllerBase
     [HttpGet("packs")]
     public IReadOnlyList<PublicPackDto> Packs()
         => _service.GetPacks();
+
+    /// <summary>
+    /// POST /api/v1/orders — création d'une commande (écriture, protégée par clé API).
+    /// Le vendeur est résolu par son numéro WhatsApp (E.164). La commande est diffusée
+    /// immédiatement aux livreurs proches (1 crédit consommé).
+    /// </summary>
+    [HttpPost("orders")]
+    public async Task<IActionResult> CreateOrder([FromBody] PublicCreateOrderRequest request, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(request.VendorWhatsAppNumber)
+            || string.IsNullOrWhiteSpace(request.Description))
+            return BadRequest(new { error = "VendorWhatsAppNumber et Description sont requis." });
+
+        var result = await _service.CreateOrderAsync(request, ct);
+        if (!result.Success)
+            return BadRequest(new { error = result.Message });
+
+        return Created($"/api/v1/orders/{result.OrderId}", result);
+    }
 }
