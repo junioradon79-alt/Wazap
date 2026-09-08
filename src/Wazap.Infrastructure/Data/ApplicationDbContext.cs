@@ -152,6 +152,10 @@ namespace Wazap.Infrastructure.Data
                 .Property(r => r.Comment)
                 .HasMaxLength(300);
 
+            modelBuilder.Entity<RiderRating>()
+                .Property(r => r.Reply)
+                .HasMaxLength(500);
+
             modelBuilder.Entity<DeliveryClaim>()
                 .HasIndex(c => c.OrderId)
                 .IsUnique();

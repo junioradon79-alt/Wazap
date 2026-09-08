@@ -485,6 +485,28 @@ public class WebhookWhatsAppController : ControllerBase
             return true;
         }
 
+        // Réputation livreur : « AVIS » liste les avis reçus (numérotés) et
+        // « REPONDRE <n°> <texte> » enregistre la réponse du livreur à l'avis n°.
+        if (user.Role == UserRole.Rider && RiderRatingService.IsMyRatingsCommand(text))
+        {
+            await ReplyAsync(user, await _riderRatings.ListMyRatingsTextAsync(user.Id));
+            return true;
+        }
+
+        if (user.Role == UserRole.Rider && RiderRatingService.IsReplyCommand(text))
+        {
+            if (!RiderRatingService.TryParseReplyCommand(text, out var index, out var reply))
+            {
+                await ReplyAsync(user,
+                    "❓ Format : REPONDRE <n°> <votre message>.\n" +
+                    "Consultez d'abord vos avis avec AVIS, puis répondez par exemple : REPONDRE 1 Merci pour votre confiance !");
+                return true;
+            }
+
+            await ReplyAsync(user, await _riderRatings.ReplyAsync(user.Id, index, reply));
+            return true;
+        }
+
         // Livraison à la demande (vendeur) : « LIVRAISON <ce qu'il faut livrer> à <adresse client> ».
         // Un crédit est consommé, la course est diffusée immédiatement aux livreurs proches.
         if (user.Role == UserRole.Vendor && (upper == "LIVRAISON" || upper.StartsWith("LIVRAISON ")))

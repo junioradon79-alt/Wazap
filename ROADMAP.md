@@ -47,7 +47,10 @@
 3. ✅ **FAIT (07/09)** — **Notes / réputation livreur** : commande client `NOTE <1-5>` après livraison
    (une note par commande, fenêtre 48 h), moyenne affichée au vendeur dans le profil livreur, filtre
    de matching `RiderReputation:MinimumAverageScore` **désactivé par défaut**. Migration 20
-   `AddRiderRatings`. Reste possible : page admin des avis, réponse du livreur, pondération du matching.
+   `AddRiderRatings`. ✅ **Compléments FAIT (08/09)** : page admin des avis (`/app/avis`, client
+   masqué + synthèse moyenne par livreur), réponse du livreur (commandes `AVIS` / `REPONDRE <n°>
+   <texte>`, colonnes `Reply`/`RepliedAt`, migration 23 `AddRiderRatingReplies`), pondération du
+   matching (`RiderReputation:PreferHigherRatedRiders`, désactivée par défaut).
 4. **Webhook média WhatChimp** (photos CNI en auto) — sinon rester sur l'upload admin.
 5. **Onboarding vendeur activable** dès templates Meta approuvés + relance des inactifs.
 6. **Tests** : ✅ services couverts (LeadConversion, ColisSur, RiderService, AuthService, preuve de livraison) — reste l'**E2E webhook**.

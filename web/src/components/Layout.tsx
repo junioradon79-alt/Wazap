@@ -8,6 +8,7 @@ const NAV = [
   { to: '/vendors', label: 'Vendeurs', icon: '🏪' },
   { to: '/leads', label: 'Leads', icon: '🎯' },
   { to: '/claims', label: 'Sinistres', icon: '🚨' },
+  { to: '/avis', label: 'Avis', icon: '⭐' },
   { to: '/packs', label: 'Packs', icon: '💳' },
   { to: '/transactions', label: 'Transactions', icon: '📒' },
   { to: '/account', label: 'Mon compte', icon: '👤' },
@@ -42,7 +43,7 @@ export default function Layout() {
                   <span className="nav__icon">{item.icon}</span> {item.label}
                 </NavLink>
               ))
-            : NAV.filter((item) => (item.to !== '/leads' && item.to !== '/claims') || user?.role === 'Admin').map((item) => (
+            : NAV.filter((item) => (item.to !== '/leads' && item.to !== '/claims' && item.to !== '/avis') || user?.role === 'Admin').map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}

@@ -25,4 +25,13 @@ public sealed class RiderReputationOptions
     /// un nouveau livreur ne doit pas être écarté sur une seule mauvaise note.
     /// </summary>
     public int MinimumRatingsBeforeFiltering { get; set; } = 5;
+
+    /// <summary>
+    /// Pondération du matching par la réputation : quand <c>true</c>, les livreurs ayant
+    /// assez d'avis (≥ <see cref="MinimumRatingsBeforeFiltering"/>) sont proposés avant les
+    /// autres, ordonnés par note moyenne décroissante (distance ensuite). Les livreurs sans
+    /// assez d'avis sont traités comme « neutres » et passent après. Défaut : <c>false</c> —
+    /// le matching reste strictement géographique tant que vous n'avez pas décidé autrement.
+    /// </summary>
+    public bool PreferHigherRatedRiders { get; set; }
 }

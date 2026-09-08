@@ -171,6 +171,31 @@ export interface ClaimListItem {
   suggestedCompensationFcfa: number
 }
 
+export interface RiderRatingAdmin {
+  ratingId: string
+  orderCode: string
+  riderId: string
+  riderName: string
+  score: number
+  comment: string | null
+  reply: string | null
+  repliedAt: string | null
+  maskedClientPhone: string
+  createdAt: string
+}
+
+export interface RiderRatingSummary {
+  riderId: string
+  riderName: string
+  averageScore: number
+  ratingCount: number
+}
+
+export interface RiderRatingAdminBoard {
+  ratings: RiderRatingAdmin[]
+  riderSummaries: RiderRatingSummary[]
+}
+
 export interface ReferredVendorItem {
   id: string
   username: string

@@ -20,6 +20,12 @@ public class RiderRating
     public string? Comment { get; private set; }
     public DateTime CreatedAt { get; private set; }
 
+    /// <summary>Réponse du livreur à l'avis (visible côté équipe et vendeur).</summary>
+    public string? Reply { get; private set; }
+
+    /// <summary>Horodatage de la réponse du livreur (null tant qu'il n'a pas répondu).</summary>
+    public DateTime? RepliedAt { get; private set; }
+
     // Constructeur privé pour EF Core
     private RiderRating() { }
 
@@ -36,4 +42,20 @@ public class RiderRating
         Comment = string.IsNullOrWhiteSpace(comment) ? null : comment.Trim();
         CreatedAt = DateTime.UtcNow;
     }
+
+    /// <summary>
+    /// Enregistre la réponse du livreur à l'avis (texte libre, tronqué à 500 caractères).
+    /// Une mise à jour remplace la réponse précédente (le livreur peut corriger son message).
+    /// </summary>
+    public void ReplyAs(string reply)
+    {
+        var trimmed = (reply ?? string.Empty).Trim();
+        if (trimmed.Length == 0)
+            throw new ArgumentException("La réponse ne peut pas être vide.", nameof(reply));
+
+        Reply = trimmed.Length > MaxReplyLength ? trimmed[..MaxReplyLength] : trimmed;
+        RepliedAt = DateTime.UtcNow;
+    }
+
+    public const int MaxReplyLength = 500;
 }

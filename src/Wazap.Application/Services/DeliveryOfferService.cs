@@ -715,16 +715,13 @@ namespace Wazap.Application.Services
                             vendor.Longitude.Value,
                             r.Latitude.GetValueOrDefault(),
                             r.Longitude.GetValueOrDefault())))
-                    .Where(x => x.DistanceKm <= _geo.MaxDistanceKm)
-                    .OrderBy(x => x.DistanceKm)
-                    .Take(count));
+                    .Where(x => x.DistanceKm <= _geo.MaxDistanceKm));
             }
 
             // Tier 2 (téléphones basiques sans GPS) : compléter avec les livreurs
             // dont la ZONE déclarée correspond à celle du vendeur.
             if (byGps.Count < count && !string.IsNullOrWhiteSpace(vendor.Zone))
             {
-                var remaining = count - byGps.Count;
                 var contacted = new HashSet<Guid>(exclude);
                 contacted.UnionWith(byGps.Select(r => r.RiderUserId));
 
@@ -740,12 +737,76 @@ namespace Wazap.Application.Services
                     .Where(r => !contacted.Contains(r.Id)
                              && (!_riderSecurity.RequireCertifiedRiders || certifiedIds.Contains(r.Id))
                              && string.Equals(r.Zone?.Trim(), vendor.Zone.Trim(), StringComparison.OrdinalIgnoreCase))
-                    .Select(r => new NearestRiderDto(r.Id, double.MaxValue))
-                    .Take(remaining));
+                    .Select(r => new NearestRiderDto(r.Id, double.MaxValue)));
             }
 
-            return byGps;
+            // Ordre final : pondération par réputation (optionnelle) OU strictement
+            // géographique. Le tri par réputation charge les moyennes en une seule requête.
+            if (byGps.Count > 1)
+            {
+                if (_reputation.PreferHigherRatedRiders)
+                {
+                    var scores = await LoadAverageScoresAsync(byGps.Select(r => r.RiderUserId).ToList());
+                    byGps.Sort((a, b) => CompareWithReputation(a, b, scores));
+                }
+                else
+                {
+                    byGps.Sort((a, b) => CompareDouble(a.DistanceKm, b.DistanceKm));
+                }
+            }
+
+            return byGps.Take(count).ToList();
         }
+
+        /// <summary>
+        /// Note moyenne par livreur (seulement à partir de <see cref="RiderReputationOptions.MinimumRatingsBeforeFiltering"/>
+        /// avis — sinon <c>null</c> : le livreur est « neutre » pour la pondération). Les livreurs
+        /// sans candidature ne figurent pas dans la map (accès = null).
+        /// </summary>
+        private async Task<IReadOnlyDictionary<Guid, double?>> LoadAverageScoresAsync(
+            IReadOnlyCollection<Guid> riderIds)
+        {
+            var scores = riderIds.ToDictionary(id => id, id => null as double?);
+            if (riderIds.Count == 0)
+                return scores;
+
+            var rows = await _context.RiderRatings.AsNoTracking()
+                .GroupBy(r => r.RiderUserId)
+                .Where(g => g.Count() >= _reputation.MinimumRatingsBeforeFiltering)
+                .Select(g => new { RiderId = g.Key, Average = g.Average(r => r.Score) })
+                .ToListAsync();
+
+            foreach (var row in rows)
+                if (scores.TryGetValue(row.RiderId, out _))
+                    scores[row.RiderId] = row.Average;
+
+            return scores;
+        }
+
+        /// <summary>
+        /// Comparateur du matching pondéré : réputation décroissante (les « neutres », sans assez
+        /// d'avis, passent après les notés), puis distance croissante (déterministe).
+        /// </summary>
+        public static int CompareWithReputation(
+            NearestRiderDto a, NearestRiderDto b, IReadOnlyDictionary<Guid, double?> scores)
+        {
+            var scoreA = scores.TryGetValue(a.RiderUserId, out var rawA) ? rawA : null;
+            var scoreB = scores.TryGetValue(b.RiderUserId, out var rawB) ? rawB : null;
+
+            if (scoreA is null && scoreB is null)
+                return CompareDouble(a.DistanceKm, b.DistanceKm);
+            if (scoreA is null)
+                return 1;
+            if (scoreB is null)
+                return -1;
+
+            var byScore = CompareDouble(scoreB.Value, scoreA.Value);
+            return byScore != 0 ? byScore : CompareDouble(a.DistanceKm, b.DistanceKm);
+        }
+
+        /// <summary>Comparaison numérique réutilisable (le langage n'a pas de CompareTo sur double).</summary>
+        private static int CompareDouble(double a, double b)
+            => a < b ? -1 : (a > b ? 1 : 0);
 
         private async Task<User?> ResolveVendorAsync(string vendorWhatsApp)
         {

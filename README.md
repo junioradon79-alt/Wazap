@@ -51,6 +51,7 @@
 20. `AddRiderRatings` (20260907175043) — table `RiderRatings` (réputation livreur, DDL idempotent)
 21. `AddRiderScanRetention` (20260907183427) — `RiderIdentities.ScanPurgedAt` (rétention RGPD des scans)
 22. `AddColisSurPayout` (20260907190645) — indemnisation FCFA, caution livreur, suivi du versement (DDL idempotent)
+23. `AddRiderRatingReplies` (20260907235429) — `RiderRatings.Reply`/`RepliedAt` (réponse du livreur à un avis, DDL idempotent)
 
 Appliquer : `dotnet ef database update --project src\Wazap.Infrastructure --startup-project src\Wazap.API`
 
@@ -109,6 +110,12 @@ Clés stockées via `dotnet user-secrets set` :
   **désactivé par défaut** et jamais appliqué en dessous de `MinimumRatingsBeforeFiltering` (5) avis.
   La note est interceptée **avant** le bot prospects, sinon le client — qui n'est pas un utilisateur
   enregistré — serait pris pour un premier contact commercial.
+  **Compléments (08/09)** : le livreur consulte ses avis avec **`AVIS`** (liste numérotée des
+  5 plus récents) et y répond avec **`REPONDRE <n°> <texte>`** (réponse tracée, visible dans la
+  page admin `/app/avis` — liste des avis, client masqué, synthèse moyenne par livreur).
+  **Pondération du matching** optionnelle `RiderReputation:PreferHigherRatedRiders` (défaut
+  `false`) : les livreurs avec assez d'avis sont proposés avant les autres, par note moyenne
+  décroissante, la distance servant de départage (les « neutres » passent après les notés).
 - **Preuve de remise** : à l'assignation, un **code à 4 chiffres** est généré et envoyé au client
   (message dédié, template `TemplateDeliveryCode` sinon texte) ; le livreur clôture avec
   **`LIVRE <code> CODE <4 chiffres>`**. Comparaison à temps constant, **5 tentatives** puis blocage
