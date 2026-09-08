@@ -96,6 +96,11 @@
     web.config distant requis) ; `SendBatchOfferAsync` adapté au template à bouton (1 variable,
     repli texte avec le code si refus permanent). Tests 383/383.
     Reste en attente Meta : 10 Utility + 5 Marketing + 3 onboarding.
+15. ✅ **FAIT (08/09, commit `9d8b575`) — Versioning endpoints d'écriture API v1 (P3-15)** :
+    `POST /api/v1/orders` (création de commande, protégée par clé API X-Api-Key). Le vendeur
+    est résolu par son numéro WhatsApp E.164. La commande active le suivi acheteur (lien envoyé
+    au client pour ses coordonnées). Sans clé API configurée, le middleware retourne 503.
+    Tests 386/386.
 
 ### Actions utilisateur (déblocages)
 - **Meta** : 13 templates soumis (10 Utility + 5 Marketing + 3 onboarding) → attendre `Approved`.
