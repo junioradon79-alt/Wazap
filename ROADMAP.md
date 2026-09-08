@@ -101,6 +101,10 @@
     est résolu par son numéro WhatsApp E.164. La commande active le suivi acheteur (lien envoyé
     au client pour ses coordonnées). Sans clé API configurée, le middleware retourne 503.
     Tests 386/386.
+16. ✅ **FAIT (08/09, commit `d2aea57`) — D — Analytics vendeur** : dashboard admin enrichi —
+    CA 30j, évolution %, panier moyen, taux livraison, conversion leads → vendeurs, top 5
+    vendeurs, CA par zone. Dashboard vendeur enrichi — CA mensuel, panier moyen, taux de
+    livraison, commandes 30j/semaine, top clients fidèles. Tests 386/386 inchangés.
 
 ### Actions utilisateur (déblocages)
 - **Meta** : 13 templates soumis (10 Utility + 5 Marketing + 3 onboarding) → attendre `Approved`.
