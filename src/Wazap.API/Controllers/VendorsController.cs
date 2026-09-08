@@ -7,6 +7,7 @@ using Wazap.Application.Abstractions;
 using Wazap.Application.Dtos;
 using Wazap.Application.Exceptions;
 using Wazap.Application.Helpers;
+using Wazap.Application.Services;
 using Wazap.Domain.Enums;
 using Wazap.Infrastructure.Data;
 
@@ -19,14 +20,17 @@ public class VendorsController : ControllerBase
 {
     private readonly VendorService _vendorService;
     private readonly PackService _packService;
+    private readonly ClientPaymentService _clientPayments;
     private readonly ICurrentUser _currentUser;
     private readonly ApplicationDbContext _context;
 
-    public VendorsController(VendorService vendorService, PackService packService, ICurrentUser currentUser,
+    public VendorsController(VendorService vendorService, PackService packService,
+        ClientPaymentService clientPayments, ICurrentUser currentUser,
         ApplicationDbContext context)
     {
         _vendorService = vendorService;
         _packService = packService;
+        _clientPayments = clientPayments;
         _currentUser = currentUser;
         _context = context;
     }
@@ -140,6 +144,21 @@ public class VendorsController : ControllerBase
     }
 
     // Historique des achats de crédits du vendeur.
+    // POST: api/vendors/orders/{id}/pay — le vendeur demande le lien de paiement Mobile Money
+    // de son client (commandes créées par téléphone, sans page de suivi). Le lien est envoyé
+    // au client sur WhatsApp ; l'initiation est idempotente (même lien tant que Pending).
+    [HttpPost("orders/{id:guid}/pay")]
+    public async Task<IActionResult> RequestClientPayment(Guid id)
+    {
+        var result = await _clientPayments.RequestPaymentFromVendorAsync(id, _currentUser);
+        return result.Status switch
+        {
+            "NotFound" => NotFound(),
+            "Forbidden" => StatusCode(403, result.ErrorMessage),
+            _ => Ok(result)
+        };
+    }
+
     [HttpGet("{id:guid}/transactions")]
     public async Task<IActionResult> GetTransactions(Guid id)
     {

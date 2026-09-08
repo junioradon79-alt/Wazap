@@ -283,4 +283,88 @@ public class ClientPaymentServiceTests
         Assert.NotNull(order.BatchId);
         Assert.False(await harness.Service.IsDispatchBlockedAsync(order.Id));
     }
+
+    // ---- Flux « Demander le lien » (P3-16.1) : le vendeur initie pour son client ----
+
+    [Fact]
+    public async Task RequestPaymentFromVendor_Owner_SendsLinkToClient()
+    {
+        var harness = new ClientPaymentHarness();
+        var order = harness.NewConfirmedOrder();
+
+        var result = await harness.Service.RequestPaymentFromVendorAsync(
+            order.Id, new VendorUserStub(order.VendorUserId, UserRole.Vendor));
+
+        Assert.True(result.Success);
+        Assert.Contains(harness.Sender.TextMessages,
+            m => m.Phone == order.ClientWhatsAppNumber
+                 && m.Message.Contains(result.PaymentLink!)
+                 && m.Message.Contains("Mobile Money"));
+    }
+
+    [Fact]
+    public async Task RequestPaymentFromVendor_NonOwner_Forbidden()
+    {
+        var harness = new ClientPaymentHarness();
+        var order = harness.NewConfirmedOrder();
+
+        var result = await harness.Service.RequestPaymentFromVendorAsync(
+            order.Id, new VendorUserStub(Guid.NewGuid(), UserRole.Vendor));
+
+        Assert.False(result.Success);
+        Assert.Equal("Forbidden", result.Status);
+        Assert.Empty(harness.Gateway.Requests);
+        Assert.DoesNotContain(harness.Sender.TextMessages, m => m.Phone == order.ClientWhatsAppNumber);
+    }
+
+    [Fact]
+    public async Task RequestPaymentFromVendor_Admin_Allowed()
+    {
+        var harness = new ClientPaymentHarness();
+        var order = harness.NewConfirmedOrder();
+
+        var result = await harness.Service.RequestPaymentFromVendorAsync(
+            order.Id, new VendorUserStub(null, UserRole.Admin));
+
+        Assert.True(result.Success);
+        Assert.Contains(harness.Sender.TextMessages, m => m.Phone == order.ClientWhatsAppNumber);
+    }
+
+    [Fact]
+    public async Task RequestPaymentFromVendor_UnknownOrder_NotFound()
+    {
+        var harness = new ClientPaymentHarness();
+
+        var result = await harness.Service.RequestPaymentFromVendorAsync(
+            Guid.NewGuid(), new VendorUserStub(Guid.NewGuid(), UserRole.Admin));
+
+        Assert.Equal("NotFound", result.Status);
+    }
+
+    [Fact]
+    public async Task RequestPaymentFromVendor_Twice_SameLinkSingleSession()
+    {
+        var harness = new ClientPaymentHarness();
+        var order = harness.NewConfirmedOrder();
+        var vendor = new VendorUserStub(order.VendorUserId, UserRole.Vendor);
+
+        var first = await harness.Service.RequestPaymentFromVendorAsync(order.Id, vendor);
+        var second = await harness.Service.RequestPaymentFromVendorAsync(order.Id, vendor);
+
+        Assert.Equal(first.PaymentLink, second.PaymentLink);
+        Assert.Single(harness.Gateway.Requests);
+    }
+}
+
+/// <summary>Utilisateur courant factice pour les tests du flux vendeur.</summary>
+internal sealed class VendorUserStub : ICurrentUser
+{
+    public VendorUserStub(Guid? id, UserRole? role)
+    {
+        Id = id;
+        Role = role;
+    }
+
+    public Guid? Id { get; }
+    public UserRole? Role { get; }
 }

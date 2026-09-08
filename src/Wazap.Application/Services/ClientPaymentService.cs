@@ -270,4 +270,44 @@ public sealed class ClientPaymentService
 
     private static string Format(decimal amount)
         => amount.ToString("0", CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// Le VENDEUR demande le lien de paiement pour son client (commandes créées par
+    /// téléphone, sans page de suivi). Ownership vérifiée (l'admin peut agir pour tous) ;
+    /// le lien est envoyé au client sur WhatsApp en texte best-effort (fenêtre de 24 h,
+    /// le lien reste aussi disponible sur la page de suivi). L'initiation reste
+    /// idempotente : un paiement Pending renvoie le MÊME lien.
+    /// </summary>
+    public async Task<ClientPaymentResultDto> RequestPaymentFromVendorAsync(Guid orderId, ICurrentUser currentUser)
+    {
+        var order = await _context.Orders.AsNoTracking()
+            .FirstOrDefaultAsync(o => o.Id == orderId);
+
+        if (order is null)
+            return new ClientPaymentResultDto(false, "NotFound", 0, null, "Commande introuvable.");
+
+        if (currentUser.Role != UserRole.Admin && (currentUser.Id is null || order.VendorUserId != currentUser.Id))
+            return new ClientPaymentResultDto(false, "Forbidden", order.Amount, null,
+                "Seul le vendeur de la commande peut demander le lien de paiement.");
+
+        var result = await RequestPaymentAsync(orderId);
+
+        if (result.Success && result.PaymentLink is not null
+            && !string.IsNullOrWhiteSpace(order.ClientWhatsAppNumber))
+        {
+            try
+            {
+                await _whatsApp.SendTextMessageAsync(order.ClientWhatsAppNumber,
+                    $"💳 {order.ClientName}, votre commande #{OrderCode(orderId)} peut être payée par Mobile Money :\n"
+                    + $"{result.PaymentLink}\n\n"
+                    + "Le paiement en espèces à la livraison reste accepté.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Envoi du lien de paiement au client impossible pour la commande {OrderId}.", orderId);
+            }
+        }
+
+        return result;
+    }
 }

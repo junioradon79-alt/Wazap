@@ -10,6 +10,8 @@ export default function OrdersPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
   const [broadcasting, setBroadcasting] = useState<string | null>(null)
+  const [paying, setPaying] = useState<string | null>(null)
+  const [payMessage, setPayMessage] = useState('')
 
   const [form, setForm] = useState<CreateOrderRequest>({
     clientName: '',
@@ -61,6 +63,30 @@ export default function OrdersPage() {
     }
   }
 
+  interface PayResult {
+    success: boolean
+    paymentLink: string | null
+    errorMessage: string | null
+  }
+
+  const requestPayment = async (id: string): Promise<void> => {
+    setPaying(id)
+    setError('')
+    setPayMessage('')
+    try {
+      const res = await api.post<PayResult>(`/vendors/orders/${id}/pay`)
+      setPayMessage(
+        res.success
+          ? '✅ Lien de paiement envoyé au client sur WhatsApp.'
+          : `ℹ️ ${res.errorMessage ?? 'Paiement en ligne indisponible.'}`,
+      )
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Demande du lien impossible.')
+    } finally {
+      setPaying(null)
+    }
+  }
+
   const set = (field: keyof CreateOrderRequest, value: string | number): void => {
     setForm((f) => ({ ...f, [field]: value }))
   }
@@ -76,6 +102,7 @@ export default function OrdersPage() {
       </div>
 
       {error && <div className="alert alert--error">{error}</div>}
+      {payMessage && <div className="alert alert--success">{payMessage}</div>}
 
       <section className="panel">
         <div className="table-wrap">
@@ -101,6 +128,15 @@ export default function OrdersPage() {
                   <td><StatusBadge status={o.status} /></td>
                   <td>{formatDateTime(o.createdAt)}</td>
                   <td>
+                    {o.status !== 'Delivered' && o.status !== 'Cancelled' && (
+                      <button
+                        className="btn btn--primary"
+                        onClick={() => void requestPayment(o.id)}
+                        disabled={paying !== null}
+                      >
+                        {paying === o.id ? '…' : '💳 Demander le lien'}
+                      </button>
+                    )}
                     <button
                       className="btn btn--blue"
                       onClick={() => void broadcast(o.id)}
