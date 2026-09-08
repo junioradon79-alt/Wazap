@@ -11,8 +11,8 @@ namespace Wazap.UnitTests;
 
 public class WhatsAppOrchestrationServiceTests
 {
-    private static WhatsAppOrchestrationService CreateService(RecordingWhatsAppSender sender)
-        => new(sender, new WhatsAppOptions(), NullLogger<WhatsAppOrchestrationService>.Instance);
+    private static WhatsAppOrchestrationService CreateService(RecordingWhatsAppSender sender, WhatsAppOptions? options = null)
+        => new(sender, options ?? new WhatsAppOptions(), NullLogger<WhatsAppOrchestrationService>.Instance);
     [Fact]
     public async Task SendCreditPurchaseConfirmation_ShouldSendExpectedMessage()
     {
@@ -29,7 +29,7 @@ public class WhatsAppOrchestrationServiceTests
     }
 
     [Fact]
-    public async Task SendLowCreditAlert_ShouldSendExpectedMessage()
+    public async Task SendLowCreditAlert_WithApprovedTemplate_SendsTemplate()
     {
         var sender = new RecordingWhatsAppSender();
         var service = CreateService(sender);
@@ -37,12 +37,14 @@ public class WhatsAppOrchestrationServiceTests
 
         await service.SendLowCreditAlertAsync(vendor);
 
-        var sent = Assert.Single(sender.TextMessages);
-        Assert.Equal("Il vous reste 3 commandes. Rechargez dès maintenant.", sent.Message);
+        var sent = Assert.Single(sender.TemplateMessages);
+        Assert.Equal("low_credit", sent.Template);
+        Assert.Equal("3", Assert.Single(sent.Variables).Value);
+        Assert.Empty(sender.TextMessages);
     }
 
     [Fact]
-    public async Task SendNoCreditAlert_ShouldSendExpectedMessage()
+    public async Task SendNoCreditAlert_WithApprovedTemplate_SendsTemplateWithoutVariables()
     {
         var sender = new RecordingWhatsAppSender();
         var service = CreateService(sender);
@@ -50,8 +52,10 @@ public class WhatsAppOrchestrationServiceTests
 
         await service.SendNoCreditAlertAsync(vendor);
 
-        var sent = Assert.Single(sender.TextMessages);
-        Assert.Equal("Vous n'avez plus de crédits. Achetez un pack pour continuer.", sent.Message);
+        var sent = Assert.Single(sender.TemplateMessages);
+        Assert.Equal("no_credit", sent.Template);
+        Assert.Empty(sent.Variables);
+        Assert.Empty(sender.TextMessages);
     }
 
     [Fact]
@@ -107,16 +111,34 @@ public class WhatsAppOrchestrationServiceTests
     }
 
     [Fact]
+    public async Task SendBatchOffer_WithButtonTemplate_SendsSingleVariableOnly()
+    {
+        var sender = new RecordingWhatsAppSender();
+        var service = CreateService(sender); // défaut : rider_batch_offer_btn (approuvé)
+
+        await service.SendBatchOfferAsync("+33698765432", 3, "ABCD1234");
+
+        var sent = Assert.Single(sender.TemplateMessages);
+        Assert.Equal("rider_batch_offer_btn", sent.Template);
+        Assert.Empty(sender.TextMessages);
+        // Le bouton « Accepter » remplace le code : UNE seule variable, pas de « 2 ».
+        var variable = Assert.Single(sent.Variables);
+        Assert.Equal("1", variable.Key);
+        Assert.Equal("3", variable.Value);
+    }
+
+    [Fact]
     public async Task SendBatchOffer_WithSingleOrder_ShouldUseSimpleText()
     {
         var sender = new RecordingWhatsAppSender();
-        var service = CreateService(sender);
+        var service = CreateService(sender, new WhatsAppOptions { TemplateRiderBatchOffer = "" });
 
         await service.SendBatchOfferAsync("+33698765432", 1, "ABCD1234");
 
         var sent = Assert.Single(sender.TextMessages);
         Assert.Contains("ACCEPTE ABCD1234", sent.Message);
         Assert.DoesNotContain("groupée", sent.Message);
+        Assert.Empty(sender.TemplateMessages);
     }
 
     private static User CreateVendor(string name, string? phone, int credits)

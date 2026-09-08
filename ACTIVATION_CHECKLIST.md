@@ -10,7 +10,7 @@
 
 | # | Chantier | Type | Impact | Statut |
 |---|---|---|---|---|
-| 1 | Templates Marketing (5) + Onboarding (3) | Utilisateur | Acquisition bloquée | **Soumis** — attente approbation Meta |
+| 1 | Templates Meta : 3 Utility approuvés + 10 Utility + 5 Marketing + 3 onboarding | Utilisateur | Acquisition bloquée | **3 activés ✓ (08/09)** — reste en attente Meta |
 | 2 | Paiement client Mobile Money | Config prod | Encaissement en ligne | **ACTIVÉ** (08/09) ✓ |
 | 3 | Rétention/purge scans CNI | Config prod | RGPD | **DÉJÀ ACTIVÉ** ✓ |
 | 4 | Certification livreurs | Mixte | Confiance Colis Sûr | Code livré, à certifier |

@@ -89,6 +89,13 @@
     `/app/orders`, le vendeur initie le paiement Mobile Money de son client
     (`POST /api/vendors/orders/{id}/pay`, ownership vérifiée, admin autorisé) — le lien est
     envoyé au client sur WhatsApp (idempotent : même lien tant que Pending). Tests 382/382.
+14. ✅ **FAIT (08/09) — Premiers templates Meta approuvés ACTIVÉS** :
+    `rider_batch_offer_btn` (offre de lot avec bouton « Accepter » — une seule variable,
+    le webhook résout l'offre au clic), `low_credit` (1 variable) et `no_credit` (0 variable).
+    Défauts de `WhatsAppOptions` + `appsettings.json` renseignés (déployés par la CI, aucun
+    web.config distant requis) ; `SendBatchOfferAsync` adapté au template à bouton (1 variable,
+    repli texte avec le code si refus permanent). Tests 383/383.
+    Reste en attente Meta : 10 Utility + 5 Marketing + 3 onboarding.
 
 ### Actions utilisateur (déblocages)
 - **Meta** : 13 templates soumis (10 Utility + 5 Marketing + 3 onboarding) → attendre `Approved`.

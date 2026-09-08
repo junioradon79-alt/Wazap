@@ -161,28 +161,24 @@ namespace Wazap.Application.Services
         }
 
         /// <summary>
-        /// Propose une livraison groupée à un livreur (template si configuré, sinon texte).
+        /// Propose une livraison groupée à un livreur. Le template approuvé
+        /// « rider_batch_offer_btn » porte une seule variable (le nombre de commandes) et un
+        /// bouton « Accepter » — le webhook résout l'offre en attente du livreur au clic, le
+        /// code d'offre n'embarque donc pas dans le message. Repli texte avec le code sinon.
         /// </summary>
         public async Task SendBatchOfferAsync(string riderPhoneNumber, int orderCount, string offerCode)
         {
-            if (string.IsNullOrWhiteSpace(riderPhoneNumber))
-                return;
-
-            if (!string.IsNullOrWhiteSpace(_whatsAppOptions.TemplateRiderBatchOffer))
+            var templateData = new Dictionary<string, string>
             {
-                await _whatsAppSender.SendTemplateAsync(riderPhoneNumber, _whatsAppOptions.TemplateRiderBatchOffer,
-                    new Dictionary<string, string>
-                    {
-                        ["1"] = orderCount.ToString(),
-                        ["2"] = offerCode
-                    });
-                return;
-            }
+                ["1"] = orderCount.ToString()
+            };
 
             var message = orderCount > 1
                 ? $"🛵 Livraison groupée : {orderCount} commandes à récupérer chez le vendeur. Répondez ACCEPTE {offerCode}."
                 : $"🛵 Livraison disponible. Répondez ACCEPTE {offerCode}.";
-            await _whatsAppSender.SendTextMessageAsync(riderPhoneNumber, message);
+
+            await SendTemplateOrTextAsync(riderPhoneNumber, _whatsAppOptions.TemplateRiderBatchOffer,
+                message, templateData);
         }
 
         /// <summary>

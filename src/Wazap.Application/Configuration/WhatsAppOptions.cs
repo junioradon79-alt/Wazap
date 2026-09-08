@@ -11,9 +11,10 @@ namespace Wazap.Application.Configuration
         public string TemplateOrderReceived { get; set; } = "order_received";
         public string TemplateRiderOffer { get; set; } = "rider_offer";
 
-        // Offre de lot groupé (variables : 1 = nombre de commandes, 2 = code court).
-        // Vide = envoi en texte.
-        public string TemplateRiderBatchOffer { get; set; } = "";
+        // Offre de lot groupé. Le template approuvé « rider_batch_offer_btn » porte UNE
+        // variable (1 = nombre de commandes) et un bouton « Accepter » : le webhook résout
+        // l'offre en attente du livreur au clic. Vide = envoi en texte (avec le code).
+        public string TemplateRiderBatchOffer { get; set; } = "rider_batch_offer_btn";
 
         // Notification client/vendeur après acceptation d'un livreur (variables :
         // client : 1 = id court, 2 = nom livreur ; vendeur : 1 = nom livreur, 2 = client, 3 = id court).
@@ -27,11 +28,11 @@ namespace Wazap.Application.Configuration
         // Vide = envoi en texte.
         public string TemplateDeliveryCode { get; set; } = "";
 
-        // Templates de crédits (vide = envoi en texte). À renseigner quand les templates
-        // sont créés et approuvés par Meta.
+        // Templates de crédits (vide = envoi en texte). `low_credit` : 1 variable
+        // (crédits restants) ; `no_credit` : aucune variable.
         public string TemplateCreditPurchase { get; set; } = "";
-        public string TemplateLowCredit { get; set; } = "";
-        public string TemplateNoCredit { get; set; } = "";
+        public string TemplateLowCredit { get; set; } = "low_credit";
+        public string TemplateNoCredit { get; set; } = "no_credit";
 
         // Onboarding vendeur séquencé (J+1 / J+3 / J+7) — variables par étape :
         //   J+1 : 1 = nom du vendeur
