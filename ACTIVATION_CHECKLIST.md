@@ -63,7 +63,7 @@ Ajouter dans `/wazap2/web.config` (section `<environmentVariables>`) :
 
 ## 2. 💳 Paiement client Mobile Money — CONFIG PROD
 
-### Code livré (commit session 08/09)
+### Code livré (commit `ec68e53`, session 08/09)
 
 - **Entité** : `OrderPayment` (montant, commission, `VendorPayoutDue`, lien, statut)
 - **Service** : `ClientPaymentService` — initiation idempotente, complétion, double-encaissement détecté
