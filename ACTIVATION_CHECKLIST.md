@@ -126,13 +126,18 @@ GET https://junioradon79gm-001-site1.jtempurl.com/health/details
 
 - **Entité** : `RiderIdentity` (FullName, IdNumber, Motorcycle, IdScanUrl, statuts)
 - **Scan** : upload admin OU auto via WhatsApp (webhook média, stockage chiffré)
+- **🤖 Bot de recrutement (08/09, commit `d73a2e5`)** : un candidat écrit « je veux livrer » sur
+  WhatsApp → le bot collecte nom + quartier + photo CNI → **compte livreur créé automatiquement**
+  (identifiants envoyés au candidat) avec scan chiffré + consentement tracé → l'équipe est
+  alertée et certifie en 1 clic. **Aucune action requise** (actif dès déploiement).
 - **Vérification** : admin valide/rejette → notifications WhatsApp
 - **Blacklist** : livreur exclu ne reçoit plus d'offres
 - **Option** : `RiderSecurity:RequireCertifiedRiders` (défaut **false**)
 
-### Action utilisateur — Certifier les livreurs actuels
+### Action utilisateur — Certifier les livreurs
 
-1. **Interface admin** : `/app/riders` → liste des livreurs
+1. **Interface admin** : `/app/riders` → liste des livreurs (les candidatures du bot arrivent
+   ici avec la mention « whatsapp » comme méthode de consentement)
 2. Pour chaque livreur :
    - Vérifier le dossier (pièce d'identité + scan)
    - Cliquer **« Vérifier »** → statut `Verified`

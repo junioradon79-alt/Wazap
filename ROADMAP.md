@@ -73,6 +73,11 @@
 10. ✅ **FAIT (08/09) — Consentement livreur tracé (RGPD)** : `RiderIdentity.ConsentGivenAt` +
     `ConsentMethod` + `RecordConsent()`. Enregistré automatiquement à l'upload admin.
     Exposé dans `GET /api/riders/certifications`.
+11. ✅ **FAIT (08/09, commit `d73a2e5`) — 🤖 Bot de recrutement livreur WhatsApp** : intention
+    (« je veux livrer ») → nom/quartier → photo CNI → **compte livreur créé automatiquement**
+    (identifiants WhatsApp, scan chiffré, consentement « whatsapp » tracé) → alerte équipe →
+    certification en 1 clic dans /app/certifications. Zéro intervention manuelle sur le
+    recrutement ; le Lead reste visible dans /app/leads. Tests 370/370.
 
 ### Actions utilisateur (déblocages)
 - **Meta** : 13 templates soumis (10 Utility + 5 Marketing + 3 onboarding) → attendre `Approved`.
