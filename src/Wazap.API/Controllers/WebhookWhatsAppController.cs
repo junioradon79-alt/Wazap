@@ -363,6 +363,20 @@ public class WebhookWhatsAppController : ControllerBase
             return;
         }
 
+        // Livreur avec une course en cours (assignée ou en transit) : la photo reçue est la
+        // PREUVE DE LIVRAISON du colis (au retrait ou à la remise), pas un scan d'identité.
+        var activeOrder = await _context.Orders.AsNoTracking()
+            .Where(o => o.RiderUserId == rider.Id
+                && (o.Status == OrderStatus.RiderAssigned || o.Status == OrderStatus.InTransit))
+            .OrderByDescending(o => o.RiderAssignedAt)
+            .FirstOrDefaultAsync();
+
+        if (activeOrder is not null)
+        {
+            await HandleDeliveryProofPhotoAsync(rider, activeOrder.Id, mediaUrl, mediaId, mimeType);
+            return;
+        }
+
         var download = await _mediaDownloader.TryDownloadAsync(mediaUrl, mediaId, mimeType);
         if (download is null)
         {
@@ -387,6 +401,38 @@ public class WebhookWhatsAppController : ControllerBase
             // Dossier exclu, format refusé, stockage non configuré : le message du
             // domaine est rédigé pour être lu par l'expéditeur.
             await _whatsAppSender.SendTextMessageAsync(phone, "❌ " + ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Photo de preuve de livraison : un livreur avec une course en cours (assignée ou en
+    /// transit) envoie la photo du colis. Stockage chiffré au repos, même chemin que les
+    /// scans CNI ; la photo accompagne la course pour les litiges (Garantie Colis Sûr).
+    /// </summary>
+    private async Task HandleDeliveryProofPhotoAsync(User rider, Guid orderId, string? mediaUrl, string? mediaId, string? mimeType)
+    {
+        var download = await _mediaDownloader.TryDownloadAsync(mediaUrl, mediaId, mimeType);
+        if (download is null)
+        {
+            await ReplyAsync(rider,
+                "❌ Impossible de récupérer la photo du colis. Réessayez dans un instant.");
+            return;
+        }
+
+        try
+        {
+            await using var stream = new MemoryStream(download.Value.Content);
+            await _riderService.StoreDeliveryProofPhotoAsync(rider.Id, orderId, stream, download.Value.FileName, mediaUrl);
+            _logger.LogInformation("Photo de preuve de livraison reçue pour la course {OrderId} (livreur {RiderId}).", orderId, rider.Id);
+            await ReplyAsync(rider,
+                "✅ Photo du colis enregistrée ! Elle accompagne la course et servira de preuve en cas de litige. " +
+                "Envoyez LIVRE <code> CODE <4 chiffres> une fois la remise faite.");
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Course déjà clôturée, mauvais livreur, format refusé, stockage non configuré :
+            // le message du domaine est lisible par le livreur.
+            await ReplyAsync(rider, "❌ " + ex.Message);
         }
     }
 

@@ -15,17 +15,20 @@ public class OrdersController : ControllerBase
 {
     private readonly OrderService _orderService;
     private readonly DeliveryOfferService _deliveryOfferService;
+    private readonly RiderService _riderService;
     private readonly IValidator<CreateOrderRequest> _createValidator;
     private readonly IValidator<UpdateStatusRequest> _updateValidator;
 
     public OrdersController(
         OrderService orderService,
         DeliveryOfferService deliveryOfferService,
+        RiderService riderService,
         IValidator<CreateOrderRequest> createValidator,
         IValidator<UpdateStatusRequest> updateValidator)
     {
         _orderService = orderService;
         _deliveryOfferService = deliveryOfferService;
+        _riderService = riderService;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
     }
@@ -45,6 +48,25 @@ public class OrdersController : ControllerBase
 
         var order = await _orderService.CreateOrderAsync(request);
         return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, order);
+    }
+
+    // GET: api/orders/{id}/proof-photo — photo de preuve de livraison (déchiffrée à la volée).
+    // Réservée à l'admin : pièce d'un litige « Garantie Colis Sûr ».
+    [HttpGet("{id:guid}/proof-photo")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    public async Task<IActionResult> GetProofPhoto(Guid id)
+    {
+        var photo = await _riderService.GetDeliveryProofPhotoAsync(id);
+        if (photo is null)
+            return NotFound();
+
+        var contentType = Path.GetExtension(photo.Value.FileName) switch
+        {
+            ".png" => "image/png",
+            ".webp" => "image/webp",
+            _ => "image/jpeg"
+        };
+        return File(photo.Value.Content!, contentType);
     }
 
     // GET: api/orders/{id}

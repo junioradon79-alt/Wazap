@@ -41,6 +41,12 @@ public class Order
     public DateTime? DeliveryCodeVerifiedAt { get; private set; }
     public int DeliveryCodeAttempts { get; private set; }
 
+    // Preuve photo de livraison : photo du colis envoyée par le livreur via WhatsApp
+    // (au retrait ou à la remise), stockée chiffrée au repos. La provenance est gardée.
+    public string? DeliveryProofPhotoFileName { get; private set; }
+    public string? DeliveryProofPhotoSourceUrl { get; private set; }
+    public DateTime? DeliveryProofPhotoReceivedAt { get; private set; }
+
     /// <summary>Tentatives erronées au-delà desquelles le code est bloqué (anti-force brute).</summary>
     public const int MaxDeliveryCodeAttempts = 5;
 
@@ -192,5 +198,28 @@ public class Order
 
         DeliveryCodeVerifiedAt = DateTime.UtcNow;
         return DeliveryCodeResult.Ok;
+    }
+
+    /// <summary>
+    /// Enregistre la photo du colis prise par le livreur (preuve de livraison). Acceptée
+    /// uniquement pendant la course (assignée ou en transit) : une course clôturée
+    /// n'accepte plus de preuve après coup.
+    /// </summary>
+    public void SubmitDeliveryProofPhoto(string fileName, string? sourceUrl)
+    {
+        if (Status is not (OrderStatus.RiderAssigned or OrderStatus.InTransit))
+            throw new InvalidOperationException(
+                "Photo de livraison refusée : aucune course en cours (assignée ou en transit).");
+
+        DeliveryProofPhotoFileName = fileName;
+        DeliveryProofPhotoSourceUrl = string.IsNullOrWhiteSpace(sourceUrl) ? null : sourceUrl.Trim();
+        DeliveryProofPhotoReceivedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>Efface la photo de preuve (rétention) ; la date de réception reste tracée.</summary>
+    public void PurgeDeliveryProofPhoto()
+    {
+        DeliveryProofPhotoFileName = null;
+        DeliveryProofPhotoSourceUrl = null;
     }
 }

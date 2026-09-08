@@ -88,6 +88,10 @@ public sealed class RetentionWorker : BackgroundService
             ordersPurged = await db.Orders
                 .Where(o => oldOrderIds.Contains(o.Id))
                 .ExecuteDeleteAsync(ct);
+
+            // Les photos de preuve de livraison partent avec leur course (rétention RGPD).
+            foreach (var orderId in oldOrderIds)
+                riderService.DeleteDeliveryProofPhotoFile(orderId);
         }
 
         // 2. Lots vides anciens (aucune commande restante) + leurs offres de lot.

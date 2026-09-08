@@ -21,6 +21,7 @@ namespace Wazap.API.Services
     public sealed class RiderService
     {
         private const string ScanFolder = "App_Data/rider-scans";
+    private const string ProofPhotoFolder = "App_Data/delivery-proof-photos";
         private const string ScanEncryptionHeader = "WZSCN1";
         private static readonly byte[] ScanEncryptionMagic = Encoding.ASCII.GetBytes(ScanEncryptionHeader);
 
@@ -303,6 +304,99 @@ namespace Wazap.API.Services
                 return;
             identity.RecordConsent("whatsapp");
             await _context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Stocke la photo du colis (preuve de livraison) envoyée par le livreur via
+        /// WhatsApp. Même protection que les scans d'identité : AES-GCM dès qu'une clé
+        /// est configurée, refus franc sinon (pas de repli silencieux en clair).
+        /// </summary>
+        public async Task StoreDeliveryProofPhotoAsync(Guid riderUserId, Guid orderId, Stream file, string fileName, string? sourceUrl)
+        {
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == orderId && o.RiderUserId == riderUserId)
+                ?? throw new InvalidOperationException("Course introuvable pour ce livreur.");
+
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
+            if (extension is not (".jpg" or ".jpeg" or ".png" or ".webp"))
+                throw new InvalidOperationException("Format non pris en charge (JPG, PNG ou WEBP attendu).");
+
+            // Garde-fou RGPD : pas de clé exploitable = pas d'écriture sur le disque.
+            var hasKey = _scans.TryResolveKey(out var key, out var keyProblem);
+            if (!hasKey && !_scans.AllowUnencryptedStorage)
+            {
+                _logger.LogError(
+                    "ALERTE [config] Photo de preuve refusée pour la course {Order} : {Problem}.",
+                    orderId, keyProblem);
+                throw new InvalidOperationException(
+                    "Le stockage sécurisé des photos n'est pas configuré (clé de chiffrement absente ou invalide). "
+                    + "Photo refusée : contactez l'administrateur système.");
+            }
+
+            var dir = Path.Combine(_env.ContentRootPath, ProofPhotoFolder);
+            Directory.CreateDirectory(dir);
+
+            var storedName = $"{orderId:N}{extension}";
+            var fullPath = Path.Combine(dir, storedName);
+            await using (var output = new FileStream(fullPath, FileMode.Create, FileAccess.Write))
+            {
+                if (!hasKey)
+                {
+                    await file.CopyToAsync(output);
+                }
+                else
+                {
+                    using var memory = new MemoryStream();
+                    await file.CopyToAsync(memory);
+                    await output.WriteAsync(EncryptBytes(memory.ToArray(), key));
+                }
+            }
+
+            order.SubmitDeliveryProofPhoto(storedName, sourceUrl); // garde d'état dans le domaine
+            await _context.SaveChangesAsync();
+        }
+
+        /// <summary>Photo de preuve déchiffrée de la course (null si absente ou illisible).</summary>
+        public async Task<(byte[]? Content, string? FileName)?> GetDeliveryProofPhotoAsync(Guid orderId)
+        {
+            var order = await _context.Orders.AsNoTracking()
+                .FirstOrDefaultAsync(o => o.Id == orderId);
+            if (order?.DeliveryProofPhotoFileName is null)
+                return null;
+
+            var fullPath = Path.Combine(_env.ContentRootPath, ProofPhotoFolder, order.DeliveryProofPhotoFileName);
+            if (!File.Exists(fullPath))
+            {
+                _logger.LogWarning("Fichier de preuve introuvable pour la course {Order}.", orderId);
+                return null;
+            }
+
+            var bytes = await File.ReadAllBytesAsync(fullPath);
+            if (_scans.TryResolveKey(out _, out _))
+            {
+                var decrypted = DecryptBytes(bytes);
+                if (decrypted is null)
+                    return null;
+                bytes = decrypted;
+            }
+
+            return (bytes, order.DeliveryProofPhotoFileName);
+        }
+
+        /// <summary>Supprime le fichier de la photo de preuve (rétention, best-effort).</summary>
+        public void DeleteDeliveryProofPhotoFile(Guid orderId)
+        {
+            try
+            {
+                var dir = Path.Combine(_env.ContentRootPath, ProofPhotoFolder);
+                if (!Directory.Exists(dir))
+                    return;
+                foreach (var candidate in Directory.GetFiles(dir, $"{orderId:N}.*"))
+                    File.Delete(candidate);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Suppression de la photo de preuve impossible pour {Order}.", orderId);
+            }
         }
 
         /// <summary>Chemin du scan local (null si aucun fichier téléversé).</summary>
