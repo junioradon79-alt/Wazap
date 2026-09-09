@@ -9,7 +9,7 @@ namespace Wazap.Application.Configuration
 
         public string TemplateOrderConfirm { get; set; } = "order_confirm";
         public string TemplateOrderReceived { get; set; } = "order_received";
-        public string TemplateRiderOffer { get; set; } = "rider_offer";
+        public string TemplateRiderOffer { get; set; } = "rider_offer_v2";
 
         // Offre de lot groupé. Template approuvé « rider_batch_offer » : {{1}} = nombre de
         // commandes, {{2}} = code de l'offre — le livreur répond « ACCEPTE <code> » (ou
@@ -47,16 +47,17 @@ namespace Wazap.Application.Configuration
         public string TemplateVendorOnboardingDay7 { get; set; } = "";
 
         // Templates de prospection (catégorie Marketing) — variables :
-        //   prospect_approach : 1 = nom commerce, 2 = commercial, 3 = lien démo/vente
-        //   prospect_followup : 1 = nom commerce, 2 = commercial
-        //   prospect_offer    : 1 = nom commerce
-        //   rider_recruit     : 1 = prénom, 2 = lien WhatsApp inscription
-        //   rider_company     : 1 = nom entreprise, 2 = lien WhatsApp partenariat
+        //   prospect_approach_v2 : 1 = nom commerce, 2 = commercial, 3 = lien démo/vente
+        //   prospect_followup_v2 : 1 = nom commerce, 2 = commercial
+        //   prospect_offer_v2    : 1 = nom commerce
+        //   rider_recruit_v2     : 1 = prénom, 2 = lien WhatsApp inscription
+        //   rider_company_v2     : 1 = nom entreprise, 2 = lien WhatsApp partenariat
         // Vides = envoi texte best-effort (le bot / l'outil de campagne les ignore).
-        public string TemplateProspectApproach { get; set; } = "";
-        public string TemplateProspectFollowup { get; set; } = "";
-        public string TemplateProspectOffer { get; set; } = "";
-        public string TemplateRiderRecruit { get; set; } = "";
-        public string TemplateRiderCompany { get; set; } = "";
+        // ✅ Approuvés Meta (09/09) : noms définitifs `*_v2`.
+        public string TemplateProspectApproach { get; set; } = "prospect_approach_v2";
+        public string TemplateProspectFollowup { get; set; } = "prospect_followup_v2";
+        public string TemplateProspectOffer { get; set; } = "prospect_offer_v2";
+        public string TemplateRiderRecruit { get; set; } = "rider_recruit_v2";
+        public string TemplateRiderCompany { get; set; } = "rider_company_v2";
     }
 }

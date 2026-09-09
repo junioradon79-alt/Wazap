@@ -139,19 +139,17 @@
 ---
 
 ## A. Actions utilisateur (dashboards externes) — me prévenir pour activer
-1. **Templates Meta — 14 rejetés sur 15** (constat 07/09, remplace « tous Submitted »). Cause identifiée :
-   **exemples de contenu variable manquants** (le seul approuvé, `no_credit`, est le seul sans variable).
-   Corriger dans WhatsApp Manager puis resoumettre ; dès `Approved`, activer dans appsettings + déployer :
-   - `order_received`, `order_confirm`, `rider_offer`, `rider_batch_offer` (+ `_btn` bouton), `rider_assigned_client`, `rider_assigned_vendor`
-   - crédits : `credit_purchase`, `low_credit`, `no_credit` ; prospection : `prospect_approach/followup/offer` ; recrutement : `rider_recruit`, `rider_company`
-   - ✅ **10 Utility resoumis (07/09)**. Restent les **5 Marketing** (`prospect_approach/followup/offer`,
-     `rider_recruit`, `rider_company`) : corps corrigés + exemples prêts à coller dans
-     `prospection/TEMPLATES_MARKETING_A_CORRIGER.md`. **Seconde cause de rejet identifiée** :
-     3 de ces corps **se terminent par une variable**, ce que Meta refuse — les exemples seuls
-     n'auraient pas suffi.
-   - ⚠️ `rider_offer`, `low_credit`, `no_credit` sont en **Marketing** alors que ce sont des
-     notifications de service : à **recréer en Utility** (throttling et coût par message sinon,
-     sur le plus gros volume du système).
+1. **Templates Meta — ✅ TOUS APPROUVÉS (09/09)** — les 5 Marketing ont été resoumis sous de
+   nouveaux noms `*_v2` et approuvés : `prospect_approach_v2`, `prospect_followup_v2`,
+   `prospect_offer_v2`, `rider_recruit_v2`, `rider_company_v2` (+ `rider_offer_v2` pour l'offre
+   de course). Config branchée dans les **défauts `WhatsAppOptions` + `appsettings.json`** →
+   déployé par CI (aucun web.config distant requis).
+   - Utility actifs (9) : `order_received`, `order_confirm`, `rider_offer` (→ `rider_offer_v2`),
+     `rider_batch_offer`, `rider_assigned_client`, `rider_assigned_vendor`, `credit_purchase`,
+     `low_credit`, `no_credit`.
+   - Restent : `delivery_code` (Utility) et les **3 onboarding vendeur** (J+1/J+3/J+7, soumis par
+     l'utilisateur) — fournir les noms exacts pour `WhatChimp__TemplateVendorOnboardingDay1/3/7`
+     puis `VendorOnboarding:Enabled=true`.
 2. **Clé API Google Places** (`AIza…`, carte bancaire requise) → collecte complète 13 zones × 33 secteurs.
 3. **Vidéo démo 30 s** hébergée (URL publique) → variable {{3}} des templates prospect + campagne.
 4. **Nom de domaine** propre (remplacer le jtempurl.com).

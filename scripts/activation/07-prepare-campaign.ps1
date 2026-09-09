@@ -22,13 +22,13 @@ if ([string]::IsNullOrWhiteSpace($apiToken)) {
 }
 $baseUrl = "https://app.whatchimp.com/api/v1/whatsapp/"
 $phoneNumberId = "735886129615120"
-Write-Host "[1] Verification du template prospect_approach..." -ForegroundColor Yellow
+Write-Host "[1] Verification du template prospect_approach_v2..." -ForegroundColor Yellow
 $templateUrl = "${baseUrl}template/list?apiToken=$apiToken&phone_number_id=$phoneNumberId"
 try {
     $response = Invoke-RestMethod -Uri $templateUrl -Method Get
-    $template = $response.message | Where-Object { $_.name -eq "prospect_approach" }
+    $template = $response.message | Where-Object { $_.name -eq "prospect_approach_v2" }
     if (-not $template) {
-        Write-Host "      Template 'prospect_approach' non trouve !" -ForegroundColor Red
+        Write-Host "      Template 'prospect_approach_v2' non trouve !" -ForegroundColor Red
         Write-Host "      Verifiez que le template est approuve dans WhatsApp Manager." -ForegroundColor Yellow
         exit 1
     }

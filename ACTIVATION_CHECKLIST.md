@@ -10,7 +10,7 @@
 
 | # | Chantier | Type | Impact | Statut |
 |---|---|---|---|---|
-| 1 | Templates Meta : 9 Utility activés ✓ · 5 Marketing · 3 onboarding soumis | Utilisateur | Acquisition (Marketing) | **9 Utility actifs ✓ (08/09)** — restent 5 Marketing + approbation onboarding + delivery_code |
+| 1 | Templates Meta | Meta | Acquisition (Marketing) | ✅ **TOUS approuvés (09/09)** : 9 Utility + 5 Marketing `*_v2` + rider_offer_v2 + onboarding — config `_v2` dans appsettings (`WhatsAppOptions`), `delivery_code` & onboarding à finaliser |
 | 2 | Paiement client Mobile Money | Config prod | Encaissement en ligne | **ACTIVÉ** (08/09) ✓ |
 | 3 | Rétention/purge scans CNI | Config prod | RGPD | **DÉJÀ ACTIVÉ** ✓ |
 | 4 | Certification livreurs | Mixte | Confiance Colis Sûr | Code livré, à certifier |
@@ -18,45 +18,22 @@
 
 ---
 
-## 1. 📣 Templates Marketing (5 restants) — ACTION UTILISATEUR
+## 1. 📣 Templates Marketing (5) — ✅ TOUS APPROUVÉS (09/09), noms `*_v2`
 
-### Templates à corriger dans WhatsApp Manager
+> Les 5 templates Marketing ont été **resoumis et approuvés par Meta** sous de nouveaux noms `*_v2`
+> (avec `rider_offer_v2` pour l'offre de course). Ils sont **branchés dans les défauts
+> `WhatsAppOptions` + `appsettings.json`** → déployé par CI (aucun web.config distant requis).
 
-Les corps corrigés + exemples de variables sont dans :
-`prospection/TEMPLATES_MARKETING_A_CORRIGER.md`
+| Template approuvé | Variables envoyées par le code |
+|---|---|
+| `prospect_approach_v2` | 3 (nom, commercial, lien) |
+| `prospect_followup_v2` | 2 (nom, commercial) |
+| `prospect_offer_v2` | 1 (nom) |
+| `rider_recruit_v2` | 2 (prénom, lien) |
+| `rider_company_v2` | 2 (entreprise, lien) |
+| `rider_offer_v2` | 1 (code d'offre) — remplace `rider_offer` |
 
-| Template | Variables | Problème corrigé |
-|---|---|---|
-| `prospect_approach` | 3 (nom, commercial, lien) | Corps finissait par `{{3}}` → texte ajouté après |
-| `prospect_followup` | 2 (nom, commercial) | Exemples de variables manquants |
-| `prospect_offer` | 1 (nom) | Numérotation à trous → corrigée |
-| `rider_recruit` | 2 (prénom, lien) | Corps finissait par `{{2}}` → texte ajouté après |
-| `rider_company` | 2 (entreprise, lien) | Corps finissait par `{{2}}` → texte ajouté après |
-
-### Étapes dans WhatsApp Manager
-
-1. **WhatsApp Manager → Modèles de messages** → ouvrir chaque template rejeté → **Modifier**
-2. Coller le corps corrigé (depuis `TEMPLATES_MARKETING_A_CORRIGER.md`)
-3. Section **« Exemples de contenu variable »** (*Sample variable content*) :
-   - Saisir les valeurs du tableau pour chaque `{{n}}`
-   - **Aucun champ ne doit rester vide**
-4. **Soumettre** → vérification via API :
-   ```
-   template/list?apiToken=…&phone_number_id=735886129615120
-   ```
-   → champ `message[].status` : attendre `Approved`
-
-### Après approbation — Config web.config distant
-
-Ajouter dans `/wazap2/web.config` (section `<environmentVariables>`) :
-
-```xml
-<environmentVariable name="WhatChimp__TemplateProspectApproach" value="prospect_approach" />
-<environmentVariable name="WhatChimp__TemplateProspectFollowup" value="prospect_followup" />
-<environmentVariable name="WhatChimp__TemplateProspectOffer" value="prospect_offer" />
-<environmentVariable name="WhatChimp__TemplateRiderRecruit" value="rider_recruit" />
-<environmentVariable name="WhatChimp__TemplateRiderCompany" value="rider_company" />
-```
+**Config déjà en place** (défauts `WhatsAppOptions` + `appsettings.json`). Aucune action requise.
 
 
 ---
@@ -248,9 +225,7 @@ dotnet run --project tools/CleanupTestVendors
 
 - Clés LIVE : configurées (voir `DEPLOYMENT.md`)
 - URL webhook : `https://junioradon79gm-001-site1.jtempurl.com/api/webhook/geniuspay`
-> ✅ **Templates Utility actifs (08/09)** : `order_received`, `order_confirm`, `rider_offer`,
-> `rider_batch_offer`, `rider_assigned_client`, `rider_assigned_vendor`, `credit_purchase`,
-> `low_credit`, `no_credit` (défauts `WhatsAppOptions` + `appsettings.json`, déployé CI).
-> ⚠️ Restent en attente Meta : `delivery_code`, les 5 templates **Marketing** (prospect +
-> rider_recruit/company, voir `prospection/TEMPLATES_MARKETING_A_CORRIGER.md`) et les **3 onboarding**
-> vendeur (J+1/J+3/J+7 — **soumis par l'utilisateur**, à corriger seulement en cas de rejet).
+> ✅ **Templates Meta (09/09)** : 9 Utility + 5 Marketing `*_v2` + `rider_offer_v2` **approuvés**
+> et branchés (défauts `WhatsAppOptions` + `appsettings.json`, déployé CI). Restent à finaliser :
+> `delivery_code` et les **3 onboarding vendeur** (soumis — fournir les noms pour
+> `WhatChimp__TemplateVendorOnboardingDay1/3/7` + `VendorOnboarding:Enabled=true`).

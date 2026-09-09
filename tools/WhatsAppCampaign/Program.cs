@@ -1,4 +1,4 @@
-// Campagne WhatsApp : envoie le template "prospect_approach" à chaque prospect du CSV via WhatChimp.
+// Campagne WhatsApp : envoie le template "prospect_approach_v2" à chaque prospect du CSV via WhatChimp.
 // Entrée : CSV (colonne WhatsApp_Number) — sortie : Prospects_relances.csv + relance_log.txt
 // Prérequis : template "prospect_approach" créé et approuvé dans WhatChimp/Meta.
 // Config (env) : WHATCHIMP_API_TOKEN (obligatoire), WHATCHIMP_PHONE_NUMBER_ID,
@@ -23,15 +23,22 @@ foreach (var arg in args)
 var apiToken = Environment.GetEnvironmentVariable("WHATCHIMP_API_TOKEN");
 var phoneNumberId = Environment.GetEnvironmentVariable("WHATCHIMP_PHONE_NUMBER_ID") ?? "735886129615120";
 var baseUrl = Environment.GetEnvironmentVariable("WHATCHIMP_BASE_URL") ?? "https://app.whatchimp.com/api/v1/whatsapp/";
-var template = Environment.GetEnvironmentVariable("TEMPLATE_NAME") ?? "prospect_approach";
+var template = Environment.GetEnvironmentVariable("TEMPLATE_NAME") ?? "prospect_approach_v2";
 var commercial = Environment.GetEnvironmentVariable("COMMERCIAL") ?? "L'équipe WAZAP";
 var videoUrl = Environment.GetEnvironmentVariable("VIDEO_URL") ?? "";
+
+// Les templates Meta approuvés portent un suffixe `_v2` ; la table ci-dessous matche sur
+// le nom canonique (sans suffixe) pour éviter sa duplication.
+static string CanonicalName(string templateName)
+    => templateName.EndsWith("_v2", StringComparison.Ordinal)
+        ? templateName[..^3]
+        : templateName;
 
 // Chaque template déclare son propre nombre de variables : en envoyer plus (ou moins)
 // fait rejeter l'envoi par Meta (« parameter count mismatch »). La table reflète les
 // corps soumis dans WhatsApp Manager — à mettre à jour si un corps change.
 static string[] BuildVariables(string templateName, string nom, string commercial, string lien)
-    => templateName switch
+    => CanonicalName(templateName) switch
     {
         "prospect_approach" => [nom, commercial, lien],
         "prospect_followup" => [nom, commercial],
@@ -47,7 +54,7 @@ if (usesLink && string.IsNullOrWhiteSpace(videoUrl))
 {
     Console.WriteLine($"⚠️  VIDEO_URL non définie — la dernière variable de « {template} » sera vide.");
 }
-if (template is not ("prospect_approach" or "prospect_followup" or "prospect_offer"
+if (CanonicalName(template) is not ("prospect_approach" or "prospect_followup" or "prospect_offer"
     or "rider_recruit" or "rider_company"))
 {
     Console.WriteLine($"⚠️  Template « {template} » inconnu de la table : {variableCount} variables envoyées par défaut.");
