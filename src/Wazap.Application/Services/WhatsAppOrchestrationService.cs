@@ -245,6 +245,8 @@ namespace Wazap.Application.Services
         /// <summary>
         /// Transmet au client le code à 4 chiffres qu'il devra donner au livreur à la
         /// remise du colis. Sans effet si la commande n'a pas de code.
+        /// ⚠️ Meta classe ce template en « authentification » (présence d'un code) :
+        /// le corps approuvé n'accepte qu'UNE variable = le code de livraison.
         /// </summary>
         public async Task SendDeliveryCodeAsync(Order order)
         {
@@ -258,8 +260,8 @@ namespace Wazap.Application.Services
                 "Donnez-le au livreur UNIQUEMENT quand vous avez le colis en main.",
                 new Dictionary<string, string>
                 {
-                    ["1"] = orderCode,
-                    ["2"] = order.DeliveryCode
+                    // Template « delivery_code » (auth, 1 variable) : {{1}} = code de livraison.
+                    ["1"] = order.DeliveryCode
                 });
         }
 
