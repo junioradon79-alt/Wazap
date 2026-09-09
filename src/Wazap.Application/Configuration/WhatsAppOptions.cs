@@ -41,10 +41,10 @@ namespace Wazap.Application.Configuration
         //   J+1 : 1 = nom du vendeur
         //   J+3 : 1 = nom, 2 = nb de courses livrées (« 0 » sinon)
         //   J+7 : 1 = nom, 2 = code parrainage, 3 = crédits restants
-        // Vide = étape non envoyée (le worker réessaie) tant que le template n'est pas approuvé.
-        public string TemplateVendorOnboardingDay1 { get; set; } = "";
-        public string TemplateVendorOnboardingDay3 { get; set; } = "";
-        public string TemplateVendorOnboardingDay7 { get; set; } = "";
+        // ✅ Approuvés Meta (09/09) : vendor_onboarding_day1 / day3 / day7.
+        public string TemplateVendorOnboardingDay1 { get; set; } = "vendor_onboarding_day1";
+        public string TemplateVendorOnboardingDay3 { get; set; } = "vendor_onboarding_day3";
+        public string TemplateVendorOnboardingDay7 { get; set; } = "vendor_onboarding_day7";
 
         // Templates de prospection (catégorie Marketing) — variables :
         //   prospect_approach_v2 : 1 = nom commerce, 2 = commercial, 3 = lien démo/vente

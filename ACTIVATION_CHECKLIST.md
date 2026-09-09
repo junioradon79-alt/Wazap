@@ -10,7 +10,7 @@
 
 | # | Chantier | Type | Impact | Statut |
 |---|---|---|---|---|
-| 1 | Templates Meta | Meta | Acquisition (Marketing) | ✅ **TOUS approuvés (09/09)** : 9 Utility + 5 Marketing `*_v2` + rider_offer_v2 + onboarding — config `_v2` dans appsettings (`WhatsAppOptions`), `delivery_code` & onboarding à finaliser |
+| 1 | Templates Meta | Meta | Acquisition (Marketing) | ✅ **TOUS approuvés & activés (09/09)** : 9 Utility + 5 Marketing `*_v2` + rider_offer_v2 + onboarding `vendor_onboarding_day1/3/7` (worker ON) — reste `delivery_code` |
 | 2 | Paiement client Mobile Money | Config prod | Encaissement en ligne | **ACTIVÉ** (08/09) ✓ |
 | 3 | Rétention/purge scans CNI | Config prod | RGPD | **DÉJÀ ACTIVÉ** ✓ |
 | 4 | Certification livreurs | Mixte | Confiance Colis Sûr | Code livré, à certifier |

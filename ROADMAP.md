@@ -147,9 +147,8 @@
    - Utility actifs (9) : `order_received`, `order_confirm`, `rider_offer` (→ `rider_offer_v2`),
      `rider_batch_offer`, `rider_assigned_client`, `rider_assigned_vendor`, `credit_purchase`,
      `low_credit`, `no_credit`.
-   - Restent : `delivery_code` (Utility) et les **3 onboarding vendeur** (J+1/J+3/J+7, soumis par
-     l'utilisateur) — fournir les noms exacts pour `WhatChimp__TemplateVendorOnboardingDay1/3/7`
-     puis `VendorOnboarding:Enabled=true`.
+   - Restent : `delivery_code` (Utility) — en attente. Les **3 onboarding vendeur** (J+1/J+3/J+7)
+     sont **ACTIVÉS (09/09)** : noms `vendor_onboarding_day1/3/7` branchés + `VendorOnboarding:Enabled=true`.
 2. **Clé API Google Places** (`AIza…`, carte bancaire requise) → collecte complète 13 zones × 33 secteurs.
 3. **Vidéo démo 30 s** hébergée (URL publique) → variable {{3}} des templates prospect + campagne.
 4. **Nom de domaine** propre (remplacer le jtempurl.com).
