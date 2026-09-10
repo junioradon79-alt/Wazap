@@ -13,6 +13,8 @@ var input = "Prospects.csv";
 var zoneFilter = "";
 var limit = 0;
 var dryRun = false;
+var preflightSubscribers = false;
+var force = false;
 var commercialArg = "";
 var videoUrlArg = "";
 
@@ -23,6 +25,8 @@ foreach (var arg in args)
     else if (arg.StartsWith("--commercial=", StringComparison.OrdinalIgnoreCase)) commercialArg = arg["--commercial=".Length..];
     else if (arg.StartsWith("--video-url=", StringComparison.OrdinalIgnoreCase)) videoUrlArg = arg["--video-url=".Length..];
     else if (arg.Equals("--dry-run", StringComparison.OrdinalIgnoreCase)) dryRun = true;
+    else if (arg.Equals("--preflight-subscribers", StringComparison.OrdinalIgnoreCase)) preflightSubscribers = true;
+    else if (arg.Equals("--force", StringComparison.OrdinalIgnoreCase)) force = true;
     else if (!arg.StartsWith("--", StringComparison.Ordinal)) input = arg;
     else Console.Error.WriteLine($"Option inconnue ignorée : {arg}");
 }
@@ -151,10 +155,75 @@ if (string.IsNullOrWhiteSpace(apiToken))
     return 1;
 }
 
-Console.WriteLine($"Prospects à contacter : {valides.Count}");
-
 using var http = new HttpClient();
 http.Timeout = TimeSpan.FromSeconds(30);
+
+if (preflightSubscribers)
+{
+    // La passerelle refuse tout envoi template vers un numéro qui n'est pas un
+    // subscriber du bot (« outside 24 hour window » = traitement en texte).
+    // Ce mode compare le CSV aux subscribers réels (GET subscriber/list, aucun envoi)
+    // pour vérifier que l'import UI a bien été fait avant de lancer la campagne.
+    Console.WriteLine("\n=== PREFLIGHT SUBSCRIBERS (aucun envoi) ===");
+    var subscriberDigits = await FetchSubscriberDigitsAsync();
+    Console.WriteLine($"Subscribers du bot : {subscriberDigits.Count}");
+    var manquants = valides.Where(v => !MatchesSubscriber(v.Phone, subscriberDigits))
+        .Select(v => (v.Nom, v.Phone)).ToList();
+
+    Console.WriteLine($"Prospects subscribers    : {valides.Count - manquants.Count}/{valides.Count}");
+    Console.WriteLine($"Prospects NON subscribers: {manquants.Count}");
+    foreach (var m in manquants.Take(10))
+        Console.WriteLine($"  ✗ {m.Phone} | {m.Nom}");
+    if (manquants.Count > 10)
+        Console.WriteLine($"  … et {manquants.Count - 10} autres (liste complète → Prospects_preflight.csv)");
+
+    File.WriteAllText("Prospects_preflight.csv",
+        "Nom;WhatsApp_Number;Subscriber\n"
+        + string.Join("\n", valides.Select(v =>
+            $"{v.Nom};{v.Phone};{(manquants.Any(m => m.Phone == v.Phone) ? "NON" : "OUI")}")),
+        Encoding.UTF8);
+    Console.WriteLine("\nDétail : Prospects_preflight.csv");
+    Console.WriteLine("Si des prospects ne sont pas subscribers : importez-les d'abord dans WhatChimp");
+    Console.WriteLine("(Subscriber Manager → Options → Import Subscribers — cf. prospection/IMPORT_SUBSCRIBERS_WHATCHIMP.md),");
+    Console.WriteLine("créez un label (ex. « prospection-72 »), assignez-le, puis relancez la campagne.");
+    return manquants.Count == 0 ? 0 : 2;
+}
+
+// Garde-fou automatique (mode envoi) : tout envoi template vers un non-subscriber est
+// traité en TEXTE par la passerelle → refus « outside 24 hour window ». Le broadcast,
+// seul moyen d'atteindre des non-subscribers, est UI-only (aucun endpoint API de
+// campagne : tous les sondages renvoient 401). On vérifie donc l'import avant le
+// moindre envoi ; --force court-circuite (dépannage, en connaissance de cause).
+if (!force)
+{
+    Console.WriteLine("Vérification des subscribers (GET subscriber/list, aucun envoi)…");
+    var knownSubscribers = await FetchSubscriberDigitsAsync();
+    var nonSubscribers = valides.Where(v => !MatchesSubscriber(v.Phone, knownSubscribers)).ToList();
+    if (nonSubscribers.Count > 0)
+    {
+        Console.WriteLine($"\n⛔ {nonSubscribers.Count}/{valides.Count} prospect(s) ne sont PAS subscribers du bot (+225 75 80 38 01) — envoi annulé.");
+        Console.WriteLine("    Un envoi direct serait refusé (« outside 24 hour window ») : la passerelle ne");
+        Console.WriteLine("    délivre les templates qu'aux subscribers, et le broadcast est UI-only.");
+        foreach (var m in nonSubscribers.Take(10))
+            Console.WriteLine($"  ✗ {m.Phone} | {m.Nom}");
+        Console.WriteLine("\nProcédure (cf. prospection/IMPORT_SUBSCRIBERS_WHATCHIMP.md) :");
+        Console.WriteLine("  1. Importer le CSV dans WhatChimp : Subscriber Manager → Options → Import Subscribers");
+        Console.WriteLine("     (fichier prêt : prospection/IMPORT_WHATCHIMP_72.csv) ;");
+        Console.WriteLine("  2. Vérifier l'import : dotnet run -- <csv> --preflight-subscribers (0 manquant attendu) ;");
+        Console.WriteLine("  3. Lancer la campagne : Broadcast Center → Create Campaign → WhatsApp");
+        Console.WriteLine($"     (template « {template} »), ou relancer cet outil une fois l'import fait.");
+        Console.WriteLine("     (contournement : --force)");
+        return 2;
+    }
+    Console.WriteLine($"OK : {valides.Count}/{valides.Count} prospects sont subscribers du bot.");
+}
+else
+{
+    Console.WriteLine("⚠️  --force : garde-fou subscribers désactivé (risque de refus « outside 24 hour window »).");
+}
+
+Console.WriteLine($"Prospects à contacter : {valides.Count}");
+
 var log = new StringBuilder();
 var outLines = new StringBuilder();
 outLines.AppendLine("WhatsApp_Number;Statut;Date_dernier_contact");
@@ -237,4 +306,65 @@ static string? GatewayRefusal(string? content)
     {
         return null;
     }
+}
+
+/// <summary>
+/// Récupère les subscribers réels du bot (GET <c>subscriber/list</c>, aucun envoi),
+/// pagination complète, sous forme de numéros en chiffres bruts.
+/// </summary>
+async Task<List<string>> FetchSubscriberDigitsAsync()
+{
+    var subscriberDigits = new List<string>();
+    var offset = 0;
+    while (true)
+    {
+        var url = $"{baseUrl}subscriber/list?apiToken={Uri.EscapeDataString(apiToken)}"
+            + $"&phone_number_id={Uri.EscapeDataString(phoneNumberId)}&limit=1000&offset={offset}";
+        var res = await http.GetAsync(url);
+        var content = await res.Content.ReadAsStringAsync();
+        if (!res.IsSuccessStatusCode)
+        {
+            Console.Error.WriteLine($"subscriber/list : HTTP {res.StatusCode} — {content[..Math.Min(200, content.Length)]}");
+            Environment.Exit(1);
+        }
+        using var doc = JsonDocument.Parse(content);
+        var root = doc.RootElement;
+        if (root.TryGetProperty("status", out var st) && st.ValueKind == JsonValueKind.String && st.GetString() != "1")
+        {
+            Console.Error.WriteLine("subscriber/list : statut « 0 » (cf. message dans la réponse).");
+            Environment.Exit(1);
+        }
+        if (root.TryGetProperty("message", out var msg) && msg.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var s in msg.EnumerateArray())
+            {
+                if (s.TryGetProperty("chat_id", out var chat) && chat.ValueKind == JsonValueKind.String)
+                {
+                    var digits = new string(chat.GetString()!.Where(char.IsDigit).ToArray());
+                    if (digits.Length > 0) subscriberDigits.Add(digits);
+                }
+            }
+        }
+        if (root.TryGetProperty("nextOffset", out var next) && next.ValueKind == JsonValueKind.Number)
+        {
+            offset = next.GetInt32();
+        }
+        else break;
+    }
+    return subscriberDigits;
+}
+
+/// <summary>
+/// Correspondance tolérante entre un prospect (+225 + 10 chiffres) et un subscriber :
+/// WhatChimp peut stocker l'ancien format ivoirien à 8 chiffres — on compare donc
+/// aussi les 8 derniers chiffres (numéro national).
+/// </summary>
+static bool MatchesSubscriber(string prospectPhone, List<string> subscriberDigits)
+{
+    var digits = new string(prospectPhone.Where(char.IsDigit).ToArray()); // 225 + 10 chiffres
+    var suffix = digits[^8..]; // 8 derniers chiffres = numéro national
+    return subscriberDigits.Any(s =>
+        s == digits
+        || (s.Length >= 8 && s.EndsWith(suffix, StringComparison.Ordinal))
+        || (digits.EndsWith(s[^Math.Min(8, s.Length)..], StringComparison.Ordinal)));
 }

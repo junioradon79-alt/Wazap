@@ -31,3 +31,4 @@ scripts/activation/web.config.remote
 # Sorties locales de l'outil de campagne (régénérées à chaque envoi, contiennent des numéros)
 /relance_log.txt
 /Prospects_relances.csv
+/Prospects_preflight.csv
