@@ -42,7 +42,8 @@ if (-not $templates) { Write-Error "Reponse inattendue : pas de champ 'message'.
 
 $exitCode = 0
 foreach ($name in $expected) {
-    $t = $templates | Where-Object { $_.name -eq $name }
+    # L'API WhatChimp renvoie le nom dans `template_name` (et non `name`).
+    $t = $templates | Where-Object { $_.template_name -eq $name -or $_.name -eq $name }
     if (-not $t) {
         Write-Host "MISSING  $name (absent de la reponse API)" -ForegroundColor Red
         $exitCode = 1
@@ -57,9 +58,9 @@ foreach ($name in $expected) {
 }
 
 if ($exitCode -eq 0) {
-    Write-Host "`nOK : 9/9 templates approuves et mappes — campagne debloquee." -ForegroundColor Green
+    Write-Host "`nOK : 9/9 templates approuves et mappes - campagne debloquee." -ForegroundColor Green
 } else {
     Write-Host "`nACTION : dans WhatChimp, resynchroniser (Sync) puis mapper les variables" -ForegroundColor Yellow
-    Write-Host "Guide : prospection/MAPPING_VARIABLES_WHATCHIMP.md" -ForegroundColor Gray
+    Write-Host 'Guide : prospection/MAPPING_VARIABLES_WHATCHIMP.md' -ForegroundColor Gray
 }
 exit $exitCode

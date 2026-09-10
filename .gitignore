@@ -27,3 +27,7 @@ DEPLOYMENT.md
 
 # Copie locale du web.config prod (contient les secrets : DB, JWT, GeniusPay, chiffrement CNI)
 scripts/activation/web.config.remote
+
+# Sorties locales de l'outil de campagne (régénérées à chaque envoi, contiennent des numéros)
+/relance_log.txt
+/Prospects_relances.csv
