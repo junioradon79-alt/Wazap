@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>WAZAP — La livraison WhatsApp en 30 secondes</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:#f6faf7;color:#15221b}
+.wrap{max-width:860px;margin:0 auto;padding:2.5vh 4vw}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px}
+.logo-mark{width:34px;height:34px;border-radius:8px;background:#0e7a3e;display:flex;align-items:center;justify-content:center;color:#fff}
+header{background:linear-gradient(170deg,#0e7a3e,#07a04b);color:#fff;padding:4vh 4vw;text-align:center}
+header h1{font-size:clamp(20px,5vw,30px);line-height:1.15;font-weight:800}
+header p{font-size:clamp(14px,3vw,17px);margin-top:10px;opacity:.93}
+.player{margin:3vh 0;background:#0c1a14;border-radius:18px;padding:1.5vh}
+video{display:block;width:100%;border-radius:12px;background:#000}
+.video-fallback{display:none;color:#cfe3d2;text-align:center;padding:7vh 4vw;font-weight:700}
+.badge{display:inline-block;margin-top:12px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.34);border-radius:999px;padding:4px 14px;font-size:12px}
+.cta{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:2.5vh}
+.btn{display:inline-flex;align-items:center;gap:8px;background:#fff;color:#0e7a3e;font-weight:800;font-size:15px;border:none;border-radius:999px;padding:13px 26px;text-decoration:none}
+.btn--ghost{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.5)}
+.steps{margin-top:3vh}
+.step{background:#eef6ef;border:1px solid #d7e9da;border-radius:14px;padding:14px 16px;margin:10px 0}
+.step b{color:#0e7a3e}
+.phone{font-size:16px;font-weight:800;margin-top:18px;text-align:center}
+footer{font-size:12px;color:#7a8a7d;text-align:center;margin:3vh 0}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="logo"><span class="logo-mark">W</span>WAZAP</div>
+    <h1>La livraison à la demande, en 30 secondes</h1>
+    <p>Vos clients commandent par WhatsApp. Un livreur certifié est assigné. Suivi en direct. Sans appli.</p>
+    <span class="badge">🎬 Vidéo démo · Abidjan 🇨🇮</span>
+  </div>
+</header>
+
+<section class="wrap">
+  <div class="player">
+    <video id="demo" controls preload="metadata" poster="" playsinline
+           src="demo.mp4">
+      Votre navigateur ne peut pas lire cette vidéo.
+    </video>
+    <div class="video-fallback" id="fallback">
+      🎬 La vidéo de démonstration arrive très bientôt.<br>
+      En attendant, activez votre commerce en 2 minutes 👇
+    </div>
+  </div>
+
+  <div class="cta">
+    <a class="btn" href="https://junioradon79gm-001-site1.jtempurl.com/app/vente" target="_blank">🚀 Activer mon commerce</a>
+    <a class="btn btn--ghost" href="https://wa.me/2250575803801?text=Bonjour%20WAZAP%20!%20Je%20veux%20livrer" target="_blank">🛵 Devenir livreur</a>
+  </div>
+  <div class="phone">📱 225 05 75 80 38 01</div>
+
+  <div class="steps">
+    <div class="step"><b>1️⃣</b> Vos clients envoient leur commande sur <b>WhatsApp</b>.</div>
+    <div class="step"><b>2️⃣</b> Un livreur certifié proche est assigné automatiquement.</div>
+    <div class="step"><b>3️⃣</b> Suivi en direct, preuve de remise par code, paiement Mobile Money.</div>
+  </div>
+</section>
+
+<footer class="wrap">WAZAP — livraison à la demande à Abidjan · 15 premières commandes offertes</footer>
+
+<script>
+// Repli sobre si le MP4 n'est pas encore déployé (lecteur muet → on affiche le message).
+(function () {
+  var v = document.getElementById('demo');
+  function fallback() {
+    v.style.display = 'none';
+    document.getElementById('fallback').style.display = 'block';
+  }
+  v.addEventListener('error', fallback, true);
+  if (v.readyState === 0) {
+    // Attente : le fichier peut encore être en cours de téléversement.
+    setTimeout(function () {
+      if (v.readyState === 0 || v.networkState === 3) fallback();
+    }, 2500);
+  }
+})();
+</script>
+</body>
+</html>

@@ -9,7 +9,7 @@ param(
     [string]$CsvPath = "prospection\Prospects_campagne_mobiles_20260902.csv",
     [string]$Zone = "",
     [string]$Commercial = "L'equipe WAZAP",
-    [string]$VideoUrl = "https://junioradon79gm-001-site1.jtempurl.com/app/vente",
+    [string]$VideoUrl = "https://junioradon79gm-001-site1.jtempurl.com/demo-video.html",
     [int]$Limit = 0,
     [switch]$DryRun
 )
