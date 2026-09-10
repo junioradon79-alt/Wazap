@@ -10,7 +10,7 @@
 
 | # | Chantier | Type | Impact | Statut |
 |---|---|---|---|---|
-| 1 | Templates Meta | Meta | Acquisition (Marketing) | ✅ **TOUS approuvés & activés (09/09)** : 9 Utility + 5 Marketing `*_v2` + rider_offer_v2 + onboarding `vendor_onboarding_day1/3/7` (worker ON) — reste `delivery_code` |
+| 1 | Templates Meta | Meta | Acquisition (Marketing) | ✅ **TOUS approuvés & activés (09/09)** : 9 Utility + 5 Marketing `*_v2` + rider_offer_v2 + onboarding `vendor_onboarding_day1/3/7` (worker ON) — 🔴 `delivery_code` bloqué création Meta |
 | 2 | Paiement client Mobile Money | Config prod | Encaissement en ligne | **ACTIVÉ** (08/09) ✓ |
 | 3 | Rétention/purge scans CNI | Config prod | RGPD | **DÉJÀ ACTIVÉ** ✓ |
 | 4 | Certification livreurs | Mixte | Confiance Colis Sûr | Code livré, à certifier |
@@ -226,6 +226,9 @@ dotnet run --project tools/CleanupTestVendors
 - Clés LIVE : configurées (voir `DEPLOYMENT.md`)
 - URL webhook : `https://junioradon79gm-001-site1.jtempurl.com/api/webhook/geniuspay`
 > ✅ **Templates Meta (09/09)** : 9 Utility + 5 Marketing `*_v2` + `rider_offer_v2` **approuvés**
-> et branchés (défauts `WhatsAppOptions` + `appsettings.json`, déployé CI). Restent à finaliser :
-> `delivery_code` et les **3 onboarding vendeur** (soumis — fournir les noms pour
-> `WhatChimp__TemplateVendorOnboardingDay1/3/7` + `VendorOnboarding:Enabled=true`).
+> et branchés (défauts `WhatsAppOptions` + `appsettings.json`, déployé CI) · onboarding
+> `vendor_onboarding_day1/3/7` **ACTIVÉ** (worker ON).
+> 🔴 **`delivery_code` BLOQUÉ création Meta (09/09)** : « Ce compte WhatsApp Business n'a pas
+> l'autorisation de créer un modèle de message » — numéro sain (Connecté, qualité ÉLEVÉE) →
+> causes : permissions / limite quotidienne / restriction auth — **test discriminant à la reprise**.
+> Corps prêt : `prospection/TEMPLATE_DELIVERY_CODE.md` (auth, « Copier le code », 1 variable).

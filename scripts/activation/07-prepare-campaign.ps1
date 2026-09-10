@@ -45,6 +45,16 @@ catch {
 Write-Host ""
 Write-Host "[2] Preparation de la campagne..." -ForegroundColor Yellow
 $projectRoot = "C:\Dev\Wazap\WazapSln"
+# Résout le CSV en chemin absolu depuis la racine du dépôt (le Push-Location de l'étape [3]
+# changerait sinon le chemin relatif en `.\\WazapSln\\prospection\\…` introuvable).
+if (-not [System.IO.Path]::IsPathRooted($CsvPath)) {
+    $repoRoot = Split-Path $projectRoot -Parent
+    $CsvPath = Join-Path $repoRoot $CsvPath
+}
+if (-not (Test-Path $CsvPath)) {
+    Write-Host "      CSV introuvable : $CsvPath" -ForegroundColor Red
+    exit 1
+}
 $campaignArgs = @(
     "--project", "tools\WhatsAppCampaign",
     $CsvPath,
@@ -64,8 +74,8 @@ if (-not $DryRun) {
     try {
         Push-Location $projectRoot
         $env:WHATCHIMP_API_TOKEN = $apiToken
-        dotnet run @campaignArgs 2>&1 | Out-Null
-        Write-Host "      Campagne terminee !" -ForegroundColor Green
+        dotnet run @campaignArgs
+        Write-Host "      Campagne terminee ! (cf. relance_log.txt + Prospects_relances.csv dans $projectRoot)" -ForegroundColor Green
     }
     catch {
         Write-Error "Erreur lors de la campagne : $_"
