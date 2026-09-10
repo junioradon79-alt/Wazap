@@ -10,7 +10,7 @@
 
 | # | Chantier | Type | Impact | Statut |
 |---|---|---|---|---|
-| 1 | Templates Meta | Meta | Acquisition (Marketing) | ✅ **TOUS approuvés & activés (09/09)** : 9 Utility + 5 Marketing `*_v2` + rider_offer_v2 + onboarding `vendor_onboarding_day1/3/7` (worker ON) — 🔴 `delivery_code` bloqué création Meta |
+| 1 | Templates Meta | Meta | Acquisition (Marketing) | ✅ **TOUS approuvés & activés (09/09)** : 9 Utility + 5 Marketing `*_v2` + rider_offer_v2 + onboarding `vendor_onboarding_day1/3/7` (worker ON) | 🔴 `delivery_code` bloqué création Meta (test discriminant ci-dessous) · 🟠 **vidéo démo : infra prête** (page `demo-video.html` + script `08`) |
 | 2 | Paiement client Mobile Money | Config prod | Encaissement en ligne | **ACTIVÉ** (08/09) ✓ |
 | 3 | Rétention/purge scans CNI | Config prod | RGPD | **DÉJÀ ACTIVÉ** ✓ |
 | 4 | Certification livreurs | Mixte | Confiance Colis Sûr | Code livré, à certifier |
