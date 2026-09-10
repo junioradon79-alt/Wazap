@@ -15,6 +15,7 @@ public class WhatChimpService : IWhatsAppSender
     private readonly string _apiToken;
     private readonly string _phoneNumberId;
     private readonly string _baseUrl;
+    private readonly string _languageCode;
     private readonly ILogger<WhatChimpService> _logger;
     private readonly IvoryCoastNumberingOptions _ciNumbering;
 
@@ -25,6 +26,7 @@ public class WhatChimpService : IWhatsAppSender
         _apiToken = config["WhatChimp:ApiToken"] ?? throw new ArgumentNullException("WhatChimp:ApiToken");
         _phoneNumberId = config["WhatChimp:PhoneNumberId"] ?? throw new ArgumentNullException("WhatChimp:PhoneNumberId");
         _baseUrl = config["WhatChimp:BaseUrl"] ?? "https://app.whatchimp.com/api/v1/whatsapp/";
+        _languageCode = config["WhatChimp:LanguageCode"] ?? "fr";
         _logger = logger;
         _ciNumbering = ciNumbering;
     }
@@ -46,7 +48,8 @@ public class WhatChimpService : IWhatsAppSender
                 .Append("send?apiToken=").Append(Uri.EscapeDataString(_apiToken))
                 .Append("&phone_number_id=").Append(Uri.EscapeDataString(_phoneNumberId))
                 .Append("&phone_number=").Append(Uri.EscapeDataString(recipient))
-                .Append("&message_type=template&template_name=").Append(Uri.EscapeDataString(templateName));
+                .Append("&template_name=").Append(Uri.EscapeDataString(templateName))
+                .Append("&language_code=").Append(Uri.EscapeDataString(_languageCode));
 
             // L'indice provient de la CLÉ (« 1 », « 2 »…), jamais de l'ordre d'énumération
             // du dictionnaire : celui-ci n'est pas garanti par .NET, et une variable
@@ -80,7 +83,7 @@ public class WhatChimpService : IWhatsAppSender
                 .Append("send?apiToken=").Append(Uri.EscapeDataString(_apiToken))
                 .Append("&phone_number_id=").Append(Uri.EscapeDataString(_phoneNumberId))
                 .Append("&phone_number=").Append(Uri.EscapeDataString(recipient))
-                .Append("&message_type=text&message=").Append(Uri.EscapeDataString(message));
+                .Append("&message=").Append(Uri.EscapeDataString(message));
 
             var response = await _httpClient.GetAsync(sb.ToString());
             response.EnsureSuccessStatusCode();

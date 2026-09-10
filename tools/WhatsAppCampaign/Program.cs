@@ -11,21 +11,31 @@ var input = "Prospects.csv";
 var zoneFilter = "";
 var limit = 0;
 var dryRun = false;
+var commercialArg = "";
+var videoUrlArg = "";
 
 foreach (var arg in args)
 {
     if (arg.StartsWith("--zone=", StringComparison.OrdinalIgnoreCase)) zoneFilter = arg["--zone=".Length..];
     else if (arg.StartsWith("--limit=", StringComparison.OrdinalIgnoreCase)) int.TryParse(arg["--limit=".Length..], out limit);
+    else if (arg.StartsWith("--commercial=", StringComparison.OrdinalIgnoreCase)) commercialArg = arg["--commercial=".Length..];
+    else if (arg.StartsWith("--video-url=", StringComparison.OrdinalIgnoreCase)) videoUrlArg = arg["--video-url=".Length..];
     else if (arg.Equals("--dry-run", StringComparison.OrdinalIgnoreCase)) dryRun = true;
-    else input = arg;
+    else if (!arg.StartsWith("--", StringComparison.Ordinal)) input = arg;
+    else Console.Error.WriteLine($"Option inconnue ignorée : {arg}");
 }
 
 var apiToken = Environment.GetEnvironmentVariable("WHATCHIMP_API_TOKEN");
 var phoneNumberId = Environment.GetEnvironmentVariable("WHATCHIMP_PHONE_NUMBER_ID") ?? "735886129615120";
 var baseUrl = Environment.GetEnvironmentVariable("WHATCHIMP_BASE_URL") ?? "https://app.whatchimp.com/api/v1/whatsapp/";
 var template = Environment.GetEnvironmentVariable("TEMPLATE_NAME") ?? "prospect_approach_v2";
-var commercial = Environment.GetEnvironmentVariable("COMMERCIAL") ?? "L'équipe WAZAP";
-var videoUrl = Environment.GetEnvironmentVariable("VIDEO_URL") ?? "";
+var commercial = !string.IsNullOrWhiteSpace(commercialArg)
+    ? commercialArg
+    : (Environment.GetEnvironmentVariable("COMMERCIAL") ?? "L'équipe WAZAP");
+var videoUrl = !string.IsNullOrWhiteSpace(videoUrlArg)
+    ? videoUrlArg
+    : (Environment.GetEnvironmentVariable("VIDEO_URL") ?? "");
+var languageCode = Environment.GetEnvironmentVariable("LANGUAGE_CODE") ?? "fr";
 
 // Les templates Meta approuvés portent un suffixe `_v2` ; la table ci-dessous matche sur
 // le nom canonique (sans suffixe) pour éviter sa duplication.
@@ -154,7 +164,7 @@ for (var i = 0; i < valides.Count; i++)
     var sb = new StringBuilder($"{baseUrl}send?apiToken={Uri.EscapeDataString(apiToken)}")
         .Append($"&phone_number_id={Uri.EscapeDataString(phoneNumberId)}")
         .Append($"&phone_number={Uri.EscapeDataString(phone)}")
-        .Append($"&message_type=template&template_name={Uri.EscapeDataString(template)}");
+        .Append($"&template_name={Uri.EscapeDataString(template)}&language_code={Uri.EscapeDataString(languageCode)}");
 
     var variables = BuildVariables(template, nom, commercial, videoUrl);
     for (var v = 0; v < variables.Length; v++)

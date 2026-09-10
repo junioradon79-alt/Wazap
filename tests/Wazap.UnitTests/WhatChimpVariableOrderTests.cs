@@ -65,6 +65,32 @@ public class WhatChimpVariableOrderTests
     }
 
     [Fact]
+    public async Task TemplateSend_UsesTemplateNameAndLanguageCode_WithoutMessageType()
+    {
+        var (service, handler) = CreateService();
+
+        var variables = new Dictionary<string, string> { ["1"] = "Chez Thalia" };
+
+        await service.SendTemplateAsync("+2250700000000", "prospect_approach_v2", variables);
+
+        Assert.Contains("template_name=prospect_approach_v2", handler.LastUrl);
+        Assert.Contains("language_code=fr", handler.LastUrl);
+        Assert.DoesNotContain("message_type", handler.LastUrl);
+        Assert.Contains("variable1=", handler.LastUrl);
+    }
+
+    [Fact]
+    public async Task TextSend_DoesNotUseMessageType()
+    {
+        var (service, handler) = CreateService();
+
+        await service.SendTextMessageAsync("+2250700000000", "Bonjour");
+
+        Assert.Contains("message=Bonjour", handler.LastUrl);
+        Assert.DoesNotContain("message_type", handler.LastUrl);
+    }
+
+    [Fact]
     public async Task NonNumericKey_IsRejected()
     {
         var (service, _) = CreateService();

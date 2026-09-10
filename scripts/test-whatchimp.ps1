@@ -37,7 +37,7 @@ switch ($Action) {
     "send" {
         if (-not $ToNumber) { throw "Spécifiez -ToNumber (ex: 33612345678)." }
         $message = [Uri]::EscapeDataString("Test Wazap : message de test envoyé depuis le script.")
-        $url = "${baseUrl}send?apiToken=$apiToken&phone_number_id=$phoneNumberId&phone_number=$ToNumber&message_type=text&message=$message"
+        $url = "${baseUrl}send?apiToken=$apiToken&phone_number_id=$phoneNumberId&phone_number=$ToNumber&message=$message"
         Write-Host "Envoi d'un message de test à $ToNumber ..."
         $response = Invoke-RestMethod -Uri $url -Method Get
         $response | ConvertTo-Json -Depth 5
