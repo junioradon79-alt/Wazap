@@ -1,9 +1,11 @@
 // Campagne WhatsApp : envoie le template "prospect_approach_v2" à chaque prospect du CSV via WhatChimp.
 // Entrée : CSV (colonne WhatsApp_Number) — sortie : Prospects_relances.csv + relance_log.txt
-// Prérequis : template "prospect_approach" créé et approuvé dans WhatChimp/Meta.
+// Prérequis : template "prospect_approach_v2" créé, approuvé Meta ET mappé dans WhatChimp
+// (diagnostic : scripts/campaign/Check-TemplateMapping.ps1 ; guide :
+// prospection/MAPPING_VARIABLES_WHATCHIMP.md).
 // Config (env) : WHATCHIMP_API_TOKEN (obligatoire), WHATCHIMP_PHONE_NUMBER_ID,
-//                TEMPLATE_NAME, COMMERCIAL, VIDEO_URL.
-// Options : <csv> [--zone=Marcory] [--limit=20] [--dry-run]
+//                TEMPLATE_NAME, COMMERCIAL, VIDEO_URL, LANGUAGE_CODE.
+// Options : <csv> [--zone=Marcory] [--limit=20] [--dry-run] [--commercial=X] [--video-url=URL]
 using System.Text;
 using System.Text.Json;
 

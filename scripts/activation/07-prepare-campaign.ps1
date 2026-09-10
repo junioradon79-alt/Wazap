@@ -22,21 +22,15 @@ if ([string]::IsNullOrWhiteSpace($apiToken)) {
 }
 $baseUrl = "https://app.whatchimp.com/api/v1/whatsapp/"
 $phoneNumberId = "735886129615120"
-Write-Host "[1] Verification du template prospect_approach_v2..." -ForegroundColor Yellow
-$templateUrl = "${baseUrl}template/list?apiToken=$apiToken&phone_number_id=$phoneNumberId"
+Write-Host "[1] Verification du template prospect_approach_v2 (statut + mapping)..." -ForegroundColor Yellow
+$checkScript = Join-Path $PSScriptRoot "..\campaign\Check-TemplateMapping.ps1"
 try {
-    $response = Invoke-RestMethod -Uri $templateUrl -Method Get
-    $template = $response.message | Where-Object { $_.name -eq "prospect_approach_v2" }
-    if (-not $template) {
-        Write-Host "      Template 'prospect_approach_v2' non trouve !" -ForegroundColor Red
-        Write-Host "      Verifiez que le template est approuve dans WhatsApp Manager." -ForegroundColor Yellow
+    & $checkScript -ApiToken $apiToken -PhoneNumberId $phoneNumberId -BaseUrl $baseUrl
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "      Template non pret (statut ou mapping) — voir prospection/MAPPING_VARIABLES_WHATCHIMP.md." -ForegroundColor Yellow
         exit 1
     }
-    Write-Host "      Statut : $($template.status)" -ForegroundColor $(if ($template.status -eq "Approved") { "Green" } else { "Yellow" })
-    if ($template.status -ne "Approved") {
-        Write-Host "      Le template n'est pas encore approuve. Attendez l'approbation Meta." -ForegroundColor Yellow
-        exit 1
-    }
+    Write-Host "      Template pret : approuve + mappe." -ForegroundColor Green
 }
 catch {
     Write-Error "Erreur lors de la verification du template : $_"
