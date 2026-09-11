@@ -14,6 +14,8 @@ public interface IApplicationDbContext
     DbSet<Order> Orders { get; }
     DbSet<OutboxMessage> OutboxMessages { get; }
     DbSet<User> Users { get; }
+    DbSet<VendorProduct> VendorProducts { get; }
+    DbSet<OrderLine> OrderLines { get; }
     DbSet<DeliveryOffer> DeliveryOffers { get; }
     DbSet<DeliveryBatch> DeliveryBatches { get; }
     DbSet<CreditTransaction> CreditTransactions { get; }

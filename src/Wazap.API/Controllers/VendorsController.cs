@@ -21,16 +21,18 @@ public class VendorsController : ControllerBase
     private readonly VendorService _vendorService;
     private readonly PackService _packService;
     private readonly ClientPaymentService _clientPayments;
+    private readonly VendorProductService _products;
     private readonly ICurrentUser _currentUser;
     private readonly ApplicationDbContext _context;
 
     public VendorsController(VendorService vendorService, PackService packService,
-        ClientPaymentService clientPayments, ICurrentUser currentUser,
-        ApplicationDbContext context)
+        ClientPaymentService clientPayments, VendorProductService products,
+        ICurrentUser currentUser, ApplicationDbContext context)
     {
         _vendorService = vendorService;
         _packService = packService;
         _clientPayments = clientPayments;
+        _products = products;
         _currentUser = currentUser;
         _context = context;
     }
@@ -194,6 +196,45 @@ public class VendorsController : ControllerBase
     {
         EnsureCanManage(id);
         return Ok(await _packService.GetVendorTransactionsAsync(id));
+    }
+
+    // --- Catalogue produits du vendeur (menu du bot de commande client) -------------------
+
+    // GET: api/vendors/{id}/products — catalogue produits (admin : tout vendeur, vendeur : le sien).
+    [HttpGet("{id:guid}/products")]
+    public async Task<IActionResult> GetProducts(Guid id)
+    {
+        EnsureCanManage(id);
+        return Ok(await _products.GetProductsAsync(id));
+    }
+
+    [HttpPost("{id:guid}/products")]
+    public async Task<IActionResult> CreateProduct(Guid id, [FromBody] VendorProductRequest request)
+    {
+        EnsureCanManage(id);
+        var product = await _products.CreateAsync(id, request);
+        return CreatedAtAction(nameof(GetProducts), new { id }, product);
+    }
+
+    [HttpPut("{id:guid}/products/{productId:guid}")]
+    public async Task<IActionResult> UpdateProduct(Guid id, Guid productId, [FromBody] VendorProductRequest request)
+    {
+        EnsureCanManage(id);
+        return await _products.UpdateAsync(id, productId, request) ? NoContent() : NotFound();
+    }
+
+    [HttpDelete("{id:guid}/products/{productId:guid}")]
+    public async Task<IActionResult> DeleteProduct(Guid id, Guid productId)
+    {
+        EnsureCanManage(id);
+
+        return await _products.DeleteAsync(id, productId) switch
+        {
+            VendorProductDeleteResult.Deleted => NoContent(),
+            VendorProductDeleteResult.InUse => Conflict(
+                "Ce produit figure dans des commandes passées : il ne peut pas être supprimé (modifiez-le plutôt)."),
+            _ => NotFound()
+        };
     }
 
     private void EnsureCanManage(Guid vendorId)

@@ -274,6 +274,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<RiderService>();
 builder.Services.AddScoped<RiderRecruitmentService>();
 builder.Services.AddScoped<VendorService>();
+builder.Services.AddScoped<VendorProductService>();
 builder.Services.AddScoped<DeliveryOfferService>();
 builder.Services.AddScoped<DashboardService>();
 

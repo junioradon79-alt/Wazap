@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext'
 const NAV = [
   { to: '/', label: 'Tableau de bord', icon: '📊', end: true },
   { to: '/orders', label: 'Commandes', icon: '🧾' },
+  { to: '/catalogue', label: 'Catalogue', icon: '🛒' },
   { to: '/riders', label: 'Livreurs', icon: '🛵' },
   { to: '/vendors', label: 'Vendeurs', icon: '🏪' },
   { to: '/leads', label: 'Leads', icon: '🎯' },
@@ -33,7 +34,7 @@ export default function Layout() {
         <nav className="sidebar__nav">
           <span className="nav__section">{user?.role === 'Vendor' ? 'Mon activité' : 'Pilotage'}</span>
           {user?.role === 'Vendor'
-            ? NAV.filter((item) => item.to === '/' || item.to === '/account').map((item) => (
+            ? NAV.filter((item) => item.to === '/' || item.to === '/account' || item.to === '/catalogue').map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}

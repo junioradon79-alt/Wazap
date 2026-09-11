@@ -56,10 +56,12 @@ public class Order
         private set => _status = value;
     }
 
-    // Constructeur privé pour EF Core
+        // Constructeur privé pour EF Core
     private Order() { }
 
-    // Constructeur public pour la création
+    public List<OrderLine> OrderLines { get; private set; } = new();
+
+    // Constructeur public pour la création (mode texte libre)
     public Order(string clientName, string clientWhatsAppNumber, string vendorWhatsAppNumber, string description, decimal amount)
     {
         Id = Guid.NewGuid();
@@ -71,6 +73,30 @@ public class Order
         CreatedAt = DateTime.UtcNow;
         _status = OrderStatus.PendingVendorConfirmation;
     }
+
+    // Constructeur public pour la création (mode catalogue produit)
+    public Order(string clientName, string clientWhatsAppNumber, string vendorWhatsAppNumber, Guid vendorUserId, List<OrderLine> lines, string description)
+    {
+        Id = Guid.NewGuid();
+        ClientName = clientName;
+        ClientWhatsAppNumber = clientWhatsAppNumber;
+        VendorWhatsAppNumber = vendorWhatsAppNumber;
+        VendorUserId = vendorUserId;
+        Description = description;
+        foreach (var line in lines)
+            AddLine(line);
+        CreatedAt = DateTime.UtcNow;
+        _status = OrderStatus.PendingVendorConfirmation;
+    }
+
+    public void AddLine(OrderLine line)
+    {
+        line.AttachToOrder(Id);
+        OrderLines.Add(line);
+        CalculateTotal();
+    }
+
+    private void CalculateTotal() => Amount = OrderLines.Sum(l => l.TotalPrice);
 
     public void ConfirmByVendor()
     {

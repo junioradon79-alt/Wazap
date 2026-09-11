@@ -281,3 +281,22 @@ export interface VendorClientItem {
   orderCount: number
   totalSpent: number
 }
+
+/** Produit du catalogue vendeur (menu du bot de commande WhatsApp). */
+export interface VendorProduct {
+  id: string
+  vendorId: string
+  name: string
+  description: string
+  price: number
+  emoji: string | null
+  createdAt: string
+}
+
+/** Création / mise à jour d'un produit du catalogue vendeur. */
+export interface VendorProductRequest {
+  name: string
+  description?: string | null
+  price: number
+  emoji?: string | null
+}

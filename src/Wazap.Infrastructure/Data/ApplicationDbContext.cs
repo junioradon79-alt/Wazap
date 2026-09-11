@@ -14,9 +14,11 @@ namespace Wazap.Infrastructure.Data
         {
         }
 
-        public DbSet<Order> Orders { get; set; }
+                public DbSet<Order> Orders { get; set; }
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<VendorProduct> VendorProducts { get; set; }          // NOUVELLE
+        public DbSet<OrderLine> OrderLines { get; set; }                  // NOUVELLE
         public DbSet<DeliveryOffer> DeliveryOffers { get; set; }
         public DbSet<DeliveryBatch> DeliveryBatches { get; set; }
         public DbSet<CreditTransaction> CreditTransactions { get; set; }
@@ -27,6 +29,7 @@ namespace Wazap.Infrastructure.Data
         public DbSet<DeliveryClaim> DeliveryClaims { get; set; }
         public DbSet<RiderRating> RiderRatings { get; set; }
         public DbSet<OrderPayment> OrderPayments { get; set; }
+        public DbSet<ClientOrderDraft> ClientOrderDrafts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -63,8 +66,41 @@ namespace Wazap.Infrastructure.Data
             modelBuilder.Entity<Order>()
                 .HasOne<DeliveryBatch>()
                 .WithMany(b => b.Orders)
-                .HasForeignKey(o => o.BatchId)
+                                .HasForeignKey(o => o.BatchId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // --- Catalogue produits WAZAP : VendorProduct ---
+            modelBuilder.Entity<VendorProduct>(entity =>
+            {
+                entity.Property(p => p.Name).HasMaxLength(100);
+                entity.Property(p => p.Description).HasMaxLength(300);
+                entity.Property(p => p.Emoji).HasMaxLength(10);
+                entity.Property(p => p.Price).HasPrecision(18, 2);
+
+                entity.HasIndex(p => p.VendorId);
+            });
+
+            // --- Lignes de commande : OrderLine ---
+            modelBuilder.Entity<OrderLine>(entity =>
+            {
+                entity.Property(l => l.ProductName).HasMaxLength(100);
+                entity.Property(l => l.ProductEmoji).HasMaxLength(10);
+                entity.Property(l => l.ProductDescription).HasMaxLength(300);
+                entity.Property(l => l.UnitPrice).HasPrecision(18, 2);
+
+                entity.HasIndex(l => l.OrderId);
+                entity.HasIndex(l => l.VendorProductId);
+
+                entity.HasOne(l => l.Order)
+                    .WithMany(o => o.OrderLines)
+                    .HasForeignKey(l => l.OrderId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(l => l.VendorProduct)
+                    .WithMany(p => p.OrderLines)
+                    .HasForeignKey(l => l.VendorProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
             // Paiements client (panier Mobile Money) : montants exacts + index de service.
             modelBuilder.Entity<OrderPayment>(entity =>
@@ -86,6 +122,21 @@ namespace Wazap.Infrastructure.Data
 
             modelBuilder.Entity<OutboxMessage>()
                 .HasIndex(m => new { m.Status, m.AvailableAt });
+
+            // Brouillons de commande du bot WhatsApp conversationnel (clients) :
+            // une conversation par numéro, index client + étape pour la reprise.
+            modelBuilder.Entity<ClientOrderDraft>(entity =>
+            {
+                entity.Property(d => d.ClientWhatsAppNumber).HasMaxLength(30);
+                entity.Property(d => d.Description).HasMaxLength(500);
+                entity.Property(d => d.Address).HasMaxLength(300);
+                entity.Property(d => d.VendorCandidates).HasMaxLength(2000);
+                entity.Property(d => d.ProductLineIds).HasMaxLength(2000);
+                entity.Property(d => d.SelectedProductIds).HasMaxLength(2000);
+
+                entity.HasIndex(d => d.ClientWhatsAppNumber);
+                entity.HasIndex(d => new { d.ClientWhatsAppNumber, d.Stage });
+            });
 
             modelBuilder.Entity<User>()
                 .Property(u => u.Username)

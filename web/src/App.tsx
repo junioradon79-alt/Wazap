@@ -8,6 +8,7 @@ import VendorDashboardPage from './pages/VendorDashboardPage'
 import PacksPage from './pages/PacksPage'
 import TransactionsPage from './pages/TransactionsPage'
 import VendorsPage from './pages/VendorsPage'
+import CataloguePage from './pages/CataloguePage'
 import RidersPage from './pages/RidersPage'
 import OrdersPage from './pages/OrdersPage'
 import LeadsPage from './pages/LeadsPage'
@@ -49,6 +50,7 @@ export default function App() {
         <Route path="/packs" element={<PacksPage />} />
         <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/vendors" element={<VendorsPage />} />
+        <Route path="/catalogue" element={<CataloguePage />} />
         <Route path="/leads" element={<LeadsPage />} />
         <Route path="/claims" element={<ClaimsPage />} />
         <Route path="/avis" element={<RatingsPage />} />

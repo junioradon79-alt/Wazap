@@ -41,12 +41,54 @@ public sealed class OrderService
         var vendor = await ResolveVendorAsync(request.VendorWhatsAppNumber)
             ?? throw new InvalidOperationException("Vendeur non enregistré.");
 
-        var order = new Order(
-            request.ClientName,
-            request.ClientWhatsAppNumber,
-            request.VendorWhatsAppNumber,
-            request.Description,
-            request.Amount);
+        List<OrderLine>? lines = null;
+        if (request.Lines is not null && request.Lines.Count > 0)
+        {
+            // Mode catalogue produit : on résout chaque ligne vers un VendorProduct et on
+            // crée une OrderLine avec une copie du nom/prix/emoji pour l'historique.
+            lines = new List<OrderLine>();
+
+            foreach (var lineReq in request.Lines)
+            {
+                VendorProduct? product = null;
+                if (lineReq.VendorProductId.HasValue)
+                {
+                    product = await _context.VendorProducts
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(p => p.Id == lineReq.VendorProductId.Value && p.VendorId == vendor.Id);
+                }
+
+                var productName = product?.Name ?? lineReq.ProductName;
+                var unitPrice = lineReq.UnitPrice > 0
+                    ? lineReq.UnitPrice
+                    : (product?.Price ?? 0m);
+
+                var line = new OrderLine(
+                    vendorProductId: lineReq.VendorProductId ?? product?.Id ?? Guid.Empty,
+                    productName: productName,
+                    productEmoji: product?.Emoji ?? lineReq.ProductEmoji,
+                    productDescription: product?.Description ?? lineReq.ProductDescription,
+                    quantity: lineReq.Quantity,
+                    unitPrice: unitPrice);
+
+                lines.Add(line);
+            }
+        }
+
+        var order = lines is not null
+            ? new Order(
+                request.ClientName,
+                request.ClientWhatsAppNumber,
+                request.VendorWhatsAppNumber,
+                vendor.Id,
+                lines,
+                request.Description)
+            : new Order(
+                request.ClientName,
+                request.ClientWhatsAppNumber,
+                request.VendorWhatsAppNumber,
+                request.Description,
+                request.Amount);
 
         // Le vendeur résolu (via son numéro WhatsApp) devient propriétaire de la commande.
         order.LinkVendor(vendor.Id);
@@ -73,6 +115,17 @@ public sealed class OrderService
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
         _context.Orders.Add(order);
+
+        if (lines is not null)
+        {
+            foreach (var line in lines)
+            {
+                // Fixe la FK OrderId pour chaque ligne avant l'enregistrement.
+                line.AttachToOrder(order.Id);
+                _context.OrderLines.Add(line);
+            }
+        }
+
         _context.OutboxMessages.Add(outboxMessage);
 
         await _context.SaveChangesAsync();
