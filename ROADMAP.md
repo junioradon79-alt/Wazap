@@ -31,6 +31,25 @@
     à **true**, `LIVRE` sans code et `LIVRE TOUT` sont refusés, et un livreur ne peut plus non plus
     clôturer via l'API). Migration 19 `AddDeliveryProof`.
 
+## ✅ Livré le 11/09 (session « catalogue produits + bot de commande client ») — non commité
+
+13. **Catalogue produits vendeur** : `VendorProduct` (nom, description, prix FCFA, emoji) +
+    `VendorProductService` + REST `GET/POST/PUT/DELETE /api/vendors/{id}/products[/{productId}]`
+    (Admin/Vendor, restreint au propriétaire ; suppression refusée si le produit figure dans une
+    commande → `409`, l'historique est préservé). Gestion aussi par WhatsApp vendeur :
+    `PRODUITS`, `PRODUIT <nom> | <prix> [| <emoji>]`, `SUPPRIMER PRODUIT <n°>`.
+14. **Bot WhatsApp de commande client** (`ClientOrderBotService`) : numéro inconnu → « COMMANDE » →
+    article → commerce (par nom ou numéro, choix numéroté si ambigu) → menu du catalogue (panier
+    par numéro) ou texte libre → adresse → **commande réelle créée au compte du vendeur**
+    (statut « en attente de confirmation »). Routage webhook **livreur → commande client →
+    prospects**. `ANNULER`, anti-boucle (3 réponses inattendues), expiration configurable
+    (`ClientOrderBot:Enabled` / `ExpirationHours`).
+15. **Lignes de commande** : `OrderLine` (quantité, prix unitaire, copie nom/emoji/description pour
+    l'historique) ; `POST /api/orders` accepte des `lines` en mode catalogue (montant recalculé).
+16. **Front** : page `/app/catalogue` (vendeur : son catalogue ; admin : sélection du vendeur).
+17. **DB** : migration 27 `AddVendorCatalogAndClientOrderDrafts` (appliquée par la CI au push sur
+    `main`). **Tests** : +31 (422/422 ✓).
+
 ## ⏭️ Chantiers restants à couvrir
 ### Code (par impact)
 1. ✅ **FAIT (07/09) — Garantie Colis Sûr étape 3** : barème FCFA (`ColisSur:MaxCompensationFcfa`

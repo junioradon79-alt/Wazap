@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
@@ -6,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Wazap.API.Services;
 using Wazap.Application.Abstractions;
 using Wazap.Application.Configuration;
+using Wazap.Application.Dtos;
 using Wazap.Application.Exceptions;
 using Wazap.Application.Helpers;
 using Wazap.Application.Services;
@@ -24,10 +26,12 @@ public class WebhookWhatsAppController : ControllerBase
     private readonly RiderService _riderService;
     private readonly RiderRecruitmentService _riderRecruitment;
     private readonly VendorService _vendorService;
+    private readonly VendorProductService _products;
     private readonly DeliveryOfferService _deliveryOfferService;
     private readonly OrderService _orderService;
     private readonly WhatsAppOrchestrationService _whatsApp;
     private readonly ProspectAutoService _prospects;
+    private readonly ClientOrderBotService _clientOrders;
     private readonly LeadConversionService _leadConversion;
     private readonly ColisSurService _colisSur;
     private readonly IWhatsAppSender _whatsAppSender;
@@ -44,10 +48,12 @@ public class WebhookWhatsAppController : ControllerBase
         RiderService riderService,
         RiderRecruitmentService riderRecruitment,
         VendorService vendorService,
+        VendorProductService products,
         DeliveryOfferService deliveryOfferService,
         OrderService orderService,
         WhatsAppOrchestrationService whatsApp,
         ProspectAutoService prospects,
+        ClientOrderBotService clientOrders,
         LeadConversionService leadConversion,
         ColisSurService colisSur,
         IWhatsAppSender whatsAppSender,
@@ -64,10 +70,12 @@ public class WebhookWhatsAppController : ControllerBase
         _riderService = riderService;
         _riderRecruitment = riderRecruitment;
         _vendorService = vendorService;
+        _products = products;
         _deliveryOfferService = deliveryOfferService;
         _orderService = orderService;
         _whatsApp = whatsApp;
         _prospects = prospects;
+        _clientOrders = clientOrders;
         _leadConversion = leadConversion;
         _colisSur = colisSur;
         _whatsAppSender = whatsAppSender;
@@ -252,6 +260,12 @@ public class WebhookWhatsAppController : ControllerBase
                 // 6a) Candidat livreur (bot de recrutement : intention → nom/quartier → photo).
                 if (await _riderRecruitment.TryHandleCandidateAsync(phone, text))
                     return Ok();
+
+                // 6b) Bot de COMMANDE CLIENT (article → commerce → adresse → commande réelle),
+                //     AVANT le bot prospects : un client qui veut commander n'est pas un prospect.
+                if (await _clientOrders.TryHandleAsync(phone, text))
+                    return Ok();
+
                 await _prospects.HandleAsync(phone, text);
             }
         }
@@ -618,6 +632,65 @@ public class WebhookWhatsAppController : ControllerBase
             return true;
         }
 
+        // Catalogue produits WAZAP : « PRODUITS » liste, « PRODUIT <nom> | <prix> [| <emoji>] »
+        // ajoute, « SUPPRIMER PRODUIT <n°> » retire. Ce catalogue alimente le menu numéroté du
+        // bot de commande client : les clients composent leur panier par numéro.
+        if (user.Role == UserRole.Vendor && upper.StartsWith("SUPPRIMER PRODUIT"))
+        {
+            var raw = command.Length > "SUPPRIMER PRODUIT".Length
+                ? command["SUPPRIMER PRODUIT".Length..].Trim()
+                : string.Empty;
+
+            var catalog = await _products.GetProductsAsync(user.Id);
+            if (!int.TryParse(raw, out var index) || index < 1 || index > catalog.Count)
+            {
+                await ReplyAsync(user, "❓ Format : SUPPRIMER PRODUIT <n° du catalogue> (voir PRODUITS).");
+                return true;
+            }
+
+            var target = catalog[index - 1];
+            await ReplyAsync(user, await _products.DeleteAsync(user.Id, target.Id) switch
+            {
+                VendorProductDeleteResult.Deleted => $"🗑️ Produit retiré : {target.Name}.",
+                VendorProductDeleteResult.InUse =>
+                    "⚠️ Ce produit figure dans des commandes passées : il ne peut plus être supprimé (modifiez son prix).",
+                _ => "⚠️ Produit introuvable."
+            });
+            return true;
+        }
+
+        if (user.Role == UserRole.Vendor && (upper == "PRODUITS" || upper.StartsWith("PRODUITS ")))
+        {
+            var catalog = await _products.GetProductsAsync(user.Id);
+            await ReplyAsync(user, catalog.Count == 0
+                ? "🛒 Votre catalogue est vide.\n"
+                  + "Ajoutez un produit : PRODUIT <nom> | <prix> [| <emoji>]\n"
+                  + "Exemple : PRODUIT Poulet braisé | 2500 | 🍗"
+                : "🛒 Votre catalogue :\n"
+                  + string.Join("\n", catalog.Select((p, i) => $"{i + 1}. {ProductDisplayText(p)}"))
+                  + "\n\n➕ PRODUIT <nom> | <prix> [| <emoji>]\n🗑️ SUPPRIMER PRODUIT <n°>");
+            return true;
+        }
+
+        if (user.Role == UserRole.Vendor && (upper == "PRODUIT" || upper.StartsWith("PRODUIT ")))
+        {
+            var payload = command.Length > "PRODUIT".Length ? command["PRODUIT".Length..].Trim() : string.Empty;
+            if (!TryParseProductCommand(payload, out var name, out var price, out var emoji))
+            {
+                await ReplyAsync(user,
+                    "📦 Format : PRODUIT <nom> | <prix> [| <emoji>]\n" +
+                    "Exemple : PRODUIT Poulet braisé | 2500 | 🍗");
+                return true;
+            }
+
+            var created = await _products.CreateAsync(user.Id,
+                new VendorProductRequest { Name = name, Price = price, Emoji = emoji });
+            await ReplyAsync(user,
+                $"✅ Produit ajouté : {ProductDisplayText(created)}\n" +
+                "Il apparaît maintenant dans le menu des clients qui commandent chez vous.");
+            return true;
+        }
+
         // Statuts automatiques livreur : « RECU » = colis récupéré (en route),
         // « LIVRE » = livraison effectuée. Option : code court de la course.
         if (user.Role == UserRole.Rider
@@ -744,6 +817,9 @@ public class WebhookWhatsAppController : ControllerBase
             var menu = user.Role == UserRole.Vendor
                 ? "📱 Menu vendeur :\n"
                   + "• LIVRAISON <détail + adresse client> : demander une course (1 crédit)\n"
+                  + "• PRODUITS : votre catalogue produits (menu des clients)\n"
+                  + "• PRODUIT <nom> | <prix> [| <emoji>] : ajouter un produit\n"
+                  + "• SUPPRIMER PRODUIT <n°> : retirer un produit\n"
                   + "• ZONE <quartier> : votre zone de livraison\n"
                   + "• SINISTRE <code> : signaler un colis perdu/volé (Garantie Colis Sûr)\n"
                   + "• AIDE : ce menu"
@@ -756,6 +832,41 @@ public class WebhookWhatsAppController : ControllerBase
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Affichage catalogue identique au menu du bot client (<see cref="Domain.Entities.VendorProduct.DisplayText"/>).
+    /// </summary>
+    private static string ProductDisplayText(VendorProductDto product)
+        => string.IsNullOrEmpty(product.Emoji)
+            ? $"{product.Name} — {product.Price:N0} FCFA"
+            : $"{product.Emoji} {product.Name} — {product.Price:N0} FCFA";
+
+    /// <summary>
+    /// « &lt;nom&gt; | &lt;prix&gt; [| &lt;emoji&gt;] » : le nom peut contenir des espaces,
+    /// le prix tolère « 2 500 » ou « 2500 FCFA ». L'emoji reste optionnel.
+    /// </summary>
+    internal static bool TryParseProductCommand(string payload, out string name, out decimal price, out string? emoji)
+    {
+        name = string.Empty;
+        price = 0m;
+        emoji = null;
+
+        var parts = payload.Split('|', StringSplitOptions.TrimEntries);
+        if (parts.Length < 2 || parts[0].Length < 2)
+            return false;
+
+        var rawPrice = parts[1]
+            .Replace(" ", string.Empty, StringComparison.Ordinal)
+            .Replace("FCFA", string.Empty, StringComparison.OrdinalIgnoreCase);
+        if (!decimal.TryParse(rawPrice, NumberStyles.Number, CultureInfo.InvariantCulture, out price) || price < 0)
+            return false;
+
+        name = parts[0];
+        if (parts.Length >= 3 && parts[2].Length > 0)
+            emoji = parts[2];
+
+        return true;
     }
 
     private async Task ReplyAsync(User user, string message)

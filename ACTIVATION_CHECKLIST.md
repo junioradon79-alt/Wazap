@@ -1,6 +1,6 @@
 # 🚀 WAZAP — Checklist d'activation en production
 
-> **Date** : 08/09/2026 · **Build** : 0 erreur / 0 warning · **Tests** : 362/362 ✓
+> **Date** : 11/09/2026 · **Build** : 0 erreur / 0 warning · **Tests** : 422/422 ✓
 > **Code livré** : toutes les fonctionnalités ci-dessous sont **développées, testées et déployées**.
 > **Reste à faire** : uniquement des **actions utilisateur** (dashboards externes + config web.config distant).
 
@@ -15,6 +15,7 @@
 | 3 | Rétention/purge scans CNI | Config prod | RGPD | **DÉJÀ ACTIVÉ** ✓ |
 | 4 | Certification livreurs | Mixte | Confiance Colis Sûr | Code livré, à certifier |
 | 5 | Tests réels E2E | Validation | Tout le produit | Protocole prêt |
+| 6 | Catalogue produits + bot de commande client | Config prod | Conversion (commande directe) | **Code livré + testé** · migration 27 appliquée par la CI au push |
 
 ---
 
@@ -193,6 +194,50 @@ dotnet run --project tools/CleanupTestVendors
 | S3 | Coordonnées → diffusion auto + notif vendeur | ✅ | ☐ |
 | S3 | Page suivi → « Livré ✓ » | ✅ | ☐ |
 | S4 | Cas négatifs → messages clairs | ✅ | ☐ |
+
+---
+
+## 6. 🛒 Catalogue produits + bot de commande client — CODE LIVRÉ
+
+### Ce que ça apporte
+
+Un **client final** (numéro inconnu) qui écrit « COMMANDE » sur WhatsApp est guidé par un bot
+conversationnel : **article → commerce → (menu du catalogue) → adresse** → une **vraie commande**
+est créée au compte du vendeur, qui la confirme comme d'habitude (la diffusion aux livreurs suit
+la confirmation).
+
+### Code livré
+
+- **Entités** : `VendorProduct` (catalogue du vendeur), `OrderLine` (ligne de commande, copie
+  nom/emoji/prix pour l'historique), `ClientOrderDraft` (+ `ClientOrderDraftStage`) — le brouillon
+  de conversation (un seul actif par numéro, expire après `ClientOrderBot:ExpirationHours`).
+- **Bot** : `ClientOrderBotService` — routage **livreur → commande client → prospects** ; panier
+  par numéro (« 1 » ou « 1 2 ») quand le commerce a un catalogue, sinon mode **texte libre** ;
+  `ANNULER` ; anti-boucle (3 réponses inattendues → abandon).
+- **Catalogue** : `VendorProductService` + endpoints REST `GET/POST/PUT/DELETE
+  /api/vendors/{id}/products[/{productId}]` (rôle Admin,Vendor, restreint au propriétaire).
+- **Commandes WhatsApp vendeur** : `PRODUITS` (liste), `PRODUIT <nom> | <prix> [| <emoji>]`
+  (ajout), `SUPPRIMER PRODUIT <n°>` (retrait) — ajoutées au menu `AIDE`.
+- **Front** : page `/app/catalogue` (vendeur : son catalogue ; admin : sélection du vendeur).
+- **Commandes mode catalogue** : `POST /api/orders` accepte des `lines` (montant recalculé).
+- **DB** : migration 27 `AddVendorCatalogAndClientOrderDrafts` (`VendorProducts`, `OrderLines`,
+  `ClientOrderDrafts`). **Appliquée automatiquement par la CI** au push sur `main`
+  (`deploy.yml` → job `apply_migrations` → `dotnet ef database update --connection $PROD_DB`,
+  secret `SMARTERASP_DB_CONNECTION`). Chaîne complète validée le 11/09 sur PostgreSQL 17.
+- **Tests** : 31 nouveaux (bot, catalogue, service, bout-en-bout webhook) — 422/422 ✓.
+
+### Activation (aucune action externe)
+
+Aucune dépendance à un dashboard externe. La config par défaut suffit :
+
+```xml
+<!-- Optionnel : désactiver le bot ou changer la fenêtre de conversation -->
+<environmentVariable name="ClientOrderBot__Enabled" value="true" />
+<environmentVariable name="ClientOrderBot__ExpirationHours" value="24" />
+```
+
+⚠️ **Protection de l'historique** : un produit déjà présent dans une commande ne peut plus être
+supprimé (`409`), il faut le modifier — la ligne de commande garde une copie du nom et du prix.
 
 ---
 
