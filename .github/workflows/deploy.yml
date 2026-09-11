@@ -15,6 +15,11 @@ name: Deploy prod (SmarterASP - FTP)
 #   SMARTERASP_DB_CONNECTION   chaîne de connexion PostgreSQL PROD
 #     ex: Host=pg6001.site4now.net;Port=6432;Database=db_acdd27_wazap;Username=...;Password=...;SSL Mode=Require
 #
+# 💡 Les tests unitaires sont exécutés AVANT le publish : du code cassé (ex. service
+#    non enregistré en DI — incident prod du 11/09) NE PEUT PLUS atteindre la prod.
+#    Le workflow CI tourne en parallèle mais NE bloque PAS le déploiement : c'est le
+#    gate « Tests (garde-fou …) » ci-dessous, dans CE workflow, qui fait foi.
+#
 # Le web.config DISTANT n'est jamais écrasé (il porte les env vars de prod).
 
 on:
@@ -54,6 +59,14 @@ jobs:
 
       - name: Restore (RID win-x64 pour le self-contained)
         run: dotnet restore Wazap.slnx -r win-x64
+
+      - name: Build (Release)
+        run: dotnet build Wazap.slnx --configuration Release --no-restore
+
+      - name: Tests (garde-fou : ne jamais déployer du code cassé)
+        # Bloque le déploiement si un test échoue — notamment DiControllerResolutionTests
+        # (constructibilité réelle de chaque contrôleur via le conteneur DI de production).
+        run: dotnet test tests/Wazap.UnitTests/Wazap.UnitTests.csproj --configuration Release --no-build
 
       - name: Publish self-contained (win-x64)
         run: dotnet publish src/Wazap.API/Wazap.API.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish-win64 --no-restore

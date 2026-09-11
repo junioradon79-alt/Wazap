@@ -1,6 +1,6 @@
 # 🚀 WAZAP — Checklist d'activation en production
 
-> **Date** : 11/09/2026 · **Build** : 0 erreur / 0 warning · **Tests** : 422/422 ✓
+> **Date** : 11/09/2026 · **Build** : 0 erreur / 0 warning · **Tests** : 428/428 ✓
 > **Code livré** : toutes les fonctionnalités ci-dessous sont **développées, testées et déployées**.
 > **Reste à faire** : uniquement des **actions utilisateur** (dashboards externes + config web.config distant).
 
@@ -222,8 +222,9 @@ la confirmation).
 - **Commandes mode catalogue** : `POST /api/orders` accepte des `lines` (montant recalculé).
 - **DB** : migration 27 `AddVendorCatalogAndClientOrderDrafts` (`VendorProducts`, `OrderLines`,
   `ClientOrderDrafts`). **Appliquée automatiquement par la CI** au push sur `main`
-  (`deploy.yml` → job `apply_migrations` → `dotnet ef database update --connection $PROD_DB`,
-  secret `SMARTERASP_DB_CONNECTION`). Chaîne complète validée le 11/09 sur PostgreSQL 17.
+  (`deploy.yml` → étape « Appliquer les migrations prod (idempotent) » → `dotnet ef database update
+  --connection $PROD_DB`, secret `SMARTERASP_DB_CONNECTION`). Chaîne complète validée le 11/09 sur
+  PostgreSQL 17.
 - **Tests** : 31 nouveaux (bot, catalogue, service, bout-en-bout webhook) + 5 tests de régression
   S5 — **427/427 ✓**.
 - ⚠️ **Enregistrement DI obligatoire** : `ClientOrderBotService` doit être déclaré dans
