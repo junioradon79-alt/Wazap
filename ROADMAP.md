@@ -31,7 +31,7 @@
     à **true**, `LIVRE` sans code et `LIVRE TOUT` sont refusés, et un livreur ne peut plus non plus
     clôturer via l'API). Migration 19 `AddDeliveryProof`.
 
-## ✅ Livré le 11/09 (session « catalogue produits + bot de commande client ») — non commité
+## ✅ Livré le 11/09 (session « catalogue produits + bot de commande client ») — commité, poussé, **validé en prod (S5)**
 
 13. **Catalogue produits vendeur** : `VendorProduct` (nom, description, prix FCFA, emoji) +
     `VendorProductService` + REST `GET/POST/PUT/DELETE /api/vendors/{id}/products[/{productId}]`
@@ -49,6 +49,14 @@
 16. **Front** : page `/app/catalogue` (vendeur : son catalogue ; admin : sélection du vendeur).
 17. **DB** : migration 27 `AddVendorCatalogAndClientOrderDrafts` (appliquée par la CI au push sur
     `main`). **Tests** : +31 (422/422 ✓).
+18. **Validé en prod (11/09, scénario S5)** : routage des numéros inconnus — commerçant « plus de
+    commandes pour ma boutique » → Lead prospect ; client « je veux commander » → brouillon bot ;
+    livreur / « bonjour » / « commander au restaurant » routés correctement. Correctif de routage
+    (**PartnerKeywords** volume/possession) + 5 tests de régression (**427/427 ✓**).
+    ⚠️ **Incident corrigé** : `ClientOrderBotService` n'était pas enregistré en DI → **tout** le
+    webhook WhatsApp répondait `409` en prod (`Unable to resolve service…`) ; la prod était aussi
+    **12 migrations en retard**. Fix `AddScoped` poussé (`8aa12a5`) ; webhook revalidé `200`.
+    Les tests ne l'ont pas vu car `WebhookHarness` instancie le contrôleur sans DI (dette de test).
 
 ## ⏭️ Chantiers restants à couvrir
 ### Code (par impact)

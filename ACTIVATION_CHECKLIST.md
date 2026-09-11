@@ -224,7 +224,14 @@ la confirmation).
   `ClientOrderDrafts`). **Appliquée automatiquement par la CI** au push sur `main`
   (`deploy.yml` → job `apply_migrations` → `dotnet ef database update --connection $PROD_DB`,
   secret `SMARTERASP_DB_CONNECTION`). Chaîne complète validée le 11/09 sur PostgreSQL 17.
-- **Tests** : 31 nouveaux (bot, catalogue, service, bout-en-bout webhook) — 422/422 ✓.
+- **Tests** : 31 nouveaux (bot, catalogue, service, bout-en-bout webhook) + 5 tests de régression
+  S5 — **427/427 ✓**.
+- ⚠️ **Enregistrement DI obligatoire** : `ClientOrderBotService` doit être déclaré dans
+  `Program.cs` (`AddScoped`) — un oubli fait échouer la construction de `WebhookWhatsAppController`
+  et **tout** le webhook WhatsApp répond `409` (`Unable to resolve service`). Défaut détecté en
+  prod et corrigé le 11/09 (scénario S5, commit `8aa12a5`). **Dette de test** : les tests
+  instancient le contrôleur à la main (`WebhookHarness`), donc sans DI — ils ne peuvent pas
+  détecter ce type d'oubli ; un test DI (`WebApplicationFactory`) reste à ajouter.
 
 ### Activation (aucune action externe)
 
