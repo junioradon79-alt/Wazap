@@ -229,9 +229,12 @@ la confirmation).
 - ⚠️ **Enregistrement DI obligatoire** : `ClientOrderBotService` doit être déclaré dans
   `Program.cs` (`AddScoped`) — un oubli fait échouer la construction de `WebhookWhatsAppController`
   et **tout** le webhook WhatsApp répond `409` (`Unable to resolve service`). Défaut détecté en
-  prod et corrigé le 11/09 (scénario S5, commit `8aa12a5`). **Dette de test** : les tests
-  instancient le contrôleur à la main (`WebhookHarness`), donc sans DI — ils ne peuvent pas
-  détecter ce type d'oubli ; un test DI (`WebApplicationFactory`) reste à ajouter.
+  prod et corrigé le 11/09 (scénario S5, commit `8aa12a5`).
+- ✅ **Angle mort fermé (11/09)** : `DiControllerResolutionTests` démarre le **vrai `Program.cs`**
+  (`WebApplicationFactory<Program>`, base InMemory, workers retirés) et construit **chaque
+  contrôleur** avec l'`IControllerActivator` de MVC — la mécanique exacte d'une requête HTTP. Un
+  service injecté mais non enregistré fait échouer la CI, en nommant le contrôleur fautif
+  (vérifié en retirant `AddScoped<ClientOrderBotService>()` → échec ciblé). **428/428 ✓**.
 
 ### Activation (aucune action externe)
 

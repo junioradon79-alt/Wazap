@@ -56,7 +56,10 @@
     ⚠️ **Incident corrigé** : `ClientOrderBotService` n'était pas enregistré en DI → **tout** le
     webhook WhatsApp répondait `409` en prod (`Unable to resolve service…`) ; la prod était aussi
     **12 migrations en retard**. Fix `AddScoped` poussé (`8aa12a5`) ; webhook revalidé `200`.
-    Les tests ne l'ont pas vu car `WebhookHarness` instancie le contrôleur sans DI (dette de test).
+    **Cause racine (angle mort fermé)** : les tests instanciaient les contrôleurs à la main
+    (`WebhookHarness`), donc sans conteneur DI. Nouveau test `DiControllerResolutionTests` : démarre
+    le **vrai `Program.cs`** (`WebApplicationFactory`) et construit **chaque contrôleur** via
+    `IControllerActivator` — un service non enregistré fait désormais échouer la CI (**428/428 ✓**).
 
 ## ⏭️ Chantiers restants à couvrir
 ### Code (par impact)

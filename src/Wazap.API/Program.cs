@@ -418,3 +418,13 @@ app.MapGet("/parrainage", () => Results.Redirect("/app/parrainage"));
 // Les migrations sont appliquées hors démarrage (étape de déploiement dédiée) :
 //   dotnet ef database update --project src\Wazap.Infrastructure --startup-project src\Wazap.API
 app.Run();
+
+/// <summary>
+/// Point d'entrée exposé aux tests d'intégration (<c>WebApplicationFactory&lt;Program&gt;</c>).
+/// Permet de DÉMARRER l'application réelle — donc de vérifier le graphe DI de production —
+/// au lieu de reconstruire les contrôleurs à la main. C'est précisément l'angle mort qui a
+/// laissé passer une panne en production : <c>ClientOrderBotService</c> était injecté dans
+/// <c>WebhookWhatsAppController</c> mais jamais enregistré, si bien que TOUT message WhatsApp
+/// entrant répondait 409 (DI incapable de construire le contrôleur).
+/// </summary>
+public partial class Program;
