@@ -107,6 +107,7 @@ http.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "wazap-prospect
 // répondent correctement passent en tête ; les injoignables/occupés restent en secours.
 var endpoints = new List<string>
 {
+    "https://overpass.osm.ch/api/interpreter",
     "https://overpass.private.coffee/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
     "https://overpass-api.de/api/interpreter"
