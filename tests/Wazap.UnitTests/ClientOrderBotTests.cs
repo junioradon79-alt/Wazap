@@ -255,6 +255,26 @@ public class ClientOrderBotTests
         Assert.Contains("Aucun commerce", LastMessage(sender, ClientPhone));
     }
 
+    [Theory]
+    // Un commerçant qui écrit un mot contenant « commande » ne doit PAS être pris pour un client :
+    // ces phrases de volume / possession n'existent pas chez un client qui commande.
+    [InlineData("bonjour, je veux plus de commandes pour ma boutique")]
+    [InlineData("j'aimerais recevoir des commandes sur mon restaurant")]
+    [InlineData("comment attirer des clients et avoir plus de commandes ?")]
+    [InlineData("je veux mes commandes en ligne, mon magasin existe déjà")]
+    public async Task MerchantVolumeIntent_LeavesHandToProspectBot(string message)
+    {
+        using var context = TestInfra.NewContext("bot-merchant-volume");
+        var sender = new RecordingWhatsAppSender();
+        var bot = NewBot(context, sender);
+
+        var consumed = await bot.TryHandleAsync(ClientPhone, message);
+
+        Assert.False(consumed);
+        Assert.Empty(await context.ClientOrderDrafts.ToListAsync());
+        Assert.Empty(sender.TextMessages);
+    }
+
     private static ClientOrderBotService NewBot(ApplicationDbContext context, RecordingWhatsAppSender sender,
         params (string Key, string? Value)[] config)
         => new(context, sender, new ConfigStub(config), NullLogger<ClientOrderBotService>.Instance);

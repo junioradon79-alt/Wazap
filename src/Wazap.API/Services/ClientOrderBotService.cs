@@ -48,11 +48,22 @@ public sealed class ClientOrderBotService
     /// <summary>
     /// Intention de PARTENARIAT — le bot prospects doit garder la main : un prospect
     /// commerçant parle d'activer des commandes offertes, un livreur de courses.
+    /// <para>
+    /// Les phrases de <b>volume / possession</b> (jamais prononcées par un client qui
+    /// commande) couvrent le cas où un commerçant écrit un mot contenant « commande »
+    /// (« je veux plus de commandes pour ma boutique ») : sans elles, le bot de commande
+    /// volerait le prospect et aucun Lead ne serait créé (perte d'acquisition).
+    /// </para>
     /// </summary>
     private static readonly string[] PartnerKeywords =
     [
         "je veux livrer", "veux livrer", "je vends", "vendre", "activer", "inscri",
-        "partenaire", "parrain", "offerte", "mon commerce", "livreur", "coursier", "recrute"
+        "partenaire", "parrain", "offerte", "mon commerce", "livreur", "coursier", "recrute",
+        // Volume de commandes / possession : signaux de commerçant, jamais d'un client.
+        "mes commandes", "plus de commandes", "recevoir des commandes",
+        "recevoir plus de commandes", "des clients qui commandent",
+        "ma boutique", "mon magasin", "mon restaurant", "mon snack", "ma pâtisserie",
+        "mon business", "plus de clients", "attirer des clients"
     ];
 
     /// <summary>Numéro ivoirien cité dans un message libre (« Chez Thalia 07 08 09 10 11 »).</summary>

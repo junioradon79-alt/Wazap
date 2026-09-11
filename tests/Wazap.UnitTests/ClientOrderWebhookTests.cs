@@ -39,6 +39,19 @@ public class ClientOrderWebhookTests
     }
 
     [Fact]
+    public async Task UnknownNumber_MerchantVolumeIntent_StillGoesToProspectBot()
+    {
+        using var harness = new WebhookHarness();
+
+        // « commande » + volume/possession (« plus de commandes », « ma boutique ») : c'est un
+        // commerçant, PAS un client. Le bot de commande ne doit pas voler le prospect.
+        await harness.SendAsync(ClientPhone, "bonjour, je veux plus de commandes pour ma boutique");
+
+        Assert.False(await harness.Context.ClientOrderDrafts.AnyAsync());
+        Assert.True(await harness.Context.Leads.AnyAsync());
+    }
+
+    [Fact]
     public async Task OrderIntent_WithCatalog_EndToEndThroughWebhook()
     {
         using var harness = new WebhookHarness();
