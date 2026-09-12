@@ -13,11 +13,13 @@ namespace Wazap.API.Controllers;
 public class RidersController : ControllerBase
 {
     private readonly RiderService _riderService;
+    private readonly RiderProgramService _riderProgram;
     private readonly ICurrentUser _currentUser;
 
-    public RidersController(RiderService riderService, ICurrentUser currentUser)
+    public RidersController(RiderService riderService, RiderProgramService riderProgram, ICurrentUser currentUser)
     {
         _riderService = riderService;
+        _riderProgram = riderProgram;
         _currentUser = currentUser;
     }
 
@@ -143,6 +145,22 @@ public class RidersController : ControllerBase
 
         await _riderService.BlacklistRiderAsync(id, request.Reason.Trim(), _currentUser.Id);
         return NoContent();
+    }
+
+    // GET: api/riders/program — progression « Ambassadeur WAZAP » de tous les livreurs (admin)
+    [HttpGet("program")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    public async Task<IActionResult> GetProgram()
+        => Ok(await _riderProgram.BuildAllAsync());
+
+    // GET: api/riders/{id}/program — progression d'un livreur (lui-même ou admin)
+    [HttpGet("{id:guid}/program")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Rider,Admin")]
+    public async Task<IActionResult> GetRiderProgram(Guid id)
+    {
+        EnsureOwnership(id);
+        var progress = await _riderProgram.BuildProgressAsync(id);
+        return progress is null ? NotFound() : Ok(progress);
     }
 
     private Guid ResolveRiderId(Guid? explicitId)

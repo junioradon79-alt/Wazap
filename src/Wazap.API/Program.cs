@@ -122,6 +122,10 @@ builder.Services.AddSingleton(clientPaymentOptions);
 var riderReputationOptions = builder.Configuration.GetSection(RiderReputationOptions.SectionName).Get<RiderReputationOptions>() ?? new RiderReputationOptions();
 builder.Services.AddSingleton(riderReputationOptions);
 
+// Options programme « Ambassadeur WAZAP » (suivi des 3 conditions de récompense des livreurs)
+var riderProgramOptions = builder.Configuration.GetSection(RiderProgramOptions.SectionName).Get<RiderProgramOptions>() ?? new RiderProgramOptions();
+builder.Services.AddSingleton(riderProgramOptions);
+
 // Options preuve de livraison (code client à 4 chiffres restitué par le livreur)
 var deliveryProofOptions = builder.Configuration.GetSection(DeliveryProofOptions.SectionName).Get<DeliveryProofOptions>() ?? new DeliveryProofOptions();
 builder.Services.AddSingleton(deliveryProofOptions);
@@ -136,6 +140,7 @@ builder.Services.AddScoped<ProspectAutoService>();
 builder.Services.AddScoped<LeadConversionService>();
 builder.Services.AddScoped<ColisSurService>();
 builder.Services.AddScoped<RiderRatingService>();
+builder.Services.AddScoped<RiderProgramService>();
 
 // Options rétention / archivage des données (purge opt-in, désactivée par défaut)
 var retentionOptions = builder.Configuration.GetSection(RetentionOptions.SectionName).Get<RetentionOptions>() ?? new RetentionOptions();

@@ -89,6 +89,7 @@ internal sealed class WebhookHarness : IDisposable
             downloader,
             proof,
             new RiderRatingService(Context, new RiderReputationOptions(), NullLogger<RiderRatingService>.Instance),
+            new RiderProgramService(Context, new RiderProgramOptions(), Sender, NullLogger<RiderProgramService>.Instance),
             Scans,
             NullLogger<WebhookWhatsAppController>.Instance,
             config);

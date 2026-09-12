@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Wazap.Application.Abstractions;
 using Wazap.Application.Helpers;
@@ -99,12 +100,14 @@ public sealed class RiderRecruitmentService
             var name = TryCaptureName(text);
             var zone = CaptureZone(text);
             var created = new Lead("Candidat livreur", normalized, zone, "whatsapp-livreur", name);
+            created.SetReferralCode(TryCaptureReferralCode(text));
             _context.Leads.Add(created);
             await _context.SaveChangesAsync();
 
             await ReplyAsync(normalized, BuildAskMessage(created));
             await NotifyTeamAsync($"Candidat livreur détecté : {normalized}" +
-                $"{(name is not null ? " — " + name : "")}{(zone.Length > 0 ? " · " + zone : "")}");
+                $"{(name is not null ? " — " + name : "")}{(zone.Length > 0 ? " · " + zone : "")}" +
+                $"{(created.ReferralCode is not null ? " · parrain " + created.ReferralCode : "")}");
             return true;
         }
 
@@ -126,6 +129,9 @@ public sealed class RiderRecruitmentService
         var capturedZone = CaptureZone(text);
         if (capturedZone.Length > 0 && string.IsNullOrWhiteSpace(lead.Zone))
             lead.SetZone(capturedZone);
+        // Code parrain (« WA-XXXX ») : rattaché au dossier, appliqué à la création du compte.
+        if (string.IsNullOrWhiteSpace(lead.ReferralCode))
+            lead.SetReferralCode(TryCaptureReferralCode(text));
         lead.SetStatus(LeadStatus.Contacted);
         await _context.SaveChangesAsync();
 
@@ -186,6 +192,15 @@ public sealed class RiderRecruitmentService
             user.SetZone(lead.Zone);
             while (await _context.Users.AnyAsync(u => u.ReferralCode == user.ReferralCode))
                 user.RegenerateReferralCode();
+
+            // Parrainage : rattache le nouveau livreur à son parrain (code capté plus tôt).
+            var referrer = string.IsNullOrWhiteSpace(lead.ReferralCode)
+                ? null
+                : await _context.Users.AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.ReferralCode == lead.ReferralCode && u.Id != user.Id);
+            if (referrer is not null)
+                user.SetReferral(referrer.Id);
+
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
@@ -203,6 +218,7 @@ public sealed class RiderRecruitmentService
                 + "🛵 Envoyez DISPO ici pour recevoir les courses, puis ZONE <quartier>.\n"
                 + "🛡️ Votre photo CNI est en cours de vérification : notre équipe vous certifie sous 24 h.");
             await NotifyTeamAsync($"Candidature livreur COMPLÈTE : {normalized} — {lead.ContactName} · {lead.Zone}. " +
+                (referrer is not null ? $"Parrain : {referrer.Username} ({referrer.ReferralCode}). " : string.Empty) +
                 "Vérifier le dossier dans /app/certifications (certification en 1 clic).");
 
             _logger.LogInformation(
@@ -241,6 +257,19 @@ public sealed class RiderRecruitmentService
     {
         var lower = text.ToLowerInvariant();
         return RiderKeywords.Any(lower.Contains);
+    }
+
+    /// <summary>Code de parrainage « WA-XXXX » mentionné dans un message (ex. « parrain WA-AB12 »).</summary>
+    private static readonly Regex ReferralCodePattern =
+        new(@"\bWA[-\s]?([A-Z0-9]{4})\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static string? TryCaptureReferralCode(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return null;
+
+        var match = ReferralCodePattern.Match(text);
+        return match.Success ? "WA-" + match.Groups[1].Value.ToUpperInvariant() : null;
     }
 
     /// <summary>Quartier connu mentionné dans le texte (casse normalisée), sinon vide.</summary>
@@ -291,7 +320,8 @@ public sealed class RiderRecruitmentService
                 + "1️⃣ Votre nom complet\n"
                 + "2️⃣ Votre quartier\n"
                 + "3️⃣ Une photo de votre pièce d'identité (CNI)\n\n"
-                + "Un message texte pour 1️⃣ et 2️⃣, puis la photo.";
+                + "Un message texte pour 1️⃣ et 2️⃣, puis la photo.\n\n"
+                + "💡 Vous avez un code parrain WAZAP ? Envoyez-le aussi (ex. WA-AB12) pour le rejoindre.";
 
         if (missing.Count > 0)
             return "Merci ! Il me manque : " + string.Join(" et ", missing) + ".\n"

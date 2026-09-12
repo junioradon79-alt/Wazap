@@ -66,7 +66,7 @@ Clés stockées via `dotnet user-secrets set` :
 - `SeedAdmin:Username` = `admin`
 - `SeedAdmin:Password` = **jamais dans ce dépôt** (dépôt public) — voir `DEPLOYMENT.md`, gitignoré
 
-`appsettings.json` contient le non-secret : `WhatChimp:PhoneNumberId`, `WhatChimp:BaseUrl`, `Jwt:Issuer`, `Jwt:Audience`, `Outbox:MaxRetries`, `Outbox:PollingIntervalSeconds`, `Geo` (rayon/fraîcheur/exclusivité/timeout/rétention), `Packs` (catalogue 6 packs : Mini 1000 F/6 · Découverte 2500/15 · Petit 5000/35 · Moyen 10000/80 · Grand 25000/220 · Pro 100000/1000), `GeniusPay` (BaseUrl/Enabled, clés en user-secrets), `Payments:SimulateAsync` (test flux asynchrone), `RiderScans` (chiffrement des scans d'identité — **clé absente/invalide = téléversement REFUSÉ** ; `AllowUnencryptedStorage=true` rouvre l'écriture en clair comme opt-in explicite, dev/tests ; état de conformité visible sur `/health/details`), `DeliveryProof:RequireClientCode`
+`appsettings.json` contient le non-secret : `WhatChimp:PhoneNumberId`, `WhatChimp:BaseUrl`, `Jwt:Issuer`, `Jwt:Audience`, `Outbox:MaxRetries`, `Outbox:PollingIntervalSeconds`, `Geo` (rayon/fraîcheur/exclusivité/timeout/rétention), `Packs` (catalogue 6 packs : Mini 1000 F/6 · Découverte 2500/15 · Petit 5000/35 · Moyen 10000/80 · Grand 25000/220 · Pro 100000/1000), `GeniusPay` (BaseUrl/Enabled, clés en user-secrets), `Payments:SimulateAsync` (test flux asynchrone), `RiderScans` (chiffrement des scans d'identité — **clé absente/invalide = téléversement REFUSÉ** ; `AllowUnencryptedStorage=true` rouvre l'écriture en clair comme opt-in explicite, dev/tests ; état de conformité visible sur `/health/details`), `DeliveryProof:RequireClientCode`, `RiderProgram` (programme « Ambassadeur » : `DeliveriesTarget`, `ReferralsTarget`, `MinFilleulDeliveries`, `MinAverageRating`, `RewardLabel`)
 (exiger le code du client pour clôturer une livraison, défaut `false`), `RiderReputation`
 (fenêtre de notation, seuil de filtrage des livreurs — filtre désactivé par défaut).
 
@@ -83,6 +83,8 @@ Clés stockées via `dotnet user-secrets set` :
 | `POST /api/orders/{id}/broadcast` | Admin, Vendor — diffuse les offres aux livreurs |
 | `GET /api/orders/{id}/offers` | Admin, Vendor — offres de la commande |
 | `GET/PUT/POST /api/riders` | Admin (liste) · Rider/Admin (location, availability, location-sharing) avec contrôle ressource |
+| `GET /api/riders/program` | **Admin** — progression « Ambassadeur WAZAP » de tous les livreurs (livraisons + filleuls validés) |
+| `GET /api/riders/{id}/program` | Rider (lui-même) / Admin — progression d'un livreur |
 | `GET /` et `/share-location` | Blazor Server — dashboard **admin protégé (cookie)**, share-location livreur (login JWT) |
 | `GET /login` · `POST /api/auth/ui/login` | connexion dashboard admin (cookie) |
 | `GET /api/vendors` | Admin, Vendor (le vendor ne voit que sa fiche) |
@@ -140,7 +142,7 @@ Clés stockées via `dotnet user-secrets set` :
 
 ## 8. Tests
 
-`dotnet test` → **283 tests** (Order, DeliveryBatch, DeliveryOffer, OutboxMessage, User, CreditTransaction, GeoDistance, MockPayment, WhatsAppOrchestration, PhoneNumberNormalizer + table ARTCI 8→10 exhaustive, validators, auth 2FA/refresh/reset, GeniusPay, LeadConversion, ColisSur, RiderService/certification, preuve de livraison + parsing `LIVRE … CODE …`).
+`dotnet test` → **439 tests** (Order, DeliveryBatch, DeliveryOffer, OutboxMessage, User, CreditTransaction, GeoDistance, MockPayment, WhatsAppOrchestration, PhoneNumberNormalizer + table ARTCI 8→10 exhaustive, validators, auth 2FA/refresh/reset, GeniusPay, LeadConversion, ColisSur, RiderService/certification, **RiderProgram (Ambassadeur WAZAP)**, preuve de livraison + parsing `LIVRE … CODE …`).
 
 ## 9. Lancer le projet
 

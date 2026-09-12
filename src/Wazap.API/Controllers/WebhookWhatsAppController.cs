@@ -38,6 +38,7 @@ public class WebhookWhatsAppController : ControllerBase
     private readonly IWhatsAppMediaDownloader _mediaDownloader;
     private readonly DeliveryProofOptions _deliveryProof;
     private readonly RiderRatingService _riderRatings;
+    private readonly RiderProgramService _riderProgram;
     private readonly RiderScansOptions _scans;
     private readonly ILogger<WebhookWhatsAppController> _logger;
     private readonly string? _webhookToken;
@@ -60,12 +61,14 @@ public class WebhookWhatsAppController : ControllerBase
         IWhatsAppMediaDownloader mediaDownloader,
         DeliveryProofOptions deliveryProof,
         RiderRatingService riderRatings,
+        RiderProgramService riderProgram,
         RiderScansOptions scans,
         ILogger<WebhookWhatsAppController> logger,
         IConfiguration config)
     {
         _deliveryProof = deliveryProof;
         _riderRatings = riderRatings;
+        _riderProgram = riderProgram;
         _context = context;
         _riderService = riderService;
         _riderRecruitment = riderRecruitment;
@@ -803,12 +806,32 @@ public class WebhookWhatsAppController : ControllerBase
                         _logger.LogWarning(ex, "Notification de livraison impossible pour {OrderId}.", order.Id);
                     }
                 }
+
+                // Programme « Ambassadeur WAZAP » : franchissement de seuil (livreur + parrain).
+                try
+                {
+                    await _riderProgram.NotifyMilestonesAsync(user.Id);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Notification du programme Ambassadeur impossible pour {Rider}.", user.Username);
+                }
             }
 
             await ReplyAsync(user, marker == "RECU"
                 ? $"✅ Colis récupéré ({orders.Count} course(s)) — en route !"
                 : $"✅ {orders.Count} course(s) livrée(s). Merci ! 🎉");
 
+            return true;
+        }
+
+        // Programme « Ambassadeur WAZAP » : le livreur consulte sa progression.
+        if (user.Role == UserRole.Rider && (upper is "PROGRAMME" or "MA PROGRAMME" or "AMBASSADEUR" or "RECOMPENSE"))
+        {
+            var progress = await _riderProgram.BuildProgressAsync(user.Id);
+            await ReplyAsync(user, progress is null
+                ? "ℹ️ Le programme Ambassadeur n'est pas actif pour le moment."
+                : RiderProgramService.BuildProgressText(progress));
             return true;
         }
 
@@ -825,7 +848,8 @@ public class WebhookWhatsAppController : ControllerBase
                   + "• AIDE : ce menu"
                 : "📱 Menu livreur :\n• ZONE <quartier> : définir ta zone\n• DISPO / INDISPO : en ligne / hors ligne\n"
                   + "• ACCEPTE <code> : accepter une course\n• RECU : colis récupéré\n"
-                  + "• LIVRE <code> CODE <4 chiffres> : livré (code donné par le client)";
+                  + "• LIVRE <code> CODE <4 chiffres> : livré (code donné par le client)\n"
+                  + "• PROGRAMME : ta progression Ambassadeur (livraisons, filleuls)";
 
             await ReplyAsync(user, menu);
             return true;
