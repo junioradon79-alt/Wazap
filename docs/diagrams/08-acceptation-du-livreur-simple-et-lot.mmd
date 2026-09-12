@@ -1,0 +1,28 @@
+sequenceDiagram
+    autonumber
+    actor L as Livreur
+    participant W as WebhookWhatsApp
+    participant D as DeliveryOfferService
+    participant DB as PostgreSQL
+    participant O as WhatsAppOrchestrationService
+    actor C as Client
+    actor V as Vendeur
+
+    L->>W: ACCEPTE {code} (ou bouton Accepter)
+    W->>D: AcceptOfferAsync(offerId)
+    D->>DB: offer.Accept() + expire les autres offres
+    D->>D: DebitVendorForOrdersAsync(vendeur, N) — 1 crédit par course
+    alt crédits insuffisants
+        D-->>L: 402 PaymentRequired (course non prise)
+    else crédits OK
+        D->>DB: AssignRider + LinkRider + EnsureDeliveryCode (1 code par client)
+        opt lot groupé
+            D->>DB: batch.AssignRider — toutes les commandes du lot
+        end
+        D->>O: SendRiderAssignedAsync / SendBatchAssignedAsync
+        O-->>C: Votre livreur arrive + Code de livraison : 1234
+        O-->>V: Le livreur a accepté — préparez le colis
+        O-->>L: détails + liens Maps + LIVRE code CODE 1234
+    end
+
+    note over D: l'acceptation d'un lot vide (tout annulé) annule le lot proprement

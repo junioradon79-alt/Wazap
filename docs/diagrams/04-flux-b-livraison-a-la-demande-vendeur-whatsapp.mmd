@@ -1,0 +1,22 @@
+sequenceDiagram
+    autonumber
+    actor V as Vendeur
+    participant W as WebhookWhatsApp
+    participant O as OrderService
+    participant D as DeliveryOfferService
+    participant DB as PostgreSQL
+
+    V->>W: LIVRAISON 2 poulets à Marcory tél 0708091011
+    W->>O: CreateDispatchRequestAsync(userId, instruction, clientPhone)
+    alt vendeur sans GPS ni Zone
+        O-->>V: Définissez d'abord votre zone — ZONE <quartier>
+    else vendeur valide
+        O->>DB: crée Order + ConfirmByVendor (VendorConfirmed)
+        O->>D: JoinOrCreateBatchAsync
+        D->>DB: rejoint ou crée un lot ouvert (fenêtre de groupage)
+        O->>D: BroadcastBatchAsync
+        D-->>DB: crée les offres (5 livreurs, vague 1)
+        O-->>V: Course #code enregistrée — Crédits restants : N
+    end
+
+    note over O,D: le crédit n'est PAS débité à la création — seulement à l'acceptation

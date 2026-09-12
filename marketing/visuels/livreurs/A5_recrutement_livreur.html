@@ -1,0 +1,151 @@
+﻿<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>WAZAP — Recrutement livreurs (A5)</title>
+<style>
+  /* ---- Format A5 portrait (148 x 210 mm), prêt à imprimer ---- */
+  @page { size: A5 portrait; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html, body { background: #e9edea; }
+  body { font-family: 'Segoe UI', 'Segoe UI Variable Display', Arial, sans-serif; color: #15221b; }
+
+  .page {
+    position: relative;
+    width: 148mm; height: 210mm;
+    margin: 0 auto; background: #fff; overflow: hidden;
+    display: flex; flex-direction: column;
+    padding: 8mm 10mm 6mm;
+  }
+  @media screen { .page { margin: 10mm auto; box-shadow: 0 10px 40px rgba(21,34,27,.18); } }
+
+  .bg { position: absolute; inset: 0; z-index: 0; background:
+        radial-gradient(60mm 45mm at 108% -8%, rgba(7,160,75,.16), transparent 60%),
+        radial-gradient(55mm 45mm at -10% 108%, rgba(14,122,62,.12), transparent 60%),
+        linear-gradient(178deg, #ffffff 0%, #f1f9f3 100%); }
+
+  .content { position: relative; z-index: 1; display: flex; flex-direction: column; height: 100%; }
+
+  .top { display: flex; align-items: center; justify-content: space-between; }
+  .logo { height: 12mm; }
+  .top .tag { font-size: 8pt; font-weight: 700; color: #0e7a3e; background: #e7f6ee;
+              border-radius: 999px; padding: 2mm 3.5mm; }
+
+  .badge { align-self: flex-start; margin: 7mm 0 3mm; background: #0e7a3e; color: #fff;
+           font-weight: 800; font-size: 10pt; border-radius: 999px; padding: 2mm 4mm;
+           letter-spacing: .2px; }
+
+  h1 { font-size: 27pt; line-height: 1.02; letter-spacing: -.6px; }
+  h1 .g { color: #0e7a3e; }
+  .sub { margin-top: 3mm; font-size: 11pt; line-height: 1.42; color: #3f5648; }
+
+  .pills { display: flex; flex-wrap: wrap; gap: 2mm; margin-top: 4.5mm; }
+  .pill { font-size: 9pt; font-weight: 700; background: #fff; border: .4mm solid #d5e6dc;
+          border-radius: 999px; padding: 2mm 3mm; color: #15221b; }
+  .pill.g { background: #e7f6ee; border-color: #e7f6ee; color: #0e7a3e; }
+
+  .steps { margin-top: 3.5mm; background: #f7fbf8; border: .4mm solid #e0ede5; border-radius: 3mm;
+           padding: 3mm 4mm; }
+  .steps h2 { font-size: 11pt; margin-bottom: 2.5mm; }
+  .step { display: flex; gap: 3mm; align-items: flex-start; margin-top: 2.2mm; }
+  .num { flex: 0 0 auto; width: 7.5mm; height: 7.5mm; border-radius: 50%; background: #0e7a3e;
+         color: #fff; font-weight: 800; font-size: 11pt; display: flex; align-items: center;
+         justify-content: center; }
+  .step p { font-size: 10pt; line-height: 1.3; padding-top: .6mm; }
+  .step b { color: #0e7a3e; }
+
+  .cta { margin-top: 4mm; display: flex; align-items: center; gap: 5mm;
+         border-top: .6mm solid #e0ede5; padding-top: 4mm; }
+  .qrbox { flex: 0 0 auto; width: 40mm; height: 40mm; background: #fff; border: .5mm solid #e3e9e4;
+           border-radius: 3mm; padding: 2mm; box-shadow: 0 2mm 6mm rgba(21,34,27,.08); }
+  .qrbox img { width: 100%; height: 100%; display: block; }
+  .cta-txt { flex: 1 1 auto; min-width: 0; }
+  .cta-txt b { display: block; font-size: 13pt; color: #0e7a3e; }
+  .cta-txt .scan { font-size: 12pt; font-weight: 800; margin-bottom: 1.5mm; }
+  .cta-txt .wa { font-size: 10.5pt; line-height: 1.35; }
+  .cta-txt .tel { font-size: 13pt; font-weight: 800; color: #15221b; white-space: nowrap; margin: .8mm 0; }
+  .cta-txt .no { font-size: 8.5pt; color: #7c8a81; margin-top: 1mm; }
+
+  .reassure { margin-top: 2.5mm; display: flex; flex-wrap: wrap; gap: 2mm 5mm;
+              font-size: 9pt; font-weight: 700; color: #0e7a3e; }
+
+  .offer { margin-top: 2.5mm; background: #fff7e6; border: .4mm solid #f2d597; color: #7a5312;
+           border-radius: 3mm; padding: 2mm 4mm; font-size: 9.5pt; font-weight: 700; text-align: center; }
+  .offer b { color: #7a5312; }
+
+  .foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between;
+          font-size: 8pt; color: #8a988f; }
+  .foot b { color: #0e7a3e; }
+
+  /* ---- Mode export (capture PNG haute résolution via ?/#export) ---- */
+  html.export, html.export body { background: #fff; }
+  html.export .page { margin: 0 !important; box-shadow: none !important; }
+
+  /* ---- Garde-fous impression : une seule page A5 ---- */
+  @media print {
+    html, body { width: 148mm; height: 210mm; background: #fff; }
+    .page { margin: 0; box-shadow: none; page-break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="bg"></div>
+    <div class="content">
+
+      <div class="top">
+        <img class="logo" src="../Wazap_logo.png" alt="WAZAP">
+        <span class="tag">🛵 On recrute à Abidjan</span>
+      </div>
+
+      <span class="badge">DEVENIR LIVREUR WAZAP</span>
+
+      <h1>Gagnez en livrant<br>autour de <span class="g">chez vous.</span></h1>
+      <p class="sub">Recevez les courses de votre quartier <b>sur WhatsApp</b>. Vous choisissez vos
+        disponibilités et vous êtes <b>payé par course</b>.</p>
+
+      <div class="pills">
+        <span class="pill g">Vos horaires</span>
+        <span class="pill g">Payé par course</span>
+        <span class="pill">Moto ou non</span>
+        <span class="pill">Tout sur WhatsApp</span>
+      </div>
+
+      <div class="steps">
+        <h2>Inscription en 3 étapes — 2 minutes</h2>
+        <div class="step"><span class="num">1</span><p>Envoyez <b>« je veux livrer »</b> sur WhatsApp au <b>05 75 80 38 01</b></p></div>
+        <div class="step"><span class="num">2</span><p>Indiquez votre <b>nom</b> et votre <b>quartier</b></p></div>
+        <div class="step"><span class="num">3</span><p>Envoyez une <b>photo de votre CNI</b> → votre compte est créé</p></div>
+      </div>
+
+      <div class="reassure">
+        <span>✅ Inscription gratuite</span>
+        <span>✅ Certification offerte</span>
+        <span>✅ Vous choisissez vos courses</span>
+      </div>
+
+      <div class="offer">🎁 3 conditions remplies → <b>1 smartphone offert</b></div>
+
+      <div class="cta">
+        <div class="qrbox"><img src="qr-livreur.png" alt="QR code inscription livreur WAZAP"></div>
+        <div class="cta-txt">
+          <div class="scan">📲 Scannez pour vous inscrire</div>
+          <div class="wa">ou écrivez <b>« je veux livrer »</b> sur WhatsApp :</div>
+          <div class="tel">+225 05 75 80 38 01</div>
+          <div class="no">Certification offerte · Garantie Colis Sûr 🛡️</div>
+        </div>
+      </div>
+
+      <div class="foot">
+        <span><b>⚡ WAZAP</b> — La livraison de votre quartier</span>
+        <span>wazap.ci</span>
+      </div>
+
+    </div>
+  </div>
+  <script>
+    // Active le mode export (marges à zéro) quand l'URL contient "export" (ex. #export).
+    if (/export/i.test(location.hash + location.search)) document.documentElement.classList.add('export');
+  </script>
+</body>
+</html>

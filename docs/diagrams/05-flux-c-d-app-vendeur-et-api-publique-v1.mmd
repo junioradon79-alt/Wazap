@@ -1,0 +1,22 @@
+sequenceDiagram
+    autonumber
+    actor V as Vendeur / Admin
+    participant API as OrdersController
+    participant O as OrderService
+    participant P as PublicApiV1Controller
+    participant S as PublicApiService
+
+    Note over V,O: Canal C — app / API interne (JWT Admin|Vendor)
+    V->>API: POST /api/orders (CreateOrderRequest)
+    API->>API: validation FluentValidation
+    API->>O: CreateOrderAsync (texte libre OU catalogue produits)
+    O-->>API: Order (PendingVendorConfirmation)
+    V->>API: PUT /api/orders/{id}/status → VendorConfirmed
+    API->>O: UpdateStatusAsync → ConfirmAndRouteAsync
+
+    Note over V,S: Canal D — API publique v1 (en-tête X-Api-Key, rate limit publicapi)
+    V->>P: POST /api/v1/orders
+    P->>S: CreateOrderAsync (vendeur résolu par numéro WhatsApp)
+    S-->>P: ordre créé + suivi acheteur (aucune donnée personnelle exposée)
+
+    note over API,P: diffusion forcée possible via POST /api/orders/{id}/broadcast

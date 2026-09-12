@@ -1,0 +1,31 @@
+sequenceDiagram
+    autonumber
+    actor C as Client
+    participant W as WhatsApp (webhook)
+    participant API as WAZAP API
+    participant S as Services (matching, paiement)
+    participant DB as PostgreSQL (outbox)
+    actor V as Vendeur
+    actor L as Livreur
+
+    C->>W: message de commande
+    W->>API: POST /api/webhook/whatsapp
+    API->>S: crée la commande (PendingVendorConfirmation)
+    S-->>DB: persiste + notifications (outbox)
+    DB-->>V: order_confirm
+    V->>W: Confirmer
+    W->>S: ConfirmAndRouteAsync
+    alt parcours acheteur (coordonnées attendues)
+        S-->>C: lien de suivi PWA
+        C->>API: POST /api/client/orders/{id}/coordinates
+    end
+    S->>S: matching des livreurs
+    S-->>L: rider_offer / rider_batch_offer
+    L->>W: ACCEPTE code
+    W->>S: AcceptOfferAsync (débit crédits + code)
+    S-->>C: livreur assigné + code de livraison
+    V-->>L: remise du colis
+    L->>W: RECU
+    L->>W: LIVRE code CODE 1234
+    W->>S: MarkDelivered
+    S-->>C: livré + demande d'avis (NOTE 1-5)

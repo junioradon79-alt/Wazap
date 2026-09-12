@@ -1,0 +1,38 @@
+sequenceDiagram
+    autonumber
+    actor L as Livreur
+    participant W as WebhookWhatsApp
+    participant O as Order (domaine)
+    participant X as WhatsAppOrchestrationService
+    actor C as Client
+
+    L->>W: RECU
+    W->>O: MarkReadyForPickup → MarkPickedUp → MarkInTransit
+    W-->>L: Colis récupéré — en route !
+
+    L->>W: envoie une photo du colis
+    W->>O: SubmitDeliveryProofPhoto (stockage chiffré au repos)
+
+    L->>W: LIVRE {code} CODE 1234
+    W->>O: VerifyDeliveryCode(1234)
+    alt code correct
+        O-->>W: Ok
+        W->>O: MarkDelivered
+        W->>X: SendDeliveredNotificationAsync
+        X-->>C: Colis livré — notez avec NOTE 1 à 5
+    else code erroné
+        O-->>W: Mismatch (tentatives +1)
+        W-->>L: Code incorrect — tentatives restantes : N
+    else 5 échecs
+        O-->>W: Locked
+        W-->>L: Trop de tentatives — seul le vendeur peut clôturer
+    else course sans code (historique)
+        O-->>W: NotSet — clôture tolérée
+    end
+
+    opt tournée multi-clients
+        note over W: LIVRE sans code + plusieurs courses → refus (sauf LIVRE TOUT)
+        note over W: LIVRE TOUT clôture explicitement toutes les courses
+    end
+
+    note over O: MaxDeliveryCodeAttempts = 5, comparaison à temps constant

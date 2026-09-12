@@ -13,6 +13,7 @@
 //   --api=legacy|new   moteur Google (défaut : legacy)
 //   --zone=<nom>       une seule zone (défaut : 13 zones)
 //   --types=<a,b>      types restreints (défaut : 10 types métier)
+//   --preset=livreurs  cibles de recrutement livreurs (sociétés de livraison, coursiers, moto-taxi)
 //   --max=<n>          plafond de fiches par couple zone/type
 //   --delay-ms=<n>     délai entre 2 appels (défaut 300 ms legacy)
 //   --exclude=<fichier>  CSV des numéros déjà clients/contactés
@@ -56,11 +57,21 @@ var defaultTypes = new[] { "restaurant", "fast food", "snack", "bar", "café", "
     "quincaillerie", "matériaux", "meubles & déco", "librairie", "animalerie", "sport",
     "jouets", "bijouterie", "boissons" };
 
+// Preset « livreurs » : cibles B2B de recrutement (sociétés de livraison, coursiers, moto-taxis…)
+// -> à contacter avec le template Meta `rider_company_v2` (voir prospection/GUIDE_RECRUTEMENT_LIVREURS.md).
+var livreurTypes = new[] { "service de livraison", "société de livraison", "coursier",
+    "livraison de colis", "transport de colis", "taxi-moto", "moto-taxi", "mototaxi",
+    "location de moto", "vente de moto", "garage moto", "école de conduite" };
+
 string? Arg(string prefix) => args.FirstOrDefault(a => a.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
     ?.Substring(prefix.Length);
 
 var zoneFilter = Arg("--zone=");
-var types = Arg("--types=")?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? defaultTypes;
+var preset = Arg("--preset=")?.Trim().ToLowerInvariant();
+if (preset is not null && preset != "livreurs")
+    Console.Error.WriteLine($"Preset inconnu ignoré : {preset} (valeurs : livreurs).");
+var types = Arg("--types=")?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? (preset == "livreurs" ? livreurTypes : defaultTypes);
 if (zoneFilter is not null) zones = [zoneFilter];
 var maxPerCombo = int.TryParse(Arg("--max="), out var mx) && mx > 0 ? mx : int.MaxValue;
 var delayMs = int.TryParse(Arg("--delay-ms="), out var dl) && dl >= 0 ? dl : (apiMode == "new" ? 1500 : 300);

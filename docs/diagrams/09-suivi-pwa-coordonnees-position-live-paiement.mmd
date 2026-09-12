@@ -1,0 +1,31 @@
+sequenceDiagram
+    autonumber
+    actor C as Client
+    participant P as SuiviPage (PWA)
+    participant API as ClientOrdersController
+    participant D as DeliveryOfferService
+    participant O as WhatsAppOrchestrationService
+    participant WK as DeliveryOfferWorker
+    actor V as Vendeur
+
+    C->>P: ouvre {TrackingBaseUrl}/{id}
+    P->>API: GET /api/client/orders/{id}
+    API-->>P: statut, vendeur, needsCoordinates, paiement
+    C->>P: adresse + position GPS
+    P->>API: POST /{id}/coordinates
+    alt déjà envoyées
+        API-->>P: 409 Conflict
+    else statut différent de VendorConfirmed
+        API-->>P: 400 (validation plus possible)
+    else OK
+        API->>D: DispatchConfirmedOrderAsync
+        D->>WK: lot prêt (diffusion après BuyerDispatchDelaySeconds)
+        D->>O: SendDispatchStartedAsync + SendVendorDispatchStartedAsync
+        O-->>C: Livraison lancée — un livreur est contacté
+        O-->>V: Coordonnées reçues — recherche lancée
+    end
+
+    loop suivi
+        P->>API: GET /{id}/rider-location
+        API-->>P: position live + nom du livreur
+    end

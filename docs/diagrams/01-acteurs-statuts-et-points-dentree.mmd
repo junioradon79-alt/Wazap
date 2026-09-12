@@ -1,0 +1,14 @@
+stateDiagram-v2
+    [*] --> PendingVendorConfirmation
+    PendingVendorConfirmation --> VendorConfirmed : ConfirmByVendor
+    PendingVendorConfirmation --> Cancelled : Cancel (refus vendeur)
+    VendorConfirmed --> AwaitingRiderAcceptance : AwaitRiderAcceptance (diffusion)
+    VendorConfirmed --> Cancelled : Cancel
+    AwaitingRiderAcceptance --> RiderAssigned : AssignRider (acceptation livreur)
+    AwaitingRiderAcceptance --> Cancelled : Cancel (timeout 5 min)
+    RiderAssigned --> ReadyForPickup
+    ReadyForPickup --> PickedUp
+    PickedUp --> InTransit
+    InTransit --> Delivered : MarkDelivered
+    Delivered --> [*]
+    Cancelled --> [*]

@@ -1,0 +1,26 @@
+sequenceDiagram
+    autonumber
+    actor V as Vendeur
+    participant W as WebhookWhatsApp
+    participant CS as ColisSurService
+    participant DB as PostgreSQL
+    actor T as Équipe
+    participant CL as ClaimsController
+    actor L as Livreur
+
+    V->>W: SINISTRE {code}
+    W->>CS: DeclareAsync(vendorId, commande)
+    alt code trop court, course introuvable, dossier existant ou statut non sinistrable
+        CS-->>V: message d'aide ou d'information
+    else dossier ouvert
+        CS->>DB: DeliveryClaim (Pending)
+        CS-->>L: suspension (exclu du matching)
+        CS-->>T: alerte sinistre
+    end
+
+    T->>CL: traite le dossier
+    alt approuvé
+        CL->>DB: livreur Blacklisted + remboursement vendeur (crédits + indemnité)
+    else rejeté
+        CL->>DB: livreur dégelé, aucun remboursement
+    end

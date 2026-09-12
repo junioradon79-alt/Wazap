@@ -1,0 +1,22 @@
+sequenceDiagram
+    autonumber
+    actor C as Client
+    participant W as WebhookWhatsApp
+    participant R as RiderRatingService
+    participant DB as PostgreSQL
+    actor L as Livreur
+    participant M as Matching (DeliveryOfferService)
+
+    C->>W: NOTE 5 (ou NOTE 4 trop lent)
+    W->>R: IsRatingCommand → TryRateAsync
+    R->>DB: enregistre la note sur la dernière course livrée
+    R-->>C: Merci, note de 5/5 enregistrée
+
+    L->>W: AVIS
+    W->>R: ListMyRatingsTextAsync
+    R-->>L: liste des avis
+    L->>W: REPONDRE 1 Merci !
+    W->>R: ReplyAsync
+    R-->>L: réponse enregistrée
+
+    M->>DB: lit les moyennes pour pondérer le matching

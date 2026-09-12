@@ -1,0 +1,36 @@
+sequenceDiagram
+    autonumber
+    actor C as Client
+    participant API as ClientOrdersController
+    participant PS as ClientPaymentService
+    participant G as GeniusPay
+    participant GW as GeniusPayWebhook
+    participant RC as PaymentReconciliationWorker
+    participant D as DeliveryOfferService
+    actor V as Vendeur
+
+    C->>API: POST /api/client/orders/{id}/pay
+    API->>PS: RequestPaymentAsync(orderId)
+    alt paiement pending existant
+        PS-->>C: même lien (idempotent)
+    else nouveau
+        PS->>G: initie une session de paiement
+        G-->>PS: lien de paiement
+        PS-->>C: lien Mobile Money
+    end
+
+    G->>GW: webhook de complétion
+    GW->>PS: complétude idempotente + commission + net dû au vendeur
+    PS-->>C: Paiement reçu
+    PS-->>V: Commande payée — net à reverser : X FCFA
+
+    opt réponse perdue
+        RC->>G: réconciliation
+        RC->>PS: complète le paiement
+    end
+
+    opt option bloquante (RequirePaymentBeforeDispatch)
+        PS->>D: diffuse les commandes du lot désormais payées
+    end
+
+    note over PS: refus si commande Delivered ou Cancelled

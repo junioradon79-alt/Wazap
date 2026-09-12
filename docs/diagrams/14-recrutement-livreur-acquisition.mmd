@@ -1,0 +1,38 @@
+sequenceDiagram
+    autonumber
+    actor C as Candidat livreur
+    participant W as WebhookWhatsApp
+    participant R as RiderRecruitmentService
+    participant M as IWhatsAppMediaDownloader
+    participant RS as RiderService
+    participant DB as PostgreSQL
+    actor T as Équipe
+
+    C->>W: « je veux livrer »
+    W->>R: TryHandleCandidateAsync(phone, text)
+    alt numéro déjà livreur
+        R-->>C: routage normal des commandes
+    else intention détectée
+        R->>DB: crée un Lead (source whatsapp-livreur, New)
+        R-->>C: demande nom + quartier + photo CNI
+        R-->>T: alerte candidat détecté
+    end
+
+    C->>R: nom + quartier (1 seul message possible)
+    R->>DB: Lead Contacted — nom et zone capturés
+    R-->>C: Dernière étape — la photo de votre CNI
+
+    C->>W: envoie une photo
+    W->>R: HandleCandidatePhotoAsync(phone, media)
+    R->>M: téléchargement du média
+    alt nom ou quartier manquant
+        R-->>C: rappel des étapes (piste conservée)
+    else dossier complet
+        R->>DB: crée le compte livreur (username, Wazap-XXXXXX, zone, code parrainage)
+        R->>RS: StoreScanAsync (scan chiffré) + RecordWhatsAppConsentAsync
+        R->>DB: Lead converti
+        R-->>C: identifiants + envoyez DISPO puis ZONE
+        R-->>T: candidature complète — certifier dans /app/certifications
+    end
+
+    T->>DB: certificat Verified ou refus ou exclusion

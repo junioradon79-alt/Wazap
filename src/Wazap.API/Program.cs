@@ -415,6 +415,11 @@ app.MapFallbackToFile("app/{*path:nonfile}", "app/index.html");
 app.MapGet("/vente", () => Results.Redirect("/app/vente"));
 app.MapGet("/parrainage", () => Results.Redirect("/app/parrainage"));
 
+// Page publique dédiée au recrutement des livreurs (offre « Ambassadeur WAZAP »).
+// Servie depuis wwwroot (même mécanisme que suivi.html / demo.html), URL courte pour le QR.
+app.MapGet("/devenir-livreur", (IWebHostEnvironment env) =>
+    Results.File(Path.Combine(env.WebRootPath, "devenir-livreur.html"), "text/html; charset=utf-8"));
+
 // Les migrations sont appliquées hors démarrage (étape de déploiement dédiée) :
 //   dotnet ef database update --project src\Wazap.Infrastructure --startup-project src\Wazap.API
 app.Run();

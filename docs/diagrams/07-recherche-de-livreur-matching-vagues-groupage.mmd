@@ -1,0 +1,32 @@
+sequenceDiagram
+    autonumber
+    participant WK as DeliveryOfferWorker (5 s)
+    participant D as DeliveryOfferService
+    participant DB as PostgreSQL
+    actor L as Livreurs
+    actor V as Vendeur
+
+    loop toutes les 5 s
+        WK->>DB: lots ouverts prêts (fenêtre écoulée ou taille max)
+        WK->>D: BroadcastBatchAsync(batchId)
+        D->>D: filtres — blacklist, sinistre, certification, réputation
+        alt Tier 1 GPS
+            D->>DB: livreurs disponibles, position fraîche, dans MaxDistanceKm
+        else Tier 2 Zone (téléphones sans GPS)
+            D->>DB: livreurs dont la Zone égale celle du vendeur
+        end
+        D->>D: tri par réputation ou distance croissante
+        D->>DB: DeliveryOffers x5 (vague N)
+        D-->>L: rider_offer / rider_batch_offer
+    end
+
+    loop exclusivité 30 s
+        WK->>D: expire la vague + élargit aux livreurs suivants
+    end
+
+    alt aucune acceptation après 5 min
+        WK->>DB: order.Cancel()
+        WK-->>V: Aucun livreur — annulée (0 crédit débité)
+    end
+
+    note over D: vendeur doit avoir GPS ou Zone, sinon diffusion impossible

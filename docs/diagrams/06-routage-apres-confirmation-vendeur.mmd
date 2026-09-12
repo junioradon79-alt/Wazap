@@ -1,0 +1,23 @@
+sequenceDiagram
+    autonumber
+    actor V as Vendeur
+    participant W as WebhookWhatsApp
+    participant D as DeliveryOfferService
+    participant O as WhatsAppOrchestrationService
+    actor C as Client
+    participant WK as DeliveryOfferWorker
+
+    V->>W: bouton Confirmer ou texte Confirmer
+    W->>W: ConfirmOrRejectAsync(confirm=true)
+    W->>D: ConfirmAndRouteAsync(orderId)
+    alt parcours acheteur (RequiresClientCoordinates + numéro client)
+        D->>O: SendClientTrackingLinkAsync
+        O-->>C: Vendeur a accepté — confirmez votre adresse : {lien}
+        note over D: PAS de diffusion — elle attend les coordonnées du client
+    else groupage classique
+        D->>D: JoinOrCreateBatchAsync
+        D-->>WK: le lot sera diffusé par le worker
+    end
+    opt refus
+        W->>W: order.Cancel()
+    end

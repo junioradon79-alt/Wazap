@@ -1,0 +1,45 @@
+sequenceDiagram
+    autonumber
+    actor C as Client (inconnu)
+    participant W as WebhookWhatsApp
+    participant P as ProspectAutoService
+    participant B as ClientOrderBotService
+    participant DB as ClientOrderDraft
+    actor V as Vendeur
+
+    C->>W: je veux commander 1 poulet
+    W->>W: numéro inconnu + intention de commande
+    W->>P: est-ce un prospect - NON
+    W->>B: TryHandleAsync(phone, text)
+    B->>DB: crée un brouillon (AwaitingItems, 24 h)
+    B-->>C: Étape 1/3 — que voulez-vous commander ?
+
+    C->>B: article libre
+    B->>DB: AwaitingVendor
+    B-->>C: Étape 2/3 — chez quel commerce ?
+
+    C->>B: nom du commerce
+    alt 0 correspondance
+        B-->>C: réinvite (nom exact ou +225…)
+    else 1 correspondance
+        B->>DB: commerce retenu
+    else plusieurs correspondances
+        B->>DB: AwaitingVendorChoice
+        B-->>C: liste numérotée (max 5)
+        C->>B: numéro choisi
+    end
+
+    opt commerce avec catalogue
+        B-->>C: menu produits numéroté
+        C->>B: 1 2
+        B->>DB: AwaitingProductChoice → panier
+    end
+
+    B-->>C: Dernière étape — où livrer ?
+    C->>B: quartier + repère
+    B->>DB: crée l'Order (PendingVendorConfirmation, suivi acheteur activé)
+    B-->>C: Commande #code transmise à Vendeur
+    B-->>V: Nouvelle commande client #code
+
+    note over C,B: ANNULER / STOP → brouillon Cancelled
+    note over B: 3 réponses hors format → abandon
