@@ -63,7 +63,7 @@ jobs:
       - name: Build (Release)
         run: dotnet build Wazap.slnx --configuration Release --no-restore
 
-      - name: Tests (garde-fou : ne jamais déployer du code cassé)
+      - name: "Tests (garde-fou : ne jamais déployer du code cassé)"
         # Bloque le déploiement si un test échoue — notamment DiControllerResolutionTests
         # (constructibilité réelle de chaque contrôleur via le conteneur DI de production).
         run: dotnet test tests/Wazap.UnitTests/Wazap.UnitTests.csproj --configuration Release --no-build
