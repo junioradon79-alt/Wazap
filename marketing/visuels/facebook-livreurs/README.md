@@ -94,6 +94,29 @@ Le gabarit `post.html` se prévisualise dans un navigateur :
 
 ---
 
+## Photos réelles (smartphone + moto)
+
+Les visuels utilisent désormais de **vraies photos** :
+- `assets/phone.jpg` → **`assets/phone.png`** (smartphone premium + logo WAZAP, fond détouré transparent)
+- `assets/moto.jpg`  → **`assets/moto.png`**  (scooter **Apsonic**, fond détouré transparent)
+
+Le détourage est fait par **`cutout.cs`** (app mono-fichier .NET 10 + **SkiaSharp**) : les
+sources contiennent un **damier de transparence aplati** (le fond « transparent » a été
+incrusté dans le JPG). L'outil retire ce damier (détection par **motif périodique** +
+**remplissage depuis les bords**) et produit un **PNG à canal alpha**.
+
+```powershell
+cd marketing\visuels\facebook-livreurs
+dotnet run cutout.cs -- assets\phone.jpg assets\phone.png
+dotnet run cutout.cs -- assets\moto.jpg  assets\moto.png
+.\gen-visuels.ps1                 # puis régénérer les 7 visuels
+```
+
+> Les **SVG** (`phone.svg`, `moto.svg`) sont conservés en **secours** : dans `post.html`,
+> une photo est utilisée si le PNG existe, sinon le SVG prend le relais.
+
+---
+
 ## Règles de l'offre (rappel)
 
 - **Smartphone** (entrée/milieu de gamme, type **Redmi 15C**) : **systématique** dès les 3 conditions atteintes.
