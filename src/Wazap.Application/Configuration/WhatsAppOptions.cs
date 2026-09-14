@@ -1,11 +1,12 @@
 namespace Wazap.Application.Configuration
 {
     /// <summary>
-    /// Noms des templates WhatsApp WhatChimp utilisés par le flux de commande (section « WhatChimp »).
+    /// Noms des templates WhatsApp utilisés par le flux (section « Meta » — les corps sont
+    /// créés et approuvés dans WhatsApp Manager, indépendamment de la passerelle d'envoi).
     /// </summary>
     public sealed class WhatsAppOptions
     {
-        public const string SectionName = "WhatChimp";
+        public const string SectionName = "Meta";
 
         public string TemplateOrderConfirm { get; set; } = "order_confirm";
         public string TemplateOrderReceived { get; set; } = "order_received";

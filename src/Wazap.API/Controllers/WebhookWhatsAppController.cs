@@ -87,25 +87,49 @@ public class WebhookWhatsAppController : ControllerBase
         _logger = logger;
         // AUCUNE valeur de repli : un token codé en dur dans un dépôt public n'authentifie
         // rien. Non configuré => la vérification du webhook échoue (fail closed).
-        _webhookToken = config["WhatChimp:WebhookToken"];
+        // Meta:WebhookVerifyToken (nouveau WABA) prime ; WhatChimp:WebhookToken en repli
+        // pendant la transition.
+        _webhookToken = config["Meta:WebhookVerifyToken"] ?? config["WhatChimp:WebhookToken"];
         _teamPhone = config["Prospect:TeamPhone"];
     }
 
-    // GET: api/webhook/whatsapp — vérification WhatChimp
+    // GET: api/webhook/whatsapp — vérification passerelle (Meta Cloud API et WhatChimp legacy)
     [HttpGet]
-    public IActionResult Verify([FromQuery] string token, [FromQuery] string challenge)
+    public IActionResult Verify(
+        [FromQuery(Name = "hub.mode")] string? hubMode,
+        [FromQuery(Name = "hub.verify_token")] string? hubVerifyToken,
+        [FromQuery(Name = "hub.challenge")] string? hubChallenge,
+        [FromQuery] string? token,
+        [FromQuery] string? challenge)
     {
         if (string.IsNullOrWhiteSpace(_webhookToken))
         {
             // Fail closed : mieux vaut un webhook non vérifiable qu'un webhook validé
             // par un secret connu de tous.
-            _logger.LogError("WhatChimp:WebhookToken non configuré — vérification du webhook refusée.");
+            _logger.LogError("Token de vérification du webhook non configuré (Meta:WebhookVerifyToken).");
             return StatusCode(StatusCodes.Status503ServiceUnavailable, "Webhook non configuré.");
         }
 
-        return SecurityHelper.FixedTimeEquals(token ?? string.Empty, _webhookToken)
-            ? Ok(challenge)
-            : BadRequest("Token invalide.");
+        // Meta Cloud API : hub.mode=subscribe&hub.verify_token=…&hub.challenge=…
+        if (string.Equals(hubMode, "subscribe", StringComparison.OrdinalIgnoreCase))
+        {
+            if (string.IsNullOrWhiteSpace(hubChallenge))
+                return BadRequest("hub.challenge requis.");
+
+            return SecurityHelper.FixedTimeEquals(hubVerifyToken ?? string.Empty, _webhookToken)
+                ? Ok(hubChallenge)
+                : BadRequest("hub.verify_token invalide.");
+        }
+
+        // WhatChimp legacy : token & challenge en query (retiré au jour de la bascule).
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            return SecurityHelper.FixedTimeEquals(token, _webhookToken)
+                ? Ok(challenge)
+                : BadRequest("Token invalide.");
+        }
+
+        return BadRequest("Paramètre(s) de vérification manquant(s).");
     }
 
     // POST: api/webhook/whatsapp — événements (live location, boutons vendeur, ACCEPTE livreur)
@@ -137,6 +161,19 @@ public class WebhookWhatsAppController : ControllerBase
         var buttonId = Str(buttonReply, "id");
         var buttonTitle = Str(buttonReply, "title");
 
+        // Passerelle Meta Cloud API : payload normalisé ([entry[].changes[].value.messages[]])
+        // et injecté dans le même routage. Si ce n'est pas un payload Meta, rien ne change.
+        var metaEvent = MetaWebhookParser.TryParse(raw);
+        if (metaEvent is not null)
+        {
+            phone = metaEvent.From ?? phone;
+            text = metaEvent.Text ?? text;
+            latitude ??= metaEvent.Latitude;
+            longitude ??= metaEvent.Longitude;
+            buttonId ??= metaEvent.ButtonId;
+            buttonTitle ??= metaEvent.ButtonTitle;
+        }
+
         // 1) Live location du livreur → mise à jour de sa position
         if (latitude is not null && longitude is not null)
         {
@@ -160,6 +197,15 @@ public class WebhookWhatsAppController : ControllerBase
         var mediaId = Str(mediaNode, "id") ?? Str(message, "mediaId") ?? Str(message, "media_id");
         var mimeType = Str(message, "mimeType") ?? Str(message, "mime_type")
             ?? Str(mediaNode, "mimeType") ?? Str(mediaNode, "mime_type");
+
+        // Passerelle Meta Cloud API : le webhook fournit un media_id (jamais d'URL directe) —
+        // le téléchargement passe par MetaCloudApiMediaDownloader (résolution via Graph).
+        if (metaEvent is not null)
+        {
+            mediaUrl = metaEvent.MediaUrl ?? mediaUrl;
+            mediaId = metaEvent.MediaId ?? mediaId;
+            mimeType = metaEvent.MimeType ?? mimeType;
+        }
 
         if (mediaUrl is not null || mediaId is not null)
         {

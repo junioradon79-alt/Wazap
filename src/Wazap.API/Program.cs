@@ -90,6 +90,11 @@ builder.Services.AddSingleton(clientOptions);
 var whatsAppOptions = builder.Configuration.GetSection(WhatsAppOptions.SectionName).Get<WhatsAppOptions>() ?? new WhatsAppOptions();
 builder.Services.AddSingleton(whatsAppOptions);
 
+// Options passerelle Meta WhatsApp Cloud (WABA dédié) — la bascule Meta:Enabled=true
+// remplace WhatChimp pour TOUTES les notifications (envoi + médias entrants).
+var metaApiOptions = builder.Configuration.GetSection(MetaApiOptions.SectionName).Get<MetaApiOptions>() ?? new MetaApiOptions();
+builder.Services.AddSingleton(metaApiOptions);
+
 // Options agrégateur de paiement GeniusPay
 var geniusPayOptions = builder.Configuration.GetSection(GeniusPayOptions.SectionName).Get<GeniusPayOptions>() ?? new GeniusPayOptions();
 builder.Services.AddSingleton(geniusPayOptions);
@@ -260,11 +265,19 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
-// Injection du service WhatsApp avec HttpClient
-builder.Services.AddHttpClient<IWhatsAppSender, WhatChimpService>();
-
-// Médias entrants (photo de pièce d'identité d'un livreur reçue sur WhatsApp)
-builder.Services.AddHttpClient<IWhatsAppMediaDownloader, WhatChimpMediaDownloader>();
+// Passerelle d'envoi : Meta WhatsApp Cloud (WABA dédié) dès Meta:Enabled=true, sinon
+// WhatChimp (mode legacy en attendant la bascule — plus aucun envoi tant que le compte
+// ancien est verrouillé, ce qui est justement ce qu'on veut).
+if (metaApiOptions.Enabled)
+{
+    builder.Services.AddHttpClient<IWhatsAppSender, MetaCloudApiWhatsAppSender>();
+    builder.Services.AddHttpClient<IWhatsAppMediaDownloader, MetaCloudApiMediaDownloader>();
+}
+else
+{
+    builder.Services.AddHttpClient<IWhatsAppSender, WhatChimpService>();
+    builder.Services.AddHttpClient<IWhatsAppMediaDownloader, WhatChimpMediaDownloader>();
+}
 
 // Catalogue des packs prépayés (payé à l'usage, sans abonnement)
 var packs = builder.Configuration.GetSection("Packs").Get<List<PackConfiguration>>() ?? new List<PackConfiguration>();
@@ -382,6 +395,12 @@ app.UseAntiforgery();
 app.UseWhen(
     ctx => ctx.Request.Path.StartsWithSegments("/api/v1"),
     branch => branch.UseMiddleware<PublicApiKeyMiddleware>());
+
+// Webhooks entrants Meta Cloud API : validation X-Hub-Signature-256 (HMAC) avant routage.
+// N'intervient que si l'en-tête est présent (les POST WhatChimp legacy passent sans elle).
+app.UseWhen(
+    ctx => ctx.Request.Path.StartsWithSegments("/api/webhook/whatsapp"),
+    branch => branch.UseMiddleware<MetaWebhookSignatureMiddleware>());
 
 app.MapControllers();
 app.MapHealthChecks("/health");
