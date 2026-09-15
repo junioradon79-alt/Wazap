@@ -169,7 +169,7 @@ internal sealed class ServiceScopeFactoryStub : IServiceScopeFactory, IServiceSc
             var offers = new DeliveryOfferService(_context, _sender, whatsAppOptions,
                 new GeoOptions(), new GroupingOptions(), new ClientOptions(), orchestrator,
                 new RiderSecurityOptions(), new RiderReputationOptions(), new ClientPaymentOptions(),
-                NullLogger<DeliveryOfferService>.Instance);
+                new RiderPriorityOptions(), NullLogger<DeliveryOfferService>.Instance);
             return new OrderService(_context, new CurrentUserStub(), offers, new DeliveryProofOptions(),
                 NullLogger<OrderService>.Instance);
         }

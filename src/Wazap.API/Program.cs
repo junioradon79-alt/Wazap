@@ -127,6 +127,10 @@ builder.Services.AddSingleton(clientPaymentOptions);
 var riderReputationOptions = builder.Configuration.GetSection(RiderReputationOptions.SectionName).Get<RiderReputationOptions>() ?? new RiderReputationOptions();
 builder.Services.AddSingleton(riderReputationOptions);
 
+// Options pack prioritaire LIVREUR (option payante : être proposé en premier dans son rayon)
+var riderPriorityOptions = builder.Configuration.GetSection(RiderPriorityOptions.SectionName).Get<RiderPriorityOptions>() ?? new RiderPriorityOptions();
+builder.Services.AddSingleton(riderPriorityOptions);
+
 // Options programme « Ambassadeur WAZAP » (suivi des 3 conditions de récompense des livreurs)
 var riderProgramOptions = builder.Configuration.GetSection(RiderProgramOptions.SectionName).Get<RiderProgramOptions>() ?? new RiderProgramOptions();
 builder.Services.AddSingleton(riderProgramOptions);
@@ -283,6 +287,10 @@ else
 var packs = builder.Configuration.GetSection("Packs").Get<List<PackConfiguration>>() ?? new List<PackConfiguration>();
 builder.Services.AddSingleton<IReadOnlyList<PackConfiguration>>(packs);
 
+// Catalogue des packs prioritaires LIVREUR (option payante : priorité de proposition)
+var riderPriorityPacks = builder.Configuration.GetSection("RiderPriorityPacks").Get<List<RiderPriorityPackConfiguration>>() ?? new List<RiderPriorityPackConfiguration>();
+builder.Services.AddSingleton<IReadOnlyList<RiderPriorityPackConfiguration>>(riderPriorityPacks);
+
 // Injection des services applicatifs
 builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<WhatsAppOrchestrationService>();
@@ -300,6 +308,9 @@ builder.Services.AddScoped<DashboardService>();
 // Packs prépayés : catalogue + achat
 builder.Services.AddScoped<PackService>();
 builder.Services.AddScoped<ClientPaymentService>();
+
+// Pack prioritaire livreur : catalogue + achat (option payante)
+builder.Services.AddScoped<RiderPriorityService>();
 
 // Paiement des packs : GeniusPay si activé, sinon mock (dev/test)
 if (geniusPayOptions.Enabled)

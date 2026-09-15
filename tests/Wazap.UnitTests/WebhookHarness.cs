@@ -54,7 +54,7 @@ internal sealed class WebhookHarness : IDisposable
         var offers = new DeliveryOfferService(Context, Sender, whatsAppOptions,
             new GeoOptions(), new GroupingOptions(), new ClientOptions(), orchestrator,
             new RiderSecurityOptions(), new RiderReputationOptions(), new ClientPaymentOptions(),
-            NullLogger<DeliveryOfferService>.Instance);
+            new RiderPriorityOptions(), NullLogger<DeliveryOfferService>.Instance);
 
         var proof = deliveryProof ?? new DeliveryProofOptions();
 

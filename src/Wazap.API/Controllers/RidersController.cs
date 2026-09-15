@@ -1,8 +1,10 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Wazap.API.Services;
 using Wazap.Application.Abstractions;
+using Wazap.Application.Dtos;
 using Wazap.Application.Exceptions;
 using Wazap.Domain.Enums;
 
@@ -14,12 +16,21 @@ public class RidersController : ControllerBase
 {
     private readonly RiderService _riderService;
     private readonly RiderProgramService _riderProgram;
+    private readonly RiderPriorityService _riderPriority;
+    private readonly IValidator<BuyRiderPriorityRequest> _buyPriorityValidator;
     private readonly ICurrentUser _currentUser;
 
-    public RidersController(RiderService riderService, RiderProgramService riderProgram, ICurrentUser currentUser)
+    public RidersController(
+        RiderService riderService,
+        RiderProgramService riderProgram,
+        RiderPriorityService riderPriority,
+        IValidator<BuyRiderPriorityRequest> buyPriorityValidator,
+        ICurrentUser currentUser)
     {
         _riderService = riderService;
         _riderProgram = riderProgram;
+        _riderPriority = riderPriority;
+        _buyPriorityValidator = buyPriorityValidator;
         _currentUser = currentUser;
     }
 
@@ -161,6 +172,47 @@ public class RidersController : ControllerBase
         EnsureOwnership(id);
         var progress = await _riderProgram.BuildProgressAsync(id);
         return progress is null ? NotFound() : Ok(progress);
+    }
+
+    // GET: api/riders/{id}/priority — état du « pack prioritaire » + catalogue
+    // (être proposé en premier dans son rayon : WAZAP vend la visibilité, pas l'attribution)
+    [HttpGet("{id:guid}/priority")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Rider,Admin")]
+    public async Task<IActionResult> GetPriority(Guid id)
+    {
+        EnsureOwnership(id);
+        var status = await _riderPriority.GetStatusAsync(id);
+        return status is null ? NotFound() : Ok(status);
+    }
+
+    // POST: api/riders/{id}/priority — achat d'un pack prioritaire (paiement Mobile Money)
+    [HttpPost("{id:guid}/priority")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Rider,Admin")]
+    public async Task<IActionResult> BuyPriority(Guid id, [FromBody] BuyRiderPriorityRequest request)
+    {
+        EnsureOwnership(id);
+
+        // L'identifiant de la route fait foi : un livreur ne peut activer la priorité que
+        // pour son propre compte (l'admin peut cibler un livreur).
+        request.RiderId = id;
+
+        var validation = await _buyPriorityValidator.ValidateAsync(request);
+        if (!validation.IsValid)
+        {
+            foreach (var error in validation.Errors)
+                ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+            return ValidationProblem(ModelState);
+        }
+
+        try
+        {
+            var result = await _riderPriority.BuyAsync(request);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new PaymentResponseDto(false, string.Empty, null, ex.Message));
+        }
     }
 
     private Guid ResolveRiderId(Guid? explicitId)

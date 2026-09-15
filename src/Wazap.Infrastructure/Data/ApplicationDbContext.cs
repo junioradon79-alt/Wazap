@@ -30,6 +30,7 @@ namespace Wazap.Infrastructure.Data
         public DbSet<RiderRating> RiderRatings { get; set; }
         public DbSet<OrderPayment> OrderPayments { get; set; }
         public DbSet<ClientOrderDraft> ClientOrderDrafts { get; set; }
+        public DbSet<RiderPriorityPurchase> RiderPriorityPurchases { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -289,6 +290,31 @@ namespace Wazap.Infrastructure.Data
                 .HasOne(t => t.Vendor)
                 .WithMany(u => u.Transactions)
                 .HasForeignKey(t => t.VendorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Packs prioritaires LIVREUR (option payante : priorité de proposition)
+            modelBuilder.Entity<RiderPriorityPurchase>()
+                .Property(p => p.Amount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<RiderPriorityPurchase>()
+                .Property(p => p.TransactionReference)
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<RiderPriorityPurchase>()
+                .Property(p => p.PackName)
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<RiderPriorityPurchase>()
+                .HasIndex(p => p.RiderUserId);
+
+            modelBuilder.Entity<RiderPriorityPurchase>()
+                .HasIndex(p => p.CreatedAt);
+
+            modelBuilder.Entity<RiderPriorityPurchase>()
+                .HasOne(p => p.Rider)
+                .WithMany(u => u.PriorityPurchases)
+                .HasForeignKey(p => p.RiderUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<RefreshToken>()

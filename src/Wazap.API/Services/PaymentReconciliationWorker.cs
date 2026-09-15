@@ -49,6 +49,7 @@ namespace Wazap.API.Services
                 var paymentService = scope.ServiceProvider.GetRequiredService<IPaymentService>();
                 var packService = scope.ServiceProvider.GetRequiredService<PackService>();
                 var clientPayments = scope.ServiceProvider.GetRequiredService<ClientPaymentService>();
+                var riderPriority = scope.ServiceProvider.GetRequiredService<RiderPriorityService>();
 
                 // Multi-instances : une seule instance réconcilie à la fois (évite les crédits doublés).
                 await using var guard = await AdvisoryLockScope.TryAcquireAsync(db, 77_003, stoppingToken);
@@ -60,7 +61,7 @@ namespace Wazap.API.Services
 
                 try
                 {
-                    await ReconcileAsync(db, paymentService, packService, clientPayments, stoppingToken);
+                    await ReconcileAsync(db, paymentService, packService, clientPayments, riderPriority, stoppingToken);
                     await guard.CompleteAsync(stoppingToken);
                     WorkerHeartbeats.Beat(nameof(PaymentReconciliationWorker));
                 }
@@ -74,7 +75,7 @@ namespace Wazap.API.Services
 
         private async Task ReconcileAsync(
             ApplicationDbContext db, IPaymentService paymentService, PackService packService,
-            ClientPaymentService clientPayments, CancellationToken ct)
+            ClientPaymentService clientPayments, RiderPriorityService riderPriority, CancellationToken ct)
         {
             // Transactions de packs Pending avec une vraie référence (pas la provisoire PENDING-…).
             var pending = await db.CreditTransactions
@@ -120,6 +121,29 @@ namespace Wazap.API.Services
                     await clientPayments.CompletePaymentAsync(payment.Id, payment.TransactionReference);
                 else if (status.Status is "failed" or "cancelled" or "refunded")
                     await clientPayments.FailPaymentAsync(payment.Id);
+            }
+
+            // Packs prioritaires LIVREUR en attente — même logique que les packs vendeurs.
+            var pendingPriority = await db.RiderPriorityPurchases
+                .Where(p => p.Status == TransactionStatus.Pending
+                         && !p.TransactionReference.StartsWith(RiderPriorityPurchase.PendingReferencePrefix))
+                .OrderBy(p => p.CreatedAt)
+                .Take(20)
+                .ToListAsync(ct);
+
+            foreach (var purchase in pendingPriority)
+            {
+                var status = await paymentService.CheckPaymentStatusAsync(purchase.TransactionReference);
+                if (status is null || string.IsNullOrWhiteSpace(status.Status))
+                    continue;
+
+                _logger.LogInformation("Réconciliation pack prioritaire {Ref} : statut {Status}.",
+                    purchase.TransactionReference, status.Status);
+
+                if (status.Status.Equals("completed", StringComparison.OrdinalIgnoreCase))
+                    await riderPriority.CompletePurchaseAsync(purchase.Id, purchase.TransactionReference);
+                else if (status.Status is "failed" or "cancelled" or "refunded")
+                    await riderPriority.FailPurchaseAsync(purchase.Id);
             }
         }
     }

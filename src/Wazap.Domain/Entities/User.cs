@@ -24,6 +24,11 @@ public class User
     // Packs prépayés : nombre de commandes restantes (payé à l'usage, sans abonnement)
     public int Credits { get; private set; }
 
+    // Pack prioritaire LIVREUR : priorité de proposition dans le rayon jusqu'à cette
+    // échéance (null = aucune priorité). Alimentée par les achats tracés dans
+    // RiderPriorityPurchase ; ne contourne ni le rayon de diffusion ni la disponibilité.
+    public DateTime? PriorityUntilUtc { get; private set; }
+
     // Onboarding vendeur séquencé (J+1 / J+3 / J+7 via WhatsApp) : étape en attente
     // et prochaine échéance (worker dédié, templates Meta requis pour les envois sortants).
     public int? OnboardingStage { get; private set; }
@@ -45,6 +50,9 @@ public class User
 
     // Navigation : achats de crédits (vendeur)
     public ICollection<CreditTransaction> Transactions { get; } = new List<CreditTransaction>();
+
+    // Navigation : achats de packs prioritaires (livreur)
+    public ICollection<RiderPriorityPurchase> PriorityPurchases { get; } = new List<RiderPriorityPurchase>();
 
     // Certification livreur (Garantie Colis Sûr) : dossier 1:1 optionnel
     public RiderIdentity? RiderIdentity { get; private set; }
@@ -216,6 +224,37 @@ public class User
         if (credits <= 0)
             throw new ArgumentOutOfRangeException(nameof(credits), "Le nombre de crédits doit être positif.");
         Credits += credits;
+    }
+
+    /// <summary>
+    /// Prolonge la priorité de proposition (« pack prioritaire livreur ») de
+    /// <paramref name="days"/> jours. Une priorité encore active est <b>prolongée</b> à partir
+    /// de son échéance (les jours déjà payés ne sont jamais perdus), sinon à partir de maintenant.
+    /// </summary>
+    public void GrantPriority(int days)
+    {
+        if (days <= 0)
+            throw new ArgumentOutOfRangeException(nameof(days), "La durée de priorité doit être positive.");
+
+        var from = PriorityUntilUtc is { } until && until > DateTime.UtcNow ? until : DateTime.UtcNow;
+        PriorityUntilUtc = from.AddDays(days);
+    }
+
+    /// <summary>
+    /// Priorité de proposition active à l'instant donné (pack livreur non expiré).
+    /// </summary>
+    public bool HasActivePriority(DateTime utcNow)
+        => PriorityUntilUtc is { } until && until > utcNow;
+
+    /// <summary>
+    /// Jours de priorité restants (0 si aucune priorité active) — affichage livreur/admin.
+    /// </summary>
+    public int RemainingPriorityDays(DateTime utcNow)
+    {
+        if (PriorityUntilUtc is not { } until || until <= utcNow)
+            return 0;
+
+        return (int)Math.Ceiling((until - utcNow).TotalDays);
     }
 
     /// <summary>Lance la séquence d'onboarding vendeur (1re étape programmée à J+1).</summary>

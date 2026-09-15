@@ -51,7 +51,7 @@ internal sealed class ClientPaymentHarness
         Offers = new DeliveryOfferService(Context, Sender, whatsAppOptions,
             new GeoOptions(), new GroupingOptions(), new ClientOptions(), orchestrator,
             new RiderSecurityOptions(), new RiderReputationOptions(), Options,
-            NullLogger<DeliveryOfferService>.Instance);
+            new RiderPriorityOptions(), NullLogger<DeliveryOfferService>.Instance);
 
         Service = new ClientPaymentService(Context, Gateway, Sender, Offers, Options,
             NullLogger<ClientPaymentService>.Instance);

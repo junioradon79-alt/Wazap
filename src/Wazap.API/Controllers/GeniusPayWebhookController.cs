@@ -17,6 +17,7 @@ public class GeniusPayWebhookController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
     private readonly PackService _packService;
+    private readonly RiderPriorityService _riderPriority;
     private readonly ClientPaymentService _clientPayments;
     private readonly GeniusPayOptions _options;
     private readonly ILogger<GeniusPayWebhookController> _logger;
@@ -24,12 +25,14 @@ public class GeniusPayWebhookController : ControllerBase
     public GeniusPayWebhookController(
         ApplicationDbContext context,
         PackService packService,
+        RiderPriorityService riderPriority,
         ClientPaymentService clientPayments,
         GeniusPayOptions options,
         ILogger<GeniusPayWebhookController> logger)
     {
         _context = context;
         _packService = packService;
+        _riderPriority = riderPriority;
         _clientPayments = clientPayments;
         _options = options;
         _logger = logger;
@@ -92,6 +95,28 @@ public class GeniusPayWebhookController : ControllerBase
 
         if (transaction is null)
         {
+            // Pack prioritaire LIVREUR : même passerelle, entité dédiée.
+            var priorityPurchase = await FindRiderPriorityPurchaseAsync(info);
+            if (priorityPurchase is not null)
+            {
+                if (priorityPurchase.Status == TransactionStatus.Completed)
+                {
+                    _logger.LogInformation("Achat prioritaire {Id} déjà complété (webhook dupliqué ignoré).", priorityPurchase.Id);
+                    return;
+                }
+
+                if (info.Amount.HasValue && priorityPurchase.Amount != info.Amount.Value)
+                {
+                    _logger.LogWarning("Montant webhook {Paid} ≠ achat prioritaire {Expected} pour {Id}. Ignoré.",
+                        info.Amount, priorityPurchase.Amount, priorityPurchase.Id);
+                    return;
+                }
+
+                await _riderPriority.CompletePurchaseAsync(
+                    priorityPurchase.Id, info.Reference ?? $"GENIUS-{priorityPurchase.Id:N}");
+                return;
+            }
+
             // Pas une transaction de pack : les paiements du PANIER CLIENT (commandes)
             // partagent la même passerelle — routage par identifiant interne.
             var orderPayment = await FindOrderPaymentAsync(info);
@@ -151,6 +176,13 @@ public class GeniusPayWebhookController : ControllerBase
             return;
         }
 
+        var priorityPurchase = await FindRiderPriorityPurchaseAsync(info);
+        if (priorityPurchase is not null)
+        {
+            await _riderPriority.FailPurchaseAsync(priorityPurchase.Id);
+            return;
+        }
+
         var orderPayment = await FindOrderPaymentAsync(info);
         if (orderPayment is not null)
         {
@@ -160,6 +192,26 @@ public class GeniusPayWebhookController : ControllerBase
 
         _logger.LogWarning("Webhook échec sans transaction WAZAP correspondante (id={Tid}, ref={Ref}) : ignoré.",
             info.WazapTransactionId, info.Reference);
+    }
+
+    /// <summary>
+    /// Retrouve un achat de pack prioritaire LIVREUR via l'identifiant interne (metadata
+    /// wazap_transaction_id) ou la référence de l'agrégateur.
+    /// </summary>
+    private async Task<RiderPriorityPurchase?> FindRiderPriorityPurchaseAsync(PaymentWebhookInfo info)
+    {
+        if (info.WazapTransactionId.HasValue)
+        {
+            var byId = await _context.RiderPriorityPurchases
+                .FirstOrDefaultAsync(p => p.Id == info.WazapTransactionId.Value);
+            if (byId is not null)
+                return byId;
+        }
+
+        return info.Reference is null
+            ? null
+            : await _context.RiderPriorityPurchases
+                .FirstOrDefaultAsync(p => p.TransactionReference == info.Reference);
     }
 
     /// <summary>

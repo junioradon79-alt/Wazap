@@ -29,6 +29,7 @@ namespace Wazap.Application.Services
         private readonly RiderSecurityOptions _riderSecurity;
         private readonly RiderReputationOptions _reputation;
         private readonly ClientPaymentOptions _clientPayments;
+        private readonly RiderPriorityOptions _priority;
         private readonly ILogger<DeliveryOfferService> _logger;
 
         public DeliveryOfferService(
@@ -42,6 +43,7 @@ namespace Wazap.Application.Services
             RiderSecurityOptions riderSecurity,
             RiderReputationOptions reputation,
             ClientPaymentOptions clientPayments,
+            RiderPriorityOptions priority,
             ILogger<DeliveryOfferService> logger)
         {
             _context = context;
@@ -54,6 +56,7 @@ namespace Wazap.Application.Services
             _riderSecurity = riderSecurity;
             _reputation = reputation;
             _clientPayments = clientPayments;
+            _priority = priority;
             _logger = logger;
         }
 
@@ -676,7 +679,8 @@ namespace Wazap.Application.Services
             if ((vendor.Latitude is null || vendor.Longitude is null) && string.IsNullOrWhiteSpace(vendor.Zone))
                 throw new InvalidOperationException("Le vendeur n'a ni position GPS ni zone déclarée.");
 
-            var freshnessThreshold = DateTime.UtcNow.AddMinutes(-_geo.LocationFreshnessMinutes);
+            var nowUtc = DateTime.UtcNow;
+            var freshnessThreshold = nowUtc.AddMinutes(-_geo.LocationFreshnessMinutes);
 
             var exclude = excludeRiderIds?.ToHashSet() ?? new HashSet<Guid>();
             var byGps = new List<NearestRiderDto>();
@@ -734,7 +738,7 @@ namespace Wazap.Application.Services
                              && u.Latitude != null
                              && u.Longitude != null
                              && u.LocationUpdatedAt >= freshnessThreshold)
-                    .Select(u => new { u.Id, u.Latitude, u.Longitude })
+                    .Select(u => new { u.Id, u.Latitude, u.Longitude, u.PriorityUntilUtc })
                     .ToListAsync();
 
                 byGps.AddRange(riders
@@ -746,7 +750,8 @@ namespace Wazap.Application.Services
                             vendor.Latitude.Value,
                             vendor.Longitude.Value,
                             r.Latitude.GetValueOrDefault(),
-                            r.Longitude.GetValueOrDefault())))
+                            r.Longitude.GetValueOrDefault()),
+                        r.PriorityUntilUtc))
                     .Where(x => x.DistanceKm <= _geo.MaxDistanceKm));
             }
 
@@ -762,14 +767,14 @@ namespace Wazap.Application.Services
                              && u.IsAvailable
                              && u.LocationSharingEnabled
                              && u.Zone != null)
-                    .Select(u => new { u.Id, u.Zone })
+                    .Select(u => new { u.Id, u.Zone, u.PriorityUntilUtc })
                     .ToListAsync();
 
                 byGps.AddRange(zoneRiders
                     .Where(r => !contacted.Contains(r.Id)
                              && (!_riderSecurity.RequireCertifiedRiders || certifiedIds.Contains(r.Id))
                              && string.Equals(r.Zone?.Trim(), vendor.Zone.Trim(), StringComparison.OrdinalIgnoreCase))
-                    .Select(r => new NearestRiderDto(r.Id, double.MaxValue)));
+                    .Select(r => new NearestRiderDto(r.Id, double.MaxValue, r.PriorityUntilUtc)));
             }
 
             // Ordre final : pondération par réputation (optionnelle) OU strictement
@@ -786,6 +791,11 @@ namespace Wazap.Application.Services
                     byGps.Sort((a, b) => CompareDouble(a.DistanceKm, b.DistanceKm));
                 }
             }
+
+            // Pack prioritaire livreur (option payante) : la priorité ACTIVE passe en tête,
+            // plafonnée par vague pour ne pas assécher les non-abonnés. Elle ne modifie ni le
+            // rayon, ni la disponibilité, ni les exclusions — l'attribution reste à l'acceptation.
+            byGps = ApplyPriorityOrdering(byGps, nowUtc);
 
             return byGps.Take(count).ToList();
         }
@@ -839,6 +849,50 @@ namespace Wazap.Application.Services
         /// <summary>Comparaison numérique réutilisable (le langage n'a pas de CompareTo sur double).</summary>
         private static int CompareDouble(double a, double b)
             => a < b ? -1 : (a > b ? 1 : 0);
+
+        /// <summary>
+        /// Remonte en tête les livreurs dont la priorité (« pack prioritaire ») est active, dans
+        /// l'ordre déjà établi par le tri de base (distance ou réputation). Le nombre de places
+        /// réservées est plafonné par <see cref="RiderPriorityOptions.MaxPriorityRidersPerWave"/>
+        /// (équité) : au-delà, les prioritaires gardent leur rang géographique.
+        /// Cette réorganisation n'ajoute ni ne retire aucun candidat.
+        /// </summary>
+        private List<NearestRiderDto> ApplyPriorityOrdering(List<NearestRiderDto> ordered, DateTime utcNow)
+            => ApplyPriorityOrdering(ordered, utcNow, _priority.MaxPriorityRidersPerWave);
+
+        /// <summary>
+        /// Variante statique du tri prioritaire (testable isolément, comme
+        /// <see cref="CompareWithReputation"/>) : <paramref name="maxPriorityRidersPerWave"/> place
+        /// le plafond d'équité. L'ordre relatif des non-prioritaires est préservé.
+        /// </summary>
+        public static List<NearestRiderDto> ApplyPriorityOrdering(
+            List<NearestRiderDto> ordered, DateTime utcNow, int maxPriorityRidersPerWave)
+        {
+            var cap = maxPriorityRidersPerWave;
+            if (cap <= 0)
+                return ordered;
+
+            var boosted = new List<NearestRiderDto>(cap);
+            var rest = new List<NearestRiderDto>(ordered.Count);
+
+            foreach (var rider in ordered)
+            {
+                if (boosted.Count < cap && IsPriorityActive(rider, utcNow))
+                    boosted.Add(rider);
+                else
+                    rest.Add(rider);
+            }
+
+            if (boosted.Count == 0)
+                return ordered;
+
+            boosted.AddRange(rest);
+            return boosted;
+        }
+
+        /// <summary>Priorité de proposition active pour ce candidat (pack livreur non expiré).</summary>
+        public static bool IsPriorityActive(NearestRiderDto rider, DateTime utcNow)
+            => rider.PriorityUntilUtc is { } until && until > utcNow;
 
         /// <summary>Message d'erreur quand la diffusion attend un paiement client (option bloquante).</summary>
         private const string RequiresClientPaymentMessage =
