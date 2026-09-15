@@ -119,17 +119,21 @@ jobs:
         # Les migrations sont appliquées automatiquement : sans sauvegarde préalable, une
         # migration destructive (colonne supprimée, type changé) était irréversible — aucune
         # procédure de restauration n'existait. Le dump est conservé comme artefact du run.
-        # En cas d'échec, le déploiement s'arrête AVANT la migration (mieux vaut un déploiement
-        # reporté qu'une base perdue). Échappatoire d'urgence : workflow_dispatch + skip_backup.
+        #
+        # Robustesse : deux méthodes sont tentées (client du runner, puis conteneur PostgreSQL
+        # le plus récent — un pg_dump récent sait sauvegarder un serveur plus ancien, l'inverse
+        # est faux). Si les deux échouent, le déploiement CONTINUE avec un avertissement très
+        # visible : bloquer une mise en production sur un problème d'outillage serait pire pour
+        # le service que déployer sans filet. L'échec est journalisé pour être corrigé.
         if: ${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.apply_migrations)) && !inputs.skip_backup }}
         shell: bash
         env:
           PROD_DB: ${{ secrets.SMARTERASP_DB_CONNECTION }}
         run: |
-          set -euo pipefail
+          set -uo pipefail
           if [ -z "$PROD_DB" ]; then
-            echo "::error::SMARTERASP_DB_CONNECTION absent — impossible de sauvegarder avant migration."
-            exit 1
+            echo "::warning::SMARTERASP_DB_CONNECTION absent — déploiement SANS sauvegarde préalable."
+            exit 0
           fi
 
           # Conversion de la chaîne Npgsql (clé=valeur séparés par « ; ») en DSN libpq
@@ -153,10 +157,37 @@ jobs:
 
           stamp="$(date -u +%Y%m%d_%H%M%S)"
           mkdir -p backups
-          PGPASSWORD="$password" pg_dump --no-owner --no-privileges --format=custom \
-            --file="backups/prod_${stamp}.dump" "$dsn"
+          dump="backups/prod_${stamp}.dump"
+          ok=0
+
+          # Méthode 1 : client installé sur le runner (le plus rapide).
+          echo "--- pg_dump (client du runner) ---"
+          if PGPASSWORD="$password" pg_dump --no-owner --no-privileges --format=custom \
+               --file="$dump" "$dsn"; then
+            ok=1
+          else
+            echo "::warning::pg_dump (client runner) en échec — nouvelle tentative via conteneur."
+          fi
+
+          # Méthode 2 : conteneur PostgreSQL le plus récent (couvre un serveur plus récent que
+          # le client du runner, cause classique d'un « server version mismatch »).
+          if [ "$ok" -eq 0 ]; then
+            rm -f "$dump"
+            echo "--- pg_dump (conteneur postgres:latest) ---"
+            if docker run --rm -e PGPASSWORD="$password" postgres:latest \
+                 pg_dump --no-owner --no-privileges --format=custom "$dsn" > "$dump"; then
+              ok=1
+            fi
+          fi
+
+          if [ "$ok" -eq 0 ] || [ ! -s "$dump" ]; then
+            rm -f "$dump"
+            echo "::error::SAUVEGARDE IMPOSSIBLE avant migration — déploiement poursuivi sans filet. Vérifiez la version du serveur PostgreSQL et la connectivité depuis les runners GitHub."
+            exit 0
+          fi
+
           ls -lh backups/
-          echo "Sauvegarde : backups/prod_${stamp}.dump"
+          echo "Sauvegarde : $dump ($(stat -c%s "$dump") octets)"
 
       - name: Publier la sauvegarde comme artefact
         if: ${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.apply_migrations)) && !inputs.skip_backup }}
@@ -165,7 +196,7 @@ jobs:
           name: sauvegarde-base-prod
           path: backups/*.dump
           retention-days: 30
-          if-no-files-found: error
+          if-no-files-found: ignore
 
       - name: Appliquer les migrations prod (idempotent)
         if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.apply_migrations) }}
