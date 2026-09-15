@@ -97,6 +97,10 @@ export default function CataloguePage() {
 
   const remove = async (product: VendorProduct): Promise<void> => {
     if (!vendorId) return
+    // Action IRRÉVERSIBLE (le produit disparaît du menu des clients) : confirmation explicite,
+    // comme pour l'exclusion d'un livreur.
+    if (!window.confirm(`Retirer « ${product.name} » du catalogue ?\n\nLe produit disparaîtra du menu des clients.`))
+      return
     setBusy(true)
     setError('')
     setNotice('')

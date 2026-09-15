@@ -52,7 +52,11 @@ export default function OrdersPage() {
   }
 
   const broadcast = async (id: string): Promise<void> => {
+    // Effet EXTERNE immédiat : des notifications partent vers les livreurs du secteur.
+    if (!window.confirm('Relancer la diffusion de cette commande aux livreurs proches ?'))
+      return
     setBroadcasting(id)
+    setError('')
     try {
       await api.post(`/orders/${id}/broadcast`)
       await load()
@@ -70,6 +74,9 @@ export default function OrdersPage() {
   }
 
   const requestPayment = async (id: string): Promise<void> => {
+    // Le client reçoit un message WhatsApp : on confirme avant d'engager cet effet externe.
+    if (!window.confirm('Envoyer au client le lien de paiement Mobile Money sur WhatsApp ?'))
+      return
     setPaying(id)
     setError('')
     setPayMessage('')

@@ -15,6 +15,7 @@ export default function VendorsPage() {
   const load = async (): Promise<void> => {
     try {
       setVendors(await api.get<UserSummary[]>('/vendors'))
+      setError('') // une action réussie ne doit pas laisser une bannière d'erreur périmée
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur')
     }
@@ -28,7 +29,10 @@ export default function VendorsPage() {
     if (!topup) return
     const n = Number(credits)
     if (!Number.isInteger(n) || n <= 0) return
+    // Crédits OFFERTS sans paiement : confirmation explicite (opération financière).
+    if (!window.confirm(`Offrir ${n} crédit(s) à ${topup.username} sans paiement ?`)) return
     setBusy(true)
+    setError('')
     try {
       await api.post(`/vendors/${topup.id}/credits/topup`, { credits: n })
       setTopup(null)
@@ -43,6 +47,7 @@ export default function VendorsPage() {
   const doZone = async (): Promise<void> => {
     if (!zoneEdit) return
     setBusy(true)
+    setError('')
     try {
       await api.put(`/vendors/${zoneEdit.id}/zone`, { zone: zoneValue })
       setZoneEdit(null)
