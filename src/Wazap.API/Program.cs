@@ -295,18 +295,6 @@ else
     builder.Services.AddHttpClient<IWhatsAppMediaDownloader, WhatChimpMediaDownloader>();
 }
 
-// Aucun canal d'envoi utilisable = aucune notification possible (confirmation de commande,
-// offre livreur, code de livraison, alertes de crédits). La construction du service échouait
-// jusqu'ici à la PREMIÈRE résolution (donc au premier message entrant, par un 500/409
-// incompréhensible) : on refuse désormais de démarrer en nommant la clé manquante.
-if (!metaApiOptions.Enabled && string.IsNullOrWhiteSpace(builder.Configuration["WhatChimp:ApiToken"]))
-{
-    throw new InvalidOperationException(
-        "Aucun canal d'envoi WhatsApp configuré : Meta:Enabled est à false et "
-        + "WhatChimp:ApiToken est absent. Renseignez WhatChimp__ApiToken "
-        + "(ou activez Meta:Enabled avec son jeton) — sans quoi aucune notification ne peut partir.");
-}
-
 // Catalogue des packs prépayés (payé à l'usage, sans abonnement)
 var packs = builder.Configuration.GetSection("Packs").Get<List<PackConfiguration>>() ?? new List<PackConfiguration>();
 builder.Services.AddSingleton<IReadOnlyList<PackConfiguration>>(packs);
@@ -391,6 +379,23 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 var app = builder.Build();
+
+// Aucun canal d'envoi utilisable = aucune notification possible (confirmation de commande,
+// offre livreur, code de livraison, alertes de crédits). La construction du service échouait
+// jusqu'ici à la PREMIÈRE résolution — donc au premier message entrant, par un 500/409
+// incompréhensible (incident prod du 11/09). On refuse désormais de SERVIR du trafic en
+// nommant la clé manquante.
+//
+// ⚠️ Ce contrôle est volontairement APRÈS `builder.Build()` : les outils de conception
+// (`dotnet ef migrations …`) construisent l'hôte pour récupérer le DbContext et s'arrêtent à
+// ce point. Placé avant, il faisait échouer les MIGRATIONS de production (run #62).
+if (!metaApiOptions.Enabled && string.IsNullOrWhiteSpace(builder.Configuration["WhatChimp:ApiToken"]))
+{
+    throw new InvalidOperationException(
+        "Aucun canal d'envoi WhatsApp configuré : Meta:Enabled est à false et "
+        + "WhatChimp:ApiToken est absent. Renseignez WhatChimp__ApiToken "
+        + "(ou activez Meta:Enabled avec son jeton) — sans quoi aucune notification ne peut partir.");
+}
 
 // Contrôle de cohérence de la configuration AVANT de servir du trafic. Auparavant, une valeur
 // aberrante (seuil à 0, commission > 100 %, section de paiement absente) produisait un
