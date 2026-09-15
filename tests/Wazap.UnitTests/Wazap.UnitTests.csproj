@@ -24,6 +24,16 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.11" />
     <!-- Fournisseur InMemory : tests des services applicatifs sans base PostgreSQL -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.11" />
+    <!-- Fournisseur RELATIONNEL sans serveur (SQLite en mémoire) : exerce les chemins de code
+         qui n'existent QUE sur un fournisseur relationnel — `ExecuteUpdate`/`ExecuteDelete`
+         conditionnels, contraintes d'unicité — et qui n'étaient donc validés par AUCUN test
+         (le fournisseur InMemory les refuse ou les ignore).
+         ⚠️ Testcontainers.PostgreSql a été ÉCARTÉ : il tire SSH.NET 2024.1.0, qui porte une
+         vulnérabilité de gravité élevée (GHSA-q939-rpr3-3284) — elle casserait le build
+         (`-warnaserror`) et l'audit de vulnérabilités de la CI. À réintroduire pour un test
+         PostgreSQL réel le jour où la dépendance sera assainie, ou via un conteneur lancé par
+         le pipeline plutôt que par le projet de tests. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.11" />
   </ItemGroup>
 
   <ItemGroup>

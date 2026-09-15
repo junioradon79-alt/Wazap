@@ -43,6 +43,29 @@ public static class PhoneNumberNormalizer
             : new string(phoneNumber.Where(char.IsDigit).ToArray());
 
     /// <summary>
+    /// Clé de rapprochement d'une ligne WhatsApp : les <b>8 derniers chiffres</b> du numéro
+    /// (le numéro entier s'il est plus court).
+    /// <para>
+    /// C'est le plus petit dénominateur commun des numéros ivoiriens : l'ancien format
+    /// (<c>+225</c> + 8 chiffres) et le nouveau (<c>+225</c> + 10 chiffres = préfixe de 2 +
+    /// ancien numéro) partagent leurs 8 derniers chiffres, et deux numéros identiques aussi.
+    /// Stockée en base et indexée, elle permet de retrouver un compte par son numéro en
+    /// <b>une requête indexée</b> au lieu de charger toute la table des utilisateurs — ce que
+    /// faisait chaque message WhatsApp entrant, chaque création de commande et chaque
+    /// diffusion. Le rapprochement définitif reste <see cref="SameSubscriber"/> (une même
+    /// terminaison ne suffit pas : deux indicatifs différents peuvent la partager).
+    /// </para>
+    /// </summary>
+    public static string SubscriberSuffix(string? phoneNumber)
+    {
+        var digits = DigitsOnly(phoneNumber);
+        if (digits.Length == 0)
+            return string.Empty;
+
+        return digits.Length <= 8 ? digits : digits[^8..];
+    }
+
+    /// <summary>
     /// Détermine si deux numéros correspondent à la MÊME ligne WhatsApp.
     /// Gère la numérotation ivoirienne pré-2021 (+225 + 8 chiffres) vs post-2021
     /// (+225 + 10 chiffres : préfixe opérateur de 2 chiffres + ancien numéro de 8).

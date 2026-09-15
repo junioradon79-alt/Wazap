@@ -765,7 +765,35 @@ namespace Wazap.Application.Services
         }
 
         /// <summary>
-        /// Livreurs disponibles, partage activé, position fraîche (&lt; Geo:LocationFreshnessMinutes)
+        /// Boîte englobante (degrés) du rayon de diffusion, <b>garantie contenir le cercle</b> :
+        /// la marge en longitude est calculée à la latitude la plus HAUTE de la boîte (cas le
+        /// plus défavorable, où un degré de longitude est le plus court), ce qui évite d'écarter
+        /// un livreur réellement dans le rayon. Le filtre Haversine reste appliqué ensuite.
+        /// Près des pôles (ou si la boîte franchit l'antiméridien) on ne filtre pas : mieux vaut
+        /// charger quelques candidats de trop que d'en perdre un.
+        /// </summary>
+        public static (double MinLat, double MaxLat, double MinLon, double MaxLon) BoundingBox(
+            double latitude, double longitude, double radiusKm)
+        {
+            const double kmPerDegreeLatitude = 111.32;
+            const double fullRange = 180.0;
+
+            var deltaLat = radiusKm / kmPerDegreeLatitude;
+
+            if (Math.Abs(latitude) + deltaLat >= 89.0)
+                return (-90, 90, -fullRange, fullRange);
+
+            var worstLatitude = Math.Min(89.0, Math.Abs(latitude) + deltaLat);
+            var cosinus = Math.Max(0.01, Math.Cos(worstLatitude * Math.PI / 180.0));
+            var deltaLon = radiusKm / (kmPerDegreeLatitude * cosinus);
+
+            if (longitude - deltaLon < -fullRange || longitude + deltaLon > fullRange)
+                return (latitude - deltaLat, latitude + deltaLat, -fullRange, fullRange);
+
+            return (latitude - deltaLat, latitude + deltaLat, longitude - deltaLon, longitude + deltaLon);
+        }
+
+        /// <summary>Livreurs disponibles, partage activé, position fraîche (&lt; Geo:LocationFreshnessMinutes)
         /// et dans le rayon Geo:MaxDistanceKm, triés par distance (Haversine).
         /// </summary>
         private async Task<IReadOnlyList<NearestRiderDto>> GetNearestAvailableRidersAsync(
@@ -787,38 +815,22 @@ namespace Wazap.Application.Services
             var exclude = excludeRiderIds?.ToHashSet() ?? new HashSet<Guid>();
             var byGps = new List<NearestRiderDto>();
 
-            // Certification obligatoire (« Garantie Colis Sûr ») : seuls les livreurs dont le
-            // dossier d'identité est Verified reçoivent des offres.
-            var certifiedIds = new HashSet<Guid>();
-            if (_riderSecurity.RequireCertifiedRiders)
-            {
-                var certified = await _context.RiderIdentities.AsNoTracking()
-                    .Where(i => i.Status == RiderIdentityStatus.Verified)
-                    .Select(i => i.UserId)
-                    .ToListAsync();
-                certifiedIds = certified.ToHashSet();
-            }
-
-            // Blacklist : un livreur exclu (vol/fraude) ne reçoit PLUS aucune offre,
-            // quelle que soit la configuration.
-            var blacklisted = await _context.RiderIdentities.AsNoTracking()
-                .Where(i => i.Status == RiderIdentityStatus.Blacklisted)
-                .Select(i => i.UserId)
-                .ToListAsync();
-            exclude.UnionWith(blacklisted);
+            // Exclusions exprimées EN SQL (sous-requêtes EXISTS) : charger toutes les identités
+            // blacklistées et tous les sinistres en cours pour les croiser en mémoire faisait
+            // croître le coût du matching avec l'historique de la plateforme.
+            var blacklisted = _context.RiderIdentities.AsNoTracking()
+                .Where(i => i.Status == RiderIdentityStatus.Blacklisted);
 
             // Sinistre en cours d'enquête : le livreur est suspendu tant que le
             // dossier « Garantie Colis Sûr » n'est pas tranché.
-            var underInvestigation = await _context.DeliveryClaims.AsNoTracking()
-                .Where(c => c.Status == DeliveryClaimStatus.Pending)
-                .Select(c => c.RiderUserId)
-                .ToListAsync();
-            exclude.UnionWith(underInvestigation);
+            var underInvestigation = _context.DeliveryClaims.AsNoTracking()
+                .Where(c => c.Status == DeliveryClaimStatus.Pending);
 
             // Réputation : écarte les livreurs sous la moyenne minimale. Désactivé par
             // défaut (MinimumAverageScore = 0) et jamais appliqué en dessous d'un nombre
             // suffisant d'avis — un nouveau livreur ne doit pas sortir du vivier sur une
-            // seule mauvaise note.
+            // seule mauvaise note. Ce filtre agrégé reste chargé en mémoire (il n'est actif
+            // que si l'option est activée explicitement, et ne concerne que les notés).
             if (_reputation.MinimumAverageScore > 0)
             {
                 var poorlyRated = await _context.RiderRatings.AsNoTracking()
@@ -833,24 +845,47 @@ namespace Wazap.Application.Services
             // Tier 1 — GPS (Haversine) : uniquement si le vendeur a une position.
             if (vendor.Latitude is not null && vendor.Longitude is not null)
             {
-                var riders = await _context.Users.AsNoTracking()
+                var latitude = vendor.Latitude.Value;
+                var longitude = vendor.Longitude.Value;
+
+                // Boîte englobante : réduit en SQL l'ensemble des candidats avant le calcul de
+                // distance, au lieu de charger tous les livreurs géolocalisés de la plateforme.
+                // Elle CONTIENT le cercle (marge de longitude calculée à la latitude la plus
+                // haute de la boîte), donc aucun livreur éligible n'est écarté ; le filtre
+                // Haversine ci-dessous reste l'arbitre.
+                var box = BoundingBox(latitude, longitude, _geo.MaxDistanceKm);
+
+                var gpsQuery = _context.Users.AsNoTracking()
                     .Where(u => u.Role == UserRole.Rider
                              && u.IsAvailable
                              && u.LocationSharingEnabled
                              && u.Latitude != null
                              && u.Longitude != null
-                             && u.LocationUpdatedAt >= freshnessThreshold)
+                             && u.LocationUpdatedAt >= freshnessThreshold
+                             && u.Latitude >= box.MinLat && u.Latitude <= box.MaxLat
+                             && u.Longitude >= box.MinLon && u.Longitude <= box.MaxLon
+                             && !blacklisted.Any(i => i.UserId == u.Id)
+                             && !underInvestigation.Any(c => c.RiderUserId == u.Id));
+
+                // Certification obligatoire (« Garantie Colis Sûr ») : seuls les livreurs dont
+                // le dossier d'identité est Verified reçoivent des offres.
+                if (_riderSecurity.RequireCertifiedRiders)
+                {
+                    gpsQuery = gpsQuery.Where(u => _context.RiderIdentities
+                        .Any(i => i.UserId == u.Id && i.Status == RiderIdentityStatus.Verified));
+                }
+
+                var riders = await gpsQuery
                     .Select(u => new { u.Id, u.Latitude, u.Longitude, u.PriorityUntilUtc })
                     .ToListAsync();
 
                 byGps.AddRange(riders
-                    .Where(r => !exclude.Contains(r.Id)
-                             && (!_riderSecurity.RequireCertifiedRiders || certifiedIds.Contains(r.Id)))
+                    .Where(r => !exclude.Contains(r.Id))
                     .Select(r => new NearestRiderDto(
                         r.Id,
                         GeoDistance.DistanceKm(
-                            vendor.Latitude.Value,
-                            vendor.Longitude.Value,
+                            latitude,
+                            longitude,
                             r.Latitude.GetValueOrDefault(),
                             r.Longitude.GetValueOrDefault()),
                         r.PriorityUntilUtc))
@@ -858,24 +893,35 @@ namespace Wazap.Application.Services
             }
 
             // Tier 2 (téléphones basiques sans GPS) : compléter avec les livreurs
-            // dont la ZONE déclarée correspond à celle du vendeur.
+            // dont la ZONE déclarée correspond à celle du vendeur — comparaison faite EN SQL.
             if (byGps.Count < count && !string.IsNullOrWhiteSpace(vendor.Zone))
             {
                 var contacted = new HashSet<Guid>(exclude);
                 contacted.UnionWith(byGps.Select(r => r.RiderUserId));
 
-                var zoneRiders = await _context.Users.AsNoTracking()
+                var targetZone = vendor.Zone.Trim().ToLowerInvariant();
+
+                var zoneQuery = _context.Users.AsNoTracking()
                     .Where(u => u.Role == UserRole.Rider
                              && u.IsAvailable
                              && u.LocationSharingEnabled
-                             && u.Zone != null)
-                    .Select(u => new { u.Id, u.Zone, u.PriorityUntilUtc })
+                             && u.Zone != null
+                             && u.Zone.Trim().ToLower() == targetZone
+                             && !blacklisted.Any(i => i.UserId == u.Id)
+                             && !underInvestigation.Any(c => c.RiderUserId == u.Id));
+
+                if (_riderSecurity.RequireCertifiedRiders)
+                {
+                    zoneQuery = zoneQuery.Where(u => _context.RiderIdentities
+                        .Any(i => i.UserId == u.Id && i.Status == RiderIdentityStatus.Verified));
+                }
+
+                var zoneRiders = await zoneQuery
+                    .Select(u => new { u.Id, u.PriorityUntilUtc })
                     .ToListAsync();
 
                 byGps.AddRange(zoneRiders
-                    .Where(r => !contacted.Contains(r.Id)
-                             && (!_riderSecurity.RequireCertifiedRiders || certifiedIds.Contains(r.Id))
-                             && string.Equals(r.Zone?.Trim(), vendor.Zone.Trim(), StringComparison.OrdinalIgnoreCase))
+                    .Where(r => !contacted.Contains(r.Id))
                     .Select(r => new NearestRiderDto(r.Id, double.MaxValue, r.PriorityUntilUtc)));
             }
 
@@ -1014,8 +1060,14 @@ namespace Wazap.Application.Services
             if (string.IsNullOrWhiteSpace(vendorWhatsApp))
                 return null;
 
+            // Pré-filtre INDEXÉ (8 derniers chiffres) puis confirmation exacte : la diffusion
+            // chargeait auparavant TOUTE la table des vendeurs, à chaque vague et par lot.
+            var suffix = PhoneNumberNormalizer.SubscriberSuffix(vendorWhatsApp);
+            if (suffix.Length == 0)
+                return null;
+
             var vendors = await _context.Users.AsNoTracking()
-                .Where(u => u.Role == UserRole.Vendor && u.PhoneNumber != null)
+                .Where(u => u.Role == UserRole.Vendor && u.PhoneSuffix == suffix)
                 .ToListAsync();
 
             return vendors.FirstOrDefault(v =>

@@ -411,16 +411,16 @@ public class WebhookWhatsAppController : ControllerBase
         if (!string.IsNullOrWhiteSpace(phone) && !string.IsNullOrWhiteSpace(text))
         {
             // SameSubscriber est une méthode C# : EF Core ne sait pas la traduire en SQL.
-            // Employée directement dans un prédicat LINQ-to-Entities, elle faisait lever
-            // « The LINQ expression could not be translated ». On rapproche donc en mémoire,
-            // comme FindUserByPhoneAsync, après un pré-filtre SQL sur les 8 derniers chiffres.
-            var digits = PhoneNumberNormalizer.DigitsOnly(phone);
-            var suffix = digits.Length >= 8 ? digits[^8..] : digits;
+            // On emploie donc la clé de rapprochement INDEXÉE (8 derniers chiffres) pour le
+            // pré-filtre, puis la comparaison exacte en mémoire.
+            var suffix = PhoneNumberNormalizer.SubscriberSuffix(phone);
 
-            var candidates = await _context.Users.AsNoTracking()
-                .Where(u => u.PhoneNumber != null && u.PhoneNumber.EndsWith(suffix))
-                .Select(u => u.PhoneNumber)
-                .ToListAsync();
+            var candidates = suffix.Length == 0
+                ? new List<string?>()
+                : await _context.Users.AsNoTracking()
+                    .Where(u => u.PhoneSuffix == suffix)
+                    .Select(u => u.PhoneNumber)
+                    .ToListAsync();
 
             var knownUser = candidates.Any(p => PhoneNumberNormalizer.SameSubscriber(p, phone));
             if (!knownUser)
@@ -1129,11 +1129,19 @@ public class WebhookWhatsAppController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(phone)) return null;
 
-        var users = await _context.Users.AsNoTracking()
-            .Where(u => u.Role == role && u.PhoneNumber != null)
+        var suffix = PhoneNumberNormalizer.SubscriberSuffix(phone);
+        if (suffix.Length == 0)
+            return null;
+
+        // Pré-filtre INDEXÉ sur les 8 derniers chiffres, puis confirmation exacte en mémoire :
+        // SameSubscriber() gère l'ancienne/nouvelle numérotation ivoirienne et écarte deux
+        // indicatifs qui partageraient la même terminaison. L'ancienne version chargeait TOUS
+        // les utilisateurs du rôle à chaque message entrant.
+        var candidates = await _context.Users.AsNoTracking()
+            .Where(u => u.Role == role && u.PhoneSuffix == suffix)
             .ToListAsync();
 
-        var user = users.FirstOrDefault(u =>
+        var user = candidates.FirstOrDefault(u =>
             PhoneNumberNormalizer.SameSubscriber(u.PhoneNumber, phone));
 
         // Auto-réparation : le wa_id reçu est la référence fiable (ancienne vs nouvelle

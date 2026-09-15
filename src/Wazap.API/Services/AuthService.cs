@@ -374,8 +374,15 @@ public sealed class AuthService
     {
         if (string.IsNullOrWhiteSpace(phoneNumber)) return null;
 
+        // Pré-filtre INDEXÉ sur la clé de rapprochement (8 derniers chiffres) puis confirmation
+        // exacte. Cet endpoint est ANONYME : charger toute la table des utilisateurs à chaque
+        // demande de réinitialisation offrait une amplification triviale.
+        var suffix = PhoneNumberNormalizer.SubscriberSuffix(phoneNumber);
+        if (suffix.Length == 0)
+            return null;
+
         var users = await _context.Users.AsNoTracking()
-            .Where(u => u.PhoneNumber != null)
+            .Where(u => u.PhoneSuffix == suffix)
             .ToListAsync();
 
         return users.FirstOrDefault(u =>

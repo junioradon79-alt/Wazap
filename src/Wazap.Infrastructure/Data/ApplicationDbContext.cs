@@ -176,6 +176,16 @@ namespace Wazap.Infrastructure.Data
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.PhoneNumber);
 
+            // Clé de rapprochement indexée des numéros (8 derniers chiffres) : sans elle,
+            // chaque message WhatsApp entrant, chaque création de commande et chaque diffusion
+            // chargeaient TOUTE la table des utilisateurs pour retrouver un compte.
+            modelBuilder.Entity<User>()
+                .Property(u => u.PhoneSuffix)
+                .HasMaxLength(8);
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.PhoneSuffix);
+
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.IsAvailable);
 

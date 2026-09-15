@@ -181,8 +181,15 @@ public sealed class OrderService
     {
         if (string.IsNullOrWhiteSpace(vendorWhatsApp)) return null;
 
+        // Pré-filtre INDEXÉ sur la clé de rapprochement (8 derniers chiffres) puis confirmation
+        // exacte : l'ancienne version chargeait TOUS les vendeurs, à chaque création de
+        // commande et à chaque diffusion.
+        var suffix = PhoneNumberNormalizer.SubscriberSuffix(vendorWhatsApp);
+        if (suffix.Length == 0)
+            return null;
+
         var vendors = await _context.Users
-            .Where(u => u.Role == UserRole.Vendor && u.PhoneNumber != null)
+            .Where(u => u.Role == UserRole.Vendor && u.PhoneSuffix == suffix)
             .ToListAsync();
 
         return vendors.FirstOrDefault(v =>

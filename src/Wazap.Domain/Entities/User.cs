@@ -9,6 +9,15 @@ public class User
     public string PasswordHash { get; private set; } = default!;
     public UserRole Role { get; private set; }
     public string? PhoneNumber { get; private set; }
+
+    /// <summary>
+    /// Clé de rapprochement indexée : les 8 derniers chiffres de <see cref="PhoneNumber"/>.
+    /// Maintenue automatiquement à chaque écriture du numéro. Elle évite de charger TOUS les
+    /// utilisateurs pour retrouver un compte par son numéro (message WhatsApp entrant,
+    /// création de commande, diffusion, réinitialisation de mot de passe).
+    /// </summary>
+    public string? PhoneSuffix { get; private set; }
+
     public DateTime CreatedAt { get; private set; }
 
     // Géolocalisation (livreurs dynamiques + vendeurs statiques)
@@ -66,9 +75,27 @@ public class User
         PasswordHash = passwordHash;
         Role = role;
         PhoneNumber = phoneNumber;
+        PhoneSuffix = ComputePhoneSuffix(phoneNumber);
         CreatedAt = DateTime.UtcNow;
         LocationSharingEnabled = true;
         ReferralCode = GenerateReferralCode();
+    }
+
+    /// <summary>
+    /// Les 8 derniers chiffres du numéro (le numéro entier s'il est plus court), ou
+    /// <c>null</c> s'il n'y a aucun chiffre. Dupliqué volontairement depuis
+    /// <c>PhoneNumberNormalizer</c> : le domaine ne dépend pas de la couche Application.
+    /// </summary>
+    private static string? ComputePhoneSuffix(string? phoneNumber)
+    {
+        if (string.IsNullOrWhiteSpace(phoneNumber))
+            return null;
+
+        var digits = new string(phoneNumber.Where(char.IsDigit).ToArray());
+        if (digits.Length == 0)
+            return null;
+
+        return digits.Length <= 8 ? digits : digits[^8..];
     }
 
     /// <summary>
@@ -181,6 +208,7 @@ public class User
             throw new ArgumentException("Le numéro de téléphone est requis.", nameof(phoneNumber));
 
         PhoneNumber = phoneNumber;
+        PhoneSuffix = ComputePhoneSuffix(phoneNumber);
     }
 
     public void SetAvailability(bool isAvailable) => IsAvailable = isAvailable;
