@@ -46,8 +46,8 @@ public sealed class HealthDetailsService
             ["uptimeSeconds"] = Math.Round(uptime, 0)
         };
 
-        await ProbeDatabaseAndOutboxAsync(details, ct);
-        AddWorkerDetails(details, now);
+        await ProbeDatabaseAndOutboxAsync(details, includeSensitiveDetail, ct);
+        AddWorkerDetails(details, now, includeSensitiveDetail);
         AddComplianceDetails(details, includeSensitiveDetail);
         AddClientPaymentDetails(details);
 
@@ -62,7 +62,8 @@ public sealed class HealthDetailsService
         return details;
     }
 
-    private async Task ProbeDatabaseAndOutboxAsync(IDictionary<string, object?> details, CancellationToken ct)
+    private async Task ProbeDatabaseAndOutboxAsync(
+        IDictionary<string, object?> details, bool includeSensitiveDetail, CancellationToken ct)
     {
         try
         {
@@ -89,20 +90,29 @@ public sealed class HealthDetailsService
         }
         catch (Exception ex)
         {
-            details["database"] = "error: " + ex.Message;
+            // Message brut réservé aux administrateurs : il contient l'hôte, le port et le nom
+            // de la base (message Npgsql) — de quoi cartographier l'infrastructure depuis
+            // un endpoint anonyme.
+            details["database"] = includeSensitiveDetail ? "error: " + ex.Message : "error";
         }
     }
 
-    private static void AddWorkerDetails(IDictionary<string, object?> details, DateTime now)
+    private static void AddWorkerDetails(
+        IDictionary<string, object?> details, DateTime now, bool includeSensitiveDetail)
     {
         var workers = WorkerHeartbeats.Snapshot().ToDictionary(
             beat => beat.Name,
             beat =>
             {
                 var lagSeconds = Math.Max(0, (now - beat.LastBeatUtc).TotalSeconds);
-                return beat.LastError is null
-                    ? $"dernier cycle il y a {lagSeconds:0}s"
-                    : $"dernier cycle il y a {lagSeconds:0}s (erreur : {beat.LastError})";
+                if (beat.LastError is null)
+                    return $"dernier cycle il y a {lagSeconds:0}s";
+
+                // L'erreur d'un worker peut nommer des tables, des colonnes ou une connexion :
+                // elle n'est servie qu'aux administrateurs authentifiés.
+                return includeSensitiveDetail
+                    ? $"dernier cycle il y a {lagSeconds:0}s (erreur : {beat.LastError})"
+                    : $"dernier cycle il y a {lagSeconds:0}s (erreur)";
             },
             StringComparer.Ordinal);
 

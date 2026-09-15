@@ -42,18 +42,25 @@ public sealed class VendorOnboardingWorker : BackgroundService
 
         while (await timer.WaitForNextTickAsync(stoppingToken))
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-            await using var guard = await AdvisoryLockScope.TryAcquireAsync(db, 77_003, stoppingToken);
-            if (!guard.Acquired)
-            {
-                _logger.LogDebug("Onboarding vendeur sauté (une autre instance le réalise).");
-                continue;
-            }
-
+            // Tout le cycle sous try/catch (acquisition du verrou comprise) : une erreur de
+            // base transitoire ne doit pas remonter hors d'ExecuteAsync — le comportement
+            // par défaut de l'hôte .NET est d'arrêter l'application entière.
             try
             {
+                using var scope = _scopeFactory.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+                // Clé advisory DÉDIÉE (77_004). Elle était partagée avec PaymentReconciliationWorker
+                // (77_003) : les deux workers se bloquaient mutuellement leur cycle et le sautaient
+                // en silence — la réconciliation des paiements et l'onboarding vendeur ne
+                // s'exécutaient donc jamais quand l'autre tournait, sans erreur visible.
+                await using var guard = await AdvisoryLockScope.TryAcquireAsync(db, 77_004, stoppingToken);
+                if (!guard.Acquired)
+                {
+                    _logger.LogDebug("Onboarding vendeur sauté (une autre instance le réalise).");
+                    continue;
+                }
+
                 var processed = await ProcessDueAsync(db, scope, stoppingToken);
                 await guard.CompleteAsync(stoppingToken);
                 if (processed > 0)

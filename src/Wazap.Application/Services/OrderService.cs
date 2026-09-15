@@ -194,12 +194,44 @@ public sealed class OrderService
             .AsNoTracking()
             .FirstOrDefaultAsync(o => o.Id == id);
 
+    /// <summary>
+    /// Une commande est-elle visible par l'appelant ? Admin : tout. Vendeur : ses commandes.
+    /// Livreur : ses courses. Tout autre cas : non.
+    /// <para>
+    /// Sans ce contrôle, <c>GET /api/orders/{id}</c> (autorisation « authentifié », sans rôle)
+    /// laissait n'importe quel compte lire le nom, le téléphone et l'adresse du client d'une
+    /// commande qui ne le concerne pas.
+    /// </para>
+    /// </summary>
+    public bool CanAccess(Order order)
+    {
+        if (_currentUser.Role == UserRole.Admin)
+            return true;
+
+        if (_currentUser.Id is not { } userId)
+            return false;
+
+        return order.VendorUserId == userId || order.RiderUserId == userId;
+    }
+
     public async Task<PagedResult<OrderDto>> GetOrdersAsync(int page, int pageSize)
     {
         page = Math.Max(page, 1);
         pageSize = Math.Clamp(pageSize, 1, 100);
 
         var query = _context.Orders.AsNoTracking();
+
+        // Cloisonnement par rôle : un vendeur ne voit QUE ses commandes. Sans ce filtre,
+        // GET /api/orders renvoyait à tout vendeur connecté la liste complète des commandes
+        // de la plateforme (nom du client, description, montant) — fuite de données et
+        // violation du cloisonnement entre commerçants.
+        if (_currentUser.Role != UserRole.Admin)
+        {
+            if (_currentUser.Id is not { } ownerId)
+                return new PagedResult<OrderDto>(Array.Empty<OrderDto>(), 0, page, pageSize);
+
+            query = query.Where(o => o.VendorUserId == ownerId || o.RiderUserId == ownerId);
+        }
 
         var total = await query.CountAsync();
         var items = await query

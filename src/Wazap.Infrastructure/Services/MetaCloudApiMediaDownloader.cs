@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Wazap.Application.Abstractions;
 using Wazap.Application.Configuration;
 
@@ -23,11 +24,16 @@ public sealed class MetaCloudApiMediaDownloader : IWhatsAppMediaDownloader
 
     private readonly HttpClient _httpClient;
     private readonly MetaApiOptions _options;
+    private readonly ILogger<MetaCloudApiMediaDownloader> _logger;
 
-    public MetaCloudApiMediaDownloader(HttpClient httpClient, MetaApiOptions options)
+    public MetaCloudApiMediaDownloader(
+        HttpClient httpClient,
+        MetaApiOptions options,
+        ILogger<MetaCloudApiMediaDownloader> logger)
     {
         _httpClient = httpClient;
         _options = options;
+        _logger = logger;
     }
 
     public async Task<(byte[] Content, string FileName)?> TryDownloadAsync(
@@ -44,6 +50,16 @@ public sealed class MetaCloudApiMediaDownloader : IWhatsAppMediaDownloader
             if (resolvedUrl is null)
                 return null;
 
+            // L'URL signée est renvoyée par Meta, mais on ne lui fait pas aveuglément
+            // confiance : elle est appelée AVEC le jeton Bearer d'envoi.
+            if (!MediaUrlGuard.IsTrustedMetaMediaUrl(resolvedUrl))
+            {
+                _logger.LogWarning(
+                    "Média Meta ignoré : l'URL résolue ne pointe pas vers un domaine Meta officiel ({Host}).",
+                    SafeHost(resolvedUrl));
+                return null;
+            }
+
             var payload = await TryGetAsync(resolvedUrl, ct);
             if (payload is null)
                 return null;
@@ -51,10 +67,19 @@ public sealed class MetaCloudApiMediaDownloader : IWhatsAppMediaDownloader
             return (payload, BuildFileName(resolvedMime ?? mimeType, resolvedUrl));
         }
 
-        // 2) URL directe (radicalement tolérant : Meta ne l'envoie pas, mais rien ne nous
-        //    empêche de l'accepter si un relais futur la fournit).
+        // 2) URL directe : elle vient du corps du webhook, donc d'un tiers non fiable.
+        //    Sans contrôle d'hôte, ce chemin transformait le serveur en proxy authentifié
+        //    vers l'hôte de l'attaquant (vol du jeton) et en sonde du réseau interne (SSRF).
         if (!string.IsNullOrWhiteSpace(url))
         {
+            if (!MediaUrlGuard.IsTrustedMetaMediaUrl(url))
+            {
+                _logger.LogWarning(
+                    "Média Meta ignoré : URL non fiable dans le payload ({Host}).",
+                    SafeHost(url));
+                return null;
+            }
+
             var payload = await TryGetAsync(url, ct);
             if (payload is not null)
                 return (payload, BuildFileName(mimeType, url));
@@ -62,6 +87,10 @@ public sealed class MetaCloudApiMediaDownloader : IWhatsAppMediaDownloader
 
         return null;
     }
+
+    /// <summary>Hôte seul, pour journaliser sans exposer la query (qui peut porter une signature).</summary>
+    private static string SafeHost(string? url)
+        => Uri.TryCreate(url, UriKind.Absolute, out var uri) ? uri.Host : "hôte invalide";
 
     private Uri MediaInfoUrl(string mediaId)
         => new Uri($"{_options.GraphUrl.TrimEnd('/')}/{_options.ApiVersion}/{Uri.EscapeDataString(mediaId)}");

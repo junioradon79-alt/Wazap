@@ -26,5 +26,13 @@ public interface IApplicationDbContext
 
     DatabaseFacade Database { get; }
 
+    /// <summary>
+    /// Indique si le fournisseur sait exécuter un UPDATE ensembliste conditionnel
+    /// (<c>ExecuteUpdateAsync</c>) : indispensable aux opérations qui doivent rester
+    /// atomiques (réclamation d'une offre, débit de crédits) face à des requêtes
+    /// concurrentes. Faux pour le fournisseur InMemory utilisé par les tests.
+    /// </summary>
+    bool SupportsConditionalUpdates { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

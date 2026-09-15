@@ -10,6 +10,12 @@ namespace Wazap.API.Services
     /// Insère des données de démonstration (vendeurs, livreurs) uniquement si la base
     /// ne contient encore aucun utilisateur de ces rôles. Les mots de passe sont hachés
     /// (PBKDF2) pour permettre la connexion des comptes démo.
+    /// <para>
+    /// Ces comptes ont un mot de passe connu (« demo ») : le service ne s'exécute donc
+    /// que si <c>DemoData:Enabled=true</c> ou, à défaut de réglage explicite, en
+    /// développement local. En production il est inerte — un compte à mot de passe
+    /// public y serait une porte d'entrée ouverte.
+    /// </para>
     /// </summary>
     public sealed class DemoDataSeeder : BackgroundService
     {
@@ -18,15 +24,33 @@ namespace Wazap.API.Services
 
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<DemoDataSeeder> _logger;
+        private readonly bool _enabled;
+        private readonly string _environmentName;
 
-        public DemoDataSeeder(IServiceScopeFactory scopeFactory, ILogger<DemoDataSeeder> logger)
+        public DemoDataSeeder(
+            IServiceScopeFactory scopeFactory,
+            IConfiguration configuration,
+            IHostEnvironment environment,
+            ILogger<DemoDataSeeder> logger)
         {
             _scopeFactory = scopeFactory;
             _logger = logger;
+            _environmentName = environment.EnvironmentName;
+
+            var configured = configuration.GetValue<bool?>("DemoData:Enabled");
+            _enabled = configured ?? environment.IsDevelopment();
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            if (!_enabled)
+            {
+                _logger.LogInformation(
+                    "Données de démonstration désactivées (DemoData:Enabled non activé, environnement {Env}).",
+                    _environmentName);
+                return;
+            }
+
             try
             {
                 using var scope = _scopeFactory.CreateScope();

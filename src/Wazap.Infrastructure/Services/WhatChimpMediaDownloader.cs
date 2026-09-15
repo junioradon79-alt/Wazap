@@ -46,9 +46,16 @@ public sealed class WhatChimpMediaDownloader : IWhatsAppMediaDownloader
         // 1) URL directe fournie par la passerelle (le cas le plus courant).
         if (!string.IsNullOrWhiteSpace(url))
         {
-            var direct = await TryGetAsync(url, authFallback: true, ct);
-            if (direct is not null)
-                return (direct, BuildFileName(mimeType, url));
+            if (!IsSafeFetchUrl(url))
+            {
+                _logger.LogWarning("Média WhatsApp ignoré : URL non fiable dans le payload ({Host}).", SafeHost(url));
+            }
+            else
+            {
+                var direct = await TryGetAsync(url, authFallback: true, ct);
+                if (direct is not null)
+                    return (direct, BuildFileName(mimeType, url));
+            }
         }
 
         // 2) Identifiant de média : résolution style Cloud API (JSON { url } ou binaire).
@@ -64,9 +71,18 @@ public sealed class WhatChimpMediaDownloader : IWhatsAppMediaDownloader
                 var resolved = TryExtractUrl(info);
                 if (resolved is not null)
                 {
-                    var payload = await TryGetAsync(resolved, authFallback: true, ct);
-                    if (payload is not null)
-                        return (payload, BuildFileName(mimeType, resolved));
+                    if (!IsSafeFetchUrl(resolved))
+                    {
+                        _logger.LogWarning(
+                            "Média WhatsApp {MediaId} ignoré : URL résolue non fiable ({Host}).",
+                            mediaId, SafeHost(resolved));
+                    }
+                    else
+                    {
+                        var payload = await TryGetAsync(resolved, authFallback: true, ct);
+                        if (payload is not null)
+                            return (payload, BuildFileName(mimeType, resolved));
+                    }
                 }
                 else if (!LooksLikeJson(info))
                 {
@@ -85,6 +101,20 @@ public sealed class WhatChimpMediaDownloader : IWhatsAppMediaDownloader
         return null;
     }
 
+    /// <summary>
+    /// URL appelable sans risque : http(s) absolue et hôte ni local, ni privé, ni de
+    /// métadonnées cloud. Le corps du webhook est une donnée NON fiable : sans ce filtre,
+    /// le serveur servait de sonde SSRF vers son propre réseau interne.
+    /// </summary>
+    private static bool IsSafeFetchUrl(string url)
+        => Uri.TryCreate(url, UriKind.Absolute, out var uri)
+           && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp)
+           && !MediaUrlGuard.IsPrivateOrLoopbackHost(uri.Host);
+
+    /// <summary>Hôte seul, pour journaliser sans exposer la query (elle peut porter un jeton).</summary>
+    private static string SafeHost(string? url)
+        => Uri.TryCreate(url, UriKind.Absolute, out var uri) ? uri.Host : "hôte invalide";
+
     /// <summary>GET tolérant : journalise les échecs (y compris repli authentifié) et retourne null.</summary>
     private async Task<byte[]?> TryGetAsync(string url, bool authFallback, CancellationToken ct)
     {
@@ -94,7 +124,11 @@ public sealed class WhatChimpMediaDownloader : IWhatsAppMediaDownloader
             if (response.IsSuccessStatusCode)
                 return await ReadCappedAsync(response.Content, ct);
 
-            if (authFallback && !url.Contains("apiToken=", StringComparison.Ordinal))
+            // Le jeton API ne suit QUE vers la passerelle elle-même : l'ajouter à une URL
+            // arbitraire (hôte de l'attaquant) revenait à lui livrer le jeton d'envoi WhatsApp.
+            if (authFallback
+                && MediaUrlGuard.IsTrustedWhatChimpUrl(url)
+                && !url.Contains("apiToken=", StringComparison.Ordinal))
             {
                 var separator = url.Contains('?', StringComparison.Ordinal) ? '&' : '?';
                 using var retry = await _httpClient.GetAsync(

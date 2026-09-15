@@ -79,6 +79,20 @@ export default function SuiviPage() {
     }, 5000)
   }, [id])
 
+  // Le suivi ne démarrait qu'après l'ENVOI des coordonnées : un client qui rouvrait ou
+  // rafraîchissait sa page de suivi ne voyait plus jamais le livreur bouger ni le statut
+  // évoluer — le cœur de la page restait figé. On reprend le suivi dès que la commande
+  // est en cours, et on l'arrête quand elle est terminée.
+  // La dépendance est un BOOLÉEN (et non l'objet commande) : sinon chaque réponse du
+  // sondage relançait le minuteur et le suivi dérivait.
+  const tracking = Boolean(order?.hasCoordinates) && !order?.delivered && order?.status !== 'Cancelled'
+
+  useEffect(() => {
+    if (!tracking) return
+    startPolling()
+    return () => { if (timer.current) clearInterval(timer.current) }
+  }, [tracking, startPolling])
+
   const useGeo = () => {
     setGeoErr(null)
     if (!navigator.geolocation) { setGeoErr('Géolocalisation non supportée — saisissez votre adresse.'); return }

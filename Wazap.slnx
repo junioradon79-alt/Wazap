@@ -8,4 +8,12 @@
   <Folder Name="/tests/">
     <Project Path="tests/Wazap.UnitTests/Wazap.UnitTests.csproj" />
   </Folder>
+  <!-- Les 9 outils d'exploitation (tools/) ne sont volontairement PAS listés ici : leur
+       graphe de paquets déclenche l'avertissement MSB3277 (Npgsql 10.0.3 tire
+       EF Core Relational 10.0.4 alors que le dépôt utilise 10.0.11), ce qui ferait échouer
+       la construction avec -warnaserror. La CI les COMPILE tout de même, dans une étape
+       dédiée (voir .github/workflows/ci.yml) : une rupture de compilation dans un outil
+       destructif comme PurgeTestData doit être détectée.
+       À terme : unifier la version d'EF Core Relational (référence explicite 10.0.11 dans
+       Wazap.Infrastructure) puis les rattacher à la solution. -->
 </Solution>

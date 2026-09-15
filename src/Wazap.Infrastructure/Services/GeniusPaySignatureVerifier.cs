@@ -10,6 +10,18 @@ namespace Wazap.Infrastructure.Services
     /// </summary>
     public static class GeniusPaySignatureVerifier
     {
+        /// <summary>
+        /// Valeur d'exemple livrée dans <c>appsettings.json</c>. Elle est publique (dépôt Git) :
+        /// l'accepter comme secret reviendrait à laisser n'importe qui créditer des packs
+        /// gratuitement en forgeant une notification de paiement.
+        /// </summary>
+        public const string PlaceholderSecret = "whsec_dev_change_me";
+
+        /// <summary>Le secret est-il absent ou resté sur la valeur d'exemple (donc inutilisable) ?</summary>
+        public static bool IsPlaceholderSecret(string? secret)
+            => string.IsNullOrWhiteSpace(secret)
+               || string.Equals(secret.Trim(), PlaceholderSecret, StringComparison.Ordinal);
+
         public static bool IsValid(
             string? payload,
             string? signature,
@@ -19,7 +31,7 @@ namespace Wazap.Infrastructure.Services
         {
             if (string.IsNullOrEmpty(payload) || string.IsNullOrEmpty(signature) || string.IsNullOrEmpty(timestamp))
                 return false;
-            if (string.IsNullOrEmpty(secret))
+            if (IsPlaceholderSecret(secret))
                 return false;
 
             if (!long.TryParse(timestamp, out var sentAt))

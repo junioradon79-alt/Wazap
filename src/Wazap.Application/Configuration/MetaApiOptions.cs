@@ -22,8 +22,12 @@ public sealed class MetaApiOptions
     /// <summary>Identifiant du numéro dédié (Phone Number ID du WABA).</summary>
     public string PhoneNumberId { get; set; } = "";
 
-    /// <summary>Version de l'API Graph (défaut : la plus récente utilisée par l'outil de campagne).</summary>
-    public string ApiVersion { get; set; } = "v21.0";
+    /// <summary>
+    /// Version de l'API Graph. Doit rester ALIGNÉE sur <c>appsettings.json</c> : le défaut du
+    /// code fait foi quand le fichier de configuration est absent ou remplacé au déploiement,
+    /// et une version obsolète fait échouer tous les appels Graph.
+    /// </summary>
+    public string ApiVersion { get; set; } = "v25.0";
 
     /// <summary>Base de l'API Graph.</summary>
     public string GraphUrl { get; set; } = "https://graph.facebook.com/";

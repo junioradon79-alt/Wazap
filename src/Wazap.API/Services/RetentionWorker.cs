@@ -40,19 +40,22 @@ public sealed class RetentionWorker : BackgroundService
 
         while (await timer.WaitForNextTickAsync(stoppingToken))
         {
-            using var scope = _scopeFactory.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-            // Multi-instances : une seule instance purge à la fois (verrou advisory de session).
-            await using var guard = await AdvisoryLockScope.TryAcquireAsync(db, 77_002, stoppingToken);
-            if (!guard.Acquired)
-            {
-                _logger.LogDebug("Rétention sautée (une autre instance la réalise).");
-                continue;
-            }
-
+            // Tout le cycle sous try/catch (acquisition du verrou comprise) : une erreur de
+            // base transitoire ne doit pas remonter hors d'ExecuteAsync, car le comportement
+            // par défaut de l'hôte est alors d'arrêter TOUTE l'application.
             try
             {
+                using var scope = _scopeFactory.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+                // Multi-instances : une seule instance purge à la fois (verrou advisory de session).
+                await using var guard = await AdvisoryLockScope.TryAcquireAsync(db, 77_002, stoppingToken);
+                if (!guard.Acquired)
+                {
+                    _logger.LogDebug("Rétention sautée (une autre instance la réalise).");
+                    continue;
+                }
+
                 await PurgeAsync(db, scope.ServiceProvider.GetRequiredService<RiderService>(), stoppingToken);
                 await guard.CompleteAsync(stoppingToken);
                 WorkerHeartbeats.Beat(nameof(RetentionWorker));
@@ -80,8 +83,18 @@ public sealed class RetentionWorker : BackgroundService
             .ToListAsync(ct);
 
         var ordersPurged = 0;
+        var paymentsPurged = 0;
         if (oldOrderIds.Count > 0)
         {
+            // Les paiements du panier client portent une FK en RESTRICT vers la commande : sans
+            // cette suppression préalable, le DELETE des commandes échouait (FK violation), la
+            // passe entière était annulée et se répétait indéfiniment — les étapes 3 et 4
+            // (outbox, scans d'identité) ne s'exécutaient donc JAMAIS, en violation de la
+            // politique de rétention RGPD affichée.
+            paymentsPurged = await db.OrderPayments
+                .Where(p => oldOrderIds.Contains(p.OrderId))
+                .ExecuteDeleteAsync(ct);
+
             await db.DeliveryOffers
                 .Where(x => x.OrderId != null && oldOrderIds.Contains(x.OrderId.Value))
                 .ExecuteDeleteAsync(ct);
@@ -122,7 +135,8 @@ public sealed class RetentionWorker : BackgroundService
 
         if (ordersPurged + batchesPurged + outboxPurged + scansPurged > 0)
             _logger.LogInformation(
-                "Rétention : {Orders} commande(s), {Batches} lot(s) vide(s), {Outbox} message(s) outbox, {Scans} scan(s) d'identité purgés.",
-                ordersPurged, batchesPurged, outboxPurged, scansPurged);
+                "Rétention : {Orders} commande(s), {Payments} paiement(s) client, {Batches} lot(s) vide(s), "
+                + "{Outbox} message(s) outbox, {Scans} scan(s) d'identité purgés.",
+                ordersPurged, paymentsPurged, batchesPurged, outboxPurged, scansPurged);
     }
 }

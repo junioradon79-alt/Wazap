@@ -137,8 +137,11 @@ public class WebhookWhatsAppController : ControllerBase
     [EnableRateLimiting("webhook")]
     public async Task<IActionResult> Handle([FromBody] JsonElement raw)
     {
-        // Log du payload brut : permet de valider le format exact envoyé par WhatChimp.
-        _logger.LogInformation("Webhook RAW reçu : {Raw}", raw.GetRawText());
+        // Log du payload brut (niveau Debug) : utile pour valider un nouveau format de
+        // passerelle, mais il contient des numéros et des messages de clients (données
+        // personnelles) — il n'a donc rien à faire dans les logs de production.
+        if (_logger.IsEnabled(LogLevel.Debug))
+            _logger.LogDebug("Webhook RAW reçu : {Raw}", raw.GetRawText());
 
         // Lecture tolérante du payload : accepte camelCase ET snake_case
         var data = Find(raw, "data");
@@ -213,25 +216,30 @@ public class WebhookWhatsAppController : ControllerBase
             return Ok();
         }
 
-        // 2) Confirmation / refus du vendeur (boutons « Confirmer » / « Refuser »)
-        //    On inspecte TOUS les candidats (id du bouton, titre du bouton, texte brut) :
-        //    l'id peut être un payload court (« confirm ») alors que le titre est « Confirmer ».
-        var replies = new[] { buttonId, buttonTitle, text }
+        // 2) Confirmation / refus du vendeur (boutons « Confirmer » / « Refuser », ou réponse
+        //    texte courte). On inspecte les candidats : id du bouton, titre du bouton, texte.
+        //    Deux garde-fous par rapport à une simple recherche de sous-chaîne :
+        //      • le texte libre doit être COURT — « je ne peux pas confirmer, je suis fermé »
+        //        confirmait la commande ;
+        //      • si aucun ordre n'est en attente pour ce numéro, on NE consomme PAS le message
+        //        (il poursuit son routage vers les autres bots au lieu d'être perdu).
+        var vendorButtonReplies = new[] { buttonId, buttonTitle }
             .Where(v => !string.IsNullOrWhiteSpace(v))
             .Select(v => v!.Trim().ToLowerInvariant())
             .ToList();
 
-        if (replies.Any(r => r.Contains("confirmer")))
-        {
-            await ConfirmOrRejectAsync(phone, confirm: true);
-            return Ok();
-        }
+        var shortText = text is { Length: <= 25 } ? text.Trim().ToLowerInvariant() : null;
 
-        if (replies.Any(r => r.Contains("refuser")))
-        {
-            await ConfirmOrRejectAsync(phone, confirm: false);
+        var wantsConfirm = vendorButtonReplies.Any(r => r.Contains("confirmer"))
+                           || (shortText is not null && shortText.Contains("confirmer"));
+        var wantsReject = vendorButtonReplies.Any(r => r.Contains("refuser"))
+                          || (shortText is not null && shortText.Contains("refuser"));
+
+        if (wantsConfirm && await ConfirmOrRejectAsync(phone, confirm: true))
             return Ok();
-        }
+
+        if (wantsReject && await ConfirmOrRejectAsync(phone, confirm: false))
+            return Ok();
 
         // 3) Numéro de l'ÉQUIPE (Prospect:TeamPhone) → commande « CONVERTIR [+numéro] » :
         //    « bouton » texte pour créer le compte vendeur d'un lead qualifié directement
@@ -269,8 +277,25 @@ public class WebhookWhatsAppController : ControllerBase
 
         if (offerId is not null)
         {
-            await _deliveryOfferService.AcceptOfferAsync(offerId.Value);
-            _logger.LogInformation("Offre {OfferId} acceptée via webhook.", offerId);
+            try
+            {
+                await _deliveryOfferService.AcceptOfferAsync(offerId.Value);
+                _logger.LogInformation("Offre {OfferId} acceptée via webhook.", offerId);
+            }
+            catch (PaymentRequiredException ex)
+            {
+                // Le vendeur n'a plus de crédits : le livreur DOIT être prévenu, sinon il
+                // attend une course qui n'arrivera jamais (et la passerelle réessaie le
+                // webhook en boucle, l'exception remontant en 500).
+                _logger.LogWarning(ex, "Acceptation de l'offre {OfferId} refusée (crédits vendeur épuisés).", offerId);
+                await ReplyToPhoneAsync(phone, "❌ " + ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Offre déjà prise par un autre livreur, ou expirée entre-temps.
+                _logger.LogInformation("Acceptation de l'offre {OfferId} impossible : {Reason}", offerId, ex.Message);
+                await ReplyToPhoneAsync(phone, "❌ " + ex.Message);
+            }
         }
 
         // 5) Note du client à son livreur (« NOTE 5 ») — AVANT le bot prospects : un client
@@ -514,19 +539,25 @@ public class WebhookWhatsAppController : ControllerBase
         }
     }
 
-    private async Task ConfirmOrRejectAsync(string? phone, bool confirm)
+    /// <summary>
+    /// Traite une réponse « Confirmer » / « Refuser ». Retourne <c>true</c> si un ordre en
+    /// attente a été trouvé pour ce numéro (le message est alors consommé) et <c>false</c>
+    /// sinon, afin que le message poursuive son routage vers les autres bots au lieu d'être
+    /// perdu en silence.
+    /// </summary>
+    private async Task<bool> ConfirmOrRejectAsync(string? phone, bool confirm)
     {
         if (string.IsNullOrWhiteSpace(phone))
         {
             _logger.LogWarning("Numéro de vendeur manquant pour la réponse.");
-            return;
+            return false;
         }
 
         var order = await FindPendingOrderAsync(phone);
         if (order is null)
         {
-            _logger.LogWarning("Aucune commande en attente pour ce vendeur.");
-            return;
+            _logger.LogDebug("Aucune commande en attente pour ce numéro : message routé normalement.");
+            return false;
         }
 
         try
@@ -564,6 +595,8 @@ public class WebhookWhatsAppController : ControllerBase
         {
             _logger.LogWarning(ex, "Traitement de la réponse vendeur impossible ({Action}).", confirm ? "confirmer" : "refuser");
         }
+
+        return true;
     }
 
     /// <summary>
@@ -948,6 +981,22 @@ public class WebhookWhatsAppController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Réponse WhatsApp impossible pour {User}.", user.Username);
+        }
+    }
+
+    /// <summary>Réponse à un numéro brut (émetteur d'un message entrant, sans compte connu).</summary>
+    private async Task ReplyToPhoneAsync(string? phone, string message)
+    {
+        if (string.IsNullOrWhiteSpace(phone))
+            return;
+
+        try
+        {
+            await _whatsAppSender.SendTextMessageAsync(phone, message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Réponse WhatsApp impossible pour {Phone}.", phone);
         }
     }
 

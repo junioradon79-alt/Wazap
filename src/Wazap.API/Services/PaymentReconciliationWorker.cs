@@ -44,23 +44,26 @@ namespace Wazap.API.Services
 
             while (await timer.WaitForNextTickAsync(stoppingToken))
             {
-                using var scope = _scopeFactory.CreateScope();
-                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                var paymentService = scope.ServiceProvider.GetRequiredService<IPaymentService>();
-                var packService = scope.ServiceProvider.GetRequiredService<PackService>();
-                var clientPayments = scope.ServiceProvider.GetRequiredService<ClientPaymentService>();
-                var riderPriority = scope.ServiceProvider.GetRequiredService<RiderPriorityService>();
-
-                // Multi-instances : une seule instance réconcilie à la fois (évite les crédits doublés).
-                await using var guard = await AdvisoryLockScope.TryAcquireAsync(db, 77_003, stoppingToken);
-                if (!guard.Acquired)
-                {
-                    _logger.LogDebug("Réconciliation sautée (une autre instance la réalise).");
-                    continue;
-                }
-
+                // Tout le cycle sous try/catch (acquisition du verrou comprise) : une erreur de
+                // base transitoire ne doit pas remonter hors d'ExecuteAsync — le comportement
+                // par défaut de l'hôte .NET est d'arrêter l'application entière.
                 try
                 {
+                    using var scope = _scopeFactory.CreateScope();
+                    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                    var paymentService = scope.ServiceProvider.GetRequiredService<IPaymentService>();
+                    var packService = scope.ServiceProvider.GetRequiredService<PackService>();
+                    var clientPayments = scope.ServiceProvider.GetRequiredService<ClientPaymentService>();
+                    var riderPriority = scope.ServiceProvider.GetRequiredService<RiderPriorityService>();
+
+                    // Multi-instances : une seule instance réconcilie à la fois (évite les crédits doublés).
+                    await using var guard = await AdvisoryLockScope.TryAcquireAsync(db, 77_003, stoppingToken);
+                    if (!guard.Acquired)
+                    {
+                        _logger.LogDebug("Réconciliation sautée (une autre instance la réalise).");
+                        continue;
+                    }
+
                     await ReconcileAsync(db, paymentService, packService, clientPayments, riderPriority, stoppingToken);
                     await guard.CompleteAsync(stoppingToken);
                     WorkerHeartbeats.Beat(nameof(PaymentReconciliationWorker));

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Wazap.API.Services;
 using Wazap.Application.Dtos;
 
@@ -21,6 +22,7 @@ public class AccountController : ControllerBase
     /// </summary>
     [AllowAnonymous]
     [HttpPost("login")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         AuthResponse auth;

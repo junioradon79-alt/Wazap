@@ -27,6 +27,7 @@ on:
     branches: [ main ]
     paths:
       - 'src/**'
+      - 'web/**'
       - 'Wazap.slnx'
       - 'scripts/cd-deploy.sh'
       - '.github/workflows/deploy.yml'
@@ -67,6 +68,29 @@ jobs:
         # Bloque le déploiement si un test échoue — notamment DiControllerResolutionTests
         # (constructibilité réelle de chaque contrôleur via le conteneur DI de production).
         run: dotnet test tests/Wazap.UnitTests/Wazap.UnitTests.csproj --configuration Release --no-build
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Build du front (React) → wwwroot/app
+        # `dotnet publish` ne reconstruit PAS le front : le bundle de
+        # src/Wazap.API/wwwroot/app était committé et n'était jamais régénéré — la
+        # production servait donc une SPA figée, sans rapport avec web/src (six commits
+        # de retard constatés le 15/09). Le front est désormais reconstruit à chaque
+        # déploiement, puis copié à l'emplacement réellement servi.
+        run: |
+          set -euo pipefail
+          cd web
+          npm ci
+          npm run build
+          rm -rf ../src/Wazap.API/wwwroot/app
+          mkdir -p ../src/Wazap.API/wwwroot/app
+          cp -r dist/* ../src/Wazap.API/wwwroot/app/
+          test -f ../src/Wazap.API/wwwroot/app/index.html
 
       - name: Publish self-contained (win-x64)
         run: dotnet publish src/Wazap.API/Wazap.API.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish-win64 --no-restore

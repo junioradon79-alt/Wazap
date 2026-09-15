@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Wazap.Infrastructure.Data;
 using Wazap.Infrastructure.Services;
+using Wazap.API;
 using Wazap.API.Services;
 using Wazap.API.Middleware;
 using Wazap.Application.Abstractions;
@@ -20,6 +21,7 @@ using Microsoft.OpenApi;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -164,6 +166,10 @@ builder.Services.AddScoped<PublicApiService>();
 var salesPageOptions = builder.Configuration.GetSection(SalesPageOptions.SectionName).Get<SalesPageOptions>() ?? new SalesPageOptions();
 builder.Services.AddSingleton(salesPageOptions);
 
+// Sécurité des webhooks entrants : exiger une signature Meta ou le jeton partagé (fail closed).
+var webhookSecurityOptions = builder.Configuration.GetSection(WebhookSecurityOptions.SectionName).Get<WebhookSecurityOptions>() ?? new WebhookSecurityOptions();
+builder.Services.AddSingleton(webhookSecurityOptions);
+
 // Géocodage d'adresses (Nominatim / OpenStreetMap)
 builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>();
 
@@ -180,6 +186,11 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.SlidingExpiration = true;
         options.Cookie.Name = "wazap.admin";
         options.Cookie.HttpOnly = true;
+        // Le cookie de session administrateur ne doit jamais transiter en clair ni
+        // accompagner une requête inter-site : sans ces deux réglages, un déploiement
+        // servi en HTTP l'exposerait sur le réseau.
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.Lax;
     })
     .AddJwtBearer(options =>
     {
@@ -237,36 +248,29 @@ builder.Services.AddHealthChecks()
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    options.AddFixedWindowLimiter("webhook", o =>
-    {
-        o.PermitLimit = 100;
-        o.Window = TimeSpan.FromMinutes(1);
-        o.QueueLimit = 0;
-    });
-    options.AddFixedWindowLimiter("auth", o =>
-    {
-        o.PermitLimit = 10;
-        o.Window = TimeSpan.FromMinutes(1);
-        o.QueueLimit = 0;
-    });
-    options.AddFixedWindowLimiter("client", o =>
-    {
-        o.PermitLimit = 60;
-        o.Window = TimeSpan.FromMinutes(1);
-        o.QueueLimit = 0;
-    });
-    options.AddFixedWindowLimiter("publicapi", o =>
-    {
-        o.PermitLimit = Math.Max(1, publicApiOptions.RateLimitPerMinute);
-        o.Window = TimeSpan.FromMinutes(1);
-        o.QueueLimit = 0;
-    });
-    options.AddFixedWindowLimiter("leads", o =>
-    {
-        o.PermitLimit = 10;
-        o.Window = TimeSpan.FromMinutes(1);
-        o.QueueLimit = 0;
-    });
+
+    // Chaque politique est PARTITIONNÉE (par IP, ou par clé d'API pour l'API publique).
+    // Une politique non partitionnée partage un compteur unique entre tous les appelants :
+    // 10 tentatives de login suffisaient alors à bloquer la connexion de tout le monde.
+    options.AddPolicy("webhook", ctx => RateLimitPartition.GetFixedWindowLimiter(
+        RateLimitPartitions.ByClient(ctx),
+        _ => RateLimitPartitions.FixedWindow(100, TimeSpan.FromMinutes(1))));
+
+    options.AddPolicy("auth", ctx => RateLimitPartition.GetFixedWindowLimiter(
+        RateLimitPartitions.ByClient(ctx),
+        _ => RateLimitPartitions.FixedWindow(10, TimeSpan.FromMinutes(1))));
+
+    options.AddPolicy("client", ctx => RateLimitPartition.GetFixedWindowLimiter(
+        RateLimitPartitions.ByClient(ctx),
+        _ => RateLimitPartitions.FixedWindow(60, TimeSpan.FromMinutes(1))));
+
+    options.AddPolicy("publicapi", ctx => RateLimitPartition.GetFixedWindowLimiter(
+        RateLimitPartitions.ByApiKey(ctx),
+        _ => RateLimitPartitions.FixedWindow(publicApiOptions.RateLimitPerMinute, TimeSpan.FromMinutes(1))));
+
+    options.AddPolicy("leads", ctx => RateLimitPartition.GetFixedWindowLimiter(
+        RateLimitPartitions.ByClient(ctx),
+        _ => RateLimitPartitions.FixedWindow(10, TimeSpan.FromMinutes(1))));
 });
 
 // Passerelle d'envoi : Meta WhatsApp Cloud (WABA dédié) dès Meta:Enabled=true, sinon
@@ -329,6 +333,14 @@ builder.Services.AddScoped<ICurrentUser, CurrentUserService>();
 // Outbox durable : worker de fond pour l'envoi des notifications WhatsApp
 builder.Services.AddHostedService<OutboxBackgroundWorker>();
 
+// Un worker qui rencontre une erreur de base TRANSITOIRE (pool saturé, bascule PostgreSQL)
+// ne doit PAS arrêter l'API : le comportement par défaut de l'hôte (.NET 6+) est de stopper
+// l'application entière, ce qui couperait les webhooks WhatsApp et les paiements à cause
+// d'un simple incident passager de la base. Les workers gèrent déjà leurs erreurs ; cette
+// option garantit qu'un oubli ne fait pas tomber la plateforme.
+builder.Services.Configure<HostOptions>(options =>
+    options.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore);
+
 // Seed d'un administrateur initial (si SeedAdmin:Username / SeedAdmin:Password sont configurés)
 builder.Services.AddHostedService<AdminSeeder>();
 
@@ -383,6 +395,21 @@ if (!retentionOptions.Enabled)
         "ALERTE [config] Retention:Enabled=false — aucune purge n'est exécutée : les scans "
         + "d'identité des livreurs sont conservés sans limite de durée (RGPD).");
 
+// Le webhook WhatsApp pilote tout le produit (créer une course, accepter une offre, clôturer
+// une livraison) : sans preuve d'authenticité, n'importe qui peut usurper un vendeur ou un
+// livreur. L'absence de protection doit être visible au démarrage, pas découverte en production.
+if (!webhookSecurityOptions.RequireAuthentication)
+    app.Logger.LogWarning(
+        "ALERTE [config] WebhookSecurity:RequireAuthentication=false — les POST non signés sur "
+        + "/api/webhook/whatsapp sont ACCEPTÉS : n'importe qui peut usurper un vendeur ou un livreur. "
+        + "À réserver au développement local.");
+
+if (geniusPayOptions.Enabled && GeniusPaySignatureVerifier.IsPlaceholderSecret(geniusPayOptions.WebhookSecret))
+    app.Logger.LogError(
+        "ALERTE [config] GeniusPay:WebhookSecret absent ou resté sur la valeur d'exemple : les "
+        + "notifications de paiement seront REFUSÉES (fail closed). Renseignez le secret réel du "
+        + "webhook GeniusPay, sinon les achats de packs ne seront jamais crédités.");
+
 // Gestion globale des erreurs (doit être le premier middleware)
 app.UseExceptionHandler();
 
@@ -407,8 +434,11 @@ app.UseWhen(
     ctx => ctx.Request.Path.StartsWithSegments("/api/v1"),
     branch => branch.UseMiddleware<PublicApiKeyMiddleware>());
 
-// Webhooks entrants Meta Cloud API : validation X-Hub-Signature-256 (HMAC) avant routage.
-// N'intervient que si l'en-tête est présent (les POST WhatChimp legacy passent sans elle).
+// Webhooks entrants WhatsApp : authentification OBLIGATOIRE avant routage — signature
+// HMAC Meta (X-Hub-Signature-256) ou, pour la passerelle historique qui ne signe pas,
+// jeton partagé (?token= / X-Webhook-Token). Sans l'un des deux : 403.
+// Ce corps de requête pilote tout le produit (créer une course, accepter une offre,
+// clôturer une livraison) : un POST anonyme y est une usurpation d'identité.
 app.UseWhen(
     ctx => ctx.Request.Path.StartsWithSegments("/api/webhook/whatsapp"),
     branch => branch.UseMiddleware<MetaWebhookSignatureMiddleware>());

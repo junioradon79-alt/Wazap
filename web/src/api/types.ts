@@ -2,11 +2,15 @@
 
 export type UserRole = 'Admin' | 'Vendor' | 'Rider' | 'Client'
 
+// Aligné sur Wazap.Application/Dtos/AuthDtos.cs : `token` est NULL quand la double
+// authentification est activée (le serveur attend alors le code TOTP à l'étape suivante).
 export interface AuthResponse {
   userId: string
-  token: string
+  token: string | null
   username: string
   role: UserRole
+  mfaRequired: boolean
+  refreshToken: string | null
 }
 
 export interface UserSummary {
@@ -97,11 +101,17 @@ export interface ZoneRevenue {
   revenue: number
 }
 
+// Aligné sur Wazap.Domain/Enums/OrderStatus.cs. L'ancienne union inventait
+// « New »/« Confirmed »/« InDelivery » (qui n'existent pas) et omettait quatre états
+// réels : tout `switch` sur le statut était faux, sans erreur de compilation.
 export type OrderStatus =
-  | 'New'
-  | 'Confirmed'
+  | 'PendingVendorConfirmation'
+  | 'VendorConfirmed'
+  | 'AwaitingRiderAcceptance'
   | 'RiderAssigned'
-  | 'InDelivery'
+  | 'ReadyForPickup'
+  | 'PickedUp'
+  | 'InTransit'
   | 'Delivered'
   | 'Cancelled'
 

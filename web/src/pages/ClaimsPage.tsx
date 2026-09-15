@@ -60,11 +60,19 @@ export default function ClaimsPage() {
   }
 
   const reject = async (c: ClaimListItem): Promise<void> => {
-    const reason = window.prompt(`Rejeter le dossier #${c.orderCode} ?\nMotif (optionnel) :`) || ''
+    const reason = window.prompt(`Rejeter le dossier #${c.orderCode} ?\nMotif (optionnel) :`)
+    // `prompt` renvoie NULL quand l'utilisateur clique « Annuler ». L'ancien `|| ''`
+    // transformait ce null en chaîne vide, ce qui rendait la garde suivante inopérante :
+    // annuler la fenêtre REJETAIT quand même le sinistre (action irréversible, vendeur
+    // non indemnisé, livreur dégelé).
     if (reason === null) return
+
+    if (!window.confirm(`Confirmer le REJET définitif du dossier #${c.orderCode} ?`)) return
+
     setBusy(true)
     try {
-      await api.post(`/admin/claims/${c.claimId}/reject`, { note: reason || null })
+      await api.post(`/admin/claims/${c.claimId}/reject`, { note: reason.trim() || null })
+      setError('')
       await load()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Rejet impossible')

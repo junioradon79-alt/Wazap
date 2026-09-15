@@ -4,10 +4,11 @@ on:
   push:
     branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 jobs:
-  build:
+  backend:
+    name: Backend (.NET)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -18,14 +19,40 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      # Sans cache, chaque exécution retéléchargeait l'intégralité des paquets NuGet.
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', '**/Directory.Build.props') }}
+          restore-keys: nuget-${{ runner.os }}-
+
       - name: Restore
         run: dotnet restore Wazap.slnx
 
-      - name: Build
-        run: dotnet build Wazap.slnx --configuration Release --no-restore
+      - name: Build (avertissements traités comme des erreurs)
+        # Le projet compile aujourd'hui à 0 avertissement : cette barre empêche la
+        # réintroduction silencieuse de code douteux (nullabilité, API obsolète, etc.).
+        run: dotnet build Wazap.slnx --configuration Release --no-restore -warnaserror
+
+      - name: Audit des dépendances vulnérables
+        run: dotnet list Wazap.slnx package --vulnerable --include-transitive
 
       - name: Test
         run: dotnet test tests/Wazap.UnitTests/Wazap.UnitTests.csproj --configuration Release --no-build
+
+      - name: Compiler les outils d'exploitation
+        # Les 9 projets de tools/ ne font pas partie de la solution (conflit de version
+        # EF Core Relational) : ils n'étaient donc JAMAIS compilés par la CI. Or l'un d'eux,
+        # PurgeTestData, exécute des DELETE sans clause WHERE — un outil destructif qui ne
+        # compile plus doit être vu au commit, pas au moment de l'exécuter en production.
+        run: |
+          set -euo pipefail
+          for project in tools/*/*.csproj; do
+            echo "::group::$project"
+            dotnet build "$project" --configuration Release --nologo
+            echo "::endgroup::"
+          done
 
       - name: Publish
         run: dotnet publish src/Wazap.API/Wazap.API.csproj --configuration Release --no-restore --output artifacts/publish
@@ -36,3 +63,42 @@ jobs:
           name: wazap-api
           path: artifacts/publish
           if-no-files-found: error
+
+  frontend:
+    name: Frontend (React + TypeScript)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      # Aucun garde-fou n'existait sur le front : le bundle servi en production
+      # (src/Wazap.API/wwwroot/app) avait six commits de retard sur web/src.
+      - name: Install
+        run: npm ci
+        working-directory: web
+
+      - name: Typecheck + build
+        run: npm run build
+        working-directory: web
+
+      # Vérifie que le bundle produit est bien celui attendu par la page servie :
+      # une page HTML pointant vers un fichier absent donnait une application blanche.
+      - name: Vérifier les références du bundle
+        run: |
+          set -euo pipefail
+          missing=0
+          for asset in $(grep -oE '/app/assets/[A-Za-z0-9._-]+' web/dist/index.html | sort -u); do
+            file="web/dist/${asset#/app/}"
+            if [ ! -f "$file" ]; then
+              echo "::error::index.html référence $asset, absent de web/dist"
+              missing=1
+            fi
+          done
+          exit $missing

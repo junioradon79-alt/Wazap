@@ -142,43 +142,96 @@ namespace Wazap.API.Services
         /// <summary>
         /// Complète un achat (webhook GeniusPay, réconciliation ou flux mock synchrone) :
         /// statut Completed puis priorité du livreur prolongée de la durée du pack. Idempotent.
+        /// <para>
+        /// La réclamation de l'achat est ATOMIQUE (UPDATE conditionnel + transaction) : sans
+        /// cela, le webhook et le <c>PaymentReconciliationWorker</c> pouvaient prolonger la
+        /// priorité DEUX FOIS pour un seul paiement, ou marquer l'achat complété sans jamais
+        /// accorder la priorité si le livreur était introuvable.
+        /// </para>
         /// </summary>
         public async Task CompletePurchaseAsync(Guid purchaseId, string paymentReference)
         {
-            var purchase = await _context.RiderPriorityPurchases.FirstOrDefaultAsync(p => p.Id == purchaseId)
+            var purchase = await _context.RiderPriorityPurchases.AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == purchaseId)
                 ?? throw new InvalidOperationException("Achat de pack prioritaire introuvable.");
 
             if (purchase.Status == TransactionStatus.Completed)
                 return; // Webhook dupliqué : ne jamais prolonger la priorité deux fois.
 
-            purchase.Complete(paymentReference);
+            if (purchase.Status == TransactionStatus.Failed)
+                throw new InvalidOperationException("Une transaction en échec ne peut pas être complétée.");
 
-            var rider = await _context.Users.FirstOrDefaultAsync(u => u.Id == purchase.RiderUserId);
+            var rider = await _context.Users.AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == purchase.RiderUserId);
             if (rider is null)
             {
-                _logger.LogWarning("Livreur introuvable pour l'achat prioritaire {PurchaseId}.", purchaseId);
+                // Ne pas « compléter » un achat dont le bénéficiaire est introuvable : laissé
+                // Pending, il reste rattrapable plutôt que perdu en silence.
+                _logger.LogError("Livreur introuvable pour l'achat prioritaire {PurchaseId} : priorité non accordée.",
+                    purchaseId);
                 return;
             }
 
-            rider.GrantPriority(purchase.Days);
+            var relational = _context.Database.IsRelational();
+            await using var dbTransaction = relational
+                ? await _context.Database.BeginTransactionAsync()
+                : null;
+
+            if (relational)
+            {
+                var claimed = await _context.RiderPriorityPurchases
+                    .Where(p => p.Id == purchaseId && p.Status == TransactionStatus.Pending)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(p => p.Status, TransactionStatus.Completed)
+                        .SetProperty(p => p.TransactionReference, paymentReference)
+                        .SetProperty(p => p.CompletedAt, (DateTime?)DateTime.UtcNow));
+
+                if (claimed == 0)
+                    return; // Un autre traitement a déjà complété cet achat.
+            }
+            else
+            {
+                // Fournisseur non relationnel (tests InMemory) : pas d'UPDATE conditionnel.
+                var tracked = await _context.RiderPriorityPurchases.FirstOrDefaultAsync(p => p.Id == purchaseId)
+                    ?? throw new InvalidOperationException("Achat de pack prioritaire introuvable.");
+                if (tracked.Status != TransactionStatus.Pending)
+                    return;
+
+                tracked.Complete(paymentReference);
+            }
+
+            var trackedRider = await _context.Users.FirstOrDefaultAsync(u => u.Id == purchase.RiderUserId);
+            if (trackedRider is null)
+            {
+                _logger.LogError("Livreur introuvable pour l'achat prioritaire {PurchaseId} : priorité non accordée.",
+                    purchaseId);
+                return;
+            }
+
+            trackedRider.GrantPriority(purchase.Days);
             await _context.SaveChangesAsync();
+
+            if (dbTransaction is not null)
+                await dbTransaction.CommitAsync();
+
+            var priorityUntil = trackedRider.PriorityUntilUtc;
 
             _logger.LogInformation(
                 "Pack prioritaire {Pack} activé pour {Rider} — {Days} jour(s), échéance {Until:u} (réf {Ref}).",
-                purchase.PackName ?? "?", rider.Username, purchase.Days, rider.PriorityUntilUtc,
-                purchase.TransactionReference);
+                purchase.PackName ?? "?", trackedRider.Username, purchase.Days, priorityUntil,
+                paymentReference);
 
             // Confirmation WhatsApp au livreur (best effort, comme les packs vendeurs) :
             // un échec d'envoi ne doit jamais invalider l'activation de la priorité.
             try
             {
                 await _whatsApp.SendRiderPriorityPurchaseConfirmationAsync(
-                    rider, purchase.PackName ?? "Priorité livreur", purchase.Days, rider.PriorityUntilUtc);
+                    trackedRider, purchase.PackName ?? "Priorité livreur", purchase.Days, priorityUntil);
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex,
-                    "Confirmation d'activation prioritaire WhatsApp impossible pour {Rider}.", rider.Username);
+                    "Confirmation d'activation prioritaire WhatsApp impossible pour {Rider}.", trackedRider.Username);
             }
         }
 

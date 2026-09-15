@@ -50,6 +50,23 @@ internal sealed class WazapAppFactory : WebApplicationFactory<Program>
         ["WhatChimp:BaseUrl"] = "https://example.invalid/"
     };
 
+    private readonly Dictionary<string, string?> _configuration;
+
+    /// <param name="extraConfiguration">
+    /// Réglages ajoutés (ou remplacés) pour un test donné — par exemple les secrets de webhook.
+    /// Sans cela, un test qui a besoin d'une valeur de configuration devait improviser son propre
+    /// hôte, donc ne vérifiait plus le <c>Program.cs</c> réel.
+    /// </param>
+    public WazapAppFactory(IDictionary<string, string?>? extraConfiguration = null)
+    {
+        _configuration = new Dictionary<string, string?>(TestConfiguration);
+        if (extraConfiguration is null)
+            return;
+
+        foreach (var (key, value) in extraConfiguration)
+            _configuration[key] = value;
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         // Environnement dédié : ni « Development » (qui chargerait les user-secrets locaux,
@@ -61,12 +78,12 @@ internal sealed class WazapAppFactory : WebApplicationFactory<Program>
         // construction de Program.cs (lectures de builder.Configuration) et par les services
         // résolus. Sans cela, un service qui lit la configuration pourrait jeter et masquer le
         // vrai verdict du test (dépendance manquante).
-        foreach (var (key, value) in TestConfiguration)
+        foreach (var (key, value) in _configuration)
             builder.UseSetting(key, value);
 
         builder.ConfigureAppConfiguration((_, config) =>
         {
-            config.AddInMemoryCollection(TestConfiguration);
+            config.AddInMemoryCollection(_configuration);
         });
 
         builder.ConfigureServices(services =>

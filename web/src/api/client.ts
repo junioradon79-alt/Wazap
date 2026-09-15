@@ -2,6 +2,7 @@
 
 const TOKEN_KEY = 'wazap.token'
 const USER_KEY = 'wazap.user'
+const REFRESH_KEY = 'wazap.refresh'
 
 export interface StoredUser {
   userId: string
@@ -33,6 +34,20 @@ export function setUser(user: StoredUser | null): void {
   else localStorage.removeItem(USER_KEY)
 }
 
+/**
+ * Jeton de rafraîchissement (30 j côté serveur). Il était émis par l'API puis simplement
+ * jeté : la session serveur survivait à la déconnexion et l'utilisateur était coupé
+ * brutalement au bout de 8 h, en pleine saisie.
+ */
+export function getRefreshToken(): string | null {
+  return localStorage.getItem(REFRESH_KEY)
+}
+
+export function setRefreshToken(token: string | null): void {
+  if (token) localStorage.setItem(REFRESH_KEY, token)
+  else localStorage.removeItem(REFRESH_KEY)
+}
+
 export class ApiError extends Error {
   status: number
   constructor(status: number, message: string) {
@@ -50,25 +65,50 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken()
   if (token) headers['Authorization'] = `Bearer ${token}`
 
-  const res = await fetch(`/api${path}`, { ...options, headers })
+  // Délai maximal : sans lui, une requête qui « pend » laissait un spinner éternel,
+  // sans message ni possibilité de réessayer.
+  const timeoutSignal = AbortSignal.timeout(15_000)
+  const signal = options.signal ? AbortSignal.any([options.signal, timeoutSignal]) : timeoutSignal
+
+  let res: Response
+  try {
+    res = await fetch(`/api${path}`, { ...options, headers, signal })
+  } catch (err) {
+    if (timeoutSignal.aborted) throw new ApiError(0, 'Délai dépassé : le serveur ne répond pas.')
+    throw err
+  }
 
   if (res.status === 401) {
     if (!path.startsWith('/auth/login')) {
+      // Purger AUSSI l'utilisateur : ne retirer que le jeton laissait le nom et le rôle
+      // en localStorage, donc un état « connecté » fantôme sur un poste partagé.
       setToken(null)
+      setUser(null)
       window.dispatchEvent(new Event('wazap:unauthorized'))
     }
-    throw new ApiError(401, 'Non autorisé')
+    throw new ApiError(401, 'Session expirée, reconnectez-vous.')
   }
 
   if (!res.ok) {
     let message = `Erreur ${res.status}`
     try {
-      const body = (await res.json()) as Record<string, unknown>
-      if (typeof body.message === 'string') message = body.message
-      else if (typeof body.detail === 'string') message = body.detail
-      if (body.errors) {
-        const parts = Object.values(body.errors as Record<string, string[]>).flat()
-        if (parts.length > 0) message = parts.join(' · ')
+      const body = (await res.json()) as Record<string, unknown> | string
+      if (typeof body === 'string') {
+        // Certains endpoints renvoient un corps texte brut (Conflict("…")).
+        if (body.trim()) message = body
+      } else {
+        // Tous les formats du serveur : { message }, ProblemDetails { detail, title },
+        // erreurs de validation { errors }, et le format court { error } utilisé par la
+        // page de vente, les sinistres et les livreurs. Sans cette dernière clé, le
+        // prospect lisait « Erreur 400 » au lieu du motif réel.
+        if (typeof body.message === 'string') message = body.message
+        else if (typeof body.detail === 'string') message = body.detail
+        else if (typeof body.error === 'string') message = body.error
+        else if (typeof body.title === 'string') message = body.title
+        if (body.errors) {
+          const parts = Object.values(body.errors as Record<string, string[]>).flat()
+          if (parts.length > 0) message = parts.join(' · ')
+        }
       }
     } catch {
       // réponse non-JSON : on garde le message générique

@@ -443,13 +443,17 @@ namespace Wazap.Application.Services
         /// <summary>
         /// Accepte une offre (livreur) : assigne le livreur à la commande (ou à toutes les
         /// commandes du lot groupé) et expire les autres offres.
+        /// <para>
+        /// La réclamation de l'offre et le débit des crédits sont ATOMIQUES (UPDATE conditionnel
+        /// en base, dans une transaction) : sans cela, deux livreurs qui répondent « ACCEPTE »
+        /// au même instant acceptaient tous les deux la même course — le vendeur était débité
+        /// deux fois et un livreur se déplaçait pour rien.
+        /// </para>
         /// </summary>
         public async Task AcceptOfferAsync(Guid offerId)
         {
-            var offer = await _context.DeliveryOffers.FirstOrDefaultAsync(o => o.Id == offerId)
+            var offer = await _context.DeliveryOffers.AsNoTracking().FirstOrDefaultAsync(o => o.Id == offerId)
                 ?? throw new InvalidOperationException("Offre introuvable.");
-
-            offer.Accept();
 
             var rider = await _context.Users.FirstOrDefaultAsync(u => u.Id == offer.RiderUserId)
                 ?? throw new InvalidOperationException("Livreur introuvable.");
@@ -457,10 +461,23 @@ namespace Wazap.Application.Services
             var riderPhone = rider.PhoneNumber
                 ?? throw new InvalidOperationException("Le livreur n'a pas de numéro WhatsApp.");
 
+            // La transaction (relationnelle) garantit que la réclamation de l'offre est annulée
+            // si le débit des crédits échoue : jamais de course assignée sans crédit consommé.
+            var relational = _context.SupportsConditionalUpdates;
+            await using var transaction = relational
+                ? await _context.Database.BeginTransactionAsync()
+                : null;
+
+            if (!await TryClaimOfferAsync(offerId))
+                throw new InvalidOperationException("Cette offre n'est plus disponible (déjà acceptée ou expirée).");
+
             // Offre de lot groupé : le livreur prend TOUTES les commandes du lot.
             if (offer.BatchId is not null)
             {
                 await AcceptBatchAsync(offer, rider, riderPhone);
+
+                if (transaction is not null)
+                    await transaction.CommitAsync();
                 return;
             }
 
@@ -486,6 +503,9 @@ namespace Wazap.Application.Services
 
             await _context.SaveChangesAsync();
 
+            if (transaction is not null)
+                await transaction.CommitAsync();
+
             // Alerte crédits bas/épuisés après débit (best effort).
             await NotifyVendorCreditAsync(vendor);
 
@@ -508,6 +528,34 @@ namespace Wazap.Application.Services
             }
         }
 
+        /// <summary>
+        /// Réclame l'offre de façon atomique : un seul appelant peut passer son statut de
+        /// « Pending » à « Accepted ». Retourne <c>false</c> si un autre livreur l'a déjà prise
+        /// (ou si elle a expiré) — le second perdant ne doit RIEN débiter ni assigner.
+        /// </summary>
+        private async Task<bool> TryClaimOfferAsync(Guid offerId)
+        {
+            if (_context.SupportsConditionalUpdates)
+            {
+                var respondedAt = DateTime.UtcNow;
+                var affected = await _context.DeliveryOffers
+                    .Where(o => o.Id == offerId && o.Status == DeliveryOfferStatus.Pending)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(o => o.Status, DeliveryOfferStatus.Accepted)
+                        .SetProperty(o => o.RespondedAt, (DateTime?)respondedAt));
+
+                return affected == 1;
+            }
+
+            // Fournisseur non relationnel (tests InMemory) : pas d'UPDATE conditionnel.
+            var offer = await _context.DeliveryOffers.FirstOrDefaultAsync(o => o.Id == offerId);
+            if (offer is null || offer.Status != DeliveryOfferStatus.Pending)
+                return false;
+
+            offer.Accept();
+            return true;
+        }
+
         private async Task AcceptBatchAsync(DeliveryOffer offer, User rider, string riderPhone)
         {
             var batch = await _context.DeliveryBatches.FirstOrDefaultAsync(b => b.Id == offer.BatchId)
@@ -523,8 +571,9 @@ namespace Wazap.Application.Services
             {
                 // Toutes les commandes ont été annulées entre-temps : on expire les offres
                 // et on clôt le lot plutôt que de laisser une acceptation sans objet.
+                // L'offre déjà réclamée par ce livreur est exclue (elle n'est plus « Pending »).
                 var stalePending = await _context.DeliveryOffers
-                    .Where(o => o.BatchId == batch.Id && o.Status == DeliveryOfferStatus.Pending)
+                    .Where(o => o.BatchId == batch.Id && o.Id != offer.Id && o.Status == DeliveryOfferStatus.Pending)
                     .ToListAsync();
 
                 foreach (var stale in stalePending)
@@ -585,13 +634,49 @@ namespace Wazap.Application.Services
         /// <summary>
         /// Débite le vendeur de <paramref name="ordersCount"/> crédit(s) (un par course acceptée).
         /// Ne fait rien si la commande n'a pas de vendeur lié (données historiques).
+        /// <para>
+        /// Le débit est un UPDATE conditionnel (<c>Credits &gt;= n</c>) : il est donc atomique et
+        /// ne peut ni rendre le solde négatif, ni consommer deux fois le même crédit quand deux
+        /// acceptations arrivent en parallèle. Le vendeur est relu SANS suivi ensuite, car la
+        /// valeur en base vient d'être modifiée hors du change tracker.
+        /// </para>
         /// </summary>
         private async Task<User?> DebitVendorForOrdersAsync(Guid? vendorUserId, int ordersCount)
         {
             if (vendorUserId is null)
                 return null;
 
-            var vendor = await _context.Users.FirstOrDefaultAsync(u => u.Id == vendorUserId.Value && u.Role == UserRole.Vendor)
+            var vendorId = vendorUserId.Value;
+
+            if (_context.SupportsConditionalUpdates)
+            {
+                // Un seul UPDATE : « décrémente si le solde suffit ». affected == 0 ⇒ crédits
+                // insuffisants (ou vendeur inexistant) — rien n'a été modifié.
+                var affected = await _context.Users
+                    .Where(u => u.Id == vendorId && u.Role == UserRole.Vendor && u.Credits >= ordersCount)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(u => u.Credits, u => u.Credits - ordersCount));
+
+                if (affected != 1)
+                {
+                    var remaining = await _context.Users.AsNoTracking()
+                        .Where(u => u.Id == vendorId)
+                        .Select(u => (int?)u.Credits)
+                        .FirstOrDefaultAsync();
+
+                    if (remaining is null)
+                        throw new InvalidOperationException("Vendeur introuvable.");
+
+                    throw new PaymentRequiredException(
+                        $"Crédits insuffisants ({remaining} restant(s)) pour {ordersCount} course(s). Rechargez sur /api/packs.");
+                }
+
+                return await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == vendorId);
+            }
+
+            // Fournisseur non relationnel (tests InMemory) : pas d'UPDATE conditionnel.
+            var vendor = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == vendorId && u.Role == UserRole.Vendor)
                 ?? throw new InvalidOperationException("Vendeur introuvable.");
 
             for (var i = 0; i < ordersCount; i++)

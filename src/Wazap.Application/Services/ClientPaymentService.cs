@@ -136,10 +136,16 @@ public sealed class ClientPaymentService
     /// <summary>
     /// Complète un paiement (webhook GeniusPay ou réconciliation) : statut Completed,
     /// commission calculée, montant net dû au vendeur, notifications WhatsApp. Idempotent.
+    /// <para>
+    /// La complétion est ATOMIQUE (UPDATE conditionnel <c>Pending → Completed</c>) : la garde
+    /// « Status != Pending » relue puis réécrite laissait passer deux traitements simultanés
+    /// — le webhook et le worker de réconciliation — ce qui calculait et appliquait DEUX FOIS
+    /// la commission et déclenchait deux fois la diffusion des livreurs.
+    /// </para>
     /// </summary>
     public async Task CompletePaymentAsync(Guid paymentId, string paymentReference)
     {
-        var payment = await _context.OrderPayments.FirstOrDefaultAsync(p => p.Id == paymentId);
+        var payment = await _context.OrderPayments.AsNoTracking().FirstOrDefaultAsync(p => p.Id == paymentId);
         if (payment is null)
         {
             _logger.LogWarning("Paiement client {PaymentId} introuvable (webhook).", paymentId);
@@ -160,20 +166,50 @@ public sealed class ClientPaymentService
             _logger.LogWarning(
                 "Paiement {PaymentId} complété alors que la commande {OrderId} l'était déjà — remboursement à traiter chez l'agrégateur.",
                 paymentId, payment.OrderId);
-            payment.MarkFailed();
-            await _context.SaveChangesAsync();
+            await FailPaymentAsync(paymentId);
             return;
         }
 
-        payment.Complete(paymentReference, _options.CommissionPercent);
-        await _context.SaveChangesAsync();
+        if (_context.SupportsConditionalUpdates)
+        {
+            var (commission, payout) = OrderPayment.ComputeBreakdown(payment.Amount, _options.CommissionPercent);
+            var completedAt = DateTime.UtcNow;
+
+            var claimed = await _context.OrderPayments
+                .Where(p => p.Id == paymentId && p.Status == TransactionStatus.Pending)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(p => p.Status, TransactionStatus.Completed)
+                    .SetProperty(p => p.TransactionReference, paymentReference)
+                    .SetProperty(p => p.CommissionAmount, commission)
+                    .SetProperty(p => p.VendorPayoutDue, payout)
+                    .SetProperty(p => p.CompletedAt, (DateTime?)completedAt));
+
+            if (claimed == 0)
+                return; // Un autre traitement a complété ce paiement entre-temps.
+        }
+        else
+        {
+            // Fournisseur non relationnel (tests InMemory) : pas d'UPDATE conditionnel.
+            var tracked = await _context.OrderPayments.FirstOrDefaultAsync(p => p.Id == paymentId);
+            if (tracked is null || tracked.Status != TransactionStatus.Pending)
+                return;
+
+            tracked.Complete(paymentReference, _options.CommissionPercent);
+            await _context.SaveChangesAsync();
+        }
+
+        // L'écriture atomique ne met pas à jour l'instance lue avant elle : on relit la ligne
+        // pour que le journal et les notifications affichent la commission et le net RÉELS
+        // (sinon le vendeur recevait un message avec 0 FCFA de commission).
+        var completed = await _context.OrderPayments.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == paymentId) ?? payment;
 
         _logger.LogInformation(
             "Paiement client complété : {PaymentId} pour la commande {OrderId} ({Amount} FCFA, commission {Commission}).",
-            payment.Id, payment.OrderId, payment.Amount, payment.CommissionAmount);
+            completed.Id, completed.OrderId, completed.Amount, completed.CommissionAmount);
 
-        await NotifySuccessAsync(payment);
-        await TryDispatchAfterPaymentAsync(payment.OrderId);
+        await NotifySuccessAsync(completed);
+        await TryDispatchAfterPaymentAsync(completed.OrderId);
     }
 
     /// <summary>Marque un paiement en échec (webhook GeniusPay « payment.failed »). Idempotent.</summary>

@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Wazap.Application.Abstractions;
@@ -579,6 +579,15 @@ namespace Wazap.Infrastructure.Data
             QueueWebhookDeliveries();
             return base.SaveChanges();
         }
+
+        /// <summary>
+        /// Le fournisseur sait-il exécuter un UPDATE ensembliste conditionnel
+        /// (<c>ExecuteUpdateAsync</c>) ? Vrai pour PostgreSQL (production), faux pour le
+        /// fournisseur InMemory des tests. Les services d'application s'appuient dessus pour
+        /// choisir entre une écriture atomique et un repli séquentiel, sans dépendre d'un
+        /// fournisseur de base précis.
+        /// </summary>
+        public bool SupportsConditionalUpdates => Database.IsRelational();
 
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {

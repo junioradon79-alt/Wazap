@@ -83,6 +83,23 @@ public class OrderPayment
     }
 
     /// <summary>
+    /// Commission WAZAP et montant net dû au vendeur pour un montant encaissé
+    /// (arrondi au franc CFA le plus proche : pas de centimes en XOF).
+    /// Exposé publiquement pour que la complétion ATOMIQUE en base
+    /// (<c>ExecuteUpdate</c> conditionnel) applique exactement la même formule que
+    /// <see cref="Complete"/> : une seule source de vérité pour le calcul.
+    /// </summary>
+    public static (decimal Commission, decimal VendorPayout) ComputeBreakdown(decimal amount, decimal commissionPercent)
+    {
+        if (commissionPercent is < 0 or > 100)
+            throw new ArgumentOutOfRangeException(nameof(commissionPercent),
+                "La commission doit être un pourcentage entre 0 et 100.");
+
+        var commission = Math.Round(amount * commissionPercent / 100m, 0, MidpointRounding.AwayFromZero);
+        return (commission, amount - commission);
+    }
+
+    /// <summary>
     /// Complète le paiement : calcule la commission WAZAP et le montant net dû au vendeur.
     /// Idempotence assurée par le service (le webhook peut arriver plusieurs fois).
     /// </summary>
@@ -94,12 +111,8 @@ public class OrderPayment
             throw new InvalidOperationException("Un paiement en échec ne peut pas être complété.");
         if (string.IsNullOrWhiteSpace(paymentReference))
             throw new ArgumentException("La référence de paiement est requise.", nameof(paymentReference));
-        if (commissionPercent is < 0 or > 100)
-            throw new ArgumentOutOfRangeException(nameof(commissionPercent), "La commission doit être un pourcentage entre 0 et 100.");
 
-        // Arrondi au franc CFA le plus proche : pas de centimes en XOF.
-        CommissionAmount = Math.Round(Amount * commissionPercent / 100m, 0, MidpointRounding.AwayFromZero);
-        VendorPayoutDue = Amount - CommissionAmount;
+        (CommissionAmount, VendorPayoutDue) = ComputeBreakdown(Amount, commissionPercent);
         TransactionReference = paymentReference;
         Status = TransactionStatus.Completed;
         CompletedAt = DateTime.UtcNow;

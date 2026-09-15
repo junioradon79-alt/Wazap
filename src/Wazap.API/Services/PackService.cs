@@ -128,29 +128,87 @@ namespace Wazap.API.Services
         /// <summary>
         /// Complète une transaction (appelé par le webhook GeniusPay ou le flux mock synchrone) :
         /// statut Completed, crédits ajoutés au vendeur, notification WhatsApp. Idempotent.
+        /// <para>
+        /// L'idempotence est garantie par un UPDATE CONDITIONNEL en base (et non par une simple
+        /// relecture du statut) : le webhook GeniusPay peut compléter un achat exactement au
+        /// moment où le <c>PaymentReconciliationWorker</c> fait de même, et la garde
+        /// « Status == Completed » relue puis réécrite laissait passer les deux — le vendeur
+        /// était alors crédité DEUX FOIS pour un seul paiement.
+        /// </para>
         /// </summary>
         public async Task CompletePurchaseAsync(Guid transactionId, string paymentReference)
         {
-            var transaction = await _context.CreditTransactions.FirstOrDefaultAsync(t => t.Id == transactionId)
+            var transaction = await _context.CreditTransactions.AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == transactionId)
                 ?? throw new InvalidOperationException("Transaction introuvable.");
 
             if (transaction.Status == TransactionStatus.Completed)
                 return; // Webhook dupliqué : ne rien re-créditer.
 
-            transaction.Complete(paymentReference);
+            if (transaction.Status == TransactionStatus.Failed)
+                throw new InvalidOperationException("Une transaction en échec ne peut pas être complétée.");
 
-            var vendor = await _context.Users.FirstOrDefaultAsync(u => u.Id == transaction.VendorId);
+            var vendor = await _context.Users.AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == transaction.VendorId);
             if (vendor is null)
             {
-                _logger.LogWarning("Vendeur introuvable pour la transaction {TransactionId}.", transactionId);
+                // On ne « complète » pas une transaction dont le bénéficiaire est introuvable :
+                // la laisser Pending la rend rattrapable plutôt que perdue.
+                _logger.LogError("Vendeur introuvable pour la transaction {TransactionId} : achat non complété.",
+                    transactionId);
                 return;
             }
 
-            vendor.AddCredits(transaction.CreditsPurchased);
-            await _context.SaveChangesAsync();
+            var relational = _context.Database.IsRelational();
+            await using var dbTransaction = relational
+                ? await _context.Database.BeginTransactionAsync()
+                : null;
+
+            if (relational)
+            {
+                // Réclamation atomique : passer de Pending à Completed n'est possible qu'une fois.
+                var claimed = await _context.CreditTransactions
+                    .Where(t => t.Id == transactionId && t.Status == TransactionStatus.Pending)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(t => t.Status, TransactionStatus.Completed)
+                        .SetProperty(t => t.TransactionReference, paymentReference));
+
+                if (claimed == 0)
+                    return; // Un autre traitement (webhook ou réconciliation) a déjà complété l'achat.
+
+                // Incrément atomique : un crédit simultané (retrait à l'acceptation d'une course)
+                // ne peut plus écraser cette écriture (perte de mise à jour).
+                await _context.Users
+                    .Where(u => u.Id == vendor.Id)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(u => u.Credits, u => u.Credits + transaction.CreditsPurchased));
+
+                await dbTransaction!.CommitAsync();
+            }
+            else
+            {
+                // Fournisseur non relationnel (tests InMemory) : pas d'UPDATE conditionnel.
+                var tracked = await _context.CreditTransactions.FirstOrDefaultAsync(t => t.Id == transactionId)
+                    ?? throw new InvalidOperationException("Transaction introuvable.");
+                if (tracked.Status != TransactionStatus.Pending)
+                    return;
+
+                tracked.Complete(paymentReference);
+
+                var trackedVendor = await _context.Users.FirstOrDefaultAsync(u => u.Id == transaction.VendorId);
+                if (trackedVendor is null)
+                {
+                    _logger.LogError("Vendeur introuvable pour la transaction {TransactionId} : achat non complété.",
+                        transactionId);
+                    return;
+                }
+
+                trackedVendor.AddCredits(transaction.CreditsPurchased);
+                await _context.SaveChangesAsync();
+            }
 
             _logger.LogInformation("Pack {Pack} acheté par {Vendor} — {Credits} crédits ajoutés (réf {Ref}).",
-                transaction.PackName ?? "?", vendor.Username, transaction.CreditsPurchased, transaction.TransactionReference);
+                transaction.PackName ?? "?", vendor.Username, transaction.CreditsPurchased, paymentReference);
 
             var pack = transaction.PackName is null
                 ? null

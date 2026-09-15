@@ -77,6 +77,12 @@ public class OrdersController : ControllerBase
         var order = await _orderService.GetOrderAsync(id);
         if (order == null)
             return NotFound();
+
+        // Cloisonnement : un compte ne lit que les commandes qui le concernent (ses ventes
+        // ou ses courses). Un admin voit tout.
+        if (!_orderService.CanAccess(order))
+            return Forbid();
+
         return order;
     }
 
@@ -111,11 +117,31 @@ public class OrdersController : ControllerBase
     [HttpPost("{id:guid}/broadcast")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin,Vendor")]
     public async Task<IActionResult> Broadcast(Guid id)
-        => Ok(await _deliveryOfferService.BroadcastAsync(id));
+    {
+        var order = await _orderService.GetOrderAsync(id);
+        if (order is null)
+            return NotFound();
+
+        // Un vendeur ne diffuse que SES commandes (sinon il déclenche des appels aux
+        // livreurs — et consomme les crédits — au nom d'un autre commerçant).
+        if (!_orderService.CanAccess(order))
+            return Forbid();
+
+        return Ok(await _deliveryOfferService.BroadcastAsync(id));
+    }
 
     // GET: api/orders/{id}/offers — offres de livraison de la commande (admin / debug)
     [HttpGet("{id:guid}/offers")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin,Vendor")]
     public async Task<IActionResult> GetOffers(Guid id)
-        => Ok(await _deliveryOfferService.GetOffersAsync(id));
+    {
+        var order = await _orderService.GetOrderAsync(id);
+        if (order is null)
+            return NotFound();
+
+        if (!_orderService.CanAccess(order))
+            return Forbid();
+
+        return Ok(await _deliveryOfferService.GetOffersAsync(id));
+    }
 }

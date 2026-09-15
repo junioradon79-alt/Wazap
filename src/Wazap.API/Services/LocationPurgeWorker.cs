@@ -32,19 +32,23 @@ namespace Wazap.API.Services
             using var timer = new PeriodicTimer(TimeSpan.FromHours(1));
             while (await timer.WaitForNextTickAsync(stoppingToken))
             {
-                using var scope = _scopeFactory.CreateScope();
-                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-                // Multi-instances : une seule instance purge à la fois (verrou advisory de session).
-                await using var guard = await AdvisoryLockScope.TryAcquireAsync(db, 77_001, stoppingToken);
-                if (!guard.Acquired)
-                {
-                    _logger.LogDebug("Purge RGPD sautée (une autre instance la réalise).");
-                    continue;
-                }
-
+                // TOUT le cycle est sous try/catch, acquisition du verrou comprise : une erreur
+                // transitoire de base (pool saturé, bascule PostgreSQL) remontait hors
+                // d'ExecuteAsync, et le comportement par défaut de l'hôte .NET est alors
+                // d'ARRÊTER l'application entière — webhooks WhatsApp et paiements compris.
                 try
                 {
+                    using var scope = _scopeFactory.CreateScope();
+                    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+                    // Multi-instances : une seule instance purge à la fois (verrou advisory de session).
+                    await using var guard = await AdvisoryLockScope.TryAcquireAsync(db, 77_001, stoppingToken);
+                    if (!guard.Acquired)
+                    {
+                        _logger.LogDebug("Purge RGPD sautée (une autre instance la réalise).");
+                        continue;
+                    }
+
                     var purged = await PurgeAsync(db, stoppingToken);
                     await guard.CompleteAsync(stoppingToken);
                     WorkerHeartbeats.Beat(nameof(LocationPurgeWorker));
