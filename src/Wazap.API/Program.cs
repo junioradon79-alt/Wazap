@@ -35,7 +35,10 @@ if (builder.Environment.IsProduction())
     {
         options.TimestampFormat = "yyyy-MM-dd'T'HH:mm:ss.fff'Z'";
         options.UseUtcTimestamp = true;
-        options.IncludeScopes = false;
+        // Les portées sont désormais incluses : elles portent l'identifiant de corrélation et
+        // le chemin de la requête, sans lesquels un incident signalé par un utilisateur était
+        // impossible à relier à une ligne de log.
+        options.IncludeScopes = true;
     });
 }
 
@@ -440,6 +443,10 @@ if (geniusPayOptions.Enabled && GeniusPaySignatureVerifier.IsPlaceholderSecret(g
 
 // Gestion globale des erreurs (doit être le premier middleware)
 app.UseExceptionHandler();
+
+// Identifiant de corrélation : permet de relier une erreur signalée par un utilisateur à sa
+// ligne de log (l'identifiant est renvoyé dans l'en-tête X-Correlation-Id).
+app.UseMiddleware<CorrelationIdMiddleware>();
 
 // Middleware
 if (app.Environment.IsDevelopment())

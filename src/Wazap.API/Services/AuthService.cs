@@ -271,10 +271,14 @@ public sealed class AuthService
     /// <summary>Valide le code reçu puis change le mot de passe.</summary>
     public async Task ResetPasswordAsync(ResetPasswordRequest request)
     {
-        var user = await FindUserByPhoneAnyRoleAsync(request.PhoneNumber)
-            ?? throw new InvalidOperationException("Aucun compte associé à ce numéro.");
+        // Message UNIQUE pour « numéro inconnu » et « code invalide » : répondre
+        // « Aucun compte associé à ce numéro » (400) permettait d'énumérer les numéros
+        // enregistrés — exactement ce que `forgot-password` évite déjà (il répond toujours
+        // 200). L'attaquant ne doit pas pouvoir distinguer les deux cas.
+        var user = await FindUserByPhoneAnyRoleAsync(request.PhoneNumber);
 
-        if (!user.HasActiveResetCode()
+        if (user is null
+            || !user.HasActiveResetCode()
             || user.ResetCodeHash is null
             || !SecurityHelper.FixedTimeEquals(user.ResetCodeHash, SecurityHelper.Sha256Hex(request.Code.Trim())))
         {

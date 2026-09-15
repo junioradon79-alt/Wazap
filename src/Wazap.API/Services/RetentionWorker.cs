@@ -13,6 +13,12 @@ namespace Wazap.API.Services;
 /// </summary>
 public sealed class RetentionWorker : BackgroundService
 {
+    /// <summary>
+    /// Durée de conservation des marqueurs de déduplication des webhooks entrants : au-delà,
+    /// aucune passerelle ne réessaie un message, le marqueur n'a donc plus d'utilité.
+    /// </summary>
+    private const int ProcessedMessagesRetentionDays = 7;
+
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly RetentionOptions _retention;
     private readonly ILogger<RetentionWorker> _logger;
@@ -133,10 +139,18 @@ public sealed class RetentionWorker : BackgroundService
         //    indéfiniment — la décision de certification, si.
         var scansPurged = await riderService.PurgeExpiredScansAsync(_retention.RiderScansDays, ct);
 
-        if (ordersPurged + batchesPurged + outboxPurged + scansPurged > 0)
+        // 5. Marqueurs de déduplication des webhooks entrants. Au-delà de quelques jours ils
+        //    ne servent plus (aucune passerelle ne réessaie aussi longtemps) : sans purge, la
+        //    table grossirait indéfiniment au rythme de tous les messages entrants.
+        var processedCutoff = now.AddDays(-ProcessedMessagesRetentionDays);
+        var processedPurged = await db.ProcessedWebhookMessages
+            .Where(m => m.ProcessedAtUtc < processedCutoff)
+            .ExecuteDeleteAsync(ct);
+
+        if (ordersPurged + batchesPurged + outboxPurged + scansPurged + processedPurged > 0)
             _logger.LogInformation(
                 "Rétention : {Orders} commande(s), {Payments} paiement(s) client, {Batches} lot(s) vide(s), "
-                + "{Outbox} message(s) outbox, {Scans} scan(s) d'identité purgés.",
-                ordersPurged, paymentsPurged, batchesPurged, outboxPurged, scansPurged);
+                + "{Outbox} message(s) outbox, {Scans} scan(s) d'identité, {Processed} marqueur(s) de webhook purgés.",
+                ordersPurged, paymentsPurged, batchesPurged, outboxPurged, scansPurged, processedPurged);
     }
 }

@@ -371,7 +371,12 @@ namespace Wazap.API.Services
             }
 
             var bytes = await File.ReadAllBytesAsync(fullPath);
-            if (_scans.TryResolveKey(out _, out _))
+
+            // On ne déchiffre QUE ce qui porte l'en-tête de chiffrement. L'ancienne version
+            // déchiffrait dès qu'une clé était configurée : les photos de preuve stockées en
+            // clair AVANT l'activation du chiffrement devenaient définitivement illisibles
+            // (404 sur une pièce de litige), et le déchiffrement échouait silencieusement.
+            if (bytes.AsSpan().StartsWith(ScanEncryptionMagic))
             {
                 var decrypted = DecryptBytes(bytes);
                 if (decrypted is null)
@@ -518,6 +523,18 @@ namespace Wazap.API.Services
                     + "La clé d'origine est indispensable — ne la remplacez jamais sans "
                     + "rechiffrer les scans déjà stockés.",
                     keyProblem);
+                return null;
+            }
+
+            // Bornage AVANT tout découpage : un fichier tronqué ou corrompu (moins de
+            // 28 octets) faisait lever ArgumentOutOfRangeException, qui remontait en 500 au
+            // lieu d'un simple « pièce illisible ».
+            const int minimumLength = 6 /* en-tête */ + 12 /* nonce */ + 16 /* tag */;
+            if (encrypted.Length < minimumLength)
+            {
+                _logger.LogError(
+                    "Fichier chiffré tronqué ({Length} octets < {Minimum}) : illisible.",
+                    encrypted.Length, minimumLength);
                 return null;
             }
 

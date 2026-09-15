@@ -32,6 +32,9 @@ namespace Wazap.Infrastructure.Data
         public DbSet<ClientOrderDraft> ClientOrderDrafts { get; set; }
         public DbSet<RiderPriorityPurchase> RiderPriorityPurchases { get; set; }
 
+        /// <summary>Messages webhook entrants déjà traités (déduplication des reprises).</summary>
+        public DbSet<ProcessedWebhookMessage> ProcessedWebhookMessages { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -127,6 +130,17 @@ namespace Wazap.Infrastructure.Data
 
             modelBuilder.Entity<OutboxMessage>()
                 .HasIndex(m => new { m.Status, m.AvailableAt });
+
+            // Déduplication des webhooks entrants : l'identifiant de la passerelle est la clé
+            // primaire — une seconde livraison du MÊME message ne peut donc pas être réinsérée
+            // (contrainte garantie par la base, pas seulement par une lecture préalable).
+            // L'index sur la date sert à la purge des marqueurs anciens.
+            modelBuilder.Entity<ProcessedWebhookMessage>(entity =>
+            {
+                entity.HasKey(m => m.Id);
+                entity.Property(m => m.Id).HasMaxLength(200);
+                entity.HasIndex(m => m.ProcessedAtUtc);
+            });
 
             // Brouillons de commande du bot WhatsApp conversationnel (clients) :
             // une conversation par numéro, index client + étape pour la reprise.

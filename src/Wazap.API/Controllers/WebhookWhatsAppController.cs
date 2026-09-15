@@ -143,7 +143,52 @@ public class WebhookWhatsAppController : ControllerBase
         if (_logger.IsEnabled(LogLevel.Debug))
             _logger.LogDebug("Webhook RAW reçu : {Raw}", raw.GetRawText());
 
-        // Lecture tolérante du payload : accepte camelCase ET snake_case
+        // Passerelle Meta Cloud API : un payload peut porter PLUSIEURS messages
+        // (entry[] × changes[] × messages[]). L'ancienne lecture n'en traitait qu'UN SEUL —
+        // les autres étaient perdus sans trace ni réessai, désynchronisant la conversation.
+        if (MetaWebhookParser.IsMetaPayload(raw))
+        {
+            var events = MetaWebhookParser.ParseAll(raw);
+            if (events.Count == 0)
+                return Ok(); // accusés de réception / statuts de livraison : rien à router
+
+            IActionResult? last = null;
+            foreach (var metaEvent in events)
+            {
+                // Déduplication : la passerelle réessaie tout ce qui n'a pas répondu 2xx et
+                // peut réémettre un événement déjà livré. Sans ce filtre, un « LIVRAISON »
+                // rejoué créait une SECONDE commande et une seconde vague d'offres.
+                var messageId = metaEvent.MessageId;
+                if (!string.IsNullOrWhiteSpace(messageId) && !await TryClaimMessageAsync(messageId))
+                {
+                    _logger.LogInformation(
+                        "Webhook Meta {MessageId} déjà traité : ignoré (reprise de la passerelle).", messageId);
+                    continue;
+                }
+
+                try
+                {
+                    last = await RouteMessageAsync(
+                        metaEvent.From, metaEvent.Text, metaEvent.Latitude, metaEvent.Longitude,
+                        metaEvent.ButtonId, metaEvent.ButtonTitle,
+                        metaEvent.MediaUrl, metaEvent.MediaId, metaEvent.MimeType,
+                        message: null);
+                }
+                catch
+                {
+                    // Le traitement a échoué : on libère le marqueur pour que la reprise de la
+                    // passerelle puisse retraiter le message (sinon il serait perdu).
+                    if (!string.IsNullOrWhiteSpace(messageId))
+                        await ReleaseClaimAsync(messageId);
+
+                    throw;
+                }
+            }
+
+            return last ?? Ok();
+        }
+
+        // Format historique (WhatChimp) : lecture tolérante du payload (camelCase ET snake_case)
         var data = Find(raw, "data");
         var subscriber = Find(data, "subscriber");
         // Fallback : certains envois (ex. image) placent « message » à la racine, pas
@@ -164,19 +209,77 @@ public class WebhookWhatsAppController : ControllerBase
         var buttonId = Str(buttonReply, "id");
         var buttonTitle = Str(buttonReply, "title");
 
-        // Passerelle Meta Cloud API : payload normalisé ([entry[].changes[].value.messages[]])
-        // et injecté dans le même routage. Si ce n'est pas un payload Meta, rien ne change.
-        var metaEvent = MetaWebhookParser.TryParse(raw);
-        if (metaEvent is not null)
-        {
-            phone = metaEvent.From ?? phone;
-            text = metaEvent.Text ?? text;
-            latitude ??= metaEvent.Latitude;
-            longitude ??= metaEvent.Longitude;
-            buttonId ??= metaEvent.ButtonId;
-            buttonTitle ??= metaEvent.ButtonTitle;
-        }
+        return await RouteMessageAsync(phone, text, latitude, longitude, buttonId, buttonTitle,
+            mediaUrl: null, mediaId: null, mimeType: null, message);
+    }
 
+    /// <summary>
+    /// Réserve l'identifiant d'un message entrant. Retourne <c>false</c> si le message a déjà
+    /// été traité (reprise de la passerelle).
+    /// <para>
+    /// La clé primaire de <c>ProcessedWebhookMessages</c> garantit l'unicité EN BASE : la
+    /// lecture préalable évite l'aller-retour inutile, et la violation d'unicité couvre la
+    /// course entre deux livraisons simultanées du même message.
+    /// </para>
+    /// </summary>
+    private async Task<bool> TryClaimMessageAsync(string messageId)
+    {
+        if (await _context.ProcessedWebhookMessages.AsNoTracking().AnyAsync(m => m.Id == messageId))
+            return false;
+
+        try
+        {
+            _context.ProcessedWebhookMessages.Add(new ProcessedWebhookMessage(messageId));
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (DbUpdateException)
+        {
+            // Course perdue : un autre traitement a réservé le message en premier.
+            _context.ChangeTracker.Clear();
+            return false;
+        }
+    }
+
+    /// <summary>Libère une réservation dont le traitement a échoué (best-effort).</summary>
+    private async Task ReleaseClaimAsync(string messageId)
+    {
+        try
+        {
+            var claimed = await _context.ProcessedWebhookMessages.FindAsync(messageId);
+            if (claimed is null)
+                return;
+
+            _context.ProcessedWebhookMessages.Remove(claimed);
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Impossible de libérer le marqueur du message {MessageId}.", messageId);
+        }
+    }
+
+    /// <summary>
+    /// Routage d'UN message entrant, commun aux deux passerelles : position livreur, média
+    /// (scan d'identité / preuve de livraison), confirmation ou refus vendeur, conversion
+    /// d'un lead par l'équipe, commandes texte, acceptation d'offre, note client puis bots.
+    /// </summary>
+    /// <param name="message">
+    /// Nœud brut du message pour la passerelle historique (lecture tolérante des médias) ;
+    /// <c>null</c> pour un événement Meta, dont les champs média sont déjà normalisés.
+    /// </param>
+    private async Task<IActionResult> RouteMessageAsync(
+        string? phone,
+        string? text,
+        double? latitude,
+        double? longitude,
+        string? buttonId,
+        string? buttonTitle,
+        string? mediaUrl,
+        string? mediaId,
+        string? mimeType,
+        JsonElement? message)
+    {
         // 1) Live location du livreur → mise à jour de sa position
         if (latitude is not null && longitude is not null)
         {
@@ -194,21 +297,12 @@ public class WebhookWhatsAppController : ControllerBase
         //     sans cette branche, elle serait ignorée en silence. Lecture tolérante du
         //     payload (la passerelle n'a pas de forme média unique et documentée).
         var mediaNode = Find(message, "media") ?? Find(message, "image") ?? Find(message, "photo");
-        var mediaUrl = Str(message, "mediaUrl") ?? Str(message, "media_url")
+        mediaUrl ??= Str(message, "mediaUrl") ?? Str(message, "media_url")
             ?? Str(mediaNode, "url") ?? Str(mediaNode, "link")
             ?? Str(message, "url") ?? Str(message, "link");
-        var mediaId = Str(mediaNode, "id") ?? Str(message, "mediaId") ?? Str(message, "media_id");
-        var mimeType = Str(message, "mimeType") ?? Str(message, "mime_type")
+        mediaId ??= Str(mediaNode, "id") ?? Str(message, "mediaId") ?? Str(message, "media_id");
+        mimeType ??= Str(message, "mimeType") ?? Str(message, "mime_type")
             ?? Str(mediaNode, "mimeType") ?? Str(mediaNode, "mime_type");
-
-        // Passerelle Meta Cloud API : le webhook fournit un media_id (jamais d'URL directe) —
-        // le téléchargement passe par MetaCloudApiMediaDownloader (résolution via Graph).
-        if (metaEvent is not null)
-        {
-            mediaUrl = metaEvent.MediaUrl ?? mediaUrl;
-            mediaId = metaEvent.MediaId ?? mediaId;
-            mimeType = metaEvent.MimeType ?? mimeType;
-        }
 
         if (mediaUrl is not null || mediaId is not null)
         {

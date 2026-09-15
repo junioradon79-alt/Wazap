@@ -142,7 +142,11 @@ Clés stockées via `dotnet user-secrets set` :
 
 ## 8. Tests
 
-`dotnet test` → **439 tests** (Order, DeliveryBatch, DeliveryOffer, OutboxMessage, User, CreditTransaction, GeoDistance, MockPayment, WhatsAppOrchestration, PhoneNumberNormalizer + table ARTCI 8→10 exhaustive, validators, auth 2FA/refresh/reset, GeniusPay, LeadConversion, ColisSur, RiderService/certification, **RiderProgram (Ambassadeur WAZAP)**, preuve de livraison + parsing `LIVRE … CODE …`).
+`dotnet test` → **524 tests** (Order, DeliveryBatch, DeliveryOffer, OutboxMessage, User, CreditTransaction, GeoDistance, MockPayment, WhatsAppOrchestration, PhoneNumberNormalizer + table ARTCI 8→10 exhaustive, validators, auth 2FA/refresh/reset, GeniusPay, LeadConversion, ColisSur, RiderService/certification, **RiderProgram (Ambassadeur WAZAP)**, preuve de livraison + parsing `LIVRE … CODE …`, **authentification du webhook entrant sur l'application réelle**, **garde-fou d'URL des médias**, **idempotence des paiements et des acceptations d'offre**, **webhooks Meta multi-messages + déduplication**).
+
+> ⚠️ **Ce compteur vieillit vite.** La source de vérité est la sortie de `dotnet test`
+> (et `dotnet ef migrations list` pour les migrations — **30** au 15/09/2026).
+> Détail de l'audit complet du 15/09/2026 : `../AUDIT_20260915.md`.
 
 ## 9. Lancer le projet
 
@@ -199,7 +203,7 @@ dotnet run --project src\Wazap.API
 
 - **URL** : https://junioradon79gm-001-site1.jtempurl.com/ (domaine en attente)
 - **Provider** : PostgreSQL (SmarterASP.NET)
-- **Schéma** : créé (**11 migrations** appliquées)
+- **Schéma** : créé (**30 migrations** appliquées — `dotnet ef migrations list` pour la liste à jour)
 - **Admin** : seedé automatiquement au démarrage
 - **Secrets** : injectés via `web.config` (`<environmentVariables>`) sur le serveur
 - **Détails/credentials sensibles** : voir le fichier local **`DEPLOYMENT.md`** (gitignoré)

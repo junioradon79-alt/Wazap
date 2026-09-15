@@ -20,9 +20,31 @@ import VentePage from './pages/VentePage'
 import ParrainagePage from './pages/ParrainagePage'
 
 function Protected({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth()
+  const { user, loading, logout } = useAuth()
   if (loading) return <div className="loading"><span className="loading__spinner" /> Chargement…</div>
   if (!user) return <Navigate to="/login" replace />
+
+  // L'espace d'administration n'est ouvert qu'aux rôles Admin et Vendor. Un compte Livreur ou
+  // Client qui atteignait /app voyait la coquille d'administration et une succession de 403
+  // sans explication : on affiche désormais une porte fermée explicite (le serveur applique
+  // déjà ses propres contrôles — c'est une défense en profondeur, pas une autorisation).
+  if (user.role !== 'Admin' && user.role !== 'Vendor') {
+    return (
+      <div className="app-shell" style={{ display: 'block', padding: '2rem' }}>
+        <div className="card" style={{ maxWidth: 560, margin: '4rem auto' }}>
+          <h1 className="topbar__title">Espace réservé</h1>
+          <p className="topbar__subtitle">
+            Cet espace est réservé aux vendeurs et aux administrateurs WAZAP. Votre compte
+            « {user.role} » s’utilise directement sur WhatsApp.
+          </p>
+          <button className="btn btn--primary" style={{ marginTop: 12 }} onClick={logout}>
+            Se déconnecter
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return <>{children}</>
 }
 

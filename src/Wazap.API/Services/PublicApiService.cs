@@ -127,9 +127,24 @@ public sealed class PublicApiService
         var toUtc = to ?? now;
         limit = Math.Clamp(limit, 1, 500);
 
-        var orders = await db.Orders
+        // Le filtre « zone » est appliqué EN SQL, dans la même requête que la limite.
+        // L'ancienne version prenait d'abord les N commandes les plus récentes TOUTES zones
+        // confondues, puis filtrait en mémoire : un partenaire demandant
+        // « ?zone=Marcory&limit=200 » recevait beaucoup moins de 200 lignes, et des commandes
+        // de Marcory plus anciennes que la 200ᵉ ligne globale étaient invisibles (contrat
+        // d'API violé, résultats non reproductibles).
+        var query = db.Orders
             .Where(o => o.CreatedAt >= fromUtc && o.CreatedAt <= toUtc
-                && (status == null || o.Status == status))
+                && (status == null || o.Status == status));
+
+        if (!string.IsNullOrWhiteSpace(zone))
+        {
+            var targetZone = zone.Trim();
+            query = query.Where(o => o.VendorUserId != null
+                && db.Users.Any(u => u.Id == o.VendorUserId && u.Zone == targetZone));
+        }
+
+        var orders = await query
             .OrderByDescending(o => o.CreatedAt)
             .Take(limit)
             .Select(o => new
@@ -144,7 +159,8 @@ public sealed class PublicApiService
             })
             .ToListAsync(ct);
 
-        // Zones des vendeurs (seconde requête bornée aux IDs retournés).
+        // Zones des vendeurs (seconde requête bornée aux IDs retournés) — sert uniquement à
+        // renseigner la zone dans la réponse, le filtrage ayant déjà eu lieu en SQL.
         var vendorIds = orders.Where(o => o.VendorUserId != null).Select(o => o.VendorUserId!.Value).Distinct().ToList();
         var zoneByVendor = new Dictionary<Guid, string?>();
         if (vendorIds.Count > 0)
@@ -156,8 +172,6 @@ public sealed class PublicApiService
         }
 
         return orders
-            .Where(o => string.IsNullOrWhiteSpace(zone)
-                || (o.VendorUserId != null && zoneByVendor.TryGetValue(o.VendorUserId.Value, out var z) && z == zone))
             .Select(o => new PublicOrderDto(
                 o.Id,
                 o.CreatedAt,

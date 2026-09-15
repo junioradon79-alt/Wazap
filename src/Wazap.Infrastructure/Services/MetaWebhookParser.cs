@@ -16,14 +16,20 @@ public sealed record MetaWebhookEvent(
     string? ButtonTitle,
     string? MediaUrl,
     string? MediaId,
-    string? MimeType);
+    string? MimeType,
+    string? MessageId = null);
 
 /// <summary>
 /// Extraction des champs d'un payload webhook Meta WhatsApp Cloud :
-/// <c>entry[0].changes[0].value.messages[0]</c>, avec gestion des types text / image /
+/// <c>entry[].changes[].value.messages[]</c>, avec gestion des types text / image /
 /// bouton / interactif / localisation, et normalisation du <c>from</c> en E.164 avec « + ».
-/// Retourne <c>null</c> si ce n'est pas un payload Cloud API (le routeur essaie alors le
-/// format WhatChimp).
+/// <para>
+/// <see cref="ParseAll"/> parcourt TOUTES les entrées, TOUS les changements et TOUS les
+/// messages : un payload peut en contenir plusieurs (conversation active, envois groupés),
+/// et l'ancienne version n'en lisait qu'UN SEUL — les autres étaient perdus sans trace ni
+/// réessai. <see cref="MetaWebhookEvent.MessageId"/> porte l'identifiant unique du message
+/// (<c>messages[].id</c>), indispensable à la déduplication des reprises de Meta.
+/// </para>
 /// </summary>
 public static class MetaWebhookParser
 {
@@ -33,99 +39,125 @@ public static class MetaWebhookParser
             && objectProp.ValueKind == JsonValueKind.String
             && string.Equals(objectProp.GetString(), "whatsapp_business_account", StringComparison.OrdinalIgnoreCase);
 
+    /// <summary>Dernier événement du payload (compatibilité) — <c>null</c> si aucun message exploitable.</summary>
     public static MetaWebhookEvent? TryParse(JsonElement raw)
     {
+        var all = ParseAll(raw);
+        return all.Count == 0 ? null : all[^1];
+    }
+
+    /// <summary>
+    /// TOUS les messages d'un payload Cloud API, dans l'ordre du document (entry → changes →
+    /// messages). Liste vide si ce n'est pas un payload Cloud API ou s'il ne contient aucun
+    /// message (accusés de réception, mises à jour de statut de livraison…).
+    /// </summary>
+    public static IReadOnlyList<MetaWebhookEvent> ParseAll(JsonElement raw)
+    {
+        var events = new List<MetaWebhookEvent>();
         if (!IsMetaPayload(raw))
-            return null;
+            return events;
 
-        var value = EntryValue(raw);
-        if (value is not { ValueKind: JsonValueKind.Object } obj)
-            return null;
+        if (!raw.TryGetProperty("entry", out var entries) || entries.ValueKind != JsonValueKind.Array)
+            return events;
 
-        var message = FirstMessage(obj);
-        if (message is { ValueKind: JsonValueKind.Object } messageObj)
+        foreach (var entry in entries.EnumerateArray())
         {
-            var from = Str(messageObj, "from");
-            var type = Str(messageObj, "type");
+            if (entry.ValueKind != JsonValueKind.Object
+                || !entry.TryGetProperty("changes", out var changes)
+                || changes.ValueKind != JsonValueKind.Array)
+                continue;
 
-            string? text = null;
-            string? buttonId = null;
-            string? buttonTitle = null;
-            string? mediaUrl = null;
-            string? mediaId = null;
-            string? mimeType = null;
-            double? latitude = null;
-            double? longitude = null;
-
-            switch (type)
+            foreach (var change in changes.EnumerateArray())
             {
-                case "text":
-                    text = Str(Find(messageObj, "text"), "body");
-                    break;
-                case "button":
-                    buttonTitle = Str(Find(messageObj, "button"), "text");
-                    buttonId = Str(Find(messageObj, "button"), "payload");
-                    break;
-                case "interactive":
+                if (change.ValueKind != JsonValueKind.Object
+                    || !change.TryGetProperty("value", out var value)
+                    || value.ValueKind != JsonValueKind.Object)
+                    continue;
+
+                if (!value.TryGetProperty("messages", out var messages)
+                    || messages.ValueKind != JsonValueKind.Array)
+                    continue;
+
+                foreach (var message in messages.EnumerateArray())
                 {
-                    var interactive = Find(messageObj, "interactive");
-                    var reply = Find(interactive, "button_reply") ?? Find(interactive, "nfm_reply");
-                    buttonId = Str(reply, "id");
-                    buttonTitle = Str(reply, "title");
-                    break;
-                }
-                case "location":
-                {
-                    var location = Find(messageObj, "location");
-                    latitude = Dbl(location, "latitude");
-                    longitude = Dbl(location, "longitude");
-                    break;
-                }
-                case "image":
-                case "video":
-                case "document":
-                case "audio":
-                {
-                    var media = Find(messageObj, type);
-                    mediaId = Str(media, "id");
-                    mimeType = Str(media, "mime_type");
-                    break;
+                    if (message.ValueKind != JsonValueKind.Object)
+                        continue;
+
+                    var parsed = ParseMessage(message);
+                    if (parsed is not null)
+                        events.Add(parsed);
                 }
             }
-
-            var phone = from is null
-                ? null
-                : "+" + new string(from.Where(char.IsDigit).ToArray());
-
-            return new MetaWebhookEvent(phone, text, latitude, longitude, buttonId, buttonTitle,
-                mediaUrl, mediaId, mimeType);
         }
 
-        return null;
-    }
-/// <summary>Remonte <c>entry[0].changes[0].value</c> (ou null si absent).</summary>
-    private static JsonElement? EntryValue(JsonElement raw)
-    {
-        if (!raw.TryGetProperty("entry", out var entry) || entry.ValueKind != JsonValueKind.Array || entry.GetArrayLength() == 0)
-            return null;
-
-        var first = entry[0];
-        if (!first.TryGetProperty("changes", out var changes) || changes.ValueKind != JsonValueKind.Array || changes.GetArrayLength() == 0)
-            return null;
-
-        var change = changes[0];
-        return change.ValueKind == JsonValueKind.Object && change.TryGetProperty("value", out var value)
-            ? value
-            : null;
+        return events;
     }
 
-    /// <summary>Le premier message entrant (les éléments du tableau sont les plus récents).</summary>
-    private static JsonElement? FirstMessage(JsonElement value)
+    private static MetaWebhookEvent? ParseMessage(JsonElement messageObj)
     {
-        if (!value.TryGetProperty("messages", out var messages) || messages.ValueKind != JsonValueKind.Array || messages.GetArrayLength() == 0)
+        var from = Str(messageObj, "from");
+        var type = Str(messageObj, "type");
+        var messageId = Str(messageObj, "id");
+
+        string? text = null;
+        string? buttonId = null;
+        string? buttonTitle = null;
+        string? mediaUrl = null;
+        string? mediaId = null;
+        string? mimeType = null;
+        double? latitude = null;
+        double? longitude = null;
+
+        switch (type)
+        {
+            case "text":
+                text = Str(Find(messageObj, "text"), "body");
+                break;
+            case "button":
+                buttonTitle = Str(Find(messageObj, "button"), "text");
+                buttonId = Str(Find(messageObj, "button"), "payload");
+                break;
+            case "interactive":
+            {
+                var interactive = Find(messageObj, "interactive");
+                var reply = Find(interactive, "button_reply") ?? Find(interactive, "nfm_reply");
+                buttonId = Str(reply, "id");
+                buttonTitle = Str(reply, "title");
+                break;
+            }
+            case "location":
+            {
+                var location = Find(messageObj, "location");
+                latitude = Dbl(location, "latitude");
+                longitude = Dbl(location, "longitude");
+                break;
+            }
+            case "image":
+            case "video":
+            case "document":
+            case "audio":
+            {
+                var media = Find(messageObj, type);
+                mediaId = Str(media, "id");
+                mimeType = Str(media, "mime_type");
+                break;
+            }
+            default:
+                // Type non pris en charge (sticker, contacts, réaction…) : rien d'exploitable
+                // pour le routage, mais le message reste identifié pour la déduplication.
+                break;
+        }
+
+        // Un message sans expéditeur n'est pas exploitable par le routage métier.
+        if (from is null && text is null && latitude is null && mediaId is null && buttonId is null)
             return null;
 
-        return messages[messages.GetArrayLength() - 1];
+        var phone = from is null
+            ? null
+            : "+" + new string(from.Where(char.IsDigit).ToArray());
+
+        return new MetaWebhookEvent(phone, text, latitude, longitude, buttonId, buttonTitle,
+            mediaUrl, mediaId, mimeType, messageId);
     }
 
     // ---- Lecture tolérante du payload (camelCase ET snake_case) ----

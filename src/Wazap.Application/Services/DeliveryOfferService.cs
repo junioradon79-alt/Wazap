@@ -114,13 +114,14 @@ namespace Wazap.Application.Services
             _context.DeliveryOffers.AddRange(offers);
             await _context.SaveChangesAsync();
 
-            // Envoi des offres via WhatsApp (best effort).
+            // Envoi des offres via WhatsApp (best effort). Une SEULE requête pour résoudre les
+            // numéros : l'ancienne boucle faisait une requête Users par offre diffusée.
+            var ridersById = await LoadRiderPhonesAsync(offers.Select(o => o.RiderUserId));
+
             foreach (var offer in offers)
             {
-                var rider = await _context.Users.AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.Id == offer.RiderUserId);
-
-                if (rider?.PhoneNumber is null)
+                if (!ridersById.TryGetValue(offer.RiderUserId, out var riderPhone)
+                    || string.IsNullOrWhiteSpace(riderPhone))
                     continue;
 
                 try
@@ -128,7 +129,7 @@ namespace Wazap.Application.Services
                     // Passe par l'orchestrateur : repli texte si « rider_offer » est refusé
                     // ou en cours d'examen chez Meta.
                     await _orchestrator.SendRiderOfferAsync(
-                        rider.PhoneNumber,
+                        riderPhone,
                         offer.Id.ToString("N")[..8].ToUpperInvariant());
                 }
                 catch (Exception ex)
@@ -138,6 +139,22 @@ namespace Wazap.Application.Services
             }
 
             return new BroadcastResultDto(offers.Count, nextBatch);
+        }
+
+        /// <summary>
+        /// Numéros WhatsApp des livreurs ciblés, en UNE requête (évite le N+1 : une requête par
+        /// offre diffusée, jusqu'à 5 par vague et par lot).
+        /// </summary>
+        private async Task<IReadOnlyDictionary<Guid, string?>> LoadRiderPhonesAsync(IEnumerable<Guid> riderIds)
+        {
+            var ids = riderIds.Distinct().ToList();
+            if (ids.Count == 0)
+                return new Dictionary<Guid, string?>();
+
+            return await _context.Users.AsNoTracking()
+                .Where(u => ids.Contains(u.Id))
+                .Select(u => new { u.Id, u.PhoneNumber })
+                .ToDictionaryAsync(u => u.Id, u => u.PhoneNumber);
         }
 
         /// <summary>
@@ -415,19 +432,19 @@ namespace Wazap.Application.Services
             _context.DeliveryOffers.AddRange(offers);
             await _context.SaveChangesAsync();
 
-            // Envoi des offres via WhatsApp (best effort).
+            // Envoi des offres via WhatsApp (best effort). Une seule requête pour les numéros.
+            var ridersById = await LoadRiderPhonesAsync(offers.Select(o => o.RiderUserId));
+
             foreach (var offer in offers)
             {
-                var rider = await _context.Users.AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.Id == offer.RiderUserId);
-
-                if (rider?.PhoneNumber is null)
+                if (!ridersById.TryGetValue(offer.RiderUserId, out var riderPhone)
+                    || string.IsNullOrWhiteSpace(riderPhone))
                     continue;
 
                 try
                 {
                     await _orchestrator.SendBatchOfferAsync(
-                        rider.PhoneNumber,
+                        riderPhone,
                         activeOrders.Count,
                         offer.Id.ToString("N")[..8].ToUpperInvariant());
                 }
