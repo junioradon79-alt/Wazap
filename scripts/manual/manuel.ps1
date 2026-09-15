@@ -35,6 +35,7 @@
 .NOTES
     Base produit ciblee par defaut : prod SmarterASP (jtempurl).
     En dev local : -BaseUrl http://localhost:5297
+    Compagnon de routine : relances.ps1 (suivi, messages prets a coller, relances, recap, journal).
 #>
 param(
     [Parameter(Mandatory = $true)]
