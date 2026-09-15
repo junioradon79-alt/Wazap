@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { RiderRatingAdmin, RiderRatingAdminBoard } from '../api/types'
-import { formatDateTime } from '../components/ui'
+import { ErrorAlert, formatDateTime } from '../components/ui'
 
 function stars(score: number): string {
   return '⭐'.repeat(score) + '☆'.repeat(5 - score)
@@ -63,7 +63,7 @@ export default function RatingsPage() {
         <button className="btn" onClick={() => void load()} disabled={busy}>⟳ Actualiser</button>
       </div>
 
-      {error && <div className="alert alert--error">{error}</div>}
+      {error && <ErrorAlert message={error} onRetry={() => void load()} />}
 
       <div className="page-head" style={{ marginTop: -6, gap: 10, flexWrap: 'wrap' }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>

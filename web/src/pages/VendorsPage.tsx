@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { UserSummary } from '../api/types'
-import { StatusBadge, formatDateTime } from '../components/ui'
+import { ErrorAlert, StatusBadge, formatDateTime } from '../components/ui'
 
 export default function VendorsPage() {
   const [vendors, setVendors] = useState<UserSummary[]>([])
@@ -68,7 +68,7 @@ export default function VendorsPage() {
         </div>
       </div>
 
-      {error && <div className="alert alert--error">{error}</div>}
+      {error && <ErrorAlert message={error} onRetry={() => void load()} />}
 
       <section className="panel">
         <div className="table-wrap">

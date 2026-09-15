@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { CreditTransaction, UserSummary } from '../api/types'
-import { StatusBadge, formatDateTime, formatMoney } from '../components/ui'
+import { ErrorAlert, StatusBadge, formatDateTime, formatMoney } from '../components/ui'
 
 export default function TransactionsPage() {
   const [vendors, setVendors] = useState<UserSummary[]>([])
@@ -10,11 +10,21 @@ export default function TransactionsPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // Extrait de l'effet pour être réutilisable par « Réessayer » : si la liste des vendeurs
+  // n'a pas pu être chargée, l'écran restait vide sans aucun moyen de relancer l'appel.
+  const loadVendors = async (): Promise<void> => {
+    try {
+      const v = await api.get<UserSummary[]>('/vendors')
+      setVendors(v.filter((x) => x.role === 'Vendor'))
+      setError('')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur')
+    }
+  }
+
   useEffect(() => {
-    api
-      .get<UserSummary[]>('/vendors')
-      .then((v) => setVendors(v.filter((x) => x.role === 'Vendor')))
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Erreur'))
+    void loadVendors()
+    // Chargement initial uniquement : les reprises passent par le bouton.
   }, [])
 
   const load = async (id: string): Promise<void> => {
@@ -60,7 +70,12 @@ export default function TransactionsPage() {
         </div>
       </section>
 
-      {error && <div className="alert alert--error">{error}</div>}
+      {error && (
+        <ErrorAlert
+          message={error}
+          onRetry={() => (vendorId ? void load(vendorId) : void loadVendors())}
+        />
+      )}
 
       <section className="panel">
         <header className="panel__header">

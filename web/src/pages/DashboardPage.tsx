@@ -1,20 +1,29 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { DashboardSummary } from '../api/types'
-import { StatusBadge, formatMoney, shortId } from '../components/ui'
+import { ErrorAlert, StatusBadge, formatMoney, shortId } from '../components/ui'
 
 export default function DashboardPage() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
   const [error, setError] = useState('')
 
+  // Extrait de l'effet : en cas d'échec, tout le tableau de bord disparaissait derrière
+  // un message d'erreur sans aucune action possible (P2 / C-05).
+  const load = async (): Promise<void> => {
+    try {
+      setSummary(await api.get<DashboardSummary>('/dashboard/summary'))
+      setError('')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur')
+    }
+  }
+
   useEffect(() => {
-    api
-      .get<DashboardSummary>('/dashboard/summary')
-      .then(setSummary)
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Erreur'))
+    void load()
+    // Chargement initial uniquement.
   }, [])
 
-  if (error) return <div className="alert alert--error">{error}</div>
+  if (error) return <ErrorAlert message={error} onRetry={() => void load()} />
   if (!summary) return <div className="loading"><span className="loading__spinner" /> Chargement du tableau de bord…</div>
 
   return (

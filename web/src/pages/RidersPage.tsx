@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api, getToken } from '../api/client'
 import type { RiderCertification, UserSummary } from '../api/types'
-import { StatusBadge } from '../components/ui'
+import { ErrorAlert, StatusBadge } from '../components/ui'
 
 const CERT_STATUS: Record<RiderCertification['status'], { label: string; badge: string }> = {
   Pending: { label: 'À vérifier', badge: 'badge--orange' },
@@ -27,6 +27,8 @@ export default function RidersPage() {
       ])
       setRiders(list)
       setCertById(Object.fromEntries(certs.map((c) => [c.riderId, c])))
+      // Une reprise réussie doit effacer la bannière : elle restait affichée sinon.
+      setError('')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur')
     }
@@ -153,7 +155,7 @@ export default function RidersPage() {
         </div>
       </div>
 
-      {error && <div className="alert alert--error">{error}</div>}
+      {error && <ErrorAlert message={error} onRetry={() => void load()} />}
 
       <section className="panel">
         <div className="table-wrap">

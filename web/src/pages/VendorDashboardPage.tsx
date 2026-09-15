@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { VendorDashboard } from '../api/types'
-import { StatusBadge, formatDateTime, shortId } from '../components/ui'
+import { ErrorAlert, StatusBadge, formatDateTime, shortId } from '../components/ui'
 
 const WHATSAPP_BOT = '2250575803801'
 
@@ -24,14 +24,23 @@ export default function VendorDashboardPage() {
   const [dash, setDash] = useState<VendorDashboard | null>(null)
   const [error, setError] = useState('')
 
+  // Extrait de l'effet : sans reprise possible, un échec réseau laissait le vendeur devant
+  // un message d'erreur et plus aucun accès à son espace (P2 / C-05).
+  const load = async (): Promise<void> => {
+    try {
+      setDash(await api.get<VendorDashboard>('/vendors/dashboard'))
+      setError('')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur')
+    }
+  }
+
   useEffect(() => {
-    api
-      .get<VendorDashboard>('/vendors/dashboard')
-      .then(setDash)
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Erreur'))
+    void load()
+    // Chargement initial uniquement.
   }, [])
 
-  if (error) return <div className="alert alert--error">{error}</div>
+  if (error) return <ErrorAlert message={error} onRetry={() => void load()} />
   if (!dash) return <div className="loading"><span className="loading__spinner" /> Chargement de votre espace…</div>
 
   const copyReferral = async (): Promise<void> => {

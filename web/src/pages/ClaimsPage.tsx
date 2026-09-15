@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { ClaimListItem } from '../api/types'
-import { formatDateTime } from '../components/ui'
+import { ErrorAlert, formatDateTime } from '../components/ui'
 
 const CLAIM_STATUS: Record<ClaimListItem['status'], { label: string; badge: string }> = {
   Pending: { label: '🚨 À traiter', badge: 'badge--orange' },
@@ -115,7 +115,7 @@ export default function ClaimsPage() {
         <button className="btn" onClick={() => void load()} disabled={busy}>⟳ Actualiser</button>
       </div>
 
-      {error && <div className="alert alert--error">{error}</div>}
+      {error && <ErrorAlert message={error} onRetry={() => void load()} />}
 
       <section className="panel">
         <div className="table-wrap">

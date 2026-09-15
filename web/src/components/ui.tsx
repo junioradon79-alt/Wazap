@@ -44,3 +44,38 @@ export function formatDateTime(iso: string | null | undefined): string {
 export function shortId(id: string): string {
   return id.replace(/-/g, '').slice(0, 6).toUpperCase()
 }
+
+/**
+ * Bannière d'erreur avec action de reprise.
+ *
+ * Avant, un écran dont le chargement échouait affichait un message figé et une liste vide :
+ * seule une actualisation manuelle du navigateur permettait de réessayer (le seul bouton
+ * « Réessayer » du produit était sur la page Commandes). `role="alert"` fait aussi annoncer
+ * l'échec par les lecteurs d'écran, ce qu'un simple <div> ne faisait pas.
+ *
+ * `onRetry` relance le chargement de l'écran : après l'échec d'une action (création, mise à
+ * jour), il resynchronise l'affichage avant que l'utilisateur ne retente son geste.
+ */
+export function ErrorAlert({
+  message,
+  onRetry,
+  retryLabel = 'Réessayer',
+}: {
+  message: string
+  onRetry?: () => void
+  retryLabel?: string
+}) {
+  return (
+    <div className="alert alert--error" role="alert">
+      {message}
+      {onRetry && (
+        <>
+          {' '}
+          <button type="button" className="btn btn--ghost" onClick={onRetry}>
+            {retryLabel}
+          </button>
+        </>
+      )}
+    </div>
+  )
+}

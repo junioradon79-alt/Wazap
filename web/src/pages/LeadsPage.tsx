@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api, getToken } from '../api/client'
-import { formatDateTime } from '../components/ui'
+import { ErrorAlert, formatDateTime } from '../components/ui'
 
 type LeadStatus = 'New' | 'Contacted' | 'Converted' | 'Discarded'
 interface LeadListItem {
@@ -167,8 +167,11 @@ export default function LeadsPage() {
             {sources.map((s) => <option key={s} value={s}>{SOURCE_LABEL[s] ?? s}</option>)}
           </select>
         </label>
+        {/* Champ de recherche : un placeholder n'est pas un libellé — il disparaît à la
+            saisie et les lecteurs d'écran ne l'annoncent pas de façon fiable (C-07). */}
         <input
           className="input"
+          aria-label="Rechercher un lead (commerce, contact ou numéro)"
           placeholder="🔎 Commerce, contact ou numéro…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -177,7 +180,7 @@ export default function LeadsPage() {
         <button className="btn" onClick={() => void load()} disabled={busy}>⟳ Actualiser</button>
       </div>
 
-      {error && <div className="alert alert--error">{error}</div>}
+      {error && <ErrorAlert message={error} onRetry={() => void load()} />}
 
       <section className="panel">
         {leads.length === 0 ? (
@@ -208,9 +211,13 @@ export default function LeadsPage() {
                     <td style={{ fontSize: 13 }} title={l.source}>{SOURCE_LABEL[l.source] ?? l.source}</td>
                     <td style={{ fontSize: 13 }}>{l.referralCode ? <code>{l.referralCode}</code> : '—'}</td>
                     <td>
+                      {/* Un tableau de leads aligne des sélecteurs identiques : sans le nom du
+                          commerce, un lecteur d'écran annonce « liste déroulante » sans dire
+                          quel lead est modifié (C-07). */}
                       <select
                         className="input"
                         style={{ width: 130, padding: '6px 8px' }}
+                        aria-label={`Statut du lead ${l.businessName}`}
                         value={l.status}
                         disabled={busy}
                         onChange={(e) => void setStatus(l.id, e.target.value as LeadStatus)}

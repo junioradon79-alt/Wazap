@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { api, getToken, getUser } from '../api/client'
 import type { CreateOrderRequest, OrderDto, PagedResult } from '../api/types'
 import { Modal } from '../components/Modal'
-import { StatusBadge, formatDateTime, formatMoney, shortId } from '../components/ui'
+import { ErrorAlert, StatusBadge, formatDateTime, formatMoney, shortId } from '../components/ui'
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<OrderDto[]>([])
@@ -140,12 +140,7 @@ export default function OrdersPage() {
         <button className="btn btn--primary" onClick={() => setShowCreate(true)}>+ Nouvelle commande</button>
       </div>
 
-      {error && (
-        <div className="alert alert--error">
-          {error}{' '}
-          <button className="btn btn--ghost" onClick={() => void load(page)}>Réessayer</button>
-        </div>
-      )}
+      {error && <ErrorAlert message={error} onRetry={() => void load(page)} />}
       {payMessage && <div className="alert alert--success">{payMessage}</div>}
 
       <section className="panel">

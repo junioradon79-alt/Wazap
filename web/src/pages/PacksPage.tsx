@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { PackDto, PaymentResponse, UserSummary } from '../api/types'
-import { formatMoney } from '../components/ui'
+import { ErrorAlert, formatMoney } from '../components/ui'
 
 export default function PacksPage() {
   const [packs, setPacks] = useState<PackDto[]>([])
@@ -12,14 +12,25 @@ export default function PacksPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
 
+  // Extrait de l'effet : un échec de chargement laissait la grille de packs vide, sans
+  // aucun moyen de relancer (P2 / C-05).
+  const load = async (): Promise<void> => {
+    setLoading(true)
+    try {
+      const [p, v] = await Promise.all([api.get<PackDto[]>('/packs'), api.get<UserSummary[]>('/vendors')])
+      setPacks(p)
+      setVendors(v.filter((x) => x.role === 'Vendor'))
+      setError('')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
-    Promise.all([api.get<PackDto[]>('/packs'), api.get<UserSummary[]>('/vendors')])
-      .then(([p, v]) => {
-        setPacks(p)
-        setVendors(v.filter((x) => x.role === 'Vendor'))
-      })
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Erreur'))
-      .finally(() => setLoading(false))
+    void load()
+    // Chargement initial uniquement.
   }, [])
 
   const buy = async (pack: PackDto): Promise<void> => {
@@ -65,7 +76,7 @@ export default function PacksPage() {
         </div>
       </section>
 
-      {error && <div className="alert alert--error">{error}</div>}
+      {error && <ErrorAlert message={error} onRetry={() => void load()} />}
 
       {payment && (
         <div className="alert alert--success">

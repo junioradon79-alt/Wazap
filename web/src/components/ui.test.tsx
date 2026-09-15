@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import { StatusBadge, formatDateTime, formatMoney, shortId } from './ui'
+import { describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { ErrorAlert, StatusBadge, formatDateTime, formatMoney, shortId } from './ui'
 
 describe('formatage', () => {
   it('affiche les montants en FCFA sans décimales', () => {
@@ -49,5 +49,25 @@ describe('badge de statut', () => {
     // Un statut inconnu du serveur reste affiché (jamais d'écran blanc).
     render(<StatusBadge status="StatutInedit" />)
     expect(screen.getByText('StatutInedit')).toBeInTheDocument()
+  })
+})
+
+describe('bannière d’erreur', () => {
+  it('propose une reprise et déclenche le rechargement au clic', () => {
+    const onRetry = vi.fn()
+    render(<ErrorAlert message="Erreur de chargement" onRetry={onRetry} />)
+
+    // Avant, seule la page Commandes offrait une reprise : ailleurs, l'écran restait vide.
+    fireEvent.click(screen.getByRole('button', { name: 'Réessayer' }))
+    expect(onRetry).toHaveBeenCalledTimes(1)
+  })
+
+  it('annonce l’erreur aux lecteurs d’écran et reste utilisable sans reprise', () => {
+    render(<ErrorAlert message="Action impossible" />)
+
+    // role="alert" : un <div> simple n'était pas annoncé.
+    expect(screen.getByRole('alert')).toHaveTextContent('Action impossible')
+    // Après l'échec d'une action, aucun bouton de reprise ne doit être proposé.
+    expect(screen.queryByRole('button')).toBeNull()
   })
 })

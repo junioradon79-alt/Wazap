@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { UserSummary, VendorProduct, VendorProductRequest } from '../api/types'
-import { formatMoney } from '../components/ui'
+import { ErrorAlert, formatMoney } from '../components/ui'
 import { useAuth } from '../auth/AuthContext'
 
 const EMPTY_FORM: VendorProductRequest = { name: '', price: 0, emoji: '', description: '' }
@@ -44,6 +44,7 @@ export default function CataloguePage() {
     }
     try {
       setProducts(await api.get<VendorProduct[]>(`/vendors/${id}/products`))
+      setError('')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur')
     }
@@ -141,7 +142,7 @@ export default function CataloguePage() {
         </div>
       </div>
 
-      {error && <div className="alert alert--error">{error}</div>}
+      {error && <ErrorAlert message={error} onRetry={() => void load(vendorId)} />}
       {notice && <div className="alert alert--success">{notice}</div>}
 
       {isAdmin && (
