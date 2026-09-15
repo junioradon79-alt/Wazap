@@ -90,6 +90,9 @@ internal sealed class WebhookHarness : IDisposable
             proof,
             new RiderRatingService(Context, new RiderReputationOptions(), NullLogger<RiderRatingService>.Instance),
             new RiderProgramService(Context, new RiderProgramOptions(), Sender, NullLogger<RiderProgramService>.Instance),
+            new RiderDeliveryCommands(Context, proof, orchestrator,
+                new RiderProgramService(Context, new RiderProgramOptions(), Sender, NullLogger<RiderProgramService>.Instance),
+                NullLogger<RiderDeliveryCommands>.Instance),
             Scans,
             NullLogger<WebhookWhatsAppController>.Instance,
             config);

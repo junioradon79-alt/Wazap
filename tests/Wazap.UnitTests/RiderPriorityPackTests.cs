@@ -28,11 +28,15 @@ public sealed class RiderPriorityPackTests
     {
         var rider = Rider();
 
+        // Instant de référence capturé UNE fois : la fenêtre était calculée autour de DEUX
+        // appels séparés à UtcNow, ce qui rendait l'assertion sensible à une machine chargée
+        // ou à un ajustement d'horloge (± 14 min de tolérance implicite).
+        var before = DateTime.UtcNow;
         rider.GrantPriority(7);
+        var after = DateTime.UtcNow;
 
         Assert.NotNull(rider.PriorityUntilUtc);
-        Assert.True(rider.PriorityUntilUtc > DateTime.UtcNow.AddDays(6.99));
-        Assert.True(rider.PriorityUntilUtc < DateTime.UtcNow.AddDays(7.01));
+        Assert.InRange(rider.PriorityUntilUtc!.Value, before.AddDays(7), after.AddDays(7));
     }
 
     [Fact]
@@ -42,11 +46,14 @@ public sealed class RiderPriorityPackTests
         rider.GrantPriority(7);
         var afterFirst = rider.PriorityUntilUtc;
 
+        var before = DateTime.UtcNow;
         rider.GrantPriority(30);
+        var after = DateTime.UtcNow;
 
-        // Prolongation à partir de l'échéance en cours, jamais à partir de maintenant.
-        Assert.True(rider.PriorityUntilUtc > afterFirst!.Value.AddDays(29.99));
-        Assert.True(rider.PriorityUntilUtc < afterFirst.Value.AddDays(30.01));
+        // Prolongation à partir de l'échéance en cours, jamais à partir de maintenant —
+        // bornes exactes, sans fenêtre de tolérance.
+        Assert.InRange(rider.PriorityUntilUtc!.Value, afterFirst!.Value.AddDays(30), afterFirst.Value.AddDays(30));
+        Assert.True(rider.PriorityUntilUtc.Value >= before.AddDays(30), "les jours payés ne doivent pas être perdus");
     }
 
     [Fact]

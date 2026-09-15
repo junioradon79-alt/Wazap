@@ -266,9 +266,38 @@ public sealed class ColisSurService
         }
     }
 
-    /// <summary>Rejette un sinistre après enquête (livreur dégelé, aucun remboursement).</summary>
+    /// <summary>
+    /// Rejette un sinistre après enquête (livreur dégelé, aucun remboursement).
+    /// <para>
+    /// Le rejet est réclamé de façon ATOMIQUE, comme l'approbation : deux rejets simultanés
+    /// (double-clic, deux administrateurs) écrivaient tous deux leur motif, le second écrasant
+    /// le premier — la trace d'audit du premier relecteur était perdue, et le garde
+    /// « Status != Pending » relu puis réécrit ne protégeait de rien.
+    /// </para>
+    /// </summary>
     public async Task RejectAsync(Guid claimId, string? note, Guid reviewerId)
     {
+        var exists = await _context.DeliveryClaims.AsNoTracking().AnyAsync(c => c.Id == claimId);
+        if (!exists)
+            throw new InvalidOperationException("Dossier introuvable.");
+
+        if (_context.Database.IsRelational())
+        {
+            var claimed = await _context.DeliveryClaims
+                .Where(c => c.Id == claimId && c.Status == DeliveryClaimStatus.Pending)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(c => c.Status, DeliveryClaimStatus.Rejected)
+                    .SetProperty(c => c.ReviewNote, note)
+                    .SetProperty(c => c.ReviewedByUserId, (Guid?)reviewerId)
+                    .SetProperty(c => c.ReviewedAt, (DateTime?)DateTime.UtcNow));
+
+            if (claimed == 0)
+                throw new InvalidOperationException("Ce dossier a déjà été traité.");
+
+            return;
+        }
+
+        // Fournisseur non relationnel (tests InMemory) : pas d'UPDATE conditionnel.
         var claim = await _context.DeliveryClaims.FirstOrDefaultAsync(c => c.Id == claimId)
             ?? throw new InvalidOperationException("Dossier introuvable.");
         if (claim.Status != DeliveryClaimStatus.Pending)

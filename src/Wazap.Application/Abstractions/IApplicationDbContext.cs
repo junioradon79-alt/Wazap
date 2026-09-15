@@ -24,6 +24,17 @@ public interface IApplicationDbContext
     DbSet<RiderRating> RiderRatings { get; }
     DbSet<OrderPayment> OrderPayments { get; }
 
+    // Tables ajoutées depuis : sans elles dans le port, les services devaient dépendre du type
+    // CONCRET de l'infrastructure pour les atteindre — ce qui annulait l'intérêt du port.
+    DbSet<RefreshToken> RefreshTokens { get; }
+    DbSet<WebhookSubscriber> WebhookSubscribers { get; }
+    DbSet<Lead> Leads { get; }
+    DbSet<ClientOrderDraft> ClientOrderDrafts { get; }
+    DbSet<RiderPriorityPurchase> RiderPriorityPurchases { get; }
+
+    /// <summary>Messages webhook entrants déjà traités (déduplication des reprises).</summary>
+    DbSet<ProcessedWebhookMessage> ProcessedWebhookMessages { get; }
+
     DatabaseFacade Database { get; }
 
     /// <summary>

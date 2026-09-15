@@ -39,6 +39,7 @@ public class WebhookWhatsAppController : ControllerBase
     private readonly DeliveryProofOptions _deliveryProof;
     private readonly RiderRatingService _riderRatings;
     private readonly RiderProgramService _riderProgram;
+    private readonly RiderDeliveryCommands _riderDeliveries;
     private readonly RiderScansOptions _scans;
     private readonly ILogger<WebhookWhatsAppController> _logger;
     private readonly string? _webhookToken;
@@ -62,6 +63,7 @@ public class WebhookWhatsAppController : ControllerBase
         DeliveryProofOptions deliveryProof,
         RiderRatingService riderRatings,
         RiderProgramService riderProgram,
+        RiderDeliveryCommands riderDeliveries,
         RiderScansOptions scans,
         ILogger<WebhookWhatsAppController> logger,
         IConfiguration config)
@@ -69,6 +71,7 @@ public class WebhookWhatsAppController : ControllerBase
         _deliveryProof = deliveryProof;
         _riderRatings = riderRatings;
         _riderProgram = riderProgram;
+        _riderDeliveries = riderDeliveries;
         _context = context;
         _riderService = riderService;
         _riderRecruitment = riderRecruitment;
@@ -869,132 +872,11 @@ public class WebhookWhatsAppController : ControllerBase
 
         // Statuts automatiques livreur : « RECU » = colis récupéré (en route),
         // « LIVRE » = livraison effectuée. Option : code court de la course.
-        if (user.Role == UserRole.Rider
-            && (upper == "RECU" || upper.StartsWith("RECU ") || upper == "LIVRE" || upper.StartsWith("LIVRE ")))
+        // Logique extraite dans RiderDeliveryCommands (preuve de livraison, tournée
+        // multi-clients, programme Ambassadeur) pour la tester sans passer par HTTP.
+        if (user.Role == UserRole.Rider && RiderDeliveryCommands.Matches(upper))
         {
-            var marker = upper.StartsWith("RECU") ? "RECU" : "LIVRE";
-            var code = command.Length > marker.Length ? command[marker.Length..].Trim() : string.Empty;
-
-            // Preuve de livraison : « LIVRE <code course> CODE <4 chiffres> ».
-            string? clientCode = null;
-            if (marker == "LIVRE")
-                (code, clientCode) = RiderCommandParser.SplitDeliveryCommand(code);
-
-            var targetStatus = marker == "RECU"
-                ? OrderStatus.RiderAssigned
-                : OrderStatus.InTransit;
-
-            var orders = await _context.Orders
-                .Where(o => o.RiderUserId == user.Id && o.Status == targetStatus)
-                .ToListAsync();
-
-            var closeAll = marker == "LIVRE" && code.Equals("TOUT", StringComparison.OrdinalIgnoreCase);
-            if (!string.IsNullOrWhiteSpace(code) && !closeAll)
-                orders = orders.Where(o => o.Id.ToString("N").StartsWith(code, StringComparison.OrdinalIgnoreCase)).ToList();
-
-            // Tournée multi-clients : on ne clôture JAMAIS toutes les livraisons d'un coup
-            // (sauf « LIVRE TOUT » explicite) pour notifier chaque client au bon moment.
-            if (marker == "LIVRE" && orders.Count > 1 && string.IsNullOrWhiteSpace(code))
-            {
-                var proofActive = _deliveryProof.RequireClientCode || clientCode is not null;
-                await ReplyAsync(user,
-                    "ℹ️ Plusieurs livraisons en cours.\n" +
-                    (proofActive
-                        ? "Envoyez LIVRE <code> CODE <4 chiffres> après CHAQUE livraison (ex : LIVRE A1B2C3D4 CODE 1234)."
-                        : "Envoyez LIVRE <code> après CHAQUE livraison (ex : LIVRE A1B2C3D4), ou LIVRE TOUT pour tout clôturer."));
-                return true;
-            }
-
-            if (orders.Count == 0)
-            {
-                await ReplyAsync(user, marker == "RECU"
-                    ? "ℹ️ Aucune course à récupérer pour le moment."
-                    : "ℹ️ Aucune course en cours de livraison.");
-                return true;
-            }
-
-            // Preuve de remise : le code du client est vérifié dès qu'il est fourni, et
-            // exigé quand « DeliveryProof:RequireClientCode » est actif.
-            if (marker == "LIVRE" && (_deliveryProof.RequireClientCode || clientCode is not null))
-            {
-                if (_deliveryProof.RequireClientCode && closeAll)
-                {
-                    await ReplyAsync(user,
-                        "🔐 Clôture groupée impossible : chaque livraison se confirme avec le code de son client.\n" +
-                        "Envoyez LIVRE <code> CODE <4 chiffres> après chaque remise.");
-                    return true;
-                }
-
-                if (orders.Count != 1)
-                {
-                    await ReplyAsync(user,
-                        "ℹ️ Précisez la course : LIVRE <code> CODE <4 chiffres> (ex : LIVRE A1B2C3D4 CODE 1234).");
-                    return true;
-                }
-
-                // NotSet = course antérieure à la preuve de livraison (aucun code envoyé au
-                // client) : on laisse clôturer, sans quoi ces courses resteraient bloquées.
-                var verification = orders[0].VerifyDeliveryCode(clientCode);
-                if (verification is DeliveryCodeResult.Mismatch or DeliveryCodeResult.Locked)
-                {
-                    // Persiste la tentative erronée (compteur anti-force brute).
-                    await _context.SaveChangesAsync();
-
-                    var remaining = Order.MaxDeliveryCodeAttempts - orders[0].DeliveryCodeAttempts;
-                    await ReplyAsync(user, verification == DeliveryCodeResult.Mismatch
-                        ? $"❌ Code incorrect. Demandez au client le code à 4 chiffres reçu par WhatsApp.\n" +
-                          $"Tentative(s) restante(s) : {remaining}."
-                        : "🔒 Trop de tentatives erronées. Contactez le vendeur : lui seul peut clôturer cette course.");
-                    return true;
-                }
-            }
-
-            foreach (var order in orders)
-            {
-                if (marker == "RECU")
-                {
-                    order.MarkReadyForPickup();
-                    order.MarkPickedUp();
-                    order.MarkInTransit();
-                }
-                else
-                {
-                    order.MarkDelivered();
-                }
-            }
-
-            await _context.SaveChangesAsync();
-
-            // Notification « livré » à CHAQUE client concerné (best-effort).
-            if (marker == "LIVRE")
-            {
-                foreach (var order in orders)
-                {
-                    try
-                    {
-                        await _whatsApp.SendDeliveredNotificationAsync(order);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Notification de livraison impossible pour {OrderId}.", order.Id);
-                    }
-                }
-
-                // Programme « Ambassadeur WAZAP » : franchissement de seuil (livreur + parrain).
-                try
-                {
-                    await _riderProgram.NotifyMilestonesAsync(user.Id);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Notification du programme Ambassadeur impossible pour {Rider}.", user.Username);
-                }
-            }
-
-            await ReplyAsync(user, marker == "RECU"
-                ? $"✅ Colis récupéré ({orders.Count} course(s)) — en route !"
-                : $"✅ {orders.Count} course(s) livrée(s). Merci ! 🎉");
-
+            await _riderDeliveries.HandleAsync(user, command, ReplyAsync);
             return true;
         }
 

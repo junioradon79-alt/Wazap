@@ -161,6 +161,9 @@ builder.Services.AddScoped<LeadConversionService>();
 builder.Services.AddScoped<ColisSurService>();
 builder.Services.AddScoped<RiderRatingService>();
 builder.Services.AddScoped<RiderProgramService>();
+// Commandes livreur « RECU » / « LIVRE » (preuve de livraison) : extraites du contrôleur
+// webhook pour être testables directement (voir RiderDeliveryCommands).
+builder.Services.AddScoped<RiderDeliveryCommands>();
 
 // Options rétention / archivage des données (purge opt-in, désactivée par défaut)
 var retentionOptions = builder.Configuration.GetSection(RetentionOptions.SectionName).Get<RetentionOptions>() ?? new RetentionOptions();

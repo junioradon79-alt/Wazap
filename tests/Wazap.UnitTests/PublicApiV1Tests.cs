@@ -36,9 +36,13 @@ public class PublicApiV1Tests
 
         var order = await env.Context.Orders.FindAsync(result.OrderId.Value);
         Assert.NotNull(order);
-        Assert.Equal(5000m, order!.Amount);
+        // L'identifiant RENVOYÉ doit être celui réellement persisté (un identifiant erroné
+        // passerait un simple contrôle de non-nullité).
+        Assert.Equal(result.OrderId.Value, order!.Id);
+        Assert.Equal(5000m, order.Amount);
         Assert.Equal("Client A", order.ClientName);
         Assert.Equal("+2250700000006", order.ClientWhatsAppNumber);
+        Assert.Equal(UserRole.Vendor, (await env.Context.Users.FindAsync(order.VendorUserId!.Value))!.Role);
     }
 
     [Fact]

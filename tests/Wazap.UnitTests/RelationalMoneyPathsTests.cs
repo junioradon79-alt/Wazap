@@ -291,6 +291,42 @@ public class RelationalMoneyPathsTests
     // ------------------------------------------------- Déduplication des webhooks entrants
 
     [Fact]
+    public async Task RejectClaim_SurFournisseurRelationnel_N_ecrasePasLeMotifDuPremierRelecteur()
+    {
+        using var harness = new SqliteHarness();
+        var context = harness.Context;
+
+        var vendor = new User("vendeur", "hash", UserRole.Vendor, "+2250700000510");
+        var rider = new User("livreur", "hash", UserRole.Rider, "+2250700000511");
+        context.Users.AddRange(vendor, rider);
+
+        var order = new Order("Client", "+2250700000512", vendor.PhoneNumber!, "Colis", 4000m);
+        order.LinkVendor(vendor.Id);
+        context.Orders.Add(order);
+
+        var claim = new DeliveryClaim(order.Id, vendor.Id, rider.Id, "SINISTRE");
+        context.DeliveryClaims.Add(claim);
+        context.SaveChanges();
+
+        var service = new ColisSurService(context, new RecordingWhatsAppSender(), new ConfigStub(),
+            new ColisSurOptions(), new ManualPayoutService(NullLogger<ManualPayoutService>.Instance),
+            NullLogger<ColisSurService>.Instance);
+
+        var premierRelecteur = Guid.NewGuid();
+        await service.RejectAsync(claim.Id, note: "enquête : colis retrouvé", reviewerId: premierRelecteur);
+
+        // Second rejet (double-clic ou second administrateur) : refusé, et surtout le motif du
+        // PREMIER relecteur n'est pas écrasé (la trace d'audit reste celle de la décision).
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.RejectAsync(claim.Id, note: "doublon", reviewerId: Guid.NewGuid()));
+
+        var stored = harness.Reload<DeliveryClaim>(claim.Id)!;
+        Assert.Equal(DeliveryClaimStatus.Rejected, stored.Status);
+        Assert.Equal("enquête : colis retrouvé", stored.ReviewNote);
+        Assert.Equal(premierRelecteur, stored.ReviewedByUserId);
+    }
+
+    [Fact]
     public void ProcessedWebhookMessage_RefuseUnDoublon_AuNiveauDeLaBase()
     {
         using var harness = new SqliteHarness();
