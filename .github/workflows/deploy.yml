@@ -53,6 +53,11 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Environnement GitHub dédié : permet d'exiger une approbation humaine et de restreindre
+    # les secrets au déploiement (Settings → Environments → production → Required reviewers).
+    # Sans protection configurée, la déclaration est inerte — mais elle rend la protection
+    # possible sans modifier le workflow.
+    environment: production
     steps:
       - name: Checkout
         uses: actions/checkout@v4

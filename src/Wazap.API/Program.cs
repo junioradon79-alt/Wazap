@@ -295,6 +295,18 @@ else
     builder.Services.AddHttpClient<IWhatsAppMediaDownloader, WhatChimpMediaDownloader>();
 }
 
+// Aucun canal d'envoi utilisable = aucune notification possible (confirmation de commande,
+// offre livreur, code de livraison, alertes de crédits). La construction du service échouait
+// jusqu'ici à la PREMIÈRE résolution (donc au premier message entrant, par un 500/409
+// incompréhensible) : on refuse désormais de démarrer en nommant la clé manquante.
+if (!metaApiOptions.Enabled && string.IsNullOrWhiteSpace(builder.Configuration["WhatChimp:ApiToken"]))
+{
+    throw new InvalidOperationException(
+        "Aucun canal d'envoi WhatsApp configuré : Meta:Enabled est à false et "
+        + "WhatChimp:ApiToken est absent. Renseignez WhatChimp__ApiToken "
+        + "(ou activez Meta:Enabled avec son jeton) — sans quoi aucune notification ne peut partir.");
+}
+
 // Catalogue des packs prépayés (payé à l'usage, sans abonnement)
 var packs = builder.Configuration.GetSection("Packs").Get<List<PackConfiguration>>() ?? new List<PackConfiguration>();
 builder.Services.AddSingleton<IReadOnlyList<PackConfiguration>>(packs);
@@ -441,6 +453,13 @@ if (geniusPayOptions.Enabled && GeniusPaySignatureVerifier.IsPlaceholderSecret(g
         + "notifications de paiement seront REFUSÉES (fail closed). Renseignez le secret réel du "
         + "webhook GeniusPay, sinon les achats de packs ne seront jamais crédités.");
 
+// /metrics est ouvert par défaut (comportement historique) : il expose la profondeur de la file
+// d'échecs et l'uptime. Le jeton optionnel Monitoring:MetricsToken le referme.
+if (string.IsNullOrWhiteSpace(monitoringOptions.MetricsToken))
+    app.Logger.LogWarning(
+        "ALERTE [config] /metrics est accessible SANS authentification "
+        + "(Monitoring:MetricsToken vide) : renseignez un jeton et configurez-le côté scraper.");
+
 // Gestion globale des erreurs (doit être le premier middleware)
 app.UseExceptionHandler();
 
@@ -501,8 +520,23 @@ app.MapGet("/health/details", async (HealthDetailsService service, HttpContext h
 });
 
 // Métriques Prometheus au format texte (0.0.4) — pour Prometheus/Grafana.
-app.MapGet("/metrics", async (MetricsService service, CancellationToken ct)
-    => Results.Text(await service.BuildTextAsync(ct), "text/plain; version=0.0.4"));
+// Protection OPTIONNELLE : si Monitoring:MetricsToken est renseigné, le jeton est exigé
+// (query ?token= ou en-tête X-Metrics-Token, comparaison à temps constant) ; sinon l'endpoint
+// reste ouvert comme auparavant et le démarrage le signale.
+app.MapGet("/metrics", async (MetricsService service, HttpContext http, CancellationToken ct) =>
+{
+    if (!string.IsNullOrWhiteSpace(monitoringOptions.MetricsToken))
+    {
+        var provided = http.Request.Query["token"].FirstOrDefault()
+                       ?? http.Request.Headers["X-Metrics-Token"].FirstOrDefault();
+
+        if (string.IsNullOrWhiteSpace(provided)
+            || !Wazap.Application.Helpers.SecurityHelper.FixedTimeEquals(provided, monitoringOptions.MetricsToken))
+            return Results.Unauthorized();
+    }
+
+    return Results.Text(await service.BuildTextAsync(ct), "text/plain; version=0.0.4");
+});
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
