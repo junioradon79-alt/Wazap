@@ -76,7 +76,7 @@ namespace Wazap.API.Services
             }
         }
 
-        private async Task ReconcileAsync(
+        internal async Task ReconcileAsync(
             ApplicationDbContext db, IPaymentService paymentService, PackService packService,
             ClientPaymentService clientPayments, RiderPriorityService riderPriority, CancellationToken ct)
         {

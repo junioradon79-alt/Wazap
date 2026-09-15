@@ -13,6 +13,12 @@
     <!-- Démarrage de l'app réelle dans un TestServer : vérifie le graphe DI de production -->
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.11" />
     <PackageReference Include="xunit" Version="2.9.2" />
+    <!-- Mesure de couverture : collectée par la CI et publiée en artefact, avec un seuil
+         plancher pour qu'une régression de couverture soit visible. -->
+    <PackageReference Include="coverlet.collector" Version="6.0.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

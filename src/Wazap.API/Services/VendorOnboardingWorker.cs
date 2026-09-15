@@ -75,7 +75,7 @@ public sealed class VendorOnboardingWorker : BackgroundService
         }
     }
 
-    private async Task<int> ProcessDueAsync(ApplicationDbContext db, IServiceScope scope, CancellationToken ct)
+    internal async Task<int> ProcessDueAsync(ApplicationDbContext db, IServiceScope scope, CancellationToken ct)
     {
         var now = DateTime.UtcNow;
         var due = await db.Users

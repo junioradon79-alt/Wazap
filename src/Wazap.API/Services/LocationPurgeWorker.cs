@@ -63,7 +63,7 @@ namespace Wazap.API.Services
             }
         }
 
-        private async Task<int> PurgeAsync(ApplicationDbContext db, CancellationToken ct)
+        internal async Task<int> PurgeAsync(ApplicationDbContext db, CancellationToken ct)
         {
             var cutoff = DateTime.UtcNow.AddHours(-_geo.LocationRetentionHours);
 

@@ -51,7 +51,7 @@ namespace Wazap.API.Services
             }
         }
 
-        private async Task ProcessAsync(CancellationToken ct)
+        internal async Task ProcessAsync(CancellationToken ct)
         {
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();

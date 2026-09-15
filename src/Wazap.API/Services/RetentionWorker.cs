@@ -74,7 +74,7 @@ public sealed class RetentionWorker : BackgroundService
         }
     }
 
-    private async Task PurgeAsync(ApplicationDbContext db, RiderService riderService, CancellationToken ct)
+    internal async Task PurgeAsync(ApplicationDbContext db, RiderService riderService, CancellationToken ct)
     {
         var now = DateTime.UtcNow;
 

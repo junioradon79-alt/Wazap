@@ -60,11 +60,19 @@ Appliquer : `dotnet ef database update --project src\Wazap.Infrastructure --star
 Clés stockées via `dotnet user-secrets set` :
 
 - `ConnectionStrings:DefaultConnection`
-- `WhatChimp:ApiToken`
+- `WhatChimp:ApiToken` — **obligatoire tant que `Meta:Enabled=false`** : le démarrage refuse de
+  servir du trafic si aucun canal d'envoi WhatsApp n'est configuré (sans quoi aucune
+  notification — confirmation de commande, offre livreur, code de livraison — ne peut partir).
+  En production, la clé est fournie par la variable d'environnement `WhatChimp__ApiToken`.
 - `WhatChimp:WebhookToken`
-- `Jwt:Key`
+- `Jwt:Key` (32 caractères minimum ; `Jwt:AccessTokenMinutes` règle la durée du jeton, 30 min par défaut)
 - `SeedAdmin:Username` = `admin`
 - `SeedAdmin:Password` = **jamais dans ce dépôt** (dépôt public) — voir `DEPLOYMENT.md`, gitignoré
+- `Monitoring:MetricsToken` — optionnel : protège `/metrics` (sans lui, l'endpoint est ouvert et
+  le démarrage l'avertit)
+- `WebhookSecurity:RequireAuthentication` — défaut `true` : les POST entrants sur
+  `/api/webhook/whatsapp` exigent une signature Meta ou le jeton partagé (ne passer à `false`
+  qu'en développement local)
 
 `appsettings.json` contient le non-secret : `WhatChimp:PhoneNumberId`, `WhatChimp:BaseUrl`, `Jwt:Issuer`, `Jwt:Audience`, `Outbox:MaxRetries`, `Outbox:PollingIntervalSeconds`, `Geo` (rayon/fraîcheur/exclusivité/timeout/rétention), `Packs` (catalogue 6 packs : Mini 1000 F/6 · Découverte 2500/15 · Petit 5000/35 · Moyen 10000/80 · Grand 25000/220 · Pro 100000/1000), `GeniusPay` (BaseUrl/Enabled, clés en user-secrets), `Payments:SimulateAsync` (test flux asynchrone), `RiderScans` (chiffrement des scans d'identité — **clé absente/invalide = téléversement REFUSÉ** ; `AllowUnencryptedStorage=true` rouvre l'écriture en clair comme opt-in explicite, dev/tests ; état de conformité visible sur `/health/details`), `DeliveryProof:RequireClientCode`, `RiderProgram` (programme « Ambassadeur » : `DeliveriesTarget`, `ReferralsTarget`, `MinFilleulDeliveries`, `MinAverageRating`, `RewardLabel`)
 (exiger le code du client pour clôturer une livraison, défaut `false`), `RiderReputation`

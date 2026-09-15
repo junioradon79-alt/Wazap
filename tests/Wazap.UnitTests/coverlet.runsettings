@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Réglages de collecte de couverture.
+
+  Les migrations EF Core (et leurs fichiers « Designer » / snapshot de modèle) représentent
+  plusieurs milliers de lignes de code GÉNÉRÉ : les inclure écrase le taux global et masque
+  l'évolution de la couverture du code réellement écrit. Elles sont donc exclues, comme le
+  code généré par le compilateur.
+-->
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <ExcludeByFile>
+            **/Migrations/**,
+            **/*.Designer.cs,
+            **/ApplicationDbContextModelSnapshot.cs,
+            **/obj/**,
+            **/bin/**
+          </ExcludeByFile>
+          <ExcludeByAttribute>
+            GeneratedCodeAttribute,
+            CompilerGeneratedAttribute,
+            ExcludeFromCodeCoverageAttribute
+          </ExcludeByAttribute>
+          <SkipAutoProps>true</SkipAutoProps>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

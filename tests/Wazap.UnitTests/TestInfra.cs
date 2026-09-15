@@ -162,19 +162,24 @@ internal sealed class ServiceScopeFactoryStub : IServiceScopeFactory, IServiceSc
         if (serviceType == typeof(ApplicationDbContext)) return _context;
         if (serviceType == typeof(IWhatsAppSender)) return _sender;
         if (serviceType == typeof(ILogger<PublicApiService>)) return _logger;
+        if (serviceType == typeof(WhatsAppOrchestrationService)) return BuildOrchestrator();
+        if (serviceType == typeof(DeliveryOfferService)) return BuildOffers();
         if (serviceType == typeof(OrderService))
         {
-            var whatsAppOptions = new WhatsAppOptions();
-            var orchestrator = new WhatsAppOrchestrationService(_sender, whatsAppOptions, NullLogger<WhatsAppOrchestrationService>.Instance);
-            var offers = new DeliveryOfferService(_context, _sender, whatsAppOptions,
-                new GeoOptions(), new GroupingOptions(), new ClientOptions(), orchestrator,
-                new RiderSecurityOptions(), new RiderReputationOptions(), new ClientPaymentOptions(),
-                new RiderPriorityOptions(), NullLogger<DeliveryOfferService>.Instance);
-            return new OrderService(_context, new CurrentUserStub(), offers, new DeliveryProofOptions(),
+            return new OrderService(_context, new CurrentUserStub(), BuildOffers(), new DeliveryProofOptions(),
                 NullLogger<OrderService>.Instance);
         }
         return null;
     }
+
+    private WhatsAppOrchestrationService BuildOrchestrator()
+        => new(_sender, new WhatsAppOptions(), NullLogger<WhatsAppOrchestrationService>.Instance);
+
+    private DeliveryOfferService BuildOffers()
+        => new(_context, _sender, new WhatsAppOptions(),
+            new GeoOptions(), new GroupingOptions(), new ClientOptions(), BuildOrchestrator(),
+            new RiderSecurityOptions(), new RiderReputationOptions(), new ClientPaymentOptions(),
+            new RiderPriorityOptions(), NullLogger<DeliveryOfferService>.Instance);
 
     public T GetRequiredService<T>() where T : class
         => (GetService(typeof(T)) as T) ?? throw new InvalidOperationException($"Service {typeof(T)} non configuré.");

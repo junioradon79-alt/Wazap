@@ -421,9 +421,40 @@ namespace Wazap.Infrastructure.Data
         // OutboxMessage « WebhookDelivery » par abonné concerné (livraison fiable, retries).
         private static readonly JsonSerializerOptions WebhookJson = new(JsonSerializerDefaults.Web);
 
+        /// <summary>
+        /// File d'attente des webhooks sortants — variante SYNCHRONE (utilisée par
+        /// <c>SaveChanges()</c>), conservée pour les appelants synchrones.
+        /// </summary>
         private void QueueWebhookDeliveries()
         {
-            var now = DateTime.UtcNow;
+            var events = CollectWebhookEvents();
+            if (events.Count == 0)
+                return;
+
+            QueueDeliveries(events, LoadEnabledSubscribers());
+        }
+
+        /// <summary>
+        /// File d'attente des webhooks sortants — variante ASYNCHRONE, utilisée par
+        /// <c>SaveChangesAsync()</c>. La lecture des abonnés ne bloque plus le thread : la
+        /// version précédente exécutait une requête <c>ToList()</c> SYNCHRONE dans un chemin
+        /// asynchrone très sollicité (toute sauvegarde porteuse d'un événement).
+        /// </summary>
+        private async Task QueueWebhookDeliveriesAsync(CancellationToken cancellationToken)
+        {
+            var events = CollectWebhookEvents();
+            if (events.Count == 0)
+                return;
+
+            QueueDeliveries(events, await LoadEnabledSubscribersAsync(cancellationToken));
+        }
+
+        /// <summary>
+        /// Collecte les événements à notifier d'après le change tracker. <b>Aucun accès base</b> :
+        /// c'est ce qui permet de l'appeler depuis les deux variantes de <c>SaveChanges</c>.
+        /// </summary>
+        private List<(string Event, object Data)> CollectWebhookEvents()
+        {
             var events = new List<(string Event, object Data)>();
 
             foreach (var entry in ChangeTracker.Entries())
@@ -444,7 +475,7 @@ namespace Wazap.Infrastructure.Data
                         events.Add((WebhookEvents.OrderStatusChanged, new
                         {
                             orderId = order.Id, from = before.ToString(),
-                            to = order.Status.ToString(), at = now
+                            to = order.Status.ToString(), at = DateTime.UtcNow
                         }));
                         break;
 
@@ -564,26 +595,54 @@ namespace Wazap.Infrastructure.Data
                 }
             }
 
-            if (events.Count == 0)
-                return;
+            return events;
+        }
 
-            List<WebhookSubscriber> subscribers;
+        /// <summary>Abonnés actifs, pour la variante synchrone.</summary>
+        private List<WebhookSubscriber> LoadEnabledSubscribers()
+        {
             try
             {
                 // AsNoTracking : les abonnés ne sont lus que pour être parcourus ; les suivre
                 // faisait entrer des entités inutiles dans le change tracker à chaque
                 // sauvegarde porteuse d'événements.
-                subscribers = WebhookSubscribers.AsNoTracking().Where(s => s.Enabled).ToList();
+                return WebhookSubscribers.AsNoTracking().Where(s => s.Enabled).ToList();
             }
             catch (PostgresException ex) when (ex.SqlState == "42P01") // relation inexistante (migration en attente)
             {
                 // Migration « AddWebhookSubscribers » pas encore appliquée sur cette base :
                 // on n'émet pas de webhook pour l'instant (sans casser les sauvegardes).
-                return;
+                return [];
             }
+        }
 
+        /// <summary>Abonnés actifs, pour la variante asynchrone (aucun blocage de thread).</summary>
+        private async Task<List<WebhookSubscriber>> LoadEnabledSubscribersAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await WebhookSubscribers.AsNoTracking()
+                    .Where(s => s.Enabled)
+                    .ToListAsync(cancellationToken);
+            }
+            catch (PostgresException ex) when (ex.SqlState == "42P01")
+            {
+                return [];
+            }
+        }
+
+        /// <summary>
+        /// Met en file une livraison de webhook par abonné concerné (une seule fois par couple
+        /// événement × abonné).
+        /// </summary>
+        private void QueueDeliveries(
+            List<(string Event, object Data)> events,
+            List<WebhookSubscriber> subscribers)
+        {
             if (subscribers.Count == 0)
                 return;
+
+            var now = DateTime.UtcNow;
 
             foreach (var (eventName, data) in events)
             {
@@ -679,16 +738,16 @@ namespace Wazap.Infrastructure.Data
             return base.SaveChanges(acceptAllChangesOnSuccess);
         }
 
-        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            QueueWebhookDeliveries();
-            return base.SaveChangesAsync(cancellationToken);
+            await QueueWebhookDeliveriesAsync(cancellationToken);
+            return await base.SaveChangesAsync(cancellationToken);
         }
 
-        public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+        public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
         {
-            QueueWebhookDeliveries();
-            return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+            await QueueWebhookDeliveriesAsync(cancellationToken);
+            return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
         }
     }
 }
