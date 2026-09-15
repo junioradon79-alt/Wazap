@@ -138,6 +138,29 @@ namespace Wazap.Application.Services
         }
 
         /// <summary>
+        /// Confirmation d'activation du pack prioritaire LIVREUR (chantier 8d) :
+        /// « Pack « {pack} » activé : priorité de proposition pendant {days} jour(s). »
+        /// L'échéance (connue après <see cref="User.GrantPriority"/>) complète le message.
+        /// </summary>
+        public async Task SendRiderPriorityPurchaseConfirmationAsync(
+            User rider, string packName, int days, DateTime? untilUtc = null)
+        {
+            var untilText = untilUtc is { } until
+                ? until.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)
+                : string.Empty;
+
+            await SendAlertAsync(rider, _whatsAppOptions.TemplateRiderPriorityPurchase,
+                $"✅ Pack « {packName} » activé : priorité de proposition pendant {days} jour(s)."
+                + (untilText.Length == 0 ? string.Empty : $" Échéance : {untilText}."),
+                new Dictionary<string, string>
+                {
+                    ["1"] = packName,
+                    ["2"] = days.ToString(CultureInfo.InvariantCulture),
+                    ["3"] = untilText
+                });
+        }
+
+        /// <summary>
         /// Envoie un message texte à un utilisateur (réponses du webhook aux commandes).
         /// </summary>
         public async Task SendTextAsync(User user, string message)

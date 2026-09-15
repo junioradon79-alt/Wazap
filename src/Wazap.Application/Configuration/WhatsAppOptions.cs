@@ -38,6 +38,11 @@ namespace Wazap.Application.Configuration
         public string TemplateLowCredit { get; set; } = "low_credit";
         public string TemplateNoCredit { get; set; } = "no_credit";
 
+        // Confirmation d'activation du pack prioritaire LIVREUR (chantier 8d) :
+        // 1 = nom du pack, 2 = jours de priorité, 3 = échéance (jj/mm/aaaa).
+        // Vide = envoi en texte (aucun template Meta approuvé pour ce message à ce jour).
+        public string TemplateRiderPriorityPurchase { get; set; } = "";
+
         // Onboarding vendeur séquencé (J+1 / J+3 / J+7) — variables par étape :
         //   J+1 : 1 = nom du vendeur
         //   J+3 : 1 = nom, 2 = nb de courses livrées (« 0 » sinon)

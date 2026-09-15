@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Wazap.Application.Abstractions;
 using Wazap.Application.Configuration;
 using Wazap.Application.Dtos;
+using Wazap.Application.Services;
 using Wazap.Domain.Configuration;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
@@ -21,6 +22,7 @@ namespace Wazap.API.Services
         private readonly IPaymentService _paymentService;
         private readonly IReadOnlyList<RiderPriorityPackConfiguration> _packs;
         private readonly RiderPriorityOptions _options;
+        private readonly WhatsAppOrchestrationService _whatsApp;
         private readonly ILogger<RiderPriorityService> _logger;
 
         public RiderPriorityService(
@@ -28,12 +30,14 @@ namespace Wazap.API.Services
             IPaymentService paymentService,
             IReadOnlyList<RiderPriorityPackConfiguration> packs,
             RiderPriorityOptions options,
+            WhatsAppOrchestrationService whatsApp,
             ILogger<RiderPriorityService> logger)
         {
             _context = context;
             _paymentService = paymentService;
             _packs = packs;
             _options = options;
+            _whatsApp = whatsApp;
             _logger = logger;
         }
 
@@ -163,6 +167,19 @@ namespace Wazap.API.Services
                 "Pack prioritaire {Pack} activé pour {Rider} — {Days} jour(s), échéance {Until:u} (réf {Ref}).",
                 purchase.PackName ?? "?", rider.Username, purchase.Days, rider.PriorityUntilUtc,
                 purchase.TransactionReference);
+
+            // Confirmation WhatsApp au livreur (best effort, comme les packs vendeurs) :
+            // un échec d'envoi ne doit jamais invalider l'activation de la priorité.
+            try
+            {
+                await _whatsApp.SendRiderPriorityPurchaseConfirmationAsync(
+                    rider, purchase.PackName ?? "Priorité livreur", purchase.Days, rider.PriorityUntilUtc);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "Confirmation d'activation prioritaire WhatsApp impossible pour {Rider}.", rider.Username);
+            }
         }
 
         /// <summary>

@@ -77,6 +77,50 @@ public class WhatsAppOrchestrationServiceTests
     }
 
     [Fact]
+    public async Task SendRiderPriorityPurchaseConfirmation_WithTemplateEmpty_FallsBackToText()
+    {
+        var sender = new RecordingWhatsAppSender();
+        // Défaut : TemplateRiderPriorityPurchase = "" (aucun template Meta approuvé à ce jour).
+        var service = CreateService(sender);
+        var rider = new User("Rider Test", "hash", UserRole.Rider, "+2250700000000");
+        rider.GrantPriority(7);
+
+        await service.SendRiderPriorityPurchaseConfirmationAsync(
+            rider, "Priorite Livreur 7 jours", 7, rider.PriorityUntilUtc);
+
+        var sent = Assert.Single(sender.TextMessages);
+        Assert.Equal("+2250700000000", sent.Phone);
+        Assert.Contains("Pack « Priorite Livreur 7 jours » activé", sent.Message);
+        Assert.Contains("7 jour(s)", sent.Message);
+        Assert.Contains("Échéance :", sent.Message);
+        Assert.Empty(sender.TemplateMessages);
+    }
+
+    [Fact]
+    public async Task SendRiderPriorityPurchaseConfirmation_WithApprovedTemplate_SendsPackDaysAndDate()
+    {
+        var sender = new RecordingWhatsAppSender();
+        var service = CreateService(sender, new WhatsAppOptions
+        {
+            TemplateRiderPriorityPurchase = "rider_priority_purchase"
+        });
+        var rider = new User("Rider Test", "hash", UserRole.Rider, "+2250700000000");
+        rider.GrantPriority(30);
+
+        await service.SendRiderPriorityPurchaseConfirmationAsync(
+            rider, "Priorite Livreur 30 jours", 30, rider.PriorityUntilUtc);
+
+        var sent = Assert.Single(sender.TemplateMessages);
+        Assert.Equal("rider_priority_purchase", sent.Template);
+        Assert.Equal("Priorite Livreur 30 jours", sent.Variables["1"]);
+        Assert.Equal("30", sent.Variables["2"]);
+        Assert.Equal(
+            rider.PriorityUntilUtc!.Value.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture),
+            sent.Variables["3"]);
+        Assert.Empty(sender.TextMessages);
+    }
+
+    [Fact]
     public async Task SendAlert_WithoutPhone_ShouldSkip()
     {
         var sender = new RecordingWhatsAppSender();
