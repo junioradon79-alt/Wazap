@@ -20,6 +20,10 @@
             **/obj/**,
             **/bin/**
           </ExcludeByFile>
+          <!-- Les fichiers annotés [GeneratedCode] (dont les migrations EF et le snapshot de
+               modèle) représentent plusieurs milliers de lignes jamais exécutées par les tests :
+               les compter faisait chuter le taux global à 58 % et masquait la couverture réelle
+               du code écrit (80,7 %). -->
           <ExcludeByAttribute>
             GeneratedCodeAttribute,
             CompilerGeneratedAttribute,

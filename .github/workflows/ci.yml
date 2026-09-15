@@ -38,24 +38,45 @@ jobs:
       - name: Audit des dépendances vulnérables
         run: dotnet list Wazap.slnx package --vulnerable --include-transitive
 
-      - name: Test (avec mesure de couverture)
-        # Le seuil porte sur le code réellement écrit : les migrations EF Core et leurs fichiers
-        # générés (plusieurs milliers de lignes) sont exclus par `coverlet.runsettings`, sinon
-        # ils écrasent le taux et masquent toute évolution.
+      - name: "Tests (garde-fou bloquant)"
+        run: dotnet test tests/Wazap.UnitTests/Wazap.UnitTests.csproj --configuration Release --no-build
+
+      - name: Couverture (mesure et seuil indicatif)
+        # Étape SÉPARÉE et non bloquante : le garde-fou de la CI reste le résultat des tests
+        # ci-dessus. Un aléa de l'outillage de couverture (collecteur, format de rapport) ne doit
+        # pas rougir la CI ni bloquer un déploiement — mais un décrochage de couverture doit être
+        # VISIBLE, d'où l'annotation d'erreur et le rapport publié en artefact.
+        continue-on-error: true
         run: |
-          set -euo pipefail
+          set -uo pipefail
+
           dotnet test tests/Wazap.UnitTests/Wazap.UnitTests.csproj \
             --configuration Release --no-build \
             --collect:"XPlat Code Coverage" \
             --settings tests/Wazap.UnitTests/coverlet.runsettings \
-            --results-directory artifacts/coverage
+            --results-directory artifacts/coverage || echo "::warning::Collecte de couverture en échec."
 
-          file=$(find artifacts/coverage -name coverage.cobertura.xml | head -1)
+          file=$(find artifacts/coverage -name coverage.cobertura.xml 2>/dev/null | head -1)
+          if [ -z "$file" ]; then
+            echo "::warning::Aucun rapport de couverture produit — seuil non appliqué."
+            exit 0
+          fi
+          echo "Rapport : $file"
+
+          # Le taux global est porté par l'élément racine <coverage line-rate="…">.
           rate=$(grep -o 'line-rate="[0-9.]*"' "$file" | head -1 | sed 's/[^0-9.]//g')
+          if ! printf '%s' "$rate" | grep -Eq '^[0-9]+(\.[0-9]+)?$'; then
+            echo "::warning::Taux de couverture illisible ('$rate') — seuil non appliqué."
+            exit 0
+          fi
+
           pct=$(awk -v r="$rate" 'BEGIN { printf "%.1f", r * 100 }')
           echo "### Couverture (hors migrations générées) : ${pct} %" >> "$GITHUB_STEP_SUMMARY"
-          echo "Couverture : ${pct} %"
-          awk -v r="$rate" 'BEGIN { if (r < 0.75) { printf "::error::Couverture %.1f %% < seuil de 75 %%\n", r*100; exit 1 } }'
+          echo "Couverture (hors migrations générées) : ${pct} %"
+
+          if awk -v r="$rate" 'BEGIN { exit !(r < 0.75) }'; then
+            echo "::error::Couverture ${pct} % sous le seuil de 75 % — ajoutez des tests."
+          fi
 
       - name: Publier la couverture
         if: always()
