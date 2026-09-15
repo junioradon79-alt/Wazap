@@ -21,7 +21,9 @@ param(
 )
 $ErrorActionPreference = "Stop"
 
-$wwwroot = "C:\Dev\Wazap\WazapSln\src\Wazap.API\wwwroot"
+# Chemin deduit du script (aucun chemin absolu propre a un poste).
+$solutionRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+$wwwroot = Join-Path $solutionRoot "src\Wazap.API\wwwroot"
 $target  = Join-Path $wwwroot "demo.mp4"
 $pageUrl = "https://junioradon79gm-001-site1.jtempurl.com/demo-video.html"
 $publicUrl = "https://junioradon79gm-001-site1.jtempurl.com/demo.mp4"

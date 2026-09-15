@@ -189,25 +189,25 @@ public class WebhookWhatsAppController : ControllerBase
         }
 
         // Format historique (WhatChimp) : lecture tolérante du payload (camelCase ET snake_case)
-        var data = Find(raw, "data");
-        var subscriber = Find(data, "subscriber");
+        var data = JsonPayloadReader.Find(raw, "data");
+        var subscriber = JsonPayloadReader.Find(data, "subscriber");
         // Fallback : certains envois (ex. image) placent « message » à la racine, pas
         // dans « data ». Même tolérance que phone/text ci-dessous (lecture tolérante).
-        var message = Find(data, "message") ?? Find(raw, "message");
-        var location = Find(message, "location");
-        var interactive = Find(message, "interactive");
-        var buttonReply = Find(interactive, "buttonReply");
+        var message = JsonPayloadReader.Find(data, "message") ?? JsonPayloadReader.Find(raw, "message");
+        var location = JsonPayloadReader.Find(message, "location");
+        var interactive = JsonPayloadReader.Find(message, "interactive");
+        var buttonReply = JsonPayloadReader.Find(interactive, "buttonReply");
 
-        var phone = Str(subscriber, "phoneNumber")
-                    ?? Str(raw, "chat_id")
-                    ?? Str(raw, "chatId");
-        var text = Str(message, "text")
-                   ?? Str(raw, "user_message")
-                   ?? Str(raw, "userMessage");
-        var latitude = Dbl(location, "latitude");
-        var longitude = Dbl(location, "longitude");
-        var buttonId = Str(buttonReply, "id");
-        var buttonTitle = Str(buttonReply, "title");
+        var phone = JsonPayloadReader.Str(subscriber, "phoneNumber")
+                    ?? JsonPayloadReader.Str(raw, "chat_id")
+                    ?? JsonPayloadReader.Str(raw, "chatId");
+        var text = JsonPayloadReader.Str(message, "text")
+                   ?? JsonPayloadReader.Str(raw, "user_message")
+                   ?? JsonPayloadReader.Str(raw, "userMessage");
+        var latitude = JsonPayloadReader.Dbl(location, "latitude");
+        var longitude = JsonPayloadReader.Dbl(location, "longitude");
+        var buttonId = JsonPayloadReader.Str(buttonReply, "id");
+        var buttonTitle = JsonPayloadReader.Str(buttonReply, "title");
 
         return await RouteMessageAsync(phone, text, latitude, longitude, buttonId, buttonTitle,
             mediaUrl: null, mediaId: null, mimeType: null, message);
@@ -296,13 +296,13 @@ public class WebhookWhatsAppController : ControllerBase
         //     (« Garantie Colis Sûr »). Une image n'emprunte jamais le routage texte :
         //     sans cette branche, elle serait ignorée en silence. Lecture tolérante du
         //     payload (la passerelle n'a pas de forme média unique et documentée).
-        var mediaNode = Find(message, "media") ?? Find(message, "image") ?? Find(message, "photo");
-        mediaUrl ??= Str(message, "mediaUrl") ?? Str(message, "media_url")
-            ?? Str(mediaNode, "url") ?? Str(mediaNode, "link")
-            ?? Str(message, "url") ?? Str(message, "link");
-        mediaId ??= Str(mediaNode, "id") ?? Str(message, "mediaId") ?? Str(message, "media_id");
-        mimeType ??= Str(message, "mimeType") ?? Str(message, "mime_type")
-            ?? Str(mediaNode, "mimeType") ?? Str(mediaNode, "mime_type");
+        var mediaNode = JsonPayloadReader.Find(message, "media") ?? JsonPayloadReader.Find(message, "image") ?? JsonPayloadReader.Find(message, "photo");
+        mediaUrl ??= JsonPayloadReader.Str(message, "mediaUrl") ?? JsonPayloadReader.Str(message, "media_url")
+            ?? JsonPayloadReader.Str(mediaNode, "url") ?? JsonPayloadReader.Str(mediaNode, "link")
+            ?? JsonPayloadReader.Str(message, "url") ?? JsonPayloadReader.Str(message, "link");
+        mediaId ??= JsonPayloadReader.Str(mediaNode, "id") ?? JsonPayloadReader.Str(message, "mediaId") ?? JsonPayloadReader.Str(message, "media_id");
+        mimeType ??= JsonPayloadReader.Str(message, "mimeType") ?? JsonPayloadReader.Str(message, "mime_type")
+            ?? JsonPayloadReader.Str(mediaNode, "mimeType") ?? JsonPayloadReader.Str(mediaNode, "mime_type");
 
         if (mediaUrl is not null || mediaId is not null)
         {
@@ -1176,8 +1176,7 @@ public class WebhookWhatsAppController : ControllerBase
         }
     }
 
-    private static string? TryExtractClientPhone(string text)
-    {
+    private static string? TryExtractClientPhone(string text)    {
         if (string.IsNullOrWhiteSpace(text))
             return null;
 
@@ -1221,50 +1220,5 @@ public class WebhookWhatsAppController : ControllerBase
         }
 
         return null;
-    }
-
-    // ---- Lecture tolérante du payload (camelCase ET snake_case) ----
-
-    private static JsonElement? Find(JsonElement? node, string name)
-    {
-        if (!node.HasValue) return null;
-        var obj = node.Value;
-        if (obj.ValueKind != JsonValueKind.Object) return null;
-
-        var target = NormalizeKey(name);
-        foreach (var prop in obj.EnumerateObject())
-        {
-            if (NormalizeKey(prop.Name) == target)
-                return prop.Value;
-        }
-        return null;
-    }
-
-    private static string NormalizeKey(string name)
-        => new string(name.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
-
-    private static string? Str(JsonElement? node, string name)
-    {
-        var v = Find(node, name);
-        if (v is null || v.Value.ValueKind != JsonValueKind.String)
-            return null;
-        return v.Value.GetString();
-    }
-
-    private static double? Dbl(JsonElement? node, string name)
-    {
-        var v = Find(node, name);
-        if (v is null) return null;
-
-        return v.Value.ValueKind switch
-        {
-            JsonValueKind.Number => v.Value.GetDouble(),
-            JsonValueKind.String when double.TryParse(
-                v.Value.GetString(),
-                System.Globalization.NumberStyles.Float,
-                System.Globalization.CultureInfo.InvariantCulture,
-                out var d) => d,
-            _ => null
-        };
     }
 }

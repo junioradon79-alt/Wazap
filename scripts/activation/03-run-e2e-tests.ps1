@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Lance les tests E2E reel WAZAP (S1-S4) via WhatsApp.

@@ -27,14 +27,21 @@
     ATTENTION : la purge invalide les jetons -> re-connexion admin obligatoire ensuite.
 #>
 param(
-    [string]$ProjectRoot = "C:\Dev\Wazap\WazapSln",
+    [string]$ProjectRoot,
     [string]$ConnectionString = "",
-    [string]$RemoteConfig = "C:\Dev\Wazap\secrets\web.config.server.xml",
+    [string]$RemoteConfig,
     [switch]$Confirm,
     [switch]$FullPurge,
     [switch]$Force
 )
 $ErrorActionPreference = "Stop"
+
+# Chemins deduits du script (aucun chemin absolu propre a un poste) :
+#   ...\WazapSln\scripts\activation\09-...ps1  ->  ..\.. = WazapSln, ..\..\.. = espace de travail
+$solutionRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+$workspaceRoot = Split-Path $solutionRoot -Parent
+if (-not $ProjectRoot) { $ProjectRoot = $solutionRoot }
+if (-not $RemoteConfig) { $RemoteConfig = Join-Path $workspaceRoot "secrets\web.config.server.xml" }
 
 function Resolve-ConnectionString {
     if (-not [string]::IsNullOrWhiteSpace($ConnectionString)) { return $ConnectionString }
@@ -143,4 +150,4 @@ else {
 
 Write-Host ""
 Write-Host "=== Termine ===" -ForegroundColor Cyan
-Write-Host "Sauvegarde JSON : C:\Dev\Wazap\backups\purge_backup_*.json" -ForegroundColor DarkGray
+Write-Host "Sauvegarde JSON : $workspaceRoot\backups\purge_backup_*.json" -ForegroundColor DarkGray

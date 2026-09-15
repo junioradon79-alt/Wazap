@@ -14,11 +14,23 @@
     .\05-cleanup-test-data.ps1 -Confirm -Force   # base dont le nom ne contient pas test/dev
 #>
 param(
-    [string]$ProjectRoot = "C:\Dev\Wazap\WazapSln",
+    [string]$ProjectRoot,
     [switch]$Confirm,
     [switch]$Force
 )
 $ErrorActionPreference = "Stop"
+
+# Chemins deduits du script (aucun chemin absolu propre a un poste) :
+#   ...\WazapSln\scripts\activation\05-cleanup-test-data.ps1
+#   -> $PSScriptRoot\..\..    = ...\WazapSln  (solution)
+#   -> $PSScriptRoot\..\..\.. = ...\Wazap     (espace de travail : secrets, backups)
+$solutionRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+$workspaceRoot = Split-Path $solutionRoot -Parent
+if (-not $ProjectRoot) { $ProjectRoot = $solutionRoot }
+
+# L'outil PurgeTestData ecrit sa sauvegarde JSON dans WAZAP_BACKUP_DIR (sinon « backups » sous
+# le dossier courant) : on fixe ce dossier a cote des autres sauvegardes du projet.
+if (-not $env:WAZAP_BACKUP_DIR) { $env:WAZAP_BACKUP_DIR = Join-Path $workspaceRoot "backups" }
 
 function Get-DatabaseName([string]$connectionString) {
     if ([string]::IsNullOrWhiteSpace($connectionString)) { return $null }

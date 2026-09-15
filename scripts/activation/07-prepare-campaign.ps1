@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Prepare une campagne WhatsApp prospects (72 mobiles) une fois les templates approuves.
@@ -38,7 +38,7 @@ catch {
 }
 Write-Host ""
 Write-Host "[2] Preparation de la campagne..." -ForegroundColor Yellow
-$projectRoot = "C:\Dev\Wazap\WazapSln"
+$projectRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 # Résout le CSV en chemin absolu depuis la racine du dépôt (le Push-Location de l'étape [3]
 # changerait sinon le chemin relatif en `.\\WazapSln\\prospection\\…` introuvable).
 if (-not [System.IO.Path]::IsPathRooted($CsvPath)) {

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Wazap.Application.Helpers;
 
 namespace Wazap.Infrastructure.Services;
 
@@ -29,6 +30,11 @@ public sealed record MetaWebhookEvent(
 /// et l'ancienne version n'en lisait qu'UN SEUL — les autres étaient perdus sans trace ni
 /// réessai. <see cref="MetaWebhookEvent.MessageId"/> porte l'identifiant unique du message
 /// (<c>messages[].id</c>), indispensable à la déduplication des reprises de Meta.
+/// </para>
+/// <para>
+/// La lecture des champs (tolérante : camelCase comme snake_case, nombres comme chaînes) est
+/// mutualisée dans <see cref="JsonPayloadReader"/> : le routeur du webhook et cet analyseur en
+/// avaient chacun une copie, si bien qu'une correction dans l'une ne profitait pas à l'autre.
 /// </para>
 /// </summary>
 public static class MetaWebhookParser
@@ -95,14 +101,13 @@ public static class MetaWebhookParser
 
     private static MetaWebhookEvent? ParseMessage(JsonElement messageObj)
     {
-        var from = Str(messageObj, "from");
-        var type = Str(messageObj, "type");
-        var messageId = Str(messageObj, "id");
+        var from = JsonPayloadReader.Str(messageObj, "from");
+        var type = JsonPayloadReader.Str(messageObj, "type");
+        var messageId = JsonPayloadReader.Str(messageObj, "id");
 
         string? text = null;
         string? buttonId = null;
         string? buttonTitle = null;
-        string? mediaUrl = null;
         string? mediaId = null;
         string? mimeType = null;
         double? latitude = null;
@@ -111,25 +116,26 @@ public static class MetaWebhookParser
         switch (type)
         {
             case "text":
-                text = Str(Find(messageObj, "text"), "body");
+                text = JsonPayloadReader.Str(JsonPayloadReader.Find(messageObj, "text"), "body");
                 break;
             case "button":
-                buttonTitle = Str(Find(messageObj, "button"), "text");
-                buttonId = Str(Find(messageObj, "button"), "payload");
+                buttonTitle = JsonPayloadReader.Str(JsonPayloadReader.Find(messageObj, "button"), "text");
+                buttonId = JsonPayloadReader.Str(JsonPayloadReader.Find(messageObj, "button"), "payload");
                 break;
             case "interactive":
             {
-                var interactive = Find(messageObj, "interactive");
-                var reply = Find(interactive, "button_reply") ?? Find(interactive, "nfm_reply");
-                buttonId = Str(reply, "id");
-                buttonTitle = Str(reply, "title");
+                var interactive = JsonPayloadReader.Find(messageObj, "interactive");
+                var reply = JsonPayloadReader.Find(interactive, "button_reply")
+                            ?? JsonPayloadReader.Find(interactive, "nfm_reply");
+                buttonId = JsonPayloadReader.Str(reply, "id");
+                buttonTitle = JsonPayloadReader.Str(reply, "title");
                 break;
             }
             case "location":
             {
-                var location = Find(messageObj, "location");
-                latitude = Dbl(location, "latitude");
-                longitude = Dbl(location, "longitude");
+                var location = JsonPayloadReader.Find(messageObj, "location");
+                latitude = JsonPayloadReader.Dbl(location, "latitude");
+                longitude = JsonPayloadReader.Dbl(location, "longitude");
                 break;
             }
             case "image":
@@ -137,9 +143,9 @@ public static class MetaWebhookParser
             case "document":
             case "audio":
             {
-                var media = Find(messageObj, type);
-                mediaId = Str(media, "id");
-                mimeType = Str(media, "mime_type");
+                var media = JsonPayloadReader.Find(messageObj, type);
+                mediaId = JsonPayloadReader.Str(media, "id");
+                mimeType = JsonPayloadReader.Str(media, "mime_type");
                 break;
             }
             default:
@@ -157,52 +163,6 @@ public static class MetaWebhookParser
             : "+" + new string(from.Where(char.IsDigit).ToArray());
 
         return new MetaWebhookEvent(phone, text, latitude, longitude, buttonId, buttonTitle,
-            mediaUrl, mediaId, mimeType, messageId);
-    }
-
-    // ---- Lecture tolérante du payload (camelCase ET snake_case) ----
-
-    private static JsonElement? Find(JsonElement? node, string name)
-    {
-        if (!node.HasValue || node.Value.ValueKind != JsonValueKind.Object)
-            return null;
-
-        var target = NormalizeKey(name);
-        foreach (var prop in node.Value.EnumerateObject())
-        {
-            if (NormalizeKey(prop.Name) == target)
-                return prop.Value;
-        }
-
-        return null;
-    }
-
-    private static string NormalizeKey(string name)
-        => new(name.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
-
-    private static string? Str(JsonElement? node, string name)
-    {
-        var value = Find(node, name);
-        if (value is { ValueKind: JsonValueKind.String } found)
-            return found.GetString();
-        return null;
-    }
-
-    private static double? Dbl(JsonElement? node, string name)
-    {
-        var value = Find(node, name);
-        if (value is null)
-            return null;
-
-        return value.Value.ValueKind switch
-        {
-            JsonValueKind.Number => value.Value.GetDouble(),
-            JsonValueKind.String when double.TryParse(
-                value.Value.GetString(),
-                System.Globalization.NumberStyles.Float,
-                System.Globalization.CultureInfo.InvariantCulture,
-                out var d) => d,
-            _ => null
-        };
+            null /* mediaUrl : Meta ne fournit qu'un identifiant de média */, mediaId, mimeType, messageId);
     }
 }

@@ -9,7 +9,14 @@ if (string.IsNullOrWhiteSpace(connStr))
 }
 
 var confirm = args.Contains("--confirm");
-var backupDir = @"c:\Dev\Wazap\backups";
+
+// Dossier des sauvegardes : AUCUN chemin absolu propre a un poste (l'outil ne fonctionnait que
+// sur la machine de son auteur). Priorite a WAZAP_BACKUP_DIR, sinon « backups » sous le dossier
+// courant.
+var backupDir = Environment.GetEnvironmentVariable("WAZAP_BACKUP_DIR");
+if (string.IsNullOrWhiteSpace(backupDir))
+    backupDir = Path.Combine(Directory.GetCurrentDirectory(), "backups");
+
 Directory.CreateDirectory(backupDir);
 var backupPath = Path.Combine(backupDir, $"purge_backup_{DateTime.Now:yyyyMMdd_HHmmss}.json");
 
