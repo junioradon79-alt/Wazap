@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { api, getToken, getUser } from '../api/client'
 import type { CreateOrderRequest, OrderDto, PagedResult } from '../api/types'
+import { Modal } from '../components/Modal'
 import { StatusBadge, formatDateTime, formatMoney, shortId } from '../components/ui'
 
 export default function OrdersPage() {
@@ -13,6 +14,12 @@ export default function OrdersPage() {
   const [paying, setPaying] = useState<string | null>(null)
   const [payMessage, setPayMessage] = useState('')
 
+  // Pagination : la liste était figée sur les 50 premières commandes alors que le TOTAL était
+  // affiché — au-delà, des lignes existaient sans aucun moyen de les atteindre.
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const pageSize = 50
+
   const [form, setForm] = useState<CreateOrderRequest>({
     clientName: '',
     clientWhatsAppNumber: '',
@@ -21,18 +28,23 @@ export default function OrdersPage() {
     amount: 0,
   })
 
-  const load = async (): Promise<void> => {
+  const load = async (targetPage = page): Promise<void> => {
     try {
-      const data = await api.get<PagedResult<OrderDto>>('/orders?page=1&pageSize=50')
+      const data = await api.get<PagedResult<OrderDto>>(`/orders?page=${targetPage}&pageSize=${pageSize}`)
       setOrders(data.items)
       setTotal(data.total)
+      setTotalPages(Math.max(1, data.totalPages))
+      setPage(targetPage)
+      setError('')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur')
     }
   }
 
   useEffect(() => {
-    void load()
+    void load(1)
+    // Chargement initial uniquement : les changements de page passent par le bouton.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const create = async (e: FormEvent): Promise<void> => {
@@ -120,12 +132,20 @@ export default function OrdersPage() {
       <div className="page-head">
         <div>
           <h1>Commandes</h1>
-          <p>{total} commandes au total</p>
+          <p>
+            {total} commande{total > 1 ? 's' : ''} au total
+            {totalPages > 1 && ` · page ${page} sur ${totalPages}`}
+          </p>
         </div>
         <button className="btn btn--primary" onClick={() => setShowCreate(true)}>+ Nouvelle commande</button>
       </div>
 
-      {error && <div className="alert alert--error">{error}</div>}
+      {error && (
+        <div className="alert alert--error">
+          {error}{' '}
+          <button className="btn btn--ghost" onClick={() => void load(page)}>Réessayer</button>
+        </div>
+      )}
       {payMessage && <div className="alert alert--success">{payMessage}</div>}
 
       <section className="panel">
@@ -180,42 +200,84 @@ export default function OrdersPage() {
             </tbody>
           </table>
         </div>
+
+        {totalPages > 1 && (
+          <div className="pager">
+            <button className="btn" disabled={page <= 1} onClick={() => void load(page - 1)}>
+              ← Précédent
+            </button>
+            <span>Page {page} / {totalPages}</span>
+            <button className="btn" disabled={page >= totalPages} onClick={() => void load(page + 1)}>
+              Suivant →
+            </button>
+          </div>
+        )}
       </section>
 
       {showCreate && (
-        <div className="modal-backdrop" onClick={() => setShowCreate(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Nouvelle commande</h3>
-            <form onSubmit={(e) => void create(e)}>
-              <div className="field">
-                <label>Nom du client</label>
-                <input value={form.clientName} onChange={(e) => set('clientName', e.target.value)} required />
-              </div>
-              <div className="field">
-                <label>WhatsApp client (E.164)</label>
-                <input value={form.clientWhatsAppNumber} onChange={(e) => set('clientWhatsAppNumber', e.target.value)} placeholder="+2250102030405" required />
-              </div>
-              <div className="field">
-                <label>WhatsApp vendeur (E.164)</label>
-                <input value={form.vendorWhatsAppNumber} onChange={(e) => set('vendorWhatsAppNumber', e.target.value)} placeholder="+2250708091011" required />
-              </div>
-              <div className="field">
-                <label>Description</label>
-                <input value={form.description} onChange={(e) => set('description', e.target.value)} required />
-              </div>
-              <div className="field">
-                <label>Montant (FCFA)</label>
-                <input type="number" min={0} value={form.amount} onChange={(e) => set('amount', Number(e.target.value))} required />
-              </div>
-              <div className="modal__actions">
-                <button type="button" className="btn" onClick={() => setShowCreate(false)}>Annuler</button>
-                <button type="submit" className="btn btn--primary" disabled={busy}>
-                  {busy ? 'Création…' : 'Créer'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <Modal title="Nouvelle commande" onClose={() => setShowCreate(false)}>
+          <form onSubmit={(e) => void create(e)}>
+            <div className="field">
+              <label htmlFor="order-client-name">Nom du client</label>
+              <input
+                id="order-client-name"
+                value={form.clientName}
+                onChange={(e) => set('clientName', e.target.value)}
+                required
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="order-client-phone">WhatsApp client (E.164)</label>
+              <input
+                id="order-client-phone"
+                value={form.clientWhatsAppNumber}
+                onChange={(e) => set('clientWhatsAppNumber', e.target.value)}
+                placeholder="+2250102030405"
+                maxLength={20}
+                required
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="order-vendor-phone">WhatsApp vendeur (E.164)</label>
+              <input
+                id="order-vendor-phone"
+                value={form.vendorWhatsAppNumber}
+                onChange={(e) => set('vendorWhatsAppNumber', e.target.value)}
+                placeholder="+2250708091011"
+                maxLength={20}
+                required
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="order-description">Description</label>
+              <input
+                id="order-description"
+                value={form.description}
+                onChange={(e) => set('description', e.target.value)}
+                maxLength={500}
+                required
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="order-amount">Montant (FCFA)</label>
+              <input
+                id="order-amount"
+                type="number"
+                min={0}
+                max={9999999}
+                value={form.amount}
+                onChange={(e) => set('amount', Number(e.target.value))}
+                required
+              />
+            </div>
+            <div className="modal__actions">
+              <button type="button" className="btn" onClick={() => setShowCreate(false)}>Annuler</button>
+              <button type="submit" className="btn btn--primary" disabled={busy}>
+                {busy ? 'Création…' : 'Créer'}
+              </button>
+            </div>
+          </form>
+        </Modal>
       )}
     </>
   )

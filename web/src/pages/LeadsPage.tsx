@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { api, getToken } from '../api/client'
 import { formatDateTime } from '../components/ui'
 
@@ -62,21 +62,32 @@ export default function LeadsPage() {
     return qs ? `?${qs}` : ''
   }
 
-  const load = async (): Promise<void> => {
+  const load = useCallback(async (signal?: AbortSignal): Promise<void> => {
     try {
       const data = await api.get<LeadListItem[]>(`/admin/leads${buildQuery()}`)
+      if (signal?.aborted) return
       setLeads(data)
       setError('')
     } catch (err) {
+      // Une requête annulée (frappe suivante) n'est pas une erreur à afficher.
+      if (signal?.aborted) return
       setError(err instanceof Error ? err.message : 'Erreur de chargement')
     }
-  }
+    // `buildQuery` est dérivé des filtres : les recréer ici à chaque rendu est sans effet de bord.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterStatus, filterSource, search])
 
   // Recherche avec léger débounce (300 ms) pour ne pas marteler l'API à chaque frappe.
+  // Chaque frappe ANNULE la requête précédente : sans cela, une réponse lente pouvait écraser
+  // un résultat plus récent (liste incohérente avec les filtres affichés).
   useEffect(() => {
-    const t = setTimeout(() => void load(), 300)
-    return () => clearTimeout(t)
-  }, [filterStatus, filterSource, search])
+    const controller = new AbortController()
+    const t = setTimeout(() => void load(controller.signal), 300)
+    return () => {
+      clearTimeout(t)
+      controller.abort()
+    }
+  }, [load])
 
   // Les sources connues + celles réellement présentes dans les résultats courants.
   const sources = Array.from(new Set([...KNOWN_SOURCES, ...leads.map((l) => l.source)])).sort()

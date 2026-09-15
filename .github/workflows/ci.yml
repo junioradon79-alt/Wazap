@@ -130,6 +130,18 @@ jobs:
         run: npm ci
         working-directory: web
 
+      - name: Lint
+        # Le front n'avait AUCUN lint : ni règles de hooks React (dépendances de useEffect,
+        # usage conditionnel), ni détection de code mort.
+        run: npm run lint
+        working-directory: web
+
+      - name: Tests unitaires
+        # Aucun test front n'existait alors que le client HTTP porte l'authentification
+        # (jeton, renouvellement, purge de session) et que les pages manipulent de l'argent.
+        run: npm run test
+        working-directory: web
+
       - name: Typecheck + build
         run: npm run build
         working-directory: web

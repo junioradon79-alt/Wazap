@@ -99,8 +99,7 @@ async function refreshAccessToken(): Promise<boolean> {
   return refreshInFlight
 }
 
-function authHeaders(options: RequestInit): Record<string, string> {
-  const headers: Record<string, string> = {
+function authHeaders(options: RequestInit): Record<string, string> {  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string> | undefined),
   }
@@ -143,6 +142,13 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
 
   if (res.status === 401) {
+    // Les routes d'authentification renvoient 401 pour de MAUVAISES IDENTIFIANTS : ce n'est
+    // pas une session expirée. Purger la session et annoncer « Session expirée » ferait
+    // afficher le mauvais motif à l'utilisateur qui vient de se tromper de mot de passe.
+    if (path.startsWith('/auth/')) {
+      throw new ApiError(401, await readErrorMessage(res, 'Identifiants invalides.'))
+    }
+
     // Y compris après un renouvellement réussi : la session est réellement invalide
     // (empreinte de sécurité régénérée par un changement de mot de passe, par exemple).
     setToken(null)
@@ -153,34 +159,50 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
 
   if (!res.ok) {
-    let message = `Erreur ${res.status}`
-    try {
-      const body = (await res.json()) as Record<string, unknown> | string
-      if (typeof body === 'string') {
-        // Certains endpoints renvoient un corps texte brut (Conflict("…")).
-        if (body.trim()) message = body
-      } else {
-        // Tous les formats du serveur : { message }, ProblemDetails { detail, title },
-        // erreurs de validation { errors }, et le format court { error } utilisé par la
-        // page de vente, les sinistres et les livreurs. Sans cette dernière clé, le
-        // prospect lisait « Erreur 400 » au lieu du motif réel.
-        if (typeof body.message === 'string') message = body.message
-        else if (typeof body.detail === 'string') message = body.detail
-        else if (typeof body.error === 'string') message = body.error
-        else if (typeof body.title === 'string') message = body.title
-        if (body.errors) {
-          const parts = Object.values(body.errors as Record<string, string[]>).flat()
-          if (parts.length > 0) message = parts.join(' · ')
-        }
-      }
-    } catch {
-      // réponse non-JSON : on garde le message générique
-    }
-    throw new ApiError(res.status, message)
+    throw new ApiError(res.status, await readErrorMessage(res, `Erreur ${res.status}`))
   }
 
   if (res.status === 204) return undefined as T
   return (await res.json()) as T
+}
+
+/**
+ * Motif d'erreur lisible à partir du corps de la réponse.
+ * <p>
+ * Le corps est lu en TEXTE puis analysé : l'ancienne version appelait directement `res.json()`,
+ * qui lève sur un corps non JSON — le message brut (`Conflict("…")`) n'était donc jamais
+ * affiché, et l'utilisateur voyait « Erreur 409 ».
+ * </p>
+ * Formats reconnus : `{ message }`, ProblemDetails `{ detail, title }`, `{ error }` (page de
+ * vente, sinistres, livreurs), erreurs de validation `{ errors }`, et texte brut.
+ */
+async function readErrorMessage(res: Response, fallback: string): Promise<string> {
+  try {
+    const raw = await res.text()
+    if (!raw.trim()) return fallback
+
+    try {
+      const body = JSON.parse(raw) as Record<string, unknown>
+      const fromBody =
+        (typeof body.message === 'string' && body.message) ||
+        (typeof body.detail === 'string' && body.detail) ||
+        (typeof body.error === 'string' && body.error) ||
+        (typeof body.title === 'string' && body.title) ||
+        null
+
+      if (body.errors) {
+        const parts = Object.values(body.errors as Record<string, string[]>).flat()
+        if (parts.length > 0) return parts.join(' · ')
+      }
+
+      return fromBody || fallback
+    } catch {
+      // Corps non JSON (texte brut) : on l'affiche tel quel plutôt qu'un code générique.
+      return raw.length > 300 ? raw.slice(0, 300) : raw
+    }
+  } catch {
+    return fallback
+  }
 }
 
 export const api = {
