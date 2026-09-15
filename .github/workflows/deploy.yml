@@ -41,6 +41,10 @@ on:
         description: 'Appliquer les migrations prod avant déploiement'
         type: boolean
         default: true
+      skip_backup:
+        description: 'URGENCE : sauter la sauvegarde pg_dump avant migration (déconseillé)'
+        type: boolean
+        default: false
 
 concurrency:
   group: deploy-prod
@@ -94,6 +98,74 @@ jobs:
 
       - name: Publish self-contained (win-x64)
         run: dotnet publish src/Wazap.API/Wazap.API.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish-win64 --no-restore
+
+      - name: Client PostgreSQL (pg_dump)
+        # pg_dump d'une version RÉCENTE sait sauvegarder un serveur plus ancien : on installe
+        # donc la dernière version disponible plutôt que celle de l'image, pour ne jamais
+        # échouer sur un « server version mismatch ».
+        if: ${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.apply_migrations)) && !inputs.skip_backup }}
+        run: |
+          set -euo pipefail
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+            https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+          pg_dump --version
+
+      - name: Sauvegarde de la base prod AVANT migration (pg_dump)
+        # Les migrations sont appliquées automatiquement : sans sauvegarde préalable, une
+        # migration destructive (colonne supprimée, type changé) était irréversible — aucune
+        # procédure de restauration n'existait. Le dump est conservé comme artefact du run.
+        # En cas d'échec, le déploiement s'arrête AVANT la migration (mieux vaut un déploiement
+        # reporté qu'une base perdue). Échappatoire d'urgence : workflow_dispatch + skip_backup.
+        if: ${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.apply_migrations)) && !inputs.skip_backup }}
+        shell: bash
+        env:
+          PROD_DB: ${{ secrets.SMARTERASP_DB_CONNECTION }}
+        run: |
+          set -euo pipefail
+          if [ -z "$PROD_DB" ]; then
+            echo "::error::SMARTERASP_DB_CONNECTION absent — impossible de sauvegarder avant migration."
+            exit 1
+          fi
+
+          # Conversion de la chaîne Npgsql (clé=valeur séparés par « ; ») en DSN libpq
+          # (clé=valeur séparés par des espaces, clés minuscules). On ne recopie QUE les
+          # paramètres connus : libpq refuse une clé inconnue. Le mot de passe passe par
+          # PGPASSWORD (une valeur contenant « ; » ou une espace casserait le DSN).
+          dsn=""
+          password=""
+          while IFS= read -r part; do
+            key="${part%%=*}"; value="${part#*=}"
+            key="$(echo "$key" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
+            case "$key" in
+              host)     dsn="$dsn host='$value'" ;;
+              port)     dsn="$dsn port='$value'" ;;
+              database) dsn="$dsn dbname='$value'" ;;
+              username) dsn="$dsn user='$value'" ;;
+              password) password="$value" ;;
+              sslmode)  dsn="$dsn sslmode='$value'" ;;
+            esac
+          done < <(printf '%s' "$PROD_DB" | tr ';' '\n')
+
+          stamp="$(date -u +%Y%m%d_%H%M%S)"
+          mkdir -p backups
+          PGPASSWORD="$password" pg_dump --no-owner --no-privileges --format=custom \
+            --file="backups/prod_${stamp}.dump" "$dsn"
+          ls -lh backups/
+          echo "Sauvegarde : backups/prod_${stamp}.dump"
+
+      - name: Publier la sauvegarde comme artefact
+        if: ${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.apply_migrations)) && !inputs.skip_backup }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: sauvegarde-base-prod
+          path: backups/*.dump
+          retention-days: 30
+          if-no-files-found: error
 
       - name: Appliquer les migrations prod (idempotent)
         if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.apply_migrations) }}

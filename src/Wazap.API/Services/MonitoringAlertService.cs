@@ -32,11 +32,18 @@ public sealed class MonitoringAlertService
         var now = DateTime.UtcNow;
         var cooldown = TimeSpan.FromMinutes(Math.Max(1, _options.AlertCooldownMinutes));
 
-        // Anti-rebond : on n'alerte qu'une fois par type et par fenêtre.
-        if (!_lastSentByType.TryGetValue(type, out var lastSent) || now - lastSent >= cooldown)
-            _lastSentByType[type] = now;
-        else
-            return;
+        // Anti-rebond ATOMIQUE. Deux défauts corrigés ici :
+        //  • le service était enregistré en Scoped, donc un nouveau dictionnaire était créé à
+        //    chaque scope : le watchdog (qui ouvre un scope par cycle, toutes les 5 s en cas
+        //    d'échec) n'appliquait JAMAIS la fenêtre de 15 min et inondait le webhook d'alertes ;
+        //  • l'écriture du dictionnaire n'était pas atomique (lecture puis affectation).
+        var windowStart = _lastSentByType.AddOrUpdate(
+            type,
+            _ => now,
+            (_, last) => now - last >= cooldown ? now : last);
+
+        if (windowStart != now)
+            return; // Une alerte de ce type a déjà été émise dans la fenêtre.
 
         _logger.LogWarning("ALERTE [{Type}] {Message}", type, message);
 

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Wazap.Infrastructure.Data;
 using Wazap.Infrastructure.Services;
 using Wazap.API;
+using Wazap.API.Configuration;
 using Wazap.API.Services;
 using Wazap.API.Middleware;
 using Wazap.Application.Abstractions;
@@ -144,7 +145,11 @@ builder.Services.AddSingleton(deliveryProofOptions);
 // Options monitoring / alertes (webhook optionnel + service d'alerte)
 var monitoringOptions = builder.Configuration.GetSection(MonitoringOptions.SectionName).Get<MonitoringOptions>() ?? new MonitoringOptions();
 builder.Services.AddSingleton(monitoringOptions);
-builder.Services.AddScoped<MonitoringAlertService>();
+// Singleton OBLIGATOIRE : l'anti-rebond des alertes repose sur un dictionnaire d'horodatage
+// qui doit vivre au niveau du processus. En Scoped, un nouveau dictionnaire était créé à
+// chaque scope (le watchdog en ouvre un par cycle, toutes les 5 s) et la fenêtre de
+// temporisation ne s'appliquait jamais — le webhook d'alerte était inondé.
+builder.Services.AddSingleton<MonitoringAlertService>();
 builder.Services.AddScoped<HealthDetailsService>();
 builder.Services.AddScoped<MetricsService>();
 builder.Services.AddScoped<ProspectAutoService>();
@@ -371,6 +376,29 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 var app = builder.Build();
+
+// Contrôle de cohérence de la configuration AVANT de servir du trafic. Auparavant, une valeur
+// aberrante (seuil à 0, commission > 100 %, section de paiement absente) produisait un
+// comportement silencieusement faux — jusqu'à créditer des packs sans aucun paiement.
+var configProblems = StartupConfigurationValidator.FindProblems(
+    builder.Configuration,
+    app.Environment,
+    geoOptions,
+    clientPaymentOptions,
+    riderReputationOptions,
+    retentionOptions,
+    geniusPayOptions,
+    packs,
+    riderPriorityPacks);
+
+if (configProblems.Count > 0)
+{
+    foreach (var problem in configProblems)
+        app.Logger.LogCritical("CONFIGURATION INVALIDE : {Problem}", problem);
+
+    throw new InvalidOperationException(
+        "Configuration invalide — démarrage refusé :\n - " + string.Join("\n - ", configProblems));
+}
 
 // Témoin de conformité au démarrage : une protection RGPD inactive doit être bruyante
 // immédiatement, et non découverte au premier téléversement de pièce d'identité.

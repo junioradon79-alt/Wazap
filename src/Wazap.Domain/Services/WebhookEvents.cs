@@ -37,10 +37,17 @@ public static class WebhookEvents
 /// <summary>
 /// Enveloppe d'un webhook sortant mise en file (payload d'un OutboxMessage de type
 /// « WebhookDelivery ») puis livrée en HTTP par le worker.
+/// <para>
+/// <see cref="EventId"/> identifie l'ÉVÉNEMENT (et non la livraison) : il permet au
+/// partenaire de dédupliquer un webhook rejoué (retry de l'outbox, republication) et
+/// d'écarter une double écriture comptable. Sans lui, deux envois du même événement
+/// étaient indistinguables.
+/// </para>
 /// </summary>
 public sealed record WebhookDeliveryEnvelope(
     string Url,
     string? Secret,
     string Event,
     DateTime OccurredAt,
-    object Data);
+    object Data,
+    Guid EventId = default);

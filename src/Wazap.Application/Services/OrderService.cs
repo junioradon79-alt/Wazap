@@ -259,7 +259,7 @@ public sealed class OrderService
         if (order == null)
             return false;
 
-        EnsureCanUpdate(order, request);
+        await EnsureCanUpdateAsync(order, request);
 
         switch (request.Status)
         {
@@ -327,7 +327,7 @@ public sealed class OrderService
         return true;
     }
 
-    private void EnsureCanUpdate(Order order, UpdateStatusRequest request)
+    private async Task EnsureCanUpdateAsync(Order order, UpdateStatusRequest request)
     {
         var userId = _currentUser.Id;
         var role = _currentUser.Role;
@@ -337,13 +337,22 @@ public sealed class OrderService
 
         if (role == UserRole.Vendor)
         {
-            // Première confirmation : le vendeur prend possession de la commande
-            if (request.Status == OrderStatus.VendorConfirmed && order.VendorUserId is null)
+            if (userId is not null && order.VendorUserId == userId)
                 return;
 
-            if (order.VendorUserId != userId)
-                throw new ForbiddenException("Vous ne pouvez modifier que vos propres commandes.");
-            return;
+            // Prise de possession d'une commande encore SANS vendeur (créée par téléphone) :
+            // elle n'est légitime que si l'appelant est bien le vendeur destinataire. Sans ce
+            // contrôle, n'importe quel vendeur pouvait confirmer — donc s'approprier — la
+            // commande d'un confrère en connaissant son identifiant.
+            if (request.Status == OrderStatus.VendorConfirmed && order.VendorUserId is null)
+            {
+                if (await IsVendorRecipientAsync(order, userId))
+                    return;
+
+                throw new ForbiddenException("Cette commande n'a pas été passée auprès de votre commerce.");
+            }
+
+            throw new ForbiddenException("Vous ne pouvez modifier que vos propres commandes.");
         }
 
         if (role == UserRole.Rider)
@@ -371,5 +380,23 @@ public sealed class OrderService
         }
 
         throw new ForbiddenException("Rôle non autorisé.");
+    }
+
+    /// <summary>
+    /// L'appelant est-il le vendeur destinataire de cette commande (rapprochement par numéro
+    /// WhatsApp, seule information disponible pour les commandes créées par téléphone) ?
+    /// </summary>
+    private async Task<bool> IsVendorRecipientAsync(Order order, Guid? userId)
+    {
+        if (userId is not { } id || string.IsNullOrWhiteSpace(order.VendorWhatsAppNumber))
+            return false;
+
+        var phone = await _context.Users.AsNoTracking()
+            .Where(u => u.Id == id && u.Role == UserRole.Vendor)
+            .Select(u => u.PhoneNumber)
+            .FirstOrDefaultAsync();
+
+        return phone is not null
+               && PhoneNumberNormalizer.SameSubscriber(order.VendorWhatsAppNumber, phone);
     }
 }

@@ -115,6 +115,10 @@ namespace Wazap.Infrastructure.Data
                 entity.HasIndex(p => p.OrderId);
                 entity.HasIndex(p => new { p.Status, p.CreatedAt });
 
+                // Recherche par référence (webhook GeniusPay, réconciliation) : sans index,
+                // parcours complet de la table à chaque notification.
+                entity.HasIndex(p => p.TransactionReference);
+
                 entity.HasOne(p => p.Order)
                     .WithMany()
                     .HasForeignKey(p => p.OrderId)
@@ -167,6 +171,15 @@ namespace Wazap.Infrastructure.Data
 
             modelBuilder.Entity<User>()
                 .HasIndex(u => new { u.Role, u.IsAvailable });
+
+            // Parrainage : le code est cherché à chaque inscription (boucle d'unicité) et le
+            // parrain à chaque conversion ; le filleul est listé dans l'espace vendeur et dans
+            // le programme Ambassadeur. Sans index, chaque inscription balayait toute la table.
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.ReferralCode);
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.ReferredByUserId);
 
             // Certification des livreurs (1:1 User → RiderIdentity).
             modelBuilder.Entity<RiderIdentity>()
@@ -286,6 +299,12 @@ namespace Wazap.Infrastructure.Data
             modelBuilder.Entity<CreditTransaction>()
                 .HasIndex(t => t.CreatedAt);
 
+            // Référence de transaction : les webhooks de paiement et le worker de réconciliation
+            // la recherchent en boucle (toutes les 5 minutes) — sans index, c'était un parcours
+            // complet de table à chaque passage.
+            modelBuilder.Entity<CreditTransaction>()
+                .HasIndex(t => t.TransactionReference);
+
             modelBuilder.Entity<CreditTransaction>()
                 .HasOne(t => t.Vendor)
                 .WithMany(u => u.Transactions)
@@ -307,6 +326,10 @@ namespace Wazap.Infrastructure.Data
 
             modelBuilder.Entity<RiderPriorityPurchase>()
                 .HasIndex(p => p.RiderUserId);
+
+            // Recherche par référence (webhook GeniusPay, réconciliation des achats prioritaires).
+            modelBuilder.Entity<RiderPriorityPurchase>()
+                .HasIndex(p => p.TransactionReference);
 
             modelBuilder.Entity<RiderPriorityPurchase>()
                 .HasIndex(p => p.CreatedAt);
@@ -459,13 +482,17 @@ namespace Wazap.Infrastructure.Data
                 }
             }
 
-            // Certification livreurs
+            // Certification livreurs : l'événement ne doit être émis que sur la TRANSITION
+            // vers « Verified ». Sans comparaison de l'état d'origine, toute modification
+            // ultérieure d'un dossier déjà vérifié (purge RGPD du scan, nouveau consentement,
+            // correction administrateur) réémettait « rider.certified ».
             foreach (var entry in ChangeTracker.Entries<RiderIdentity>())
             {
                 if (entry.State == EntityState.Modified)
                 {
                     var identity = entry.Entity;
-                    if (identity.Status == RiderIdentityStatus.Verified)
+                    if (identity.Status == RiderIdentityStatus.Verified
+                        && OriginalRiderIdentityStatus(entry) != RiderIdentityStatus.Verified)
                     {
                         events.Add((WebhookEvents.RiderCertified, new
                         {
@@ -493,7 +520,12 @@ namespace Wazap.Infrastructure.Data
                         createdAt = claim.CreatedAt
                     }));
                 }
-                else if (entry.State == EntityState.Modified && claim.Status != DeliveryClaimStatus.Pending)
+                // Idem : seule la TRANSITION « Pending → décidé » est un événement. Sinon
+                // chaque sauvegarde postérieure (versement, note, reprise) réémettait
+                // « claim.resolved » — jusqu'à trois webhooks identiques pour un dossier.
+                else if (entry.State == EntityState.Modified
+                         && claim.Status != DeliveryClaimStatus.Pending
+                         && OriginalClaimStatus(entry) == DeliveryClaimStatus.Pending)
                 {
                     events.Add((WebhookEvents.ClaimResolved, new
                     {
@@ -514,7 +546,10 @@ namespace Wazap.Infrastructure.Data
             List<WebhookSubscriber> subscribers;
             try
             {
-                subscribers = WebhookSubscribers.Where(s => s.Enabled).ToList();
+                // AsNoTracking : les abonnés ne sont lus que pour être parcourus ; les suivre
+                // faisait entrer des entités inutiles dans le change tracker à chaque
+                // sauvegarde porteuse d'événements.
+                subscribers = WebhookSubscribers.AsNoTracking().Where(s => s.Enabled).ToList();
             }
             catch (PostgresException ex) when (ex.SqlState == "42P01") // relation inexistante (migration en attente)
             {
@@ -533,7 +568,8 @@ namespace Wazap.Infrastructure.Data
                     if (!subscriber.Wants(eventName))
                         continue;
 
-                    var envelope = new WebhookDeliveryEnvelope(subscriber.Url, subscriber.Secret, eventName, now, data);
+                    var envelope = new WebhookDeliveryEnvelope(
+                        subscriber.Url, subscriber.Secret, eventName, now, data, Guid.NewGuid());
                     OutboxMessages.Add(new OutboxMessage(
                         WebhookEvents.TypeWebhookDelivery,
                         JsonSerializer.Serialize(envelope, WebhookJson)));
@@ -548,6 +584,30 @@ namespace Wazap.Infrastructure.Data
             {
                 OrderStatus status => status,
                 int i => (OrderStatus)i,
+                _ => null
+            };
+        }
+
+        private static RiderIdentityStatus? OriginalRiderIdentityStatus(
+            Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry)
+        {
+            var raw = entry.OriginalValues["Status"];
+            return raw switch
+            {
+                RiderIdentityStatus status => status,
+                int i => (RiderIdentityStatus)i,
+                _ => null
+            };
+        }
+
+        private static DeliveryClaimStatus? OriginalClaimStatus(
+            Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry)
+        {
+            var raw = entry.OriginalValues["Status"];
+            return raw switch
+            {
+                DeliveryClaimStatus status => status,
+                int i => (DeliveryClaimStatus)i,
                 _ => null
             };
         }

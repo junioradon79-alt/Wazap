@@ -130,7 +130,7 @@ public sealed class ColisSurService
     public async Task ApproveAsync(Guid claimId, int compensationCredits, string? note, Guid reviewerId,
         decimal? compensationAmountFcfa = null)
     {
-        var claim = await _context.DeliveryClaims.FirstOrDefaultAsync(c => c.Id == claimId)
+        var claim = await _context.DeliveryClaims.AsNoTracking().FirstOrDefaultAsync(c => c.Id == claimId)
             ?? throw new InvalidOperationException("Dossier introuvable.");
         if (claim.Status != DeliveryClaimStatus.Pending)
             throw new InvalidOperationException("Ce dossier a déjà été traité.");
@@ -143,6 +143,31 @@ public sealed class ColisSurService
             ?? throw new InvalidOperationException("Livreur introuvable.");
 
         var orderCode = order.Id.ToString("N")[..8].ToUpperInvariant();
+
+        // Réclamation ATOMIQUE du dossier, puis TOUT le traitement dans la même transaction.
+        // Sans elle, deux approbations simultanées (double-clic, deux administrateurs, rejeu
+        // HTTP) passaient toutes les deux la garde « Status == Pending » : le vendeur était
+        // crédité DEUX FOIS, la caution du livreur prélevée DEUX FOIS et un SECOND virement
+        // demandé pour le même sinistre.
+        var relational = _context.Database.IsRelational();
+        await using var transaction = relational
+            ? await _context.Database.BeginTransactionAsync()
+            : null;
+
+        if (relational)
+        {
+            var claimed = await _context.DeliveryClaims
+                .Where(c => c.Id == claimId && c.Status == DeliveryClaimStatus.Pending)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(c => c.Status, DeliveryClaimStatus.Approved));
+
+            if (claimed == 0)
+                throw new InvalidOperationException("Ce dossier a déjà été traité.");
+        }
+
+        // Instance SUIVIE pour appliquer la décision (le statut a pu être réclamé ci-dessus).
+        var trackedClaim = await _context.DeliveryClaims.FirstOrDefaultAsync(c => c.Id == claimId)
+            ?? throw new InvalidOperationException("Dossier introuvable.");
 
         // 1. Remboursement du crédit consommé pour la course.
         vendor.AddCredits(1);
@@ -175,8 +200,11 @@ public sealed class ColisSurService
         //    jamais négatif — au-delà, l'indemnisation reste à la charge de WAZAP.
         var debited = identity.DebitDeposit(amountFcfa);
 
-        claim.Approve(compensation, note, reviewerId, amountFcfa, debited);
+        trackedClaim.Approve(compensation, note, reviewerId, amountFcfa, debited);
         await _context.SaveChangesAsync();
+
+        if (transaction is not null)
+            await transaction.CommitAsync();
 
         // 6. Demande de versement. Sans API de disbursement chez GeniusPay, le virement
         //    est fait à la main puis confirmé dans /app/claims : le dossier reste en
@@ -186,13 +214,13 @@ public sealed class ColisSurService
             try
             {
                 var payout = await _payouts.RequestPayoutAsync(new PayoutRequest(
-                    claim.Id, vendor.Id, vendor.PhoneNumber, amountFcfa,
+                    trackedClaim.Id, vendor.Id, vendor.PhoneNumber, amountFcfa,
                     $"Indemnisation Garantie Colis Sûr — sinistre #{orderCode}"));
 
                 if (!payout.RequiresManualTransfer && !string.IsNullOrWhiteSpace(payout.Reference))
-                    claim.MarkPayoutPaid(payout.Reference);
+                    trackedClaim.MarkPayoutPaid(payout.Reference);
                 else if (!string.IsNullOrWhiteSpace(payout.Error))
-                    claim.MarkPayoutFailed(payout.Error);
+                    trackedClaim.MarkPayoutFailed(payout.Error);
 
                 await _context.SaveChangesAsync();
             }
@@ -200,8 +228,8 @@ public sealed class ColisSurService
             {
                 // L'échec du versement ne doit pas annuler la décision : le dossier reste
                 // approuvé, avec un versement à reprendre.
-                _logger.LogError(ex, "Demande de versement impossible pour le sinistre {ClaimId}.", claim.Id);
-                claim.MarkPayoutFailed(ex.Message);
+                _logger.LogError(ex, "Demande de versement impossible pour le sinistre {ClaimId}.", trackedClaim.Id);
+                trackedClaim.MarkPayoutFailed(ex.Message);
                 await _context.SaveChangesAsync();
             }
         }

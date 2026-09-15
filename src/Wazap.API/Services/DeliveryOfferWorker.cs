@@ -65,15 +65,24 @@ namespace Wazap.API.Services
             // 1) Diffusion initiale des lots groupés prêts (fenêtre écoulée OU taille max atteinte)
             var openBatches = await db.DeliveryBatches.AsNoTracking()
                 .Where(b => b.Status == DeliveryBatchStatus.Open)
+                .Select(b => new { b.Id, b.CreatedAt })
                 .ToListAsync(ct);
 
             foreach (var batch in openBatches)
             {
-                // Taille du lot = commandes actives uniquement (les annulées ne comptent pas).
-                var activeOrders = await db.Orders
+                // Court-circuit AVANT tout autre requête : un lot déjà diffusé ne le sera jamais
+                // deux fois. L'ordre précédent chargeait d'abord ses commandes — une requête
+                // par lot ouvert, toutes les 5 s, pour un résultat aussitôt jeté.
+                if (await db.DeliveryOffers.AnyAsync(o => o.BatchId == batch.Id, ct))
+                    continue;
+
+                // Projection minimale (2 colonnes) au lieu du chargement des entités complètes.
+                var activeOrders = await db.Orders.AsNoTracking()
                     .Where(o => o.BatchId == batch.Id
                         && (o.Status == OrderStatus.VendorConfirmed || o.Status == OrderStatus.AwaitingRiderAcceptance))
+                    .Select(o => new { o.ClientLatitude, o.ClientLongitude })
                     .ToListAsync(ct);
+
                 var orderCount = activeOrders.Count;
                 // Lot issu du parcours acheteur (au moins une commande avec coordonnées client) :
                 // diffusion après le court délai de groupage (tournée multi-clients).
@@ -83,10 +92,6 @@ namespace Wazap.API.Services
                     ? batch.CreatedAt <= buyerCutoff || orderCount >= _grouping.MaxOrdersPerBatch
                     : batch.CreatedAt <= windowCutoff || orderCount >= _grouping.MaxOrdersPerBatch;
                 if (!ready)
-                    continue;
-
-                var alreadyBroadcast = await db.DeliveryOffers.AnyAsync(o => o.BatchId == batch.Id, ct);
-                if (alreadyBroadcast)
                     continue;
 
                 try
@@ -101,15 +106,18 @@ namespace Wazap.API.Services
                 }
             }
 
-            var offers = await db.DeliveryOffers.AsNoTracking().ToListAsync(ct);
-
-            // 2) Vagues dont l'exclusivité (30 s) est dépassée → élargir (lots puis commandes)
-            var batchIdsToAdvance = offers
-                .Where(o => o.Status == DeliveryOfferStatus.Pending && o.BatchId != null)
-                .GroupBy(o => o.BatchId!.Value)
-                .Where(g => g.Min(o => o.SentAt) < exclusivityCutoff)
-                .Select(g => g.Key)
-                .ToList();
+            // 2) Vagues dont l'exclusivité (30 s) est dépassée → élargir (lots puis commandes).
+            //    Les candidats sont déterminés EN SQL (statut + horodatage) : l'ancienne version
+            //    chargeait l'INTÉGRALITÉ de la table DeliveryOffers toutes les 5 secondes puis
+            //    filtrait en mémoire — une table qui croît sans borne (la rétention des offres
+            //    n'existe pas) et une latence qui augmente avec elle.
+            var batchIdsToAdvance = await db.DeliveryOffers.AsNoTracking()
+                .Where(o => o.Status == DeliveryOfferStatus.Pending
+                            && o.BatchId != null
+                            && o.SentAt < exclusivityCutoff)
+                .Select(o => o.BatchId!.Value)
+                .Distinct()
+                .ToListAsync(ct);
 
             foreach (var batchId in batchIdsToAdvance)
             {
@@ -125,12 +133,13 @@ namespace Wazap.API.Services
                 }
             }
 
-            var orderIdsToAdvance = offers
-                .Where(o => o.Status == DeliveryOfferStatus.Pending && o.OrderId != null)
-                .GroupBy(o => o.OrderId!.Value)
-                .Where(g => g.Min(o => o.SentAt) < exclusivityCutoff)
-                .Select(g => g.Key)
-                .ToList();
+            var orderIdsToAdvance = await db.DeliveryOffers.AsNoTracking()
+                .Where(o => o.Status == DeliveryOfferStatus.Pending
+                            && o.OrderId != null
+                            && o.SentAt < exclusivityCutoff)
+                .Select(o => o.OrderId!.Value)
+                .Distinct()
+                .ToListAsync(ct);
 
             foreach (var orderId in orderIdsToAdvance)
             {
@@ -146,51 +155,21 @@ namespace Wazap.API.Services
                 }
             }
 
-            // 3) Timeout global (aucune acceptation après X min) — lots et commandes :
-            //    la commande est annulée (aucun crédit débité) et le vendeur est notifié
-            //    avec une invitation à relancer (LIVRAISON).
-            var acceptedBatchIds = offers
-                .Where(o => o.Status == DeliveryOfferStatus.Accepted && o.BatchId != null)
-                .Select(o => o.BatchId!.Value)
-                .ToHashSet();
+            // 3) Timeout global : TOUTE commande encore en attente d'un livreur au-delà du délai
+            //    est annulée et le vendeur prévenu.
+            //    Le déclencheur est l'ÂGE DE LA COMMANDE, et non plus l'âge d'une offre : quand
+            //    aucun livreur n'était éligible dans le rayon, aucune ligne DeliveryOffers n'était
+            //    créée, le délai n'était donc JAMAIS atteint — la commande restait bloquée à vie,
+            //    le vendeur n'était jamais prévenu et la diffusion était retentée toutes les 5 s.
+            //    Une commande acceptée passe en RiderAssigned et sort naturellement de ce filtre.
+            var timedOutOrders = await db.Orders
+                .Where(o => o.Status == OrderStatus.AwaitingRiderAcceptance && o.CreatedAt < globalCutoff)
+                .ToListAsync(ct);
 
-            var timedOutBatchIds = offers
-                .Where(o => o.BatchId != null && !acceptedBatchIds.Contains(o.BatchId!.Value))
-                .GroupBy(o => o.BatchId!.Value)
-                .Where(g => g.Min(o => o.SentAt) < globalCutoff)
-                .Select(g => g.Key)
-                .ToList();
+            foreach (var order in timedOutOrders)
+                await FailDispatchAsync(order);
 
-            foreach (var batchId in timedOutBatchIds)
-            {
-                var timedOrders = await db.Orders
-                    .Where(o => o.BatchId == batchId && o.Status == OrderStatus.AwaitingRiderAcceptance)
-                    .ToListAsync(ct);
-                foreach (var order in timedOrders)
-                    await FailDispatchAsync(order);
-            }
-
-            var acceptedOrderIds = offers
-                .Where(o => o.Status == DeliveryOfferStatus.Accepted && o.OrderId != null)
-                .Select(o => o.OrderId!.Value)
-                .ToHashSet();
-
-            var timedOutOrderIds = offers
-                .Where(o => o.OrderId != null && !acceptedOrderIds.Contains(o.OrderId!.Value))
-                .GroupBy(o => o.OrderId!.Value)
-                .Where(g => g.Min(o => o.SentAt) < globalCutoff)
-                .Select(g => g.Key)
-                .ToList();
-
-            foreach (var orderId in timedOutOrderIds)
-            {
-                var order = await db.Orders.FirstOrDefaultAsync(
-                    o => o.Id == orderId && o.Status == OrderStatus.AwaitingRiderAcceptance, ct);
-                if (order is not null)
-                    await FailDispatchAsync(order);
-            }
-
-            if (timedOutBatchIds.Count > 0 || timedOutOrderIds.Count > 0)
+            if (timedOutOrders.Count > 0)
                 await db.SaveChangesAsync(ct);
 
             // Annule la commande et notifie le vendeur (aucun livreur trouvé).
