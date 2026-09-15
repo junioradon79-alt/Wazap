@@ -177,8 +177,9 @@ Le protocole pas-à-pas est dans : `prospection/PROTOCOLE_TEST_REEL.md`
 # Purger les données de test (commandes, offres, lots, transactions)
 dotnet run --project tools/PurgeTestData -- --confirm
 
-# Supprimer les comptes de test (test_%)
+# Supprimer les comptes de test (test_%) -- lister d'abord (dry-run), puis supprimer
 dotnet run --project tools/CleanupTestVendors
+dotnet run --project tools/CleanupTestVendors -- --confirm
 ```
 
 ### Grille de résultats

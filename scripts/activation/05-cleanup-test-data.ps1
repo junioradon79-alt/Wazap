@@ -33,7 +33,7 @@ finally {
 Write-Host "[2] Suppression comptes test_..." -ForegroundColor Yellow
 try {
     Push-Location $ProjectRoot
-    dotnet run --project tools/CleanupTestVendors 2>&1 | Out-Null
+    dotnet run --project tools/CleanupTestVendors -- --confirm 2>&1 | Out-Null
     Write-Host "      OK" -ForegroundColor Green
 }
 catch {

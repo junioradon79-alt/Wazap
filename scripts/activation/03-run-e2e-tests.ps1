@@ -108,6 +108,6 @@ if (-not $DryRun) {
 Write-Host ""
 Write-Host "=== Instructions de nettoyage (apres test) ===" -ForegroundColor Cyan
 Write-Host "  dotnet run --project tools/PurgeTestData -- --confirm" -ForegroundColor White
-Write-Host "  dotnet run --project tools/CleanupTestVendors" -ForegroundColor White
+Write-Host "  dotnet run --project tools/CleanupTestVendors -- --confirm" -ForegroundColor White
 Write-Host ""
 Write-Host "=== Tests E2E prepares ===" -ForegroundColor Cyan
