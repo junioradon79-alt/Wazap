@@ -13,6 +13,12 @@ namespace Wazap.API.Services;
 
 public sealed class AuthService
 {
+    /// <summary>
+    /// Durée de validité d'une configuration 2FA en attente : au-delà, l'utilisateur doit
+    /// relancer l'étape de configuration (le secret n'est jamais conservé indéfiniment).
+    /// </summary>
+    private const int TwoFactorSetupMinutes = 10;
+
     private readonly ApplicationDbContext _context;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
@@ -196,6 +202,12 @@ public sealed class AuthService
     /// <summary>Émet le couple (access JWT 8 h + refresh token 30 j, stocké hashé).</summary>
     private async Task<AuthResponse> IssueAuthAsync(User user)
     {
+        // Empreinte de sécurité absente (compte créé avant l'introduction du mécanisme) :
+        // régénérée ici, sinon le jeton porterait une empreinte vide et serait refusé à chaque
+        // requête par la validation du jeton.
+        if (string.IsNullOrWhiteSpace(user.SecurityStamp))
+            user.RevokeSessions();
+
         var access = _jwtTokenGenerator.Generate(user);
         var rawRefresh = SecurityHelper.GenerateOpaqueToken();
         var refresh = new RefreshToken(user.Id, SecurityHelper.Sha256Hex(rawRefresh), DateTime.UtcNow.AddDays(30));
@@ -301,6 +313,12 @@ public sealed class AuthService
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username)
             ?? throw new UnauthorizedAccessException("Identifiants invalides.");
 
+        // Verrouillage anti force-brute : l'étape 2FA est une porte d'entrée comme une autre.
+        // Sans ce contrôle, un code à 6 chiffres pouvait être testé sans limite après un mot de
+        // passe correct (deviné ou volé).
+        if (user.IsLocked() && user.LockedUntilUtc is { } lockedUntil)
+            throw new AccountLockedException(lockedUntil);
+
         if (!_passwordHasher.Verify(request.Password, user.PasswordHash))
             throw new UnauthorizedAccessException("Identifiants invalides.");
 
@@ -308,7 +326,17 @@ public sealed class AuthService
             throw new UnauthorizedAccessException("La double authentification n'est pas active.");
 
         if (!Totp.Verify(user.TwoFactorSecret, request.Code))
+        {
+            user.RegisterFailedLogin(
+                Math.Max(1, _security.MaxFailedLoginAttempts),
+                TimeSpan.FromMinutes(Math.Max(1, _security.LockoutMinutes)));
+            await _context.SaveChangesAsync();
+
+            if (user.IsLocked() && user.LockedUntilUtc is { } until)
+                throw new AccountLockedException(until);
+
             throw new UnauthorizedAccessException("Code de validation invalide.");
+        }
 
         if (user.FailedLoginAttempts != 0 || user.LockedUntilUtc is not null)
         {
@@ -319,26 +347,41 @@ public sealed class AuthService
         return await IssueAuthAsync(user);
     }
 
-    /// <summary>Prépare la 2FA : génère un secret TOTP (non encore activé).</summary>
+    /// <summary>
+    /// Prépare la 2FA : génère un secret TOTP côté SERVEUR et le garde EN ATTENTE
+    /// (<see cref="TwoFactorSetupMinutes"/> minutes) jusqu'à confirmation par un premier code.
+    /// </summary>
     public async Task<(string Secret, string OtpauthUri)> SetupTwoFactorAsync(Guid userId)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId)
             ?? throw new InvalidOperationException("Utilisateur introuvable.");
 
         var secret = Totp.GenerateSecret();
+        user.SetPendingTwoFactor(secret, DateTime.UtcNow.AddMinutes(TwoFactorSetupMinutes));
+        await _context.SaveChangesAsync();
+
         return (secret, Totp.BuildOtpauthUri("WAZAP", user.Username, secret));
     }
 
-    /// <summary>Active la 2FA après vérification du premier code.</summary>
-    public async Task EnableTwoFactorAsync(Guid userId, string code, string secret)
+    /// <summary>
+    /// Active la 2FA après vérification du premier code, <b>contre le secret conservé par le
+    /// serveur</b>. L'ancienne signature acceptait le secret envoyé par le CLIENT : un porteur
+    /// de jeton volé pouvait activer la 2FA avec SON propre secret et verrouiller le compte du
+    /// propriétaire légitime.
+    /// </summary>
+    public async Task EnableTwoFactorAsync(Guid userId, string code)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId)
             ?? throw new InvalidOperationException("Utilisateur introuvable.");
 
-        if (!Totp.Verify(secret, code))
+        if (!user.HasPendingTwoFactor())
+            throw new InvalidOperationException(
+                "Aucune configuration 2FA en attente : relancez l'étape de configuration.");
+
+        if (!Totp.Verify(user.TwoFactorPendingSecret!, code))
             throw new InvalidOperationException("Code de validation invalide.");
 
-        user.EnableTwoFactor(secret);
+        user.EnableTwoFactorFromPending();
         await _context.SaveChangesAsync();
     }
 

@@ -1,5 +1,7 @@
 // Client HTTP minimal : stocke le JWT, ajoute le header Authorization, gère les erreurs.
 
+import type { AuthResponse } from './types'
+
 const TOKEN_KEY = 'wazap.token'
 const USER_KEY = 'wazap.user'
 const REFRESH_KEY = 'wazap.refresh'
@@ -56,7 +58,48 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+/**
+ * Renouvellement silencieux de la session (jeton d'accès de 30 min, jeton de rafraîchissement
+ * de 30 j). Sans lui, l'utilisateur était déconnecté en pleine saisie dès l'expiration du
+ * jeton d'accès. Un seul renouvellement est en vol à la fois : plusieurs 401 simultanés
+ * (tableau de bord qui charge 4 ressources) ne déclenchent qu'un appel.
+ */
+let refreshInFlight: Promise<boolean> | null = null
+
+async function refreshAccessToken(): Promise<boolean> {
+  const refreshToken = getRefreshToken()
+  if (!refreshToken) return false
+
+  if (!refreshInFlight) {
+    refreshInFlight = (async () => {
+      try {
+        const res = await fetch('/api/auth/refresh', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken }),
+          signal: AbortSignal.timeout(15_000),
+        })
+        if (!res.ok) return false
+
+        const data = (await res.json()) as AuthResponse
+        if (!data?.token) return false
+
+        setToken(data.token)
+        setRefreshToken(data.refreshToken ?? null)
+        setUser({ userId: data.userId, username: data.username, role: data.role })
+        return true
+      } catch {
+        return false
+      } finally {
+        refreshInFlight = null
+      }
+    })()
+  }
+
+  return refreshInFlight
+}
+
+function authHeaders(options: RequestInit): Record<string, string> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string> | undefined),
@@ -64,29 +107,49 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   const token = getToken()
   if (token) headers['Authorization'] = `Bearer ${token}`
+  return headers
+}
+
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  let res: Response
+  let firstTry = true
 
   // Délai maximal : sans lui, une requête qui « pend » laissait un spinner éternel,
   // sans message ni possibilité de réessayer.
   const timeoutSignal = AbortSignal.timeout(15_000)
   const signal = options.signal ? AbortSignal.any([options.signal, timeoutSignal]) : timeoutSignal
 
-  let res: Response
   try {
-    res = await fetch(`/api${path}`, { ...options, headers, signal })
+    res = await fetch(`/api${path}`, { ...options, headers: authHeaders(options), signal })
   } catch (err) {
     if (timeoutSignal.aborted) throw new ApiError(0, 'Délai dépassé : le serveur ne répond pas.')
     throw err
   }
 
-  if (res.status === 401) {
-    if (!path.startsWith('/auth/login')) {
-      // Purger AUSSI l'utilisateur : ne retirer que le jeton laissait le nom et le rôle
-      // en localStorage, donc un état « connecté » fantôme sur un poste partagé.
-      setToken(null)
-      setUser(null)
-      window.dispatchEvent(new Event('wazap:unauthorized'))
+  // Jeton expiré (ou révoqué par un changement de mot de passe) : on tente UN renouvellement
+  // silencieux puis on rejoue la requête une seule fois avant de déconnecter l'utilisateur.
+  if (res.status === 401 && !path.startsWith('/auth/')) {
+    const refreshed = await refreshAccessToken()
+    if (refreshed) {
+      try {
+        res = await fetch(`/api${path}`, { ...options, headers: authHeaders(options), signal })
+        firstTry = false
+      } catch (err) {
+        firstTry = false
+        if (timeoutSignal.aborted) throw new ApiError(0, 'Délai dépassé : le serveur ne répond pas.')
+        throw err
+      }
     }
-    throw new ApiError(401, 'Session expirée, reconnectez-vous.')
+  }
+
+  if (res.status === 401) {
+    // Y compris après un renouvellement réussi : la session est réellement invalide
+    // (empreinte de sécurité régénérée par un changement de mot de passe, par exemple).
+    setToken(null)
+    setRefreshToken(null)
+    setUser(null)
+    window.dispatchEvent(new Event('wazap:unauthorized'))
+    throw new ApiError(401, firstTry ? 'Session expirée, reconnectez-vous.' : 'Session révoquée : reconnectez-vous.')
   }
 
   if (!res.ok) {

@@ -156,7 +156,7 @@ public class AuthController : ControllerBase
 
         try
         {
-            await _authService.EnableTwoFactorAsync(_currentUser.Id.Value, request.Code, request.Secret);
+            await _authService.EnableTwoFactorAsync(_currentUser.Id.Value, request.Code);
             return NoContent();
         }
         catch (InvalidOperationException ex)

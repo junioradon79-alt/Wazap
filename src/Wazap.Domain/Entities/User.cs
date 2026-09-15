@@ -54,6 +54,24 @@ public class User
     // Authentification renforcée : 2FA (TOTP) et code de réinitialisation de mot de passe
     public bool TwoFactorEnabled { get; private set; }
     public string? TwoFactorSecret { get; private set; }
+
+    /// <summary>
+    /// Secret TOTP EN ATTENTE de validation (généré côté serveur par l'étape « setup »).
+    /// Tant qu'il n'est pas confirmé par un premier code, il n'active rien : c'est ce qui
+    /// empêche un porteur de jeton volé d'activer la 2FA avec SON propre secret (ce qui
+    /// verrouillerait le compte du propriétaire légitime).
+    /// </summary>
+    public string? TwoFactorPendingSecret { get; private set; }
+    public DateTime? TwoFactorPendingExpiresAtUtc { get; private set; }
+
+    /// <summary>
+    /// Empreinte de sécurité du compte. Elle est portée par chaque jeton d'accès et
+    /// <b>régénérée</b> à chaque changement de mot de passe ou de 2FA : tous les jetons déjà
+    /// émis deviennent alors invalides, immédiatement. Sans elle, un jeton volé restait
+    /// utilisable jusqu'à son expiration, malgré une réinitialisation de mot de passe.
+    /// </summary>
+    public string SecurityStamp { get; private set; } = default!;
+
     public string? ResetCodeHash { get; private set; }
     public DateTime? ResetCodeExpiresAtUtc { get; private set; }
 
@@ -79,7 +97,17 @@ public class User
         CreatedAt = DateTime.UtcNow;
         LocationSharingEnabled = true;
         ReferralCode = GenerateReferralCode();
+        SecurityStamp = GenerateSecurityStamp();
     }
+
+    /// <summary>Nouvelle empreinte de sécurité (révocation immédiate des jetons émis).</summary>
+    public static string GenerateSecurityStamp() => Guid.NewGuid().ToString("N");
+
+    /// <summary>
+    /// Invalide les sessions en cours : tout jeton d'accès portant l'empreinte précédente est
+    /// refusé à la prochaine requête.
+    /// </summary>
+    public void RevokeSessions() => SecurityStamp = GenerateSecurityStamp();
 
     /// <summary>
     /// Les 8 derniers chiffres du numéro (le numéro entier s'il est plus court), ou
@@ -156,6 +184,10 @@ public class User
 
         TwoFactorSecret = secret;
         TwoFactorEnabled = true;
+        ClearPendingTwoFactor();
+
+        // La 2FA change la façon de s'authentifier : les sessions ouvertes sont révoquées.
+        RevokeSessions();
     }
 
     /// <summary>Désactive la 2FA.</summary>
@@ -163,6 +195,46 @@ public class User
     {
         TwoFactorEnabled = false;
         TwoFactorSecret = null;
+        ClearPendingTwoFactor();
+        RevokeSessions();
+    }
+
+    /// <summary>
+    /// Enregistre un secret TOTP EN ATTENTE (étape « setup ») : il ne devient actif qu'après
+    /// vérification d'un premier code par <see cref="EnableTwoFactorFromPending"/>.
+    /// </summary>
+    public void SetPendingTwoFactor(string secret, DateTime expiresAtUtc)
+    {
+        if (string.IsNullOrWhiteSpace(secret))
+            throw new ArgumentException("Le secret 2FA est requis.", nameof(secret));
+
+        TwoFactorPendingSecret = secret;
+        TwoFactorPendingExpiresAtUtc = expiresAtUtc;
+    }
+
+    /// <summary>Un secret 2FA en attente est-il encore valable ?</summary>
+    public bool HasPendingTwoFactor()
+        => !string.IsNullOrWhiteSpace(TwoFactorPendingSecret)
+           && TwoFactorPendingExpiresAtUtc is { } expiry
+           && expiry > DateTime.UtcNow;
+
+    /// <summary>
+    /// Active la 2FA avec le secret EN ATTENTE (jamais avec un secret fourni par le client) et
+    /// le consomme. Lève si aucun secret valable n'est en attente.
+    /// </summary>
+    public void EnableTwoFactorFromPending()
+    {
+        if (!HasPendingTwoFactor())
+            throw new InvalidOperationException(
+                "Aucune configuration 2FA en attente (relancez l'étape de configuration).");
+
+        EnableTwoFactor(TwoFactorPendingSecret!);
+    }
+
+    public void ClearPendingTwoFactor()
+    {
+        TwoFactorPendingSecret = null;
+        TwoFactorPendingExpiresAtUtc = null;
     }
 
     /// <summary>Enregistre un code de réinitialisation (hashé) avec sa date d'expiration.</summary>
@@ -222,6 +294,10 @@ public class User
             throw new ArgumentException("Le hash du mot de passe est requis.", nameof(newPasswordHash));
 
         PasswordHash = newPasswordHash;
+
+        // Un changement de mot de passe doit invalider les sessions ouvertes : sinon un jeton
+        // d'accès volé restait utilisable jusqu'à son expiration.
+        RevokeSessions();
     }
 
     /// <summary>

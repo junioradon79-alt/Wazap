@@ -41,7 +41,12 @@ public sealed class ResetPasswordRequest
 
 public sealed record TwoFactorVerifyRequest(string Username, string Password, string Code);
 
-public sealed record EnableTwoFactorRequest(string Code, string Secret);
+/// <summary>
+/// Activation de la 2FA : seul le PREMIER CODE est transmis. Le secret est généré et conservé
+/// côté serveur par l'étape « setup » — un secret fourni par le client permettrait à un porteur
+/// de jeton volé d'activer la 2FA avec son propre secret et de verrouiller le compte.
+/// </summary>
+public sealed record EnableTwoFactorRequest(string Code);
 
 public sealed record DisableTwoFactorRequest(string Code);
 

@@ -89,14 +89,24 @@ internal sealed class WazapAppFactory : WebApplicationFactory<Program>
         builder.ConfigureServices(services =>
         {
             // 1) Base InMemory à la place de PostgreSQL.
-            //    On retire TOUTES les options de contexte enregistrées (et pas un seul élément) :
-            //    une seconde inscription ajouterait un doublon que « Single » refuserait, avec un
-            //    message trompeur alors qu'aucune dépendance ne manque réellement.
-            var dbOptions = services
-                .Where(d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>))
-                .ToList();
-            foreach (var option in dbOptions)
-                services.Remove(option);
+            //    On retire TOUTES les inscriptions qui configurent le contexte : les options
+            //    GÉNÉRIQUES, leur configuration (c'est elle qui portait le `UseNpgsql` d'origine)
+            //    et le contexte lui-même. Ne retirer que `DbContextOptions<ApplicationDbContext>`
+            //    laissait la configuration Npgsql en place : les deux fournisseurs cohabitaient
+            //    alors dans le même fournisseur de services interne et la PREMIÈRE utilisation
+            //    réelle du DbContext levait « Only a single database provider can be registered ».
+            //    Ce défaut était latent : aucun test n'utilisait vraiment la base avant celui de
+            //    révocation de session.
+            foreach (var descriptor in services.Where(d =>
+                         d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>)
+                         || d.ServiceType == typeof(DbContextOptions)
+                         || d.ServiceType == typeof(ApplicationDbContext)
+                         || (d.ServiceType.IsGenericType
+                             && d.ServiceType.Name.StartsWith("IDbContextOptionsConfiguration", StringComparison.Ordinal)))
+                         .ToList())
+            {
+                services.Remove(descriptor);
+            }
 
             services.AddDbContext<ApplicationDbContext>(o =>
                 o.UseInMemoryDatabase("di-resolution-tests"));

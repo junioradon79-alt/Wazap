@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.OpenApi;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
@@ -217,6 +218,34 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         // 401/403 de l'API en ProblemDetails JSON (et non un corps vide).
         options.Events = new JwtBearerEvents
         {
+            // Révocation des jetons : le jeton porte l'empreinte de sécurité du compte au moment
+            // de sa délivrance ; elle est comparée à la valeur courante. Un changement de mot de
+            // passe, une réinitialisation ou une modification de la 2FA la régénèrent — les
+            // sessions déjà ouvertes sont donc immédiatement refusées, au lieu de rester
+            // valides jusqu'à l'expiration du jeton (8 h auparavant).
+            OnTokenValidated = async context =>
+            {
+                var db = context.HttpContext.RequestServices.GetRequiredService<ApplicationDbContext>();
+                var principal = context.Principal;
+
+                var subject = principal?.FindFirstValue(ClaimTypes.NameIdentifier)
+                              ?? principal?.FindFirstValue("sub");
+                var stamp = principal?.FindFirstValue(JwtTokenGenerator.SecurityStampClaim);
+
+                if (!Guid.TryParse(subject, out var userId) || string.IsNullOrWhiteSpace(stamp))
+                {
+                    context.Fail("Jeton sans identité ou sans empreinte de sécurité.");
+                    return;
+                }
+
+                var currentStamp = await db.Users.AsNoTracking()
+                    .Where(u => u.Id == userId)
+                    .Select(u => u.SecurityStamp)
+                    .FirstOrDefaultAsync(context.HttpContext.RequestAborted);
+
+                if (currentStamp is null || !string.Equals(currentStamp, stamp, StringComparison.Ordinal))
+                    context.Fail("Session révoquée : reconnectez-vous.");
+            },
             OnChallenge = context =>
             {
                 context.HandleResponse();
