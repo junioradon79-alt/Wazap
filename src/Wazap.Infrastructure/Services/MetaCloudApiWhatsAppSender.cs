@@ -51,7 +51,7 @@ public sealed class MetaCloudApiWhatsAppSender : IWhatsAppSender
         return PhoneNumberNormalizer.DigitsOnly(converted);
     }
 
-    public async Task SendTemplateAsync(string toPhoneNumber, string templateName, Dictionary<string, string> variables)
+    public async Task SendTemplateAsync(string toPhoneNumber, string templateName, Dictionary<string, string> variables, CancellationToken ct = default)
     {
         var recipient = PrepareRecipient(toPhoneNumber);
 
@@ -73,10 +73,10 @@ public sealed class MetaCloudApiWhatsAppSender : IWhatsAppSender
             }
         };
 
-        await SendAsync(payload, $"template {templateName} vers {recipient}");
+        await SendAsync(payload, $"template {templateName} vers {recipient}", ct);
     }
 
-    public async Task SendTextMessageAsync(string toPhoneNumber, string message)
+    public async Task SendTextMessageAsync(string toPhoneNumber, string message, CancellationToken ct = default)
     {
         var recipient = PrepareRecipient(toPhoneNumber);
 
@@ -88,10 +88,10 @@ public sealed class MetaCloudApiWhatsAppSender : IWhatsAppSender
             text = new { preview_url = false, body = message }
         };
 
-        await SendAsync(payload, $"message texte vers {recipient}");
+        await SendAsync(payload, $"message texte vers {recipient}", ct);
     }
 
-    private async Task SendAsync(object payload, string context)
+    private async Task SendAsync(object payload, string context, CancellationToken ct)
     {
         try
         {
@@ -106,7 +106,7 @@ public sealed class MetaCloudApiWhatsAppSender : IWhatsAppSender
                 Encoding.UTF8,
                 "application/json");
 
-            var response = await _httpClient.SendAsync(request);
+            var response = await _httpClient.SendAsync(request, ct);
             var content = await response.Content.ReadAsStringAsync();
 
             if (response.IsSuccessStatusCode)

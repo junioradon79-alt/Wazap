@@ -39,7 +39,7 @@ public class WhatChimpService : IWhatsAppSender
     private string PrepareRecipient(string toPhoneNumber)
         => PhoneNumberNormalizer.ConvertOldCiToCurrent(toPhoneNumber, _ciNumbering) ?? toPhoneNumber;
 
-    public async Task SendTemplateAsync(string toPhoneNumber, string templateName, Dictionary<string, string> variables)
+    public async Task SendTemplateAsync(string toPhoneNumber, string templateName, Dictionary<string, string> variables, CancellationToken ct = default)
     {
         try
         {
@@ -60,10 +60,10 @@ public class WhatChimpService : IWhatsAppSender
                   .Append('=').Append(Uri.EscapeDataString(variable.Value));
             }
 
-            var response = await _httpClient.GetAsync(sb.ToString());
+            var response = await _httpClient.GetAsync(sb.ToString(), ct);
             response.EnsureSuccessStatusCode();
 
-            var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync(ct);
             EnsureGatewayAccepted(content, $"template {templateName} vers {recipient}");
             _logger.LogInformation($"Template {templateName} envoyé à {recipient}. Réponse : {content}");
         }
@@ -74,7 +74,7 @@ public class WhatChimpService : IWhatsAppSender
         }
     }
 
-    public async Task SendTextMessageAsync(string toPhoneNumber, string message)
+    public async Task SendTextMessageAsync(string toPhoneNumber, string message, CancellationToken ct = default)
     {
         try
         {
@@ -85,10 +85,10 @@ public class WhatChimpService : IWhatsAppSender
                 .Append("&phone_number=").Append(Uri.EscapeDataString(recipient))
                 .Append("&message=").Append(Uri.EscapeDataString(message));
 
-            var response = await _httpClient.GetAsync(sb.ToString());
+            var response = await _httpClient.GetAsync(sb.ToString(), ct);
             response.EnsureSuccessStatusCode();
 
-            var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync(ct);
             EnsureGatewayAccepted(content, $"message texte vers {recipient}");
             _logger.LogInformation($"Message texte envoyé à {recipient}. Réponse : {content}");
         }

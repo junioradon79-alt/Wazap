@@ -4,6 +4,10 @@ import { ErrorAlert, formatDateTime } from '../components/ui'
 import { Modal } from '../components/Modal'
 
 type LeadStatus = 'New' | 'Contacted' | 'Converted' | 'Discarded'
+
+// Plafond par défaut de `GET /api/admin/leads` (le serveur borne à 1 000 au maximum).
+const LEAD_PAGE_LIMIT = 200
+
 interface LeadListItem {
   id: string
   businessName: string
@@ -184,6 +188,15 @@ export default function LeadsPage() {
       {error && <ErrorAlert message={error} onRetry={() => void load()} />}
 
       <section className="panel">
+        {/* L'API plafonne la liste à 200 leads (paramètre `limit`, maximum 1 000). Sans cet
+            avertissement, l'équipe croyait voir tous les leads alors que la liste était
+            tronquée en silence (P2 / C-09). */}
+        {leads.length >= LEAD_PAGE_LIMIT && (
+          <p style={{ padding: '10px 16px', fontSize: 13, color: 'var(--wz-muted)' }} role="status">
+            ⚠️ {LEAD_PAGE_LIMIT} leads les plus récents affichés — affinez les filtres ou la
+            recherche pour voir les plus anciens.
+          </p>
+        )}
         {leads.length === 0 ? (
           <p style={{ padding: 16 }}>Aucun lead pour le moment — partagez la page de vente /app/vente.</p>
         ) : (

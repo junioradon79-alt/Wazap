@@ -96,6 +96,13 @@ public class WebhookWhatsAppController : ControllerBase
         _teamPhone = config["Prospect:TeamPhone"];
     }
 
+    /// <summary>
+    /// Jeton d'annulation de la requête en cours.
+    /// <see cref="ControllerBase.HttpContext"/> est nul quand le contrôleur est instancié
+    /// directement (tests unitaires du webhook) : on retombe alors sur un jeton inerte.
+    /// </summary>
+    private CancellationToken RequestAborted => HttpContext?.RequestAborted ?? CancellationToken.None;
+
     // GET: api/webhook/whatsapp — vérification passerelle (Meta Cloud API et WhatChimp legacy)
     [HttpGet]
     public IActionResult Verify(
@@ -403,7 +410,7 @@ public class WebhookWhatsAppController : ControllerBase
             var ratingReply = await _riderRatings.TryRateAsync(phone, text!);
             if (ratingReply is not null)
             {
-                await _whatsAppSender.SendTextMessageAsync(phone, ratingReply);
+                await _whatsAppSender.SendTextMessageAsync(phone, ratingReply, RequestAborted);
                 return Ok();
             }
             // null = aucune course notable pour ce numéro : on laisse suivre le flux normal.
@@ -562,12 +569,12 @@ public class WebhookWhatsAppController : ControllerBase
             return;
         }
 
-        var download = await _mediaDownloader.TryDownloadAsync(mediaUrl, mediaId, mimeType);
+        var download = await _mediaDownloader.TryDownloadAsync(mediaUrl, mediaId, mimeType, RequestAborted);
         if (download is null)
         {
             await _whatsAppSender.SendTextMessageAsync(phone,
                 "❌ Nous n'avons pas pu récupérer votre photo. Réessayez dans un instant — "
-                + "elle est indispensable à votre certification (Garantie Colis Sûr).");
+                + "elle est indispensable à votre certification (Garantie Colis Sûr).", RequestAborted);
             return;
         }
 
@@ -579,13 +586,13 @@ public class WebhookWhatsAppController : ControllerBase
             _logger.LogInformation("Scan d'identité du livreur {RiderId} reçu via WhatsApp.", rider.Id);
             await _whatsAppSender.SendTextMessageAsync(phone,
                 "✅ Photo de votre pièce d'identité reçue ! Notre équipe vérifie votre dossier — "
-                + "vous serez notifié dès votre certification (Garantie Colis Sûr 🛡️).");
+                + "vous serez notifié dès votre certification (Garantie Colis Sûr 🛡️).", RequestAborted);
         }
         catch (InvalidOperationException ex)
         {
             // Dossier exclu, format refusé, stockage non configuré : le message du
             // domaine est rédigé pour être lu par l'expéditeur.
-            await _whatsAppSender.SendTextMessageAsync(phone, "❌ " + ex.Message);
+            await _whatsAppSender.SendTextMessageAsync(phone, "❌ " + ex.Message, RequestAborted);
         }
     }
 
@@ -596,7 +603,7 @@ public class WebhookWhatsAppController : ControllerBase
     /// </summary>
     private async Task HandleDeliveryProofPhotoAsync(User rider, Guid orderId, string? mediaUrl, string? mediaId, string? mimeType)
     {
-        var download = await _mediaDownloader.TryDownloadAsync(mediaUrl, mediaId, mimeType);
+        var download = await _mediaDownloader.TryDownloadAsync(mediaUrl, mediaId, mimeType, RequestAborted);
         if (download is null)
         {
             await ReplyAsync(rider,
@@ -628,7 +635,7 @@ public class WebhookWhatsAppController : ControllerBase
 
         try
         {
-            await _whatsAppSender.SendTextMessageAsync("+" + PhoneNumberNormalizer.DigitsOnly(_teamPhone), message);
+            await _whatsAppSender.SendTextMessageAsync("+" + PhoneNumberNormalizer.DigitsOnly(_teamPhone), message, RequestAborted);
         }
         catch (Exception ex)
         {
@@ -968,7 +975,7 @@ public class WebhookWhatsAppController : ControllerBase
 
         try
         {
-            await _whatsAppSender.SendTextMessageAsync(phone, message);
+            await _whatsAppSender.SendTextMessageAsync(phone, message, RequestAborted);
         }
         catch (Exception ex)
         {

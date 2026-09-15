@@ -85,10 +85,10 @@ public class WhatsAppTemplateFallbackTests
 
         public List<(string Phone, string Message)> TextMessages { get; } = new();
 
-        public Task SendTemplateAsync(string toPhoneNumber, string templateName, Dictionary<string, string> variables)
+        public Task SendTemplateAsync(string toPhoneNumber, string templateName, Dictionary<string, string> variables, CancellationToken ct = default)
             => throw new WhatsAppSendException($"WhatChimp a refusé l'envoi ({templateName}).", _permanent);
 
-        public Task SendTextMessageAsync(string toPhoneNumber, string message)
+        public Task SendTextMessageAsync(string toPhoneNumber, string message, CancellationToken ct = default)
         {
             TextMessages.Add((toPhoneNumber, message));
             return Task.CompletedTask;
