@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api, getToken } from '../api/client'
 import { ErrorAlert, formatDateTime } from '../components/ui'
+import { Modal } from '../components/Modal'
 
 type LeadStatus = 'New' | 'Contacted' | 'Converted' | 'Discarded'
 interface LeadListItem {
@@ -239,7 +240,7 @@ export default function LeadsPage() {
                           {convertingId === l.id ? '…' : '🛍️ Créer le compte'}
                         </button>
                       ) : (
-                        <span style={{ fontSize: 13, color: 'var(--muted, #888)' }}>—</span>
+                        <span style={{ fontSize: 13, color: 'var(--wz-muted, #888)' }}>—</span>
                       )}
                     </td>
                   </tr>
@@ -251,41 +252,44 @@ export default function LeadsPage() {
       </section>
 
       {conversion && (
-        <div className="modal-backdrop" onClick={() => setConversion(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{conversion.alreadyExisted ? 'ℹ️ Vendeur déjà existant' : '🎉 Compte vendeur créé'}</h3>
-            <p style={{ marginBottom: 12 }}>
-              {conversion.alreadyExisted
-                ? 'Un compte vendeur existait déjà pour ce numéro — le lead a été marqué Converti.'
-                : 'Le lead est marqué Converti. Un message de bienvenue WhatsApp a été envoyé au vendeur.'}
-            </p>
-            <table className="table" style={{ marginBottom: 16 }}>
-              <tbody>
-                <tr><th style={{ width: 160 }}>Identifiant</th><td><code>{conversion.username}</code></td></tr>
-                {conversion.temporaryPassword && (
-                  <tr><th>Mot de passe temporaire</th><td><code>{conversion.temporaryPassword}</code></td></tr>
-                )}
-                <tr><th>Crédits</th><td>{conversion.credits}</td></tr>
-                <tr><th>Code parrainage</th><td><code>{conversion.referralCode}</code></td></tr>
-                {conversion.zone && <tr><th>Zone</th><td>{conversion.zone}</td></tr>}
-              </tbody>
-            </table>
-            <p style={{ fontSize: 13, marginBottom: 12 }}>
-              💡 Communiquez le mot de passe temporaire au vendeur uniquement s'il demande un accès au tableau de bord.
-            </p>
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+        // Modale partagée (C-07) : le mot de passe temporaire ne doit pas rester affiché
+        // derrière un simple <div> sans Échap ni restitution du focus.
+        <Modal
+          title={conversion.alreadyExisted ? 'ℹ️ Vendeur déjà existant' : '🎉 Compte vendeur créé'}
+          labelledBy="lead-conversion-title"
+          onClose={() => setConversion(null)}
+        >
+          <p style={{ marginBottom: 12 }}>
+            {conversion.alreadyExisted
+              ? 'Un compte vendeur existait déjà pour ce numéro — le lead a été marqué Converti.'
+              : 'Le lead est marqué Converti. Un message de bienvenue WhatsApp a été envoyé au vendeur.'}
+          </p>
+          <table className="table" style={{ marginBottom: 16 }}>
+            <tbody>
+              <tr><th style={{ width: 160 }}>Identifiant</th><td><code>{conversion.username}</code></td></tr>
               {conversion.temporaryPassword && (
-                <button
-                  className="btn"
-                  onClick={() => void navigator.clipboard.writeText(`Identifiant : ${conversion.username}\nMot de passe : ${conversion.temporaryPassword}`)}
-                >
-                  📋 Copier identifiants
-                </button>
+                <tr><th>Mot de passe temporaire</th><td><code>{conversion.temporaryPassword}</code></td></tr>
               )}
-              <button className="btn btn--primary" onClick={() => setConversion(null)}>OK</button>
-            </div>
+              <tr><th>Crédits</th><td>{conversion.credits}</td></tr>
+              <tr><th>Code parrainage</th><td><code>{conversion.referralCode}</code></td></tr>
+              {conversion.zone && <tr><th>Zone</th><td>{conversion.zone}</td></tr>}
+            </tbody>
+          </table>
+          <p style={{ fontSize: 13, marginBottom: 12 }}>
+            💡 Communiquez le mot de passe temporaire au vendeur uniquement s'il demande un accès au tableau de bord.
+          </p>
+          <div className="modal__actions">
+            {conversion.temporaryPassword && (
+              <button
+                className="btn"
+                onClick={() => void navigator.clipboard.writeText(`Identifiant : ${conversion.username}\nMot de passe : ${conversion.temporaryPassword}`)}
+              >
+                📋 Copier identifiants
+              </button>
+            )}
+            <button className="btn btn--primary" onClick={() => setConversion(null)}>OK</button>
           </div>
-        </div>
+        </Modal>
       )}
     </>
   )

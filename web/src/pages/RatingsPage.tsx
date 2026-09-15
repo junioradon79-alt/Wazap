@@ -107,7 +107,7 @@ export default function RatingsPage() {
             <tbody>
               {ratings.length === 0 && (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', color: 'var(--muted)' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', color: 'var(--wz-muted)' }}>
                     Aucun avis pour le moment.
                   </td>
                 </tr>
@@ -132,13 +132,13 @@ export default function RatingsPage() {
                       <>
                         <span style={{ color: 'var(--green, #1a7f37)' }}>🗣️ {r.reply}</span>
                         {r.repliedAt ? (
-                          <span style={{ display: 'block', fontSize: 11, color: 'var(--muted)' }}>
+                          <span style={{ display: 'block', fontSize: 11, color: 'var(--wz-muted)' }}>
                             {formatDateTime(r.repliedAt)}
                           </span>
                         ) : null}
                       </>
                     ) : (
-                      <span style={{ color: 'var(--muted)' }}>—</span>
+                      <span style={{ color: 'var(--wz-muted)' }}>—</span>
                     )}
                   </td>
                   <td style={{ fontSize: 12 }}>{formatDateTime(r.createdAt)}</td>

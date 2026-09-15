@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { api, getToken } from '../api/client'
 import type { RiderCertification, UserSummary } from '../api/types'
 import { ErrorAlert, StatusBadge } from '../components/ui'
+import { Modal } from '../components/Modal'
 
 const CERT_STATUS: Record<RiderCertification['status'], { label: string; badge: string }> = {
   Pending: { label: 'À vérifier', badge: 'badge--orange' },
@@ -192,7 +193,7 @@ export default function RidersPage() {
                               ? <><br /><button className="btn" style={{ padding: '2px 8px', fontSize: 11 }} onClick={() => void viewScan(r.id)}>🖼 Voir le scan</button></>
                               : null}
                           </span>
-                        : <span style={{ fontSize: 13, color: 'var(--muted, #888)' }}>—</span>}
+                        : <span style={{ fontSize: 13, color: 'var(--wz-muted, #888)' }}>—</span>}
                     </td>
                     <td><StatusBadge status={r.isAvailable ? 'Oui' : 'Non'} /></td>
                     <td>
@@ -245,9 +246,13 @@ export default function RidersPage() {
 
 
       {verifyTarget && (
-        <div className="modal-backdrop" onClick={() => setVerifyTarget(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Certifier « {verifyTarget.rider.username} »</h3>
+        // Modale partagée (C-07) : formulaire de certification pièce d'identité — Échap et
+        // restitution du focus comptent d'autant plus qu'il contient un champ de fichier.
+        <Modal
+          title={`Certifier « ${verifyTarget.rider.username} »`}
+          labelledBy="rider-verify-title"
+          onClose={() => setVerifyTarget(null)}
+        >
             <p style={{ fontSize: 13, marginBottom: 12 }}>
               Le scan de la pièce d'identité et le nom complet sont obligatoires avant de certifier.
               La moto des particuliers n'est souvent pas immatriculée : la plaque est optionnelle.
@@ -283,14 +288,14 @@ export default function RidersPage() {
             <div className="field">
               <label>🪪 Scan de la pièce d'identité (obligatoire)</label>
               {verifyTarget.cert.scanFileName || scanSaved ? (
-                <p style={{ fontSize: 13, color: 'var(--wz-green-strong, #059669)' }}>
+                <p style={{ fontSize: 13, color: 'var(--wz-green-ink)' }}>
                   ✅ Scan reçu —{' '}
                   <button className="btn" style={{ padding: '2px 8px', fontSize: 12 }} onClick={() => void viewScan(verifyTarget.rider.id)}>
                     Voir le scan
                   </button>
                 </p>
               ) : (
-                <p style={{ fontSize: 13, color: 'var(--muted, #888)' }}>Aucun scan — téléversez la photo de la pièce reçue sur WhatsApp (JPG/PNG/WEBP/PDF).</p>
+                <p style={{ fontSize: 13, color: 'var(--wz-muted)' }}>Aucun scan — téléversez la photo de la pièce reçue sur WhatsApp (JPG/PNG/WEBP/PDF).</p>
               )}
               <input
                 type="file"
@@ -314,8 +319,7 @@ export default function RidersPage() {
                 {busy ? '…' : '✅ Certifier'}
               </button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </>
   )

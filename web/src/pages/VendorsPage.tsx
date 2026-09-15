@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { UserSummary } from '../api/types'
 import { ErrorAlert, StatusBadge, formatDateTime } from '../components/ui'
+import { Modal } from '../components/Modal'
 
 export default function VendorsPage() {
   const [vendors, setVendors] = useState<UserSummary[]>([])
@@ -106,9 +107,12 @@ export default function VendorsPage() {
       </section>
 
       {topup && (
-        <div className="modal-backdrop" onClick={() => setTopup(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Créditer {topup.username}</h3>
+        // Modales partagées (C-07) : rôle dialog, Échap, focus déplacé puis restitué.
+        <Modal
+          title={`Créditer ${topup.username}`}
+          labelledBy="vendor-topup-title"
+          onClose={() => setTopup(null)}
+        >
             <p style={{ color: 'var(--wz-muted)' }}>
               Solde actuel : <b>{topup.credits}</b> crédits · Dernière position : {topup.locationUpdatedAt ? formatDateTime(topup.locationUpdatedAt) : '—'}
             </p>
@@ -122,14 +126,15 @@ export default function VendorsPage() {
                 {busy ? '…' : 'Créditer'}
               </button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {zoneEdit && (
-        <div className="modal-backdrop" onClick={() => setZoneEdit(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Zone de {zoneEdit.username}</h3>
+        <Modal
+          title={`Zone de ${zoneEdit.username}`}
+          labelledBy="vendor-zone-title"
+          onClose={() => setZoneEdit(null)}
+        >
             <div className="field">
               <label>Quartier / zone</label>
               <input value={zoneValue} onChange={(e) => setZoneValue(e.target.value)} placeholder="ex : Cocody" maxLength={50} />
@@ -140,8 +145,7 @@ export default function VendorsPage() {
                 {busy ? '…' : 'Enregistrer'}
               </button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </>
   )

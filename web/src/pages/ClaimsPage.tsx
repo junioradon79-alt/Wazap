@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { ClaimListItem } from '../api/types'
 import { ErrorAlert, formatDateTime } from '../components/ui'
+import { Modal } from '../components/Modal'
 
 const CLAIM_STATUS: Record<ClaimListItem['status'], { label: string; badge: string }> = {
   Pending: { label: '🚨 À traiter', badge: 'badge--orange' },
@@ -162,12 +163,12 @@ export default function ClaimsPage() {
                                 </span>
                               )}
                               {c.riderDepositDebitedFcfa ? (
-                                <div style={{ fontSize: 11, color: 'var(--muted, #888)' }}>
+                                <div style={{ fontSize: 11, color: 'var(--wz-muted, #888)' }}>
                                   dont {c.riderDepositDebitedFcfa.toLocaleString('fr-FR')} F sur la caution livreur
                                 </div>
                               ) : null}
                               {c.payoutReference ? (
-                                <div style={{ fontSize: 11, color: 'var(--muted, #888)' }}>réf. {c.payoutReference}</div>
+                                <div style={{ fontSize: 11, color: 'var(--wz-muted, #888)' }}>réf. {c.payoutReference}</div>
                               ) : null}
                             </div>
                           ) : null}
@@ -207,7 +208,7 @@ export default function ClaimsPage() {
                           💰 Confirmer le versement
                         </button>
                       ) : (
-                        <span style={{ fontSize: 12, color: 'var(--muted, #888)' }}>
+                        <span style={{ fontSize: 12, color: 'var(--wz-muted, #888)' }}>
                           {c.reviewNote || 'Traité'}
                         </span>
                       )}
@@ -222,50 +223,53 @@ export default function ClaimsPage() {
       </section>
 
       {approveTarget && (
-        <div className="modal-backdrop" onClick={() => setApproveTarget(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Indemniser le sinistre #{approveTarget.orderCode}</h3>
-            <p style={{ fontSize: 13, marginBottom: 12 }}>
-              Le livreur <strong>{approveTarget.riderName}</strong> sera <strong>exclu définitivement</strong>.
-              Le vendeur {approveTarget.vendorName} sera remboursé du crédit de la course + indemnisation.
-            </p>
-            <div className="field">
-              <label>Crédits d'indemnisation (en plus du remboursement de la course)</label>
-              <input
-                type="number"
-                min={0}
-                value={compensation}
-                onChange={(e) => setCompensation(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label>
-                Indemnisation en FCFA — barème :{' '}
-                {approveTarget.suggestedCompensationFcfa.toLocaleString('fr-FR')} F
-              </label>
-              <input
-                type="number"
-                min={0}
-                value={amountFcfa}
-                onChange={(e) => setAmountFcfa(e.target.value)}
-              />
-              <small style={{ color: 'var(--muted, #888)' }}>
-                0 = pas de versement. Sinon le dossier reste « à verser » jusqu'à confirmation
-                du virement Mobile Money.
-              </small>
-            </div>
-            <div className="field">
-              <label>Note de décision (optionnel)</label>
-              <input value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} />
-            </div>
-            <div className="modal__actions">
-              <button className="btn" onClick={() => setApproveTarget(null)}>Annuler</button>
-              <button className="btn btn--primary" onClick={() => void doApprove()} disabled={busy}>
-                {busy ? '…' : '✅ Confirmer l\'indemnisation'}
-              </button>
-            </div>
+        // Modale partagée : role="dialog", aria-modal, Échap, focus déplacé puis restitué.
+        // Les <div className="modal"> écrits à la main n'offraient rien de tout cela (C-07).
+        <Modal
+          title={`Indemniser le sinistre #${approveTarget.orderCode}`}
+          labelledBy="claim-approve-title"
+          onClose={() => setApproveTarget(null)}
+        >
+          <p style={{ fontSize: 13, marginBottom: 12 }}>
+            Le livreur <strong>{approveTarget.riderName}</strong> sera <strong>exclu définitivement</strong>.
+            Le vendeur {approveTarget.vendorName} sera remboursé du crédit de la course + indemnisation.
+          </p>
+          <div className="field">
+            <label>Crédits d'indemnisation (en plus du remboursement de la course)</label>
+            <input
+              type="number"
+              min={0}
+              value={compensation}
+              onChange={(e) => setCompensation(e.target.value)}
+            />
           </div>
-        </div>
+          <div className="field">
+            <label>
+              Indemnisation en FCFA — barème :{' '}
+              {approveTarget.suggestedCompensationFcfa.toLocaleString('fr-FR')} F
+            </label>
+            <input
+              type="number"
+              min={0}
+              value={amountFcfa}
+              onChange={(e) => setAmountFcfa(e.target.value)}
+            />
+            <small style={{ color: 'var(--wz-muted)' }}>
+              0 = pas de versement. Sinon le dossier reste « à verser » jusqu'à confirmation
+              du virement Mobile Money.
+            </small>
+          </div>
+          <div className="field">
+            <label>Note de décision (optionnel)</label>
+            <input value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} />
+          </div>
+          <div className="modal__actions">
+            <button className="btn" onClick={() => setApproveTarget(null)}>Annuler</button>
+            <button className="btn btn--primary" onClick={() => void doApprove()} disabled={busy}>
+              {busy ? '…' : '✅ Confirmer l\'indemnisation'}
+            </button>
+          </div>
+        </Modal>
       )}
     </>
   )

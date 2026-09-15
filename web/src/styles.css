@@ -19,7 +19,17 @@
   --wz-red: #dc2626;
   --wz-red-soft: #fee2e2;
   --wz-text: #0f172a;
-  --wz-muted: #64748b;
+  --wz-muted: #5c6b80; /* #64748b tombait à 4,39:1 sur le fond de page (#f3f6fb), sous le seuil AA */
+  /* ===== Variantes de TEXTE assombries (accessibilité AA) =====
+     Les teintes vives de la charte servaient aussi de couleur de texte : orange #f97316 sur
+     fond doux = 2,59:1, vert #00b04f = 2,72:1, rouge #dc2626 = 3,95:1, gris #64748b = 4,23:1,
+     pour un seuil AA de 4,5:1 (texte normal). Les variables ci-dessous gardent la teinte mais
+     atteignent le seuil : 4,78 / 5,21 / 5,30 / 6,74. Les teintes vives restent réservées aux
+     pointes, dégradés et bordures — éléments décoratifs, non porteurs d'information. */
+  --wz-green-ink: #047857;
+  --wz-orange-ink: #c2410c;
+  --wz-red-ink: #b91c1c;
+  --wz-gray-ink: #475569;
   --wz-border: #e5eaf2;
   --wz-radius: 16px;
   --wz-shadow: 0 6px 24px rgba(15, 23, 42, 0.06);
@@ -121,7 +131,7 @@ button { font-family: inherit; }
 .topbar__title { margin: 0; font-size: 22px; font-weight: 800; }
 .topbar__subtitle { margin: 4px 0 0; font-size: 13px; color: var(--wz-muted); }
 .topbar__actions { display: flex; align-items: center; gap: 12px; }
-.topbar__live { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; color: var(--wz-green-strong); }
+.topbar__live { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; color: var(--wz-green-ink); }
 .topbar__dot {
   width: 9px; height: 9px; border-radius: 50%; background: var(--wz-green);
   animation: pulse 1.6s ease-in-out infinite;
@@ -144,7 +154,7 @@ button { font-family: inherit; }
 .btn--primary { background: var(--wz-green-strong); color: #06281a; }
 .btn--blue { background: var(--wz-blue); color: #fff; }
 .btn--ghost { background: transparent; border: 1px solid var(--wz-border); color: var(--wz-muted); }
-.btn--danger { background: var(--wz-red-soft); color: var(--wz-red); }
+.btn--danger { background: var(--wz-red-soft); color: var(--wz-red-ink); }
 
 /* ============ Formulaires ============ */
 .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
@@ -157,8 +167,8 @@ button { font-family: inherit; }
   outline: 2px solid var(--wz-green); border-color: transparent;
 }
 
-.form-error { color: var(--wz-red); font-size: 13px; font-weight: 600; margin-top: 8px; }
-.form-success { color: var(--wz-green-strong); font-size: 13px; font-weight: 600; margin-top: 8px; }
+.form-error { color: var(--wz-red-ink); font-size: 13px; font-weight: 600; margin-top: 8px; }
+.form-success { color: var(--wz-green-ink); font-size: 13px; font-weight: 600; margin-top: 8px; }
 
 /* ============ Statistiques ============ */
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; margin-bottom: 26px; }
@@ -226,11 +236,11 @@ button { font-family: inherit; }
   font-size: 12px; font-weight: 700; white-space: nowrap;
 }
 .badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-.badge--orange { color: var(--wz-orange); background: var(--wz-orange-soft); }
+.badge--orange { color: var(--wz-orange-ink); background: var(--wz-orange-soft); }
 .badge--blue { color: var(--wz-blue); background: var(--wz-blue-soft); }
-.badge--green { color: var(--wz-green-strong); background: var(--wz-green-soft); }
-.badge--gray { color: var(--wz-muted); background: #eef2f7; }
-.badge--red { color: var(--wz-red); background: var(--wz-red-soft); }
+.badge--green { color: var(--wz-green-ink); background: var(--wz-green-soft); }
+.badge--gray { color: var(--wz-gray-ink); background: #eef2f7; }
+.badge--red { color: var(--wz-red-ink); background: var(--wz-red-soft); }
 
 
 /* ============ Packs ============ */
@@ -245,7 +255,7 @@ button { font-family: inherit; }
 .pack-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(15, 23, 42, 0.1); }
 .pack-card--featured { border-color: var(--wz-green); }
 .pack-card__name { font-size: 17px; font-weight: 800; }
-.pack-card__price { font-size: 26px; font-weight: 900; color: var(--wz-green-strong); }
+.pack-card__price { font-size: 26px; font-weight: 900; color: var(--wz-green-ink); }
 .pack-card__credits { font-size: 13px; color: var(--wz-muted); }
 .pack-card .btn { margin-top: auto; }
 
@@ -254,8 +264,8 @@ button { font-family: inherit; }
   padding: 14px 18px; border-radius: 12px; font-size: 14px; font-weight: 600;
   margin-bottom: 18px; border: 1px solid transparent;
 }
-.alert--success { color: var(--wz-green-strong); background: var(--wz-green-soft); border-color: #b8f5d4; }
-.alert--error { color: var(--wz-red); background: var(--wz-red-soft); border-color: #fecaca; }
+.alert--success { color: var(--wz-green-ink); background: var(--wz-green-soft); border-color: #b8f5d4; }
+.alert--error { color: var(--wz-red-ink); background: var(--wz-red-soft); border-color: #fecaca; }
 .alert--info { color: var(--wz-blue); background: var(--wz-blue-soft); border-color: #c7d9fe; }
 
 .modal-backdrop {
@@ -296,7 +306,7 @@ button { font-family: inherit; }
   background: var(--wz-green-soft); border: 1px solid #b8f5d4;
   word-break: break-all;
 }
-.checkout-box a { color: var(--wz-green-strong); font-weight: 700; }
+.checkout-box a { color: var(--wz-green-ink); font-weight: 700; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pulse {
