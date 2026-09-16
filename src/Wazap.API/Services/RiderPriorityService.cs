@@ -6,7 +6,6 @@ using Wazap.Application.Services;
 using Wazap.Domain.Configuration;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
-using Wazap.Infrastructure.Data;
 
 namespace Wazap.API.Services
 {
@@ -18,7 +17,9 @@ namespace Wazap.API.Services
     /// </summary>
     public sealed class RiderPriorityService
     {
-        private readonly ApplicationDbContext _context;
+        // P2 / C-12 : dépendance au PORT (voir PackService) — le service n'a besoin que de
+        // Users, RiderPriorityPurchases, SaveChanges et Database, tous exposés par le port.
+        private readonly IApplicationDbContext _context;
         private readonly IPaymentService _paymentService;
         private readonly IReadOnlyList<RiderPriorityPackConfiguration> _packs;
         private readonly RiderPriorityOptions _options;
@@ -26,7 +27,7 @@ namespace Wazap.API.Services
         private readonly ILogger<RiderPriorityService> _logger;
 
         public RiderPriorityService(
-            ApplicationDbContext context,
+            IApplicationDbContext context,
             IPaymentService paymentService,
             IReadOnlyList<RiderPriorityPackConfiguration> packs,
             RiderPriorityOptions options,

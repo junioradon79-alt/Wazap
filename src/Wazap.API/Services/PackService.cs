@@ -5,7 +5,6 @@ using Wazap.Application.Services;
 using Wazap.Domain.Configuration;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
-using Wazap.Infrastructure.Data;
 
 namespace Wazap.API.Services
 {
@@ -14,14 +13,17 @@ namespace Wazap.API.Services
     /// </summary>
     public sealed class PackService
     {
-        private readonly ApplicationDbContext _context;
+        // P2 / C-12 : le service dépend du PORT, pas du contexte concret de l'infrastructure.
+        // Il n'utilise que Users / CreditTransactions / SaveChanges / Database, tous exposés par
+        // IApplicationDbContext : le couplage à Wazap.Infrastructure n'était qu'historique.
+        private readonly IApplicationDbContext _context;
         private readonly IPaymentService _paymentService;
         private readonly IReadOnlyList<PackConfiguration> _packs;
         private readonly WhatsAppOrchestrationService _whatsApp;
         private readonly ILogger<PackService> _logger;
 
         public PackService(
-            ApplicationDbContext context,
+            IApplicationDbContext context,
             IPaymentService paymentService,
             IReadOnlyList<PackConfiguration> packs,
             WhatsAppOrchestrationService whatsApp,

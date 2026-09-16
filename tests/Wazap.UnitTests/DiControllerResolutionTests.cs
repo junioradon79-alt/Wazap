@@ -79,4 +79,43 @@ public class DiControllerResolutionTests
         partManager.PopulateFeature(feature);
         return feature.Controllers.Select(c => c.AsType()).ToList();
     }
+
+    // --------------------------------------------------- P2 / C-12 : port, pas le concret
+
+    /// <summary>
+    /// Garde-fou d'architecture : ces services ne doivent dépendre que du PORT
+    /// (<see cref="Wazap.Application.Abstractions.IApplicationDbContext"/>). Reprendre
+    /// <c>ApplicationDbContext</c> en paramètre réintroduirait le couplage de la couche API au
+    /// fournisseur de données — c'est exactement ce que l'audit reprochait (C-12), et une
+    /// régression passerait inaperçue puisqu'elle compilerait.
+    /// </summary>
+    [Theory]
+    [InlineData(typeof(Wazap.API.Services.PackService))]
+    [InlineData(typeof(Wazap.API.Services.RiderPriorityService))]
+    public void ServiceDApplication_DependDuPortEtNonDuContexteConcret(Type serviceType)
+    {
+        var parameterTypes = serviceType.GetConstructors()
+            .SelectMany(c => c.GetParameters())
+            .Select(p => p.ParameterType)
+            .ToList();
+
+        Assert.Contains(typeof(Wazap.Application.Abstractions.IApplicationDbContext), parameterTypes);
+        Assert.DoesNotContain(typeof(Wazap.Infrastructure.Data.ApplicationDbContext), parameterTypes);
+    }
+
+    /// <summary>
+    /// Les deux services d'achat (packs de crédits vendeur, packs prioritaires livreur) doivent
+    /// être résolubles par le conteneur RÉEL : ils manipulent de l'argent et leurs dépendances
+    /// (catalogues, options, paiement, orchestrateur) sont enregistrées dans <c>Program.cs</c>.
+    /// </summary>
+    [Fact]
+    public void ServicesDAchat_SontResolublesParLeConteneurDeProduction()
+    {
+        using var factory = new WazapAppFactory();
+        using var scope = factory.Services.CreateScope();
+        var provider = scope.ServiceProvider;
+
+        Assert.NotNull(provider.GetRequiredService<Wazap.API.Services.PackService>());
+        Assert.NotNull(provider.GetRequiredService<Wazap.API.Services.RiderPriorityService>());
+    }
 }
