@@ -424,7 +424,11 @@ builder.Services.AddCors(options =>
     options.AddPolicy("WebFrontend", policy =>
         policy.WithOrigins(corsOrigins)
               .AllowAnyHeader()
-              .AllowAnyMethod()));
+              .AllowAnyMethod()
+              // P2 / C-09 : le total de lignes d'une liste paginée voyage dans un en-tête.
+              // Sans cette exposition, le front (origine distincte en développement) ne
+              // pourrait pas le lire et croirait — encore — voir la totalité des lignes.
+              .WithExposedHeaders("X-Total-Count")));
 
 // Front Blazor Server (tableau de bord administrateur)
 builder.Services.AddRazorComponents()
@@ -510,12 +514,30 @@ if (geniusPayOptions.Enabled && GeniusPaySignatureVerifier.IsPlaceholderSecret(g
         + "notifications de paiement seront REFUSÉES (fail closed). Renseignez le secret réel du "
         + "webhook GeniusPay, sinon les achats de packs ne seront jamais crédités.");
 
-// /metrics est ouvert par défaut (comportement historique) : il expose la profondeur de la file
-// d'échecs et l'uptime. Le jeton optionnel Monitoring:MetricsToken le referme.
-if (string.IsNullOrWhiteSpace(monitoringOptions.MetricsToken))
+// B-17 — /metrics expose la profondeur de la file d'échecs, l'uptime et l'état de la base :
+// de quoi cartographier la plateforme sans rien forcer. Jusqu'ici l'endpoint restait OUVERT tant
+// que Monitoring:MetricsToken n'était pas renseigné — c'est-à-dire, en pratique, en production
+// (la clé n'est pas committée, donc absente). Un avertissement au démarrage ne protège personne
+// et ne ferme rien : la décision est désormais FERMÉE PAR DÉFAUT, prise une seule fois ici.
+//   · jeton renseigné       → endpoint monté, jeton exigé (?token= ou X-Metrics-Token) ;
+//   · production SANS jeton → endpoint NON monté : 404, il n'y a rien à découvrir ;
+//   · hors production       → endpoint ouvert (confort du développement local).
+// La contrepartie est assumée : un scraper Prometheus en production doit fournir le jeton, sinon
+// il reçoit 404 — c'est explicite et configurable, alors qu'un endpoint de supervision ouvert ne
+// l'est pas.
+var metricsToken = monitoringOptions.MetricsToken;
+var metricsEnabled = !string.IsNullOrWhiteSpace(metricsToken) || !app.Environment.IsProduction();
+
+if (!metricsEnabled)
     app.Logger.LogWarning(
-        "ALERTE [config] /metrics est accessible SANS authentification "
-        + "(Monitoring:MetricsToken vide) : renseignez un jeton et configurez-le côté scraper.");
+        "ALERTE [config] /metrics n'est PAS exposé (environnement Production sans "
+        + "Monitoring:MetricsToken) : l'endpoint répond 404. Comportement voulu (B-17) — "
+        + "renseignez un jeton et configurez-le côté scraper pour l'activer.");
+else if (string.IsNullOrWhiteSpace(metricsToken))
+    app.Logger.LogWarning(
+        "ALERTE [config] /metrics est accessible SANS authentification : "
+        + "Monitoring:MetricsToken est vide et l'environnement n'est pas la production. "
+        + "Ne montez pas cet environnement tel quel sur Internet.");
 
 // Gestion globale des erreurs (doit être le premier middleware)
 app.UseExceptionHandler();
@@ -607,23 +629,26 @@ app.MapGet("/health/details", async (HealthDetailsService service, HttpContext h
 });
 
 // Métriques Prometheus au format texte (0.0.4) — pour Prometheus/Grafana.
-// Protection OPTIONNELLE : si Monitoring:MetricsToken est renseigné, le jeton est exigé
-// (query ?token= ou en-tête X-Metrics-Token, comparaison à temps constant) ; sinon l'endpoint
-// reste ouvert comme auparavant et le démarrage le signale.
-app.MapGet("/metrics", async (MetricsService service, HttpContext http, CancellationToken ct) =>
+// B-17 : l'endpoint n'est monté que si `metricsEnabled` (voir la décision prise plus haut) —
+// en production sans jeton, la route n'existe pas et répond 404. Quand un jeton est renseigné, il
+// est exigé ici (query ?token= ou en-tête X-Metrics-Token, comparaison à temps constant).
+if (metricsEnabled)
 {
-    if (!string.IsNullOrWhiteSpace(monitoringOptions.MetricsToken))
+    app.MapGet("/metrics", async (MetricsService service, HttpContext http, CancellationToken ct) =>
     {
-        var provided = http.Request.Query["token"].FirstOrDefault()
-                       ?? http.Request.Headers["X-Metrics-Token"].FirstOrDefault();
+        if (!string.IsNullOrWhiteSpace(metricsToken))
+        {
+            var provided = http.Request.Query["token"].FirstOrDefault()
+                           ?? http.Request.Headers["X-Metrics-Token"].FirstOrDefault();
 
-        if (string.IsNullOrWhiteSpace(provided)
-            || !Wazap.Application.Helpers.SecurityHelper.FixedTimeEquals(provided, monitoringOptions.MetricsToken))
-            return Results.Unauthorized();
-    }
+            if (string.IsNullOrWhiteSpace(provided)
+                || !Wazap.Application.Helpers.SecurityHelper.FixedTimeEquals(provided, metricsToken))
+                return Results.Unauthorized();
+        }
 
-    return Results.Text(await service.BuildTextAsync(ct), "text/plain; version=0.0.4");
-});
+        return Results.Text(await service.BuildTextAsync(ct), "text/plain; version=0.0.4");
+    });
+}
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

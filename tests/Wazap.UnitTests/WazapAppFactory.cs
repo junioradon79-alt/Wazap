@@ -51,14 +51,23 @@ internal sealed class WazapAppFactory : WebApplicationFactory<Program>
     };
 
     private readonly Dictionary<string, string?> _configuration;
+    private readonly string _environment;
 
     /// <param name="extraConfiguration">
     /// Réglages ajoutés (ou remplacés) pour un test donné — par exemple les secrets de webhook.
     /// Sans cela, un test qui a besoin d'une valeur de configuration devait improviser son propre
     /// hôte, donc ne vérifiait plus le <c>Program.cs</c> réel.
     /// </param>
-    public WazapAppFactory(IDictionary<string, string?>? extraConfiguration = null)
+    /// <param name="environment">
+    /// Environnement d'hébergement vu par <c>Program.cs</c> (<c>app.Environment.IsProduction()</c>).
+    /// « Testing » par défaut : les tests ordinaires ne doivent pas dépendre des règles propres à la
+    /// production (journaux JSON, paiement simulé interdit…). Les tests qui vérifient justement un
+    /// comportement RÉSERVÉ à la production (ex. B-17 : <c>/metrics</c> fermé) passent
+    /// « Production » explicitement, avec la configuration qui satisfait les contrôles de démarrage.
+    /// </param>
+    public WazapAppFactory(IDictionary<string, string?>? extraConfiguration = null, string environment = "Testing")
     {
+        _environment = environment;
         _configuration = new Dictionary<string, string?>(TestConfiguration);
         if (extraConfiguration is null)
             return;
@@ -69,9 +78,10 @@ internal sealed class WazapAppFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        // Environnement dédié : ni « Development » (qui chargerait les user-secrets locaux,
-        // donc la vraie base et la vraie clé JWT) ni « Production » (logs JSON).
-        builder.UseEnvironment("Testing");
+        // Environnement demandé : ni « Development » (qui chargerait les user-secrets locaux,
+        // donc la vraie base et la vraie clé JWT) ni, par défaut, « Production » (logs JSON et
+        // règles de démarrage propres à la production).
+        builder.UseEnvironment(_environment);
 
         // Valeurs injectées AUSSI dans la configuration de l'hôte (UseSetting), en plus des
         // sources de configuration ci-dessous : elles sont ainsi visibles à la fois pendant la

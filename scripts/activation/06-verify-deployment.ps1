@@ -12,17 +12,20 @@ $ErrorActionPreference = "SilentlyContinue"
 Write-Host "=== Verification du deploiement ===" -ForegroundColor Cyan
 Write-Host ""
 $endpoints = @(
-    @{ Name = "Health"; Url = "$BaseUrl/health"; Expected = 200 },
-    @{ Name = "Health Details"; Url = "$BaseUrl/health/details"; Expected = 200 },
-    @{ Name = "Metrics"; Url = "$BaseUrl/metrics"; Expected = 200 },
-    @{ Name = "API v1 Overview"; Url = "$BaseUrl/api/v1/overview"; Expected = 401 },
-    @{ Name = "Swagger"; Url = "$BaseUrl/swagger"; Expected = 200 }
+    @{ Name = "Health"; Url = "$BaseUrl/health"; Expected = @(200) },
+    @{ Name = "Health Details"; Url = "$BaseUrl/health/details"; Expected = @(200) },
+    # B-17 : /metrics n'est monte que si Monitoring:MetricsToken est renseigne. En production
+    # sans jeton, la route n'existe pas (404) : c'est le comportement VOULU (fail closed), pas
+    # une panne. Un 200 signifie qu'un jeton a ete configure.
+    @{ Name = "Metrics"; Url = "$BaseUrl/metrics"; Expected = @(200, 404) },
+    @{ Name = "API v1 Overview"; Url = "$BaseUrl/api/v1/overview"; Expected = @(401) },
+    @{ Name = "Swagger"; Url = "$BaseUrl/swagger"; Expected = @(200) }
 )
 foreach ($ep in $endpoints) {
     try {
         $r = Invoke-WebRequest -Uri $ep.Url -UseBasicParsing -TimeoutSec 10
         $status = $r.StatusCode
-        $color = if ($status -eq $ep.Expected) { "Green" } else { "Yellow" }
+        $color = if ($ep.Expected -contains $status) { "Green" } else { "Yellow" }
         Write-Host "  [$status] $($ep.Name)" -ForegroundColor $color
     }
     catch {

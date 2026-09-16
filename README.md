@@ -68,8 +68,12 @@ Clés stockées via `dotnet user-secrets set` :
 - `Jwt:Key` (32 caractères minimum ; `Jwt:AccessTokenMinutes` règle la durée du jeton, 30 min par défaut)
 - `SeedAdmin:Username` = `admin`
 - `SeedAdmin:Password` = **jamais dans ce dépôt** (dépôt public) — voir `DEPLOYMENT.md`, gitignoré
-- `Monitoring:MetricsToken` — optionnel : protège `/metrics` (sans lui, l'endpoint est ouvert et
-  le démarrage l'avertit)
+- `Monitoring:MetricsToken` — **exige en production pour exposer `/metrics`**. Sans ce jeton,
+  `/metrics` n'est **pas monté** en production : la route répond `404` (fail closed — un endpoint
+  de supervision ouvert expose la profondeur de la file d'échecs et l'état de la base). Avec un
+  jeton, l'endpoint est actif et le jeton est exigé (`?token=` ou en-tête `X-Metrics-Token`).
+  Hors production, l'endpoint reste ouvert pour le développement local. Les sondes `/health` et
+  `/health/details` ne sont pas concernées.
 - `WebhookSecurity:RequireAuthentication` — défaut `true` : les POST entrants sur
   `/api/webhook/whatsapp` exigent une signature Meta ou le jeton partagé (ne passer à `false`
   qu'en développement local)
