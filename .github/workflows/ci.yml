@@ -69,6 +69,35 @@ jobs:
       - name: "Tests (garde-fou bloquant)"
         run: dotnet test tests/Wazap.UnitTests/Wazap.UnitTests.csproj --configuration Release --no-build
 
+      # B-19 — PREUVE que la couverture PostgreSQL a réellement tourné.
+      # Sans ce contrôle, un service injoignable ferait « ignorer » les tests PostgreSQL et la CI
+      # resterait verte : la couverture serait alors simulée, ce qui est pire que son absence.
+      # Ici, un test non exécuté fait échouer la CI avec un message explicite.
+      - name: "PostgreSQL réel (B-19) — preuve d'exécution"
+        run: |
+          set -uo pipefail
+
+          rm -rf ./TestResults/postgres
+          dotnet test tests/Wazap.UnitTests/Wazap.UnitTests.csproj \
+            --configuration Release --no-build \
+            --filter "FullyQualifiedName~PostgresMoneyPathsTests" \
+            --logger "trx;LogFileName=postgres.trx" \
+            --results-directory ./TestResults/postgres
+
+          report=./TestResults/postgres/postgres.trx
+          passed=$(grep -c 'outcome="Passed"' "$report" || true)
+          skipped=$(grep -c 'outcome="NotExecuted"' "$report" || true)
+          echo "Tests PostgreSQL : $passed réussi(s), $skipped ignoré(s)."
+
+          if [ "$skipped" != "0" ]; then
+            echo "::error::Des tests PostgreSQL ont été IGNORÉS — le service n'était pas joignable. Vérifiez WAZAP_TEST_POSTGRES et le service 'postgres' du job."
+            exit 1
+          fi
+          if [ "$passed" -lt 6 ]; then
+            echo "::error::Moins de 6 tests PostgreSQL ont été exécutés ($passed) : la couverture du moteur de production n'est plus assurée."
+            exit 1
+          fi
+
       - name: Couverture (mesure et seuil indicatif)
         # Étape SÉPARÉE et non bloquante : le garde-fou de la CI reste le résultat des tests
         # ci-dessus. Un aléa de l'outillage de couverture (collecteur, format de rapport) ne doit
