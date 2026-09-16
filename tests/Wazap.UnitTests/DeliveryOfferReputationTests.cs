@@ -23,7 +23,7 @@ public sealed class DeliveryOfferReputationTests
         var neutral = Guid.NewGuid();
         var scores = Scores((wellRated, 4.8), (neutral, null));
 
-        var cmp = DeliveryOfferService.CompareWithReputation(
+        var cmp = RiderMatchingService.CompareWithReputation(
             Rider(wellRated, 12.0), Rider(neutral, 0.5), scores);
 
         Assert.True(cmp < 0);
@@ -36,7 +36,7 @@ public sealed class DeliveryOfferReputationTests
         var lower = Guid.NewGuid();
         var scores = Scores((top, 4.5), (lower, 4.0));
 
-        Assert.True(DeliveryOfferService.CompareWithReputation(
+        Assert.True(RiderMatchingService.CompareWithReputation(
             Rider(lower, 1.0), Rider(top, 20.0), scores) > 0);
     }
 
@@ -47,7 +47,7 @@ public sealed class DeliveryOfferReputationTests
         var b = Guid.NewGuid();
         var scores = Scores((a, 4.2), (b, 4.2));
 
-        var cmp = DeliveryOfferService.CompareWithReputation(
+        var cmp = RiderMatchingService.CompareWithReputation(
             Rider(a, 5.0), Rider(b, 2.0), scores);
 
         Assert.True(cmp > 0);
@@ -60,7 +60,7 @@ public sealed class DeliveryOfferReputationTests
         var b = Guid.NewGuid();
         var scores = Scores((a, null), (b, null));
 
-        var cmp = DeliveryOfferService.CompareWithReputation(
+        var cmp = RiderMatchingService.CompareWithReputation(
             Rider(a, 7.0), Rider(b, 1.5), scores);
 
         Assert.True(cmp > 0);

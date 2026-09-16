@@ -12,7 +12,7 @@ namespace Wazap.UnitTests;
 /// <b>visibilité</b> (être proposé en premier dans son rayon), jamais une attribution garantie.
 /// Couvre le droit de tirage (<see cref="User.GrantPriority"/>), le cycle de vie de l'achat
 /// (<see cref="RiderPriorityPurchase"/>) et le tri du matching
-/// (<see cref="DeliveryOfferService.ApplyPriorityOrdering"/>), plafond d'équité compris.
+/// (<see cref="RiderMatchingService.ApplyPriorityOrdering"/>), plafond d'équité compris.
 /// </summary>
 public sealed class RiderPriorityPackTests
 {
@@ -162,7 +162,7 @@ public sealed class RiderPriorityPackTests
             Candidate(closest, 0.4)
         };
 
-        var result = DeliveryOfferService.ApplyPriorityOrdering(ordered, now, maxPriorityRidersPerWave: 2);
+        var result = RiderMatchingService.ApplyPriorityOrdering(ordered, now, maxPriorityRidersPerWave: 2);
 
         Assert.Equal(subscribed, result[0].RiderUserId);
         Assert.Equal(closest, result[1].RiderUserId);
@@ -180,7 +180,7 @@ public sealed class RiderPriorityPackTests
             Candidate(expired, 12.0, now.AddMinutes(-1))
         };
 
-        var result = DeliveryOfferService.ApplyPriorityOrdering(ordered, now, maxPriorityRidersPerWave: 2);
+        var result = RiderMatchingService.ApplyPriorityOrdering(ordered, now, maxPriorityRidersPerWave: 2);
 
         Assert.Equal(closest, result[0].RiderUserId);
         Assert.Equal(expired, result[1].RiderUserId);
@@ -194,7 +194,7 @@ public sealed class RiderPriorityPackTests
         var b = Guid.NewGuid();
         var ordered = new List<NearestRiderDto> { Candidate(a, 0.4), Candidate(b, 5.0) };
 
-        var result = DeliveryOfferService.ApplyPriorityOrdering(ordered, now, maxPriorityRidersPerWave: 2);
+        var result = RiderMatchingService.ApplyPriorityOrdering(ordered, now, maxPriorityRidersPerWave: 2);
 
         Assert.Equal(new[] { a, b }, result.Select(r => r.RiderUserId));
     }
@@ -216,7 +216,7 @@ public sealed class RiderPriorityPackTests
             Candidate(third, 10.0, now.AddDays(5))
         };
 
-        var result = DeliveryOfferService.ApplyPriorityOrdering(ordered, now, maxPriorityRidersPerWave: 2);
+        var result = RiderMatchingService.ApplyPriorityOrdering(ordered, now, maxPriorityRidersPerWave: 2);
 
         // Les 2 places réservées vont aux prioritaires les mieux classés ; le 3e reste à son rang.
         Assert.Equal(new[] { first, second, unfunded, third }, result.Select(r => r.RiderUserId));
@@ -234,7 +234,7 @@ public sealed class RiderPriorityPackTests
             Candidate(subscribed, 12.0, now.AddDays(3))
         };
 
-        var result = DeliveryOfferService.ApplyPriorityOrdering(ordered, now, maxPriorityRidersPerWave: 0);
+        var result = RiderMatchingService.ApplyPriorityOrdering(ordered, now, maxPriorityRidersPerWave: 0);
 
         Assert.Equal(new[] { closest, subscribed }, result.Select(r => r.RiderUserId));
     }
@@ -251,7 +251,7 @@ public sealed class RiderPriorityPackTests
             Candidate(Guid.NewGuid(), 4.0, now.AddDays(1))
         };
 
-        var result = DeliveryOfferService.ApplyPriorityOrdering(ordered, now, maxPriorityRidersPerWave: 5);
+        var result = RiderMatchingService.ApplyPriorityOrdering(ordered, now, maxPriorityRidersPerWave: 5);
 
         Assert.Equal(ordered.Count, result.Count);
         Assert.Equal(
@@ -264,11 +264,11 @@ public sealed class RiderPriorityPackTests
     {
         var now = DateTime.UtcNow;
 
-        Assert.True(DeliveryOfferService.IsPriorityActive(
+        Assert.True(RiderMatchingService.IsPriorityActive(
             Candidate(Guid.NewGuid(), 1.0, now.AddDays(1)), now));
-        Assert.False(DeliveryOfferService.IsPriorityActive(
+        Assert.False(RiderMatchingService.IsPriorityActive(
             Candidate(Guid.NewGuid(), 1.0, now), now));
-        Assert.False(DeliveryOfferService.IsPriorityActive(
+        Assert.False(RiderMatchingService.IsPriorityActive(
             Candidate(Guid.NewGuid(), 1.0), now));
     }
 

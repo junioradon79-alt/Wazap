@@ -32,7 +32,7 @@ public class MatchingFiltersTests
     public void BoundingBox_ContientLesQuatrePointsCardinaux_DuRayon(double lat, double lon)
     {
         const double radiusKm = 15;
-        var box = DeliveryOfferService.BoundingBox(lat, lon, radiusKm);
+        var box = RiderMatchingService.BoundingBox(lat, lon, radiusKm);
 
         // Points situés exactement à la distance du rayon, au nord, au sud, à l'est et à l'ouest.
         var deltaLat = radiusKm / 111.32;
@@ -50,7 +50,7 @@ public class MatchingFiltersTests
     {
         // Au-delà de 89°, un degré de longitude tend vers zéro : la boîte n'est plus fiable,
         // on préfère ne pas filtrer (le rayon Haversine reste l'arbitre).
-        var box = DeliveryOfferService.BoundingBox(89.5, 10, 15);
+        var box = RiderMatchingService.BoundingBox(89.5, 10, 15);
 
         Assert.Equal(-90, box.MinLat);
         Assert.Equal(90, box.MaxLat);
@@ -63,7 +63,7 @@ public class MatchingFiltersTests
     {
         // Franchir ±180° rendrait la comparaison « min <= lon <= max » fausse pour les points
         // situés de l'autre côté : on élargit la longitude.
-        var box = DeliveryOfferService.BoundingBox(0, 179.9, 15);
+        var box = RiderMatchingService.BoundingBox(0, 179.9, 15);
 
         Assert.Equal(-180, box.MinLon);
         Assert.Equal(180, box.MaxLon);
