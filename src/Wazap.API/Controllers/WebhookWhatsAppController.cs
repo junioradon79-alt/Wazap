@@ -1,13 +1,10 @@
-using System.Globalization;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Wazap.API.Services;
 using Wazap.Application.Abstractions;
 using Wazap.Application.Configuration;
-using Wazap.Application.Dtos;
 using Wazap.Application.Exceptions;
 using Wazap.Application.Helpers;
 using Wazap.Application.Services;
@@ -40,6 +37,7 @@ public class WebhookWhatsAppController : ControllerBase
     private readonly RiderRatingService _riderRatings;
     private readonly RiderProgramService _riderProgram;
     private readonly RiderDeliveryCommands _riderDeliveries;
+    private readonly VendorTextCommands _vendorCommands;
     private readonly RiderScansOptions _scans;
     private readonly ILogger<WebhookWhatsAppController> _logger;
     private readonly string? _webhookToken;
@@ -64,6 +62,7 @@ public class WebhookWhatsAppController : ControllerBase
         RiderRatingService riderRatings,
         RiderProgramService riderProgram,
         RiderDeliveryCommands riderDeliveries,
+        VendorTextCommands vendorCommands,
         RiderScansOptions scans,
         ILogger<WebhookWhatsAppController> logger,
         IConfiguration config)
@@ -72,6 +71,7 @@ public class WebhookWhatsAppController : ControllerBase
         _riderRatings = riderRatings;
         _riderProgram = riderProgram;
         _riderDeliveries = riderDeliveries;
+        _vendorCommands = vendorCommands;
         _context = context;
         _riderService = riderService;
         _riderRecruitment = riderRecruitment;
@@ -473,7 +473,7 @@ public class WebhookWhatsAppController : ControllerBase
                 .OrderByDescending(l => l.CreatedAt)
                 .ToListAsync();
 
-            var target = TryExtractClientPhone(text) ?? teamPhone;
+            var target = VendorCommandParser.TryExtractClientPhone(text) ?? teamPhone;
             var byNumber = PhoneNumberNormalizer.DigitsOnly(target) != PhoneNumberNormalizer.DigitsOnly(teamPhone);
             Lead? lead;
             if (byNumber)
@@ -766,114 +766,12 @@ public class WebhookWhatsAppController : ControllerBase
             return true;
         }
 
-        // Livraison à la demande (vendeur) : « LIVRAISON <ce qu'il faut livrer> à <adresse client> ».
-        // Un crédit est consommé, la course est diffusée immédiatement aux livreurs proches.
-        if (user.Role == UserRole.Vendor && (upper == "LIVRAISON" || upper.StartsWith("LIVRAISON ")))
+        // Commandes vendeur (livraison à la demande, sinistre, catalogue produits) : extraites
+        // dans VendorTextCommands (P2 / C-13) pour être testables sans payload ni signature.
+        // « LIVRAISON » consomme un crédit : ce chemin mérite ses propres tests.
+        if (user.Role == UserRole.Vendor && VendorTextCommands.Matches(upper))
         {
-            var instruction = command.Length > "LIVRAISON ".Length
-                ? command["LIVRAISON ".Length..].Trim()
-                : string.Empty;
-
-            if (instruction.Length < 3)
-            {
-                await ReplyAsync(user,
-                    "📦 Format : LIVRAISON <ce qu'il faut livrer> à <quartier/adresse du client>\n" +
-                    "Exemple : LIVRAISON 2 poulets à Marcory, rue Princesse");
-                return true;
-            }
-
-            try
-            {
-                // Extraction optionnelle du téléphone du client (ex : « … tél 0708091011 »)
-                // → notifications automatiques possibles (livreur assigné, livraison effectuée).
-                var clientPhone = TryExtractClientPhone(instruction);
-
-                var order = await _orderService.CreateDispatchRequestAsync(user.Id, instruction, clientPhone);
-                var creditsLeft = await _context.Users.AsNoTracking()
-                    .Where(u => u.Id == user.Id)
-                    .Select(u => u.Credits)
-                    .FirstOrDefaultAsync();
-
-                var code = order.Id.ToString("N")[..8].ToUpperInvariant();
-                await ReplyAsync(user,
-                    $"✅ Course #{code} enregistrée ! Un livreur proche est contacté. Crédits restants : {creditsLeft}.");
-            }
-            catch (PaymentRequiredException ex)
-            {
-                await ReplyAsync(user, "❌ " + ex.Message);
-            }
-            catch (InvalidOperationException ex)
-            {
-                await ReplyAsync(user, "❌ " + ex.Message);
-            }
-
-            return true;
-        }
-
-        // Sinistre (Garantie Colis Sûr) : « SINISTRE <code> » → colis perdu/volé signalé par le vendeur.
-        if (user.Role == UserRole.Vendor && (upper == "SINISTRE" || upper.StartsWith("SINISTRE ")))
-        {
-            var result = await _colisSur.DeclareAsync(user.Id, command);
-            await ReplyAsync(user, result.Message);
-            return true;
-        }
-
-        // Catalogue produits WAZAP : « PRODUITS » liste, « PRODUIT <nom> | <prix> [| <emoji>] »
-        // ajoute, « SUPPRIMER PRODUIT <n°> » retire. Ce catalogue alimente le menu numéroté du
-        // bot de commande client : les clients composent leur panier par numéro.
-        if (user.Role == UserRole.Vendor && upper.StartsWith("SUPPRIMER PRODUIT"))
-        {
-            var raw = command.Length > "SUPPRIMER PRODUIT".Length
-                ? command["SUPPRIMER PRODUIT".Length..].Trim()
-                : string.Empty;
-
-            var catalog = await _products.GetProductsAsync(user.Id);
-            if (!int.TryParse(raw, out var index) || index < 1 || index > catalog.Count)
-            {
-                await ReplyAsync(user, "❓ Format : SUPPRIMER PRODUIT <n° du catalogue> (voir PRODUITS).");
-                return true;
-            }
-
-            var target = catalog[index - 1];
-            await ReplyAsync(user, await _products.DeleteAsync(user.Id, target.Id) switch
-            {
-                VendorProductDeleteResult.Deleted => $"🗑️ Produit retiré : {target.Name}.",
-                VendorProductDeleteResult.InUse =>
-                    "⚠️ Ce produit figure dans des commandes passées : il ne peut plus être supprimé (modifiez son prix).",
-                _ => "⚠️ Produit introuvable."
-            });
-            return true;
-        }
-
-        if (user.Role == UserRole.Vendor && (upper == "PRODUITS" || upper.StartsWith("PRODUITS ")))
-        {
-            var catalog = await _products.GetProductsAsync(user.Id);
-            await ReplyAsync(user, catalog.Count == 0
-                ? "🛒 Votre catalogue est vide.\n"
-                  + "Ajoutez un produit : PRODUIT <nom> | <prix> [| <emoji>]\n"
-                  + "Exemple : PRODUIT Poulet braisé | 2500 | 🍗"
-                : "🛒 Votre catalogue :\n"
-                  + string.Join("\n", catalog.Select((p, i) => $"{i + 1}. {ProductDisplayText(p)}"))
-                  + "\n\n➕ PRODUIT <nom> | <prix> [| <emoji>]\n🗑️ SUPPRIMER PRODUIT <n°>");
-            return true;
-        }
-
-        if (user.Role == UserRole.Vendor && (upper == "PRODUIT" || upper.StartsWith("PRODUIT ")))
-        {
-            var payload = command.Length > "PRODUIT".Length ? command["PRODUIT".Length..].Trim() : string.Empty;
-            if (!TryParseProductCommand(payload, out var name, out var price, out var emoji))
-            {
-                await ReplyAsync(user,
-                    "📦 Format : PRODUIT <nom> | <prix> [| <emoji>]\n" +
-                    "Exemple : PRODUIT Poulet braisé | 2500 | 🍗");
-                return true;
-            }
-
-            var created = await _products.CreateAsync(user.Id,
-                new VendorProductRequest { Name = name, Price = price, Emoji = emoji });
-            await ReplyAsync(user,
-                $"✅ Produit ajouté : {ProductDisplayText(created)}\n" +
-                "Il apparaît maintenant dans le menu des clients qui commandent chez vous.");
+            await _vendorCommands.HandleAsync(user, command, ReplyAsync);
             return true;
         }
 
@@ -919,42 +817,6 @@ public class WebhookWhatsAppController : ControllerBase
 
         return false;
     }
-
-    /// <summary>
-    /// Affichage catalogue identique au menu du bot client (<see cref="Domain.Entities.VendorProduct.DisplayText"/>).
-    /// </summary>
-    private static string ProductDisplayText(VendorProductDto product)
-        => string.IsNullOrEmpty(product.Emoji)
-            ? $"{product.Name} — {product.Price:N0} FCFA"
-            : $"{product.Emoji} {product.Name} — {product.Price:N0} FCFA";
-
-    /// <summary>
-    /// « &lt;nom&gt; | &lt;prix&gt; [| &lt;emoji&gt;] » : le nom peut contenir des espaces,
-    /// le prix tolère « 2 500 » ou « 2500 FCFA ». L'emoji reste optionnel.
-    /// </summary>
-    internal static bool TryParseProductCommand(string payload, out string name, out decimal price, out string? emoji)
-    {
-        name = string.Empty;
-        price = 0m;
-        emoji = null;
-
-        var parts = payload.Split('|', StringSplitOptions.TrimEntries);
-        if (parts.Length < 2 || parts[0].Length < 2)
-            return false;
-
-        var rawPrice = parts[1]
-            .Replace(" ", string.Empty, StringComparison.Ordinal)
-            .Replace("FCFA", string.Empty, StringComparison.OrdinalIgnoreCase);
-        if (!decimal.TryParse(rawPrice, NumberStyles.Number, CultureInfo.InvariantCulture, out price) || price < 0)
-            return false;
-
-        name = parts[0];
-        if (parts.Length >= 3 && parts[2].Length > 0)
-            emoji = parts[2];
-
-        return true;
-    }
-
     private async Task ReplyAsync(User user, string message)
     {
         try
@@ -1063,28 +925,6 @@ public class WebhookWhatsAppController : ControllerBase
             await _context.SaveChangesAsync();
             _logger.LogInformation("Numéro du compte {UserId} aligné sur le wa_id reçu ({Phone}).", user.Id, canonical);
         }
-    }
-
-    private static string? TryExtractClientPhone(string text)    {
-        if (string.IsNullOrWhiteSpace(text))
-            return null;
-
-        // Candidats : +225XXXXXXXXXX (nouveau), +225XXXXXXXX (ancien),
-        // 0XXXXXXXXX (nouveau 10) / 0XXXXXXXX (ancien 8).
-        var match = Regex.Match(text, @"(?:\+?\s?225[\s.-]?)?(?:0[157]\d{8}|0\d{7})");
-        if (!match.Success)
-            return null;
-
-        var digits = new string(match.Value.Where(char.IsDigit).ToArray());
-        if (digits.StartsWith("225") && digits.Length is 11 or 13)
-            return "+" + digits;
-
-        // Numéro national ivoirien (8 ou 10 chiffres commençant par 0) : on conserve le 0
-        // après l'indicatif (E.164 CI : +225 07 08 … → 2250708…).
-        if (digits.Length is 8 or 10 && digits.StartsWith("0"))
-            return "+225" + digits;
-
-        return null;
     }
 
     private async Task<Guid?> ExtractOfferIdAsync(params string?[] candidates)

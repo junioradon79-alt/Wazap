@@ -93,6 +93,11 @@ internal sealed class WebhookHarness : IDisposable
             new RiderDeliveryCommands(Context, proof, orchestrator,
                 new RiderProgramService(Context, new RiderProgramOptions(), Sender, NullLogger<RiderProgramService>.Instance),
                 NullLogger<RiderDeliveryCommands>.Instance),
+            new VendorTextCommands(Context, orders,
+                new VendorProductService(Context, NullLogger<VendorProductService>.Instance),
+                new ColisSurService(Context, Sender, config, new ColisSurOptions(),
+                    new ManualPayoutService(NullLogger<ManualPayoutService>.Instance),
+                    NullLogger<ColisSurService>.Instance)),
             Scans,
             NullLogger<WebhookWhatsAppController>.Instance,
             config);

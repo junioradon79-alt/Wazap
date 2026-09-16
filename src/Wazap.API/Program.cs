@@ -164,6 +164,9 @@ builder.Services.AddScoped<RiderProgramService>();
 // Commandes livreur « RECU » / « LIVRE » (preuve de livraison) : extraites du contrôleur
 // webhook pour être testables directement (voir RiderDeliveryCommands).
 builder.Services.AddScoped<RiderDeliveryCommands>();
+// Commandes vendeur (LIVRAISON à la demande — 1 crédit, SINISTRE, catalogue produits) :
+// extraites du contrôleur webhook pour être testables directement (voir VendorTextCommands).
+builder.Services.AddScoped<VendorTextCommands>();
 
 // Options rétention / archivage des données (purge opt-in, désactivée par défaut)
 var retentionOptions = builder.Configuration.GetSection(RetentionOptions.SectionName).Get<RetentionOptions>() ?? new RetentionOptions();
