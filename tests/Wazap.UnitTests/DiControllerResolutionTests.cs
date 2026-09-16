@@ -118,4 +118,25 @@ public class DiControllerResolutionTests
         Assert.NotNull(provider.GetRequiredService<Wazap.API.Services.PackService>());
         Assert.NotNull(provider.GetRequiredService<Wazap.API.Services.RiderPriorityService>());
     }
+
+    /// <summary>
+    /// P2 / C-14 : les clients sortants doivent avoir un délai BORNÉ. Le défaut de 100 s laissait
+    /// un worker immobilisé plus d'une minute et demie sur une passerelle muette, alors que
+    /// l'arrêt de l'hôte attend l'expiration de ce délai. Le nom du client nommé est le nom du
+    /// type d'interface (<c>AddHttpClient&lt;TInterface, TImpl&gt;</c>).
+    /// </summary>
+    [Fact]
+    public void ClientsSortants_OntUnDelaiBorne()
+    {
+        using var factory = new WazapAppFactory();
+        var httpFactory = factory.Services.GetRequiredService<IHttpClientFactory>();
+
+        var sender = httpFactory.CreateClient(nameof(Wazap.Application.Abstractions.IWhatsAppSender));
+        Assert.True(sender.Timeout <= TimeSpan.FromSeconds(30),
+            $"Délai d'envoi WhatsApp trop long : {sender.Timeout} (attendu ≤ 30 s).");
+
+        var media = httpFactory.CreateClient(nameof(Wazap.Application.Abstractions.IWhatsAppMediaDownloader));
+        Assert.True(media.Timeout <= TimeSpan.FromSeconds(60),
+            $"Délai de téléchargement des médias trop long : {media.Timeout} (attendu ≤ 60 s).");
+    }
 }

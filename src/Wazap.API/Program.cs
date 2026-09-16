@@ -320,15 +320,29 @@ builder.Services.AddRateLimiter(options =>
 // Passerelle d'envoi : Meta WhatsApp Cloud (WABA dédié) dès Meta:Enabled=true, sinon
 // WhatChimp (mode legacy en attendant la bascule — plus aucun envoi tant que le compte
 // ancien est verrouillé, ce qui est justement ce qu'on veut).
+//
+// P2 / C-14 (second temps) : le délai par défaut d'un HttpClient est de 100 s. Une passerelle
+// qui ne répond pas immobilisait donc un worker de fond (et la requête du webhook) pendant plus
+// d'une minute et demie, bien au-delà du délai d'arrêt de l'hôte — l'arrêt du service attendait
+// l'expiration de ce délai. Les envois sont bornés à 30 s (Meta répond en général en moins de
+// deux secondes) et les téléchargements de médias à 60 s (pièce d'identité de quelques Mo sur
+// réseau mobile). Le CancellationToken reste transmis en complément pour interrompre au plus tôt.
+var sendTimeout = TimeSpan.FromSeconds(30);
+var mediaTimeout = TimeSpan.FromSeconds(60);
+
 if (metaApiOptions.Enabled)
 {
-    builder.Services.AddHttpClient<IWhatsAppSender, MetaCloudApiWhatsAppSender>();
-    builder.Services.AddHttpClient<IWhatsAppMediaDownloader, MetaCloudApiMediaDownloader>();
+    builder.Services.AddHttpClient<IWhatsAppSender, MetaCloudApiWhatsAppSender>()
+        .ConfigureHttpClient(c => c.Timeout = sendTimeout);
+    builder.Services.AddHttpClient<IWhatsAppMediaDownloader, MetaCloudApiMediaDownloader>()
+        .ConfigureHttpClient(c => c.Timeout = mediaTimeout);
 }
 else
 {
-    builder.Services.AddHttpClient<IWhatsAppSender, WhatChimpService>();
-    builder.Services.AddHttpClient<IWhatsAppMediaDownloader, WhatChimpMediaDownloader>();
+    builder.Services.AddHttpClient<IWhatsAppSender, WhatChimpService>()
+        .ConfigureHttpClient(c => c.Timeout = sendTimeout);
+    builder.Services.AddHttpClient<IWhatsAppMediaDownloader, WhatChimpMediaDownloader>()
+        .ConfigureHttpClient(c => c.Timeout = mediaTimeout);
 }
 
 // Catalogue des packs prépayés (payé à l'usage, sans abonnement)
