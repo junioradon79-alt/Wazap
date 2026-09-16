@@ -10,6 +10,34 @@ jobs:
   backend:
     name: Backend (.NET)
     runs-on: ubuntu-latest
+
+    # B-19 — PostgreSQL RÉEL pour les tests de chemins relationnels.
+    #
+    # Pourquoi un service container plutôt que Testcontainers : la bibliothèque tire SSH.NET
+    # 2024.1.0, qui porte une vulnérabilité élevée (GHSA-q939-rpr3-3284) que l'étape « Audit des
+    # dépendances vulnérables » ci-dessous refuse — à raison. Le service fourni par le runner
+    # donne le même moteur, sans ajouter UNE SEULE dépendance NuGet au projet de tests.
+    #
+    # Sans ce service, ces tests s'annoncent « ignorés » (avec la raison) au lieu d'échouer : la
+    # couverture PostgreSQL n'est donc jamais simulée.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      WAZAP_TEST_POSTGRES: "Host=localhost;Port=5432;Database=postgres;Username=postgres;Password=postgres"
+
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4

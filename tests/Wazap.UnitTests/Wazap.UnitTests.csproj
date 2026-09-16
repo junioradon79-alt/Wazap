@@ -36,10 +36,15 @@
          (le fournisseur InMemory les refuse ou les ignore).
          ⚠️ Testcontainers.PostgreSql a été ÉCARTÉ : il tire SSH.NET 2024.1.0, qui porte une
          vulnérabilité de gravité élevée (GHSA-q939-rpr3-3284) — elle casserait le build
-         (`-warnaserror`) et l'audit de vulnérabilités de la CI. À réintroduire pour un test
-         PostgreSQL réel le jour où la dépendance sera assainie, ou via un conteneur lancé par
-         le pipeline plutôt que par le projet de tests. -->
+         (`-warnaserror`) et l'audit de vulnérabilités de la CI.
+         ✅ B-19 est traité SANS lui : PostgreSQL réel est fourni par un « service container »
+         du pipeline (`.github/workflows/ci.yml`) et les tests le rejoignent via
+         `WAZAP_TEST_POSTGRES`. Voir `PostgresHarness` / `PostgresMoneyPathsTests`. -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.11" />
+    <!-- Client PostgreSQL, utilisé DIRECTEMENT par le harnais de tests réels (création d'une
+         base dédiée par test, application des migrations). Même version que celle déjà tirée
+         par Npgsql.EntityFrameworkCore.PostgreSQL : aucune dépendance nouvelle dans le graphe. -->
+    <PackageReference Include="Npgsql" Version="10.0.3" />
   </ItemGroup>
 
   <ItemGroup>
