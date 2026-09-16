@@ -138,7 +138,7 @@ namespace Wazap.API.Services
         /// était alors crédité DEUX FOIS pour un seul paiement.
         /// </para>
         /// </summary>
-        public async Task CompletePurchaseAsync(Guid transactionId, string paymentReference)
+        public async Task CompletePurchaseAsync(Guid transactionId, string paymentReference, CancellationToken ct = default)
         {
             var transaction = await _context.CreditTransactions.AsNoTracking()
                 .FirstOrDefaultAsync(t => t.Id == transactionId)
@@ -220,7 +220,7 @@ namespace Wazap.API.Services
             {
                 try
                 {
-                    await _whatsApp.SendCreditPurchaseConfirmationAsync(vendor, pack);
+                    await _whatsApp.SendCreditPurchaseConfirmationAsync(vendor, pack, ct);
                 }
                 catch (Exception ex)
                 {

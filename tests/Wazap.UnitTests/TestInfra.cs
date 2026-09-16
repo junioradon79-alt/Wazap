@@ -45,14 +45,22 @@ internal sealed class RecordingWhatsAppSender : IWhatsAppSender
     public List<(string Phone, string Message)> TextMessages { get; } = new();
     public List<(string Phone, string Template, Dictionary<string, string> Variables)> TemplateMessages { get; } = new();
 
+    /// <summary>
+    /// Dernier jeton reçu (P2 / C-14) : permet de vérifier qu'un arrêt demandé par un worker
+    /// atteint bien l'envoi, au lieu d'attendre l'expiration du délai HTTP.
+    /// </summary>
+    public CancellationToken? LastToken { get; private set; }
+
     public Task SendTemplateAsync(string toPhoneNumber, string templateName, Dictionary<string, string> variables, CancellationToken ct = default)
     {
+        LastToken = ct;
         TemplateMessages.Add((toPhoneNumber, templateName, variables));
         return Task.CompletedTask;
     }
 
     public Task SendTextMessageAsync(string toPhoneNumber, string message, CancellationToken ct = default)
     {
+        LastToken = ct;
         TextMessages.Add((toPhoneNumber, message));
         return Task.CompletedTask;
     }

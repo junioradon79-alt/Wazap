@@ -75,7 +75,7 @@ namespace Wazap.Application.Services
         /// Diffuse une vague d'offres aux 5 livreurs disponibles/actifs/frais les plus
         /// proches du vendeur, puis envoie le template WhatsApp « rider_offer » (code court).
         /// </summary>
-        public async Task<BroadcastResultDto> BroadcastAsync(Guid orderId)
+        public async Task<BroadcastResultDto> BroadcastAsync(Guid orderId, CancellationToken ct = default)
         {
             var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == orderId)
                 ?? throw new InvalidOperationException("Commande introuvable.");
@@ -141,7 +141,7 @@ namespace Wazap.Application.Services
                     // ou en cours d'examen chez Meta.
                     await _orchestrator.SendRiderOfferAsync(
                         riderPhone,
-                        offer.Id.ToString("N")[..8].ToUpperInvariant());
+                        offer.Id.ToString("N")[..8].ToUpperInvariant(), ct);
                 }
                 catch (Exception ex)
                 {
@@ -362,7 +362,7 @@ namespace Wazap.Application.Services
         /// Diffuse une vague d'offres pour un lot groupé : les 5 livreurs disponibles/actifs/frais
         /// les plus proches du vendeur reçoivent une offre pour TOUTES les commandes du lot.
         /// </summary>
-        public async Task<BroadcastResultDto> BroadcastBatchAsync(Guid batchId)
+        public async Task<BroadcastResultDto> BroadcastBatchAsync(Guid batchId, CancellationToken ct = default)
         {
             var batch = await _context.DeliveryBatches.FirstOrDefaultAsync(b => b.Id == batchId)
                 ?? throw new InvalidOperationException("Lot introuvable.");
@@ -457,7 +457,7 @@ namespace Wazap.Application.Services
                     await _orchestrator.SendBatchOfferAsync(
                         riderPhone,
                         activeOrders.Count,
-                        offer.Id.ToString("N")[..8].ToUpperInvariant());
+                        offer.Id.ToString("N")[..8].ToUpperInvariant(), ct);
                 }
                 catch (Exception ex)
                 {

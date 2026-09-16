@@ -150,7 +150,7 @@ namespace Wazap.API.Services
         /// accorder la priorité si le livreur était introuvable.
         /// </para>
         /// </summary>
-        public async Task CompletePurchaseAsync(Guid purchaseId, string paymentReference)
+        public async Task CompletePurchaseAsync(Guid purchaseId, string paymentReference, CancellationToken ct = default)
         {
             var purchase = await _context.RiderPriorityPurchases.AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == purchaseId)
@@ -227,7 +227,7 @@ namespace Wazap.API.Services
             try
             {
                 await _whatsApp.SendRiderPriorityPurchaseConfirmationAsync(
-                    trackedRider, purchase.PackName ?? "Priorité livreur", purchase.Days, priorityUntil);
+                    trackedRider, purchase.PackName ?? "Priorité livreur", purchase.Days, priorityUntil, ct);
             }
             catch (Exception ex)
             {

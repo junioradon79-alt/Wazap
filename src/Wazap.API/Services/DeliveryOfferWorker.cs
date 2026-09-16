@@ -96,7 +96,7 @@ namespace Wazap.API.Services
 
                 try
                 {
-                    var result = await deliveryOfferService.BroadcastBatchAsync(batch.Id);
+                    var result = await deliveryOfferService.BroadcastBatchAsync(batch.Id, ct);
                     _logger.LogInformation("Lot {BatchId} : diffusion initiale → {Count} offre(s) (vague {Batch}).",
                         batch.Id, result.OffersCreated, result.BatchNumber);
                 }
@@ -123,7 +123,7 @@ namespace Wazap.API.Services
             {
                 try
                 {
-                    var result = await deliveryOfferService.BroadcastBatchAsync(batchId);
+                    var result = await deliveryOfferService.BroadcastBatchAsync(batchId, ct);
                     _logger.LogInformation("Lot {BatchId} : vague élargie → {Count} nouvelle(s) offre(s) (vague {Batch}).",
                         batchId, result.OffersCreated, result.BatchNumber);
                 }
@@ -145,7 +145,7 @@ namespace Wazap.API.Services
             {
                 try
                 {
-                    var result = await deliveryOfferService.BroadcastAsync(orderId);
+                    var result = await deliveryOfferService.BroadcastAsync(orderId, ct);
                     _logger.LogInformation("Commande {OrderId} : vague élargie → {Count} nouvelle(s) offre(s) (vague {Batch}).",
                         orderId, result.OffersCreated, result.BatchNumber);
                 }

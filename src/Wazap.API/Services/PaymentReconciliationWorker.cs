@@ -98,7 +98,7 @@ namespace Wazap.API.Services
                     transaction.TransactionReference, status.Status);
 
                 if (status.Status.Equals("completed", StringComparison.OrdinalIgnoreCase))
-                    await packService.CompletePurchaseAsync(transaction.Id, transaction.TransactionReference);
+                    await packService.CompletePurchaseAsync(transaction.Id, transaction.TransactionReference, ct);
                 else if (status.Status is "failed" or "cancelled" or "refunded")
                     await packService.FailPurchaseAsync(transaction.Id);
             }
@@ -144,7 +144,7 @@ namespace Wazap.API.Services
                     purchase.TransactionReference, status.Status);
 
                 if (status.Status.Equals("completed", StringComparison.OrdinalIgnoreCase))
-                    await riderPriority.CompletePurchaseAsync(purchase.Id, purchase.TransactionReference);
+                    await riderPriority.CompletePurchaseAsync(purchase.Id, purchase.TransactionReference, ct);
                 else if (status.Status is "failed" or "cancelled" or "refunded")
                     await riderPriority.FailPurchaseAsync(purchase.Id);
             }

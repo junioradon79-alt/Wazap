@@ -37,26 +37,26 @@ namespace Wazap.Application.Services
         /// réessaie.
         /// </summary>
         private async Task SendTemplateOrTextAsync(string? phoneNumber, string templateName,
-            string textMessage, Dictionary<string, string> variables)
+            string textMessage, Dictionary<string, string> variables, CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(phoneNumber))
                 return;
 
             if (string.IsNullOrWhiteSpace(templateName))
             {
-                await _whatsAppSender.SendTextMessageAsync(phoneNumber, textMessage);
+                await _whatsAppSender.SendTextMessageAsync(phoneNumber, textMessage, ct);
                 return;
             }
 
             try
             {
-                await _whatsAppSender.SendTemplateAsync(phoneNumber, templateName, variables);
+                await _whatsAppSender.SendTemplateAsync(phoneNumber, templateName, variables, ct);
             }
             catch (WhatsAppSendException ex) when (ex.IsPermanent)
             {
                 _logger.LogWarning(ex,
                     "Template {Template} refusé — repli en message texte (fenêtre 24 h requise).", templateName);
-                await _whatsAppSender.SendTextMessageAsync(phoneNumber, textMessage);
+                await _whatsAppSender.SendTextMessageAsync(phoneNumber, textMessage, ct);
             }
         }
 
@@ -101,7 +101,7 @@ namespace Wazap.Application.Services
         /// Confirmation d'achat de pack :
         /// « Vous avez acheté le pack {pack.Name}. Vous disposez maintenant de {vendor.Credits} commandes. »
         /// </summary>
-        public async Task SendCreditPurchaseConfirmationAsync(User vendor, PackConfiguration pack)
+        public async Task SendCreditPurchaseConfirmationAsync(User vendor, PackConfiguration pack, CancellationToken ct = default)
         {
             await SendAlertAsync(vendor, _whatsAppOptions.TemplateCreditPurchase,
                 $"Vous avez acheté le pack {pack.Name}. Vous disposez maintenant de {vendor.Credits} commandes.",
@@ -109,32 +109,32 @@ namespace Wazap.Application.Services
                 {
                     ["1"] = pack.Name,
                     ["2"] = vendor.Credits.ToString()
-                });
+                }, ct);
         }
 
         /// <summary>
         /// Alerte de crédits bas (≤ 5) :
         /// « Il vous reste {vendor.Credits} commandes. Rechargez dès maintenant. »
         /// </summary>
-        public async Task SendLowCreditAlertAsync(User vendor)
+        public async Task SendLowCreditAlertAsync(User vendor, CancellationToken ct = default)
         {
             await SendAlertAsync(vendor, _whatsAppOptions.TemplateLowCredit,
                 $"Il vous reste {vendor.Credits} commandes. Rechargez dès maintenant.",
                 new Dictionary<string, string>
                 {
                     ["1"] = vendor.Credits.ToString()
-                });
+                }, ct);
         }
 
         /// <summary>
         /// Alerte crédits épuisés :
         /// « Vous n'avez plus de crédits. Achetez un pack pour continuer. »
         /// </summary>
-        public async Task SendNoCreditAlertAsync(User vendor)
+        public async Task SendNoCreditAlertAsync(User vendor, CancellationToken ct = default)
         {
             await SendAlertAsync(vendor, _whatsAppOptions.TemplateNoCredit,
                 "Vous n'avez plus de crédits. Achetez un pack pour continuer.",
-                new Dictionary<string, string>());
+                new Dictionary<string, string>(), ct);
         }
 
         /// <summary>
@@ -143,7 +143,7 @@ namespace Wazap.Application.Services
         /// L'échéance (connue après <see cref="User.GrantPriority"/>) complète le message.
         /// </summary>
         public async Task SendRiderPriorityPurchaseConfirmationAsync(
-            User rider, string packName, int days, DateTime? untilUtc = null)
+            User rider, string packName, int days, DateTime? untilUtc = null, CancellationToken ct = default)
         {
             var untilText = untilUtc is { } until
                 ? until.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)
@@ -157,18 +157,18 @@ namespace Wazap.Application.Services
                     ["1"] = packName,
                     ["2"] = days.ToString(CultureInfo.InvariantCulture),
                     ["3"] = untilText
-                });
+                }, ct);
         }
 
         /// <summary>
         /// Envoie un message texte à un utilisateur (réponses du webhook aux commandes).
         /// </summary>
-        public async Task SendTextAsync(User user, string message)
+        public async Task SendTextAsync(User user, string message, CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(user.PhoneNumber))
                 return;
 
-            await _whatsAppSender.SendTextMessageAsync(user.PhoneNumber, message);
+            await _whatsAppSender.SendTextMessageAsync(user.PhoneNumber, message, ct);
         }
 
         /// <summary>
@@ -176,11 +176,11 @@ namespace Wazap.Application.Services
         /// C'est le message le plus volumineux du système : sans repli, une course non
         /// diffusée est une course perdue.
         /// </summary>
-        public async Task SendRiderOfferAsync(string riderPhoneNumber, string offerCode)
+        public async Task SendRiderOfferAsync(string riderPhoneNumber, string offerCode, CancellationToken ct = default)
         {
             await SendTemplateOrTextAsync(riderPhoneNumber, _whatsAppOptions.TemplateRiderOffer,
                 $"🛵 Nouvelle course à proximité. Répondez ACCEPTE {offerCode} pour la prendre.",
-                new Dictionary<string, string> { ["1"] = offerCode });
+                new Dictionary<string, string> { ["1"] = offerCode }, ct);
         }
 
         /// <summary>
@@ -188,7 +188,7 @@ namespace Wazap.Application.Services
         /// {{1}} = nombre de commandes, {{2}} = code de l'offre (à répondre « ACCEPTE <code> »).
         /// Repli texte avec le code sinon.
         /// </summary>
-        public async Task SendBatchOfferAsync(string riderPhoneNumber, int orderCount, string offerCode)
+        public async Task SendBatchOfferAsync(string riderPhoneNumber, int orderCount, string offerCode, CancellationToken ct = default)
         {
             var templateData = new Dictionary<string, string>
             {
@@ -201,7 +201,7 @@ namespace Wazap.Application.Services
                 : $"🛵 Livraison disponible. Répondez ACCEPTE {offerCode}.";
 
             await SendTemplateOrTextAsync(riderPhoneNumber, _whatsAppOptions.TemplateRiderBatchOffer,
-                message, templateData);
+                message, templateData, ct);
         }
 
         /// <summary>
@@ -364,35 +364,35 @@ namespace Wazap.Application.Services
         /// <summary>
         /// Envoie au client le lien de la page de suivi (après acceptation du vendeur).
         /// </summary>
-        public async Task SendClientTrackingLinkAsync(string clientPhone, string orderCode, string vendorName, string trackingUrl)
+        public async Task SendClientTrackingLinkAsync(string clientPhone, string orderCode, string vendorName, string trackingUrl, CancellationToken ct = default)
         {
             await SendStatusAsync(clientPhone, string.Empty,
                 $"✅ {vendorName} a accepté votre commande #{orderCode} !\n" +
                 $"Confirmez votre adresse pour lancer la livraison : {trackingUrl}",
-                new Dictionary<string, string>());
+                new Dictionary<string, string>(), ct);
         }
 
         /// <summary>
         /// Informe le client que sa livraison est lancée (un livreur est recherché).
         /// </summary>
-        public async Task SendDispatchStartedAsync(string clientPhone, string orderCode)
+        public async Task SendDispatchStartedAsync(string clientPhone, string orderCode, CancellationToken ct = default)
         {
             await SendStatusAsync(clientPhone, string.Empty,
                 $"🚀 Livraison #{orderCode} lancée ! Un livreur proche est contacté, il arrive bientôt.",
-                new Dictionary<string, string>());
+                new Dictionary<string, string>(), ct);
         }
 
         /// <summary>
         /// Notifie le vendeur que le client a validé ses coordonnées et que la recherche
         /// des livreurs est lancée.
         /// </summary>
-        public async Task SendVendorDispatchStartedAsync(string vendorPhone, string orderCode, string? clientAddress)
+        public async Task SendVendorDispatchStartedAsync(string vendorPhone, string orderCode, string? clientAddress, CancellationToken ct = default)
         {
             await SendStatusAsync(vendorPhone, string.Empty,
                 $"✅ Coordonnées du client reçues pour la commande #{orderCode}" +
                 (string.IsNullOrWhiteSpace(clientAddress) ? string.Empty : $" ({clientAddress})") +
                 ". Recherche d'un livreur lancée !",
-                new Dictionary<string, string>());
+                new Dictionary<string, string>(), ct);
         }
 
         /// <summary>
@@ -400,7 +400,8 @@ namespace Wazap.Application.Services
         /// Retourne false si le template n'est pas encore configuré/approuvé (l'étape
         /// reste programmée et sera réessayée plus tard).
         /// </summary>
-        public async Task<bool> TrySendVendorOnboardingAsync(User vendor, int stage, string deliveredStats)
+        public async Task<bool> TrySendVendorOnboardingAsync(User vendor, int stage, string deliveredStats,
+            CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(vendor.PhoneNumber))
                 return false;
@@ -428,20 +429,20 @@ namespace Wazap.Application.Services
                 }
             };
 
-            await _whatsAppSender.SendTemplateAsync(vendor.PhoneNumber, template, variables);
+            await _whatsAppSender.SendTemplateAsync(vendor.PhoneNumber, template, variables, ct);
             return true;
         }
 
         /// <summary>
         /// Notifie le client que sa livraison a été effectuée (texte, best-effort).
         /// </summary>
-        public async Task SendDeliveredNotificationAsync(Order order)
+        public async Task SendDeliveredNotificationAsync(Order order, CancellationToken ct = default)
         {
             var orderCode = order.Id.ToString("N")[..8].ToUpperInvariant();
             await SendStatusAsync(order.ClientWhatsAppNumber, string.Empty,
                 $"✅ Votre colis #{orderCode} a été livré. Merci d'avoir choisi WAZAP !\n" +
                 "⭐ Notez votre livreur en répondant NOTE suivi de 1 à 5 (ex : NOTE 5).",
-                new Dictionary<string, string>());
+                new Dictionary<string, string>(), ct);
         }
 
         /// <summary>
@@ -466,8 +467,9 @@ namespace Wazap.Application.Services
             string? phoneNumber,
             string templateName,
             string textMessage,
-            Dictionary<string, string> variables)
-            => SendTemplateOrTextAsync(phoneNumber, templateName, textMessage, variables);
+            Dictionary<string, string> variables,
+            CancellationToken ct = default)
+            => SendTemplateOrTextAsync(phoneNumber, templateName, textMessage, variables, ct);
 
         /// <summary>
         /// Envoie un template si un nom est configuré (templates approuvés), sinon un texte.
@@ -476,7 +478,8 @@ namespace Wazap.Application.Services
             User vendor,
             string templateName,
             string textMessage,
-            Dictionary<string, string> variables)
-            => SendTemplateOrTextAsync(vendor.PhoneNumber, templateName, textMessage, variables);
+            Dictionary<string, string> variables,
+            CancellationToken ct = default)
+            => SendTemplateOrTextAsync(vendor.PhoneNumber, templateName, textMessage, variables, ct);
     }
 }

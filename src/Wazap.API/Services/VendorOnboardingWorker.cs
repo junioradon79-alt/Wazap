@@ -107,7 +107,7 @@ public sealed class VendorOnboardingWorker : BackgroundService
 
             try
             {
-                var sent = await orchestrator.TrySendVendorOnboardingAsync(vendor, stage, delivered.ToString());
+                var sent = await orchestrator.TrySendVendorOnboardingAsync(vendor, stage, delivered.ToString(), ct);
                 if (!sent)
                 {
                     // Template de l'étape non configuré/approuvé : on réessaiera plus tard.
