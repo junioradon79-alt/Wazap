@@ -73,6 +73,14 @@ Clés stockées via `dotnet user-secrets set` :
 - `WebhookSecurity:RequireAuthentication` — défaut `true` : les POST entrants sur
   `/api/webhook/whatsapp` exigent une signature Meta ou le jeton partagé (ne passer à `false`
   qu'en développement local)
+- `Networking:TrustForwardedHeaders` — défaut `false` : à activer **uniquement** si un proxy
+  (CDN, load-balancer, reverse-proxy) termine la connexion devant l'application, car les cinq
+  politiques de limitation de débit sont **partitionnées par adresse IP**. En hébergement IIS
+  *in-process* (notre cas), l'adresse du client est déjà celle de la connexion : laisser `false`.
+  Si `true`, `Networking:KnownProxies` doit lister les **adresses IP** des proxies de confiance —
+  sinon le démarrage est refusé (croire `X-Forwarded-For` sans liste laisserait chaque client
+  écrire sa propre adresse, donc choisir son compartiment de débit et échapper au verrouillage
+  anti force-brute des connexions).
 
 `appsettings.json` contient le non-secret : `WhatChimp:PhoneNumberId`, `WhatChimp:BaseUrl`, `Jwt:Issuer`, `Jwt:Audience`, `Outbox:MaxRetries`, `Outbox:PollingIntervalSeconds`, `Geo` (rayon/fraîcheur/exclusivité/timeout/rétention), `Packs` (catalogue 6 packs : Mini 1000 F/6 · Découverte 2500/15 · Petit 5000/35 · Moyen 10000/80 · Grand 25000/220 · Pro 100000/1000), `GeniusPay` (BaseUrl/Enabled, clés en user-secrets), `Payments:SimulateAsync` (test flux asynchrone), `RiderScans` (chiffrement des scans d'identité — **clé absente/invalide = téléversement REFUSÉ** ; `AllowUnencryptedStorage=true` rouvre l'écriture en clair comme opt-in explicite, dev/tests ; état de conformité visible sur `/health/details`), `DeliveryProof:RequireClientCode`, `RiderProgram` (programme « Ambassadeur » : `DeliveriesTarget`, `ReferralsTarget`, `MinFilleulDeliveries`, `MinAverageRating`, `RewardLabel`)
 (exiger le code du client pour clôturer une livraison, défaut `false`), `RiderReputation`

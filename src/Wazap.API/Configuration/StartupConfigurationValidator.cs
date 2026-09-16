@@ -109,6 +109,23 @@ public static class StartupConfigurationValidator
                 problems.Add("Meta:ApiVersion doit avoir la forme « vNN.N » (ex. v25.0).");
         }
 
+        // --- B-16 : les en-têtes de proxy ne doivent JAMAIS être crus sans liste de proxies.
+        //     `X-Forwarded-For` est fourni par le client : en hébergement direct (IIS in-process),
+        //     faire confiance à cet en-tête permettrait à n'importe qui de changer d'adresse à
+        //     volonté — donc de changer de compartiment de limitation de débit (les 5 politiques
+        //     sont partitionnées par IP) et de contourner le verrouillage anti force-brute.
+        if (configuration.GetValue<bool?>("Networking:TrustForwardedHeaders") ?? false)
+        {
+            var proxies = configuration.GetSection("Networking:KnownProxies").Get<string[]>() ?? [];
+            if (proxies.Length == 0)
+                problems.Add(
+                    "Networking:TrustForwardedHeaders=true exige Networking:KnownProxies (adresses IP "
+                    + "des proxies de confiance) : sans cette liste, n'importe quel client peut usurper "
+                    + "son adresse et contourner la limitation de débit et le verrouillage des connexions.");
+            else if (proxies.Any(p => !System.Net.IPAddress.TryParse(p, out _)))
+                problems.Add("Networking:KnownProxies ne doit contenir que des adresses IP valides.");
+        }
+
         return problems;
     }
 }

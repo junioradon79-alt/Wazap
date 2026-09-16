@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.OpenApi;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
@@ -515,6 +516,36 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// B-16 — adresse réelle du client quand un proxy termine la connexion (CDN, load-balancer,
+// reverse-proxy devant IIS). En hébergement IIS *in-process* (notre cas : le web.config publié
+// déclare hostingModel="inprocess"), `Connection.RemoteIpAddress` porte déjà l'adresse du client
+// et activer cet en-tête ne changerait rien. Il devient nécessaire dès qu'une couche
+// intermédiaire s'ajoute, sinon TOUS les utilisateurs partagent le compartiment du proxy : dix
+// tentatives de connexion suffiraient alors à répondre 429 à toute la plateforme.
+//
+// L'option reste donc FERMÉE par défaut, et n'est ouverte qu'avec la liste des proxies de
+// confiance (`Networking:KnownProxies`) : `X-Forwarded-For` est écrit par le client, le croire
+// sans liste reviendrait à le laisser choisir son compartiment de débit (voir le contrôle de
+// démarrage correspondant).
+if (builder.Configuration.GetValue("Networking:TrustForwardedHeaders", false))
+{
+    var knownProxies = builder.Configuration.GetSection("Networking:KnownProxies").Get<string[]>() ?? [];
+    var forwardedOptions = new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+    };
+    // Les réseaux de confiance par défaut (loopback) sont conservés : ils couvrent le cas d'un
+    // proxy local, sans rien accorder aux adresses publiques non déclarées.
+    foreach (var proxy in knownProxies)
+        forwardedOptions.KnownProxies.Add(System.Net.IPAddress.Parse(proxy));
+
+    app.UseForwardedHeaders(forwardedOptions);
+    app.Logger.LogInformation(
+        "En-têtes de proxy pris en compte (X-Forwarded-For) pour {Count} proxy(ies) déclaré(s).",
+        knownProxies.Length);
+}
+
 app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseRateLimiter();
