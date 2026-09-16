@@ -23,67 +23,60 @@ public class WebhookWhatsAppController : ControllerBase
     private readonly RiderService _riderService;
     private readonly RiderRecruitmentService _riderRecruitment;
     private readonly VendorService _vendorService;
-    private readonly VendorProductService _products;
     private readonly DeliveryOfferService _deliveryOfferService;
-    private readonly OrderService _orderService;
     private readonly WhatsAppOrchestrationService _whatsApp;
     private readonly ProspectAutoService _prospects;
     private readonly ClientOrderBotService _clientOrders;
     private readonly LeadConversionService _leadConversion;
-    private readonly ColisSurService _colisSur;
     private readonly IWhatsAppSender _whatsAppSender;
     private readonly IWhatsAppMediaDownloader _mediaDownloader;
-    private readonly DeliveryProofOptions _deliveryProof;
     private readonly RiderRatingService _riderRatings;
-    private readonly RiderProgramService _riderProgram;
     private readonly RiderDeliveryCommands _riderDeliveries;
     private readonly VendorTextCommands _vendorCommands;
+    private readonly RiderTextCommands _riderCommands;
     private readonly RiderScansOptions _scans;
     private readonly ILogger<WebhookWhatsAppController> _logger;
     private readonly string? _webhookToken;
     private readonly string? _teamPhone;
 
+    // Après les extractions (P2 / C-13), le contrôleur ne dépend PLUS des services qui ont suivi
+    // leurs commandes : VendorProductService, ColisSurService, DeliveryProofOptions (commandes
+    // vendeur / preuve de livraison) et RiderProgramService (progression Ambassadeur) sont
+    // désormais portés par les gestionnaires concernés. Les retirer évite de laisser croire que
+    // le contrôleur les utilise — et le conteneur n'a plus à les résoudre pour lui.
     public WebhookWhatsAppController(
         ApplicationDbContext context,
         RiderService riderService,
         RiderRecruitmentService riderRecruitment,
         VendorService vendorService,
-        VendorProductService products,
         DeliveryOfferService deliveryOfferService,
-        OrderService orderService,
         WhatsAppOrchestrationService whatsApp,
         ProspectAutoService prospects,
         ClientOrderBotService clientOrders,
         LeadConversionService leadConversion,
-        ColisSurService colisSur,
         IWhatsAppSender whatsAppSender,
         IWhatsAppMediaDownloader mediaDownloader,
-        DeliveryProofOptions deliveryProof,
         RiderRatingService riderRatings,
-        RiderProgramService riderProgram,
         RiderDeliveryCommands riderDeliveries,
         VendorTextCommands vendorCommands,
+        RiderTextCommands riderCommands,
         RiderScansOptions scans,
         ILogger<WebhookWhatsAppController> logger,
         IConfiguration config)
     {
-        _deliveryProof = deliveryProof;
         _riderRatings = riderRatings;
-        _riderProgram = riderProgram;
         _riderDeliveries = riderDeliveries;
         _vendorCommands = vendorCommands;
+        _riderCommands = riderCommands;
         _context = context;
         _riderService = riderService;
         _riderRecruitment = riderRecruitment;
         _vendorService = vendorService;
-        _products = products;
         _deliveryOfferService = deliveryOfferService;
-        _orderService = orderService;
         _whatsApp = whatsApp;
         _prospects = prospects;
         _clientOrders = clientOrders;
         _leadConversion = leadConversion;
-        _colisSur = colisSur;
         _whatsAppSender = whatsAppSender;
         _mediaDownloader = mediaDownloader;
         _scans = scans;
@@ -730,39 +723,11 @@ public class WebhookWhatsAppController : ControllerBase
             return true;
         }
 
-        if (upper == "DISPO" && user.Role == UserRole.Rider)
+        // Statuts et réputation du livreur (DISPO, INDISPO, AVIS, REPONDRE, PROGRAMME) :
+        // extraits dans RiderTextCommands (P2 / C-13) pour être testables sans HTTP.
+        if (user.Role == UserRole.Rider && RiderTextCommands.Matches(upper, text))
         {
-            await _riderService.SetAvailabilityAsync(user.Id, true);
-            await ReplyAsync(user, "✅ Vous êtes en ligne.");
-            return true;
-        }
-
-        if (upper == "INDISPO" && user.Role == UserRole.Rider)
-        {
-            await _riderService.SetAvailabilityAsync(user.Id, false);
-            await ReplyAsync(user, "🚫 Vous êtes hors ligne.");
-            return true;
-        }
-
-        // Réputation livreur : « AVIS » liste les avis reçus (numérotés) et
-        // « REPONDRE <n°> <texte> » enregistre la réponse du livreur à l'avis n°.
-        if (user.Role == UserRole.Rider && RiderRatingService.IsMyRatingsCommand(text))
-        {
-            await ReplyAsync(user, await _riderRatings.ListMyRatingsTextAsync(user.Id));
-            return true;
-        }
-
-        if (user.Role == UserRole.Rider && RiderRatingService.IsReplyCommand(text))
-        {
-            if (!RiderRatingService.TryParseReplyCommand(text, out var index, out var reply))
-            {
-                await ReplyAsync(user,
-                    "❓ Format : REPONDRE <n°> <votre message>.\n" +
-                    "Consultez d'abord vos avis avec AVIS, puis répondez par exemple : REPONDRE 1 Merci pour votre confiance !");
-                return true;
-            }
-
-            await ReplyAsync(user, await _riderRatings.ReplyAsync(user.Id, index, reply));
+            await _riderCommands.HandleAsync(user, text, ReplyAsync);
             return true;
         }
 
@@ -782,16 +747,6 @@ public class WebhookWhatsAppController : ControllerBase
         if (user.Role == UserRole.Rider && RiderDeliveryCommands.Matches(upper))
         {
             await _riderDeliveries.HandleAsync(user, command, ReplyAsync);
-            return true;
-        }
-
-        // Programme « Ambassadeur WAZAP » : le livreur consulte sa progression.
-        if (user.Role == UserRole.Rider && (upper is "PROGRAMME" or "MA PROGRAMME" or "AMBASSADEUR" or "RECOMPENSE"))
-        {
-            var progress = await _riderProgram.BuildProgressAsync(user.Id);
-            await ReplyAsync(user, progress is null
-                ? "ℹ️ Le programme Ambassadeur n'est pas actif pour le moment."
-                : RiderProgramService.BuildProgressText(progress));
             return true;
         }
 
