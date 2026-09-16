@@ -5,8 +5,16 @@ import { Modal } from '../components/Modal'
 
 type LeadStatus = 'New' | 'Contacted' | 'Converted' | 'Discarded'
 
-// Plafond par défaut de `GET /api/admin/leads` (le serveur borne à 1 000 au maximum).
-const LEAD_PAGE_LIMIT = 200
+// Taille de page de la liste des leads (P2 / C-09). Le serveur applique ce plafond à chaque
+// réponse : le nombre de lignes rendues par le navigateur est donc BORNÉ (200), avec un sélecteur
+// de statut par ligne.
+//
+// Choix : PAGINER plutôt que virtualiser. Virtualiser un <table> (positions absolues, hauteurs
+// fixes, `aria-rowcount` à tenir à jour) se paie en accessibilité et en fragilité pour un gain
+// non mesuré à 200 lignes. La perte réelle n'était pas la fluidité mais l'ACCÈS : les leads
+// au-delà des 200 plus récents étaient inatteignables depuis l'écran, qui se contentait de
+// prévenir qu'il en manquait.
+const LEAD_PAGE_SIZE = 200
 
 interface LeadListItem {
   id: string
@@ -49,6 +57,9 @@ const SOURCE_LABEL: Record<string, string> = {
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState<LeadListItem[]>([])
+  // Page courante (0 = les plus récents) et total renvoyé par l'API (`X-Total-Count`).
+  const [page, setPage] = useState(0)
+  const [total, setTotal] = useState<number | null>(null)
   const [filterStatus, setFilterStatus] = useState('')
   const [filterSource, setFilterSource] = useState('')
   const [search, setSearch] = useState('')
@@ -57,30 +68,37 @@ export default function LeadsPage() {
   const [convertingId, setConvertingId] = useState<string | null>(null)
   const [conversion, setConversion] = useState<ConversionResult | null>(null)
 
-  const buildQuery = (): string => {
+  // Filtres seuls : servent aussi à l'export CSV (qui ne pagine pas — il exporte tout).
+  const buildFilterQuery = (): string => {
     const params = new URLSearchParams()
     if (filterStatus) params.set('status', filterStatus)
     if (filterSource) params.set('source', filterSource)
     const term = search.trim()
     if (term) params.set('search', term)
-    const qs = params.toString()
-    return qs ? `?${qs}` : ''
+    return params.toString()
+  }
+
+  const buildListQuery = (): string => {
+    const filters = buildFilterQuery()
+    return `?${filters ? `${filters}&` : ''}limit=${LEAD_PAGE_SIZE}&offset=${page * LEAD_PAGE_SIZE}`
   }
 
   const load = useCallback(async (signal?: AbortSignal): Promise<void> => {
     try {
-      const data = await api.get<LeadListItem[]>(`/admin/leads${buildQuery()}`)
+      const { items, total: count } = await api.getPage<LeadListItem[]>(`/admin/leads${buildListQuery()}`)
       if (signal?.aborted) return
-      setLeads(data)
+      setLeads(items)
+      setTotal(count)
       setError('')
     } catch (err) {
       // Une requête annulée (frappe suivante) n'est pas une erreur à afficher.
       if (signal?.aborted) return
       setError(err instanceof Error ? err.message : 'Erreur de chargement')
     }
-    // `buildQuery` est dérivé des filtres : les recréer ici à chaque rendu est sans effet de bord.
+    // `buildListQuery` est dérivé des filtres et de la page : les recréer ici à chaque rendu est
+    // sans effet de bord.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterStatus, filterSource, search])
+  }, [filterStatus, filterSource, search, page])
 
   // Recherche avec léger débounce (300 ms) pour ne pas marteler l'API à chaque frappe.
   // Chaque frappe ANNULE la requête précédente : sans cela, une réponse lente pouvait écraser
@@ -127,7 +145,7 @@ export default function LeadsPage() {
   const exportCsv = async (): Promise<void> => {
     const token = getToken()
     try {
-      const res = await fetch(`/api/admin/leads/export${buildQuery()}`, {
+      const res = await fetch(`/api/admin/leads/export${buildFilterQuery() ? `?${buildFilterQuery()}` : ''}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       })
       if (!res.ok) throw new Error('Export impossible')
@@ -145,13 +163,22 @@ export default function LeadsPage() {
 
   const count = (s: LeadStatus) => leads.filter((l) => l.status === s).length
 
+  // Position affichée dans l'ensemble filtré (« 1–200 sur 1 234 »).
+  const from = leads.length === 0 ? 0 : page * LEAD_PAGE_SIZE + 1
+  const to = page * LEAD_PAGE_SIZE + leads.length
+  // Sans l'en-tête du serveur, on ne peut pas connaître le total : on reste alors prudent et on
+  // n'autorise la suite que si la page est pleine (jamais de bouton « Suivant » qui ne mène nulle part).
+  const hasNext = total !== null ? to < total : leads.length === LEAD_PAGE_SIZE
+
   return (
     <>
       <div className="page-head">
         <div>
           <h1>Leads d'acquisition</h1>
           <p>
-            {leads.length} affichés · 🆕 {count('New')} · ☎️ {count('Contacted')} · ✅ {count('Converted')} · ⏭️ {count('Discarded')}
+            {/* Les compteurs portent sur la PAGE affichée, pas sur la totalité filtrée : sans cette
+                précision, « 12 nouveaux » se lirait comme un total alors que 1 000 leads existent. */}
+            {leads.length} affichés sur cette page · 🆕 {count('New')} · ☎️ {count('Contacted')} · ✅ {count('Converted')} · ⏭️ {count('Discarded')}
           </p>
         </div>
         <button className="btn btn--primary" onClick={() => void exportCsv()}>⬇️ Exporter CSV</button>
@@ -160,14 +187,26 @@ export default function LeadsPage() {
       <div className="page-head" style={{ marginTop: -6, gap: 10, flexWrap: 'wrap' }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
           Statut :
-          <select className="input" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} style={{ width: 150 }}>
+          <select
+            className="input"
+            value={filterStatus}
+            // Tout changement de filtre ramène à la PREMIÈRE page : rester en page 4 d'un
+            // résultat plus court afficherait une page vide, que l'on prendrait pour « aucun lead ».
+            onChange={(e) => { setFilterStatus(e.target.value); setPage(0) }}
+            style={{ width: 150 }}
+          >
             <option value="">Tous</option>
             {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
           </select>
         </label>
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
           Source :
-          <select className="input" value={filterSource} onChange={(e) => setFilterSource(e.target.value)} style={{ width: 190 }}>
+          <select
+            className="input"
+            value={filterSource}
+            onChange={(e) => { setFilterSource(e.target.value); setPage(0) }}
+            style={{ width: 190 }}
+          >
             <option value="">Toutes</option>
             {sources.map((s) => <option key={s} value={s}>{SOURCE_LABEL[s] ?? s}</option>)}
           </select>
@@ -179,7 +218,7 @@ export default function LeadsPage() {
           aria-label="Rechercher un lead (commerce, contact ou numéro)"
           placeholder="🔎 Commerce, contact ou numéro…"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => { setSearch(e.target.value); setPage(0) }}
           style={{ width: 260 }}
         />
         <button className="btn" onClick={() => void load()} disabled={busy}>⟳ Actualiser</button>
@@ -188,14 +227,40 @@ export default function LeadsPage() {
       {error && <ErrorAlert message={error} onRetry={() => void load()} />}
 
       <section className="panel">
-        {/* L'API plafonne la liste à 200 leads (paramètre `limit`, maximum 1 000). Sans cet
-            avertissement, l'équipe croyait voir tous les leads alors que la liste était
-            tronquée en silence (P2 / C-09). */}
-        {leads.length >= LEAD_PAGE_LIMIT && (
-          <p style={{ padding: '10px 16px', fontSize: 13, color: 'var(--wz-muted)' }} role="status">
-            ⚠️ {LEAD_PAGE_LIMIT} leads les plus récents affichés — affinez les filtres ou la
-            recherche pour voir les plus anciens.
-          </p>
+        {/* P2 / C-09 : l'écran n'affiche qu'une page (200 lignes au maximum, ce qui borne le
+            travail du navigateur) et dit désormais où il en est — au lieu d'un simple
+            avertissement de troncature qui laissait les leads plus anciens inatteignables. */}
+        {(leads.length > 0 || page > 0) && (
+          <div
+            style={{
+              display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+              padding: '10px 16px', fontSize: 13, color: 'var(--wz-muted)',
+            }}
+          >
+            {/* Seule la POSITION est annoncée (role="status") : les boutons restent hors de la
+                zone live, un lecteur d'écran n'ayant pas à réannoncer des commandes. */}
+            <span role="status">
+              Leads {from}–{to}
+              {total !== null ? ` sur ${total}` : ''}
+            </span>
+            <button
+              className="btn"
+              style={{ padding: '6px 10px', fontSize: 13 }}
+              disabled={page === 0 || busy}
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+            >
+              ← Précédents
+            </button>
+            <button
+              className="btn"
+              style={{ padding: '6px 10px', fontSize: 13 }}
+              disabled={!hasNext || busy}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Suivants →
+            </button>
+            {!hasNext && total !== null && <span>· dernière page atteinte</span>}
+          </div>
         )}
         {leads.length === 0 ? (
           <p style={{ padding: 16 }}>Aucun lead pour le moment — partagez la page de vente /app/vente.</p>

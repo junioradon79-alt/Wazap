@@ -37,6 +37,7 @@ public class AdminLeadsController : ControllerBase
         [FromQuery] DateTime? from,
         [FromQuery] DateTime? to,
         [FromQuery] int limit = 200,
+        [FromQuery] int offset = 0,
         CancellationToken ct = default)
     {
         var query = _context.Leads.AsNoTracking();
@@ -60,13 +61,25 @@ public class AdminLeadsController : ControllerBase
         if (to.HasValue)
             query = query.Where(l => l.CreatedAt <= to.Value);
 
+        // P2 / C-09 : l'écran ne pouvait afficher que les 200 leads les plus récents et le
+        // signalait par un simple avertissement — les plus anciens étaient INATTEIGNABLES.
+        // `offset` ouvre les pages suivantes, et le total (en-tête `X-Total-Count`) permet à
+        // l'écran de dire où il en est au lieu de laisser croire qu'il montre tout.
+        var total = await query.CountAsync(ct);
+
         var leads = await query
             .OrderByDescending(l => l.CreatedAt)
+            // Tri secondaire : sans lui, deux leads créés dans la même seconde pouvaient
+            // permuter d'une page à l'autre (lignes vues deux fois ou jamais).
+            .ThenByDescending(l => l.Id)
+            .Skip(Math.Max(0, offset))
             .Take(Math.Clamp(limit, 1, 1000))
             .Select(l => new LeadListItem(
                 l.Id, l.BusinessName, l.ContactName, l.WhatsAppNumber, l.Zone, l.Source,
                 l.ReferralCode, l.Status, l.CreatedAt))
             .ToListAsync(ct);
+
+        Response.Headers["X-Total-Count"] = total.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
         return Ok(leads);
     }

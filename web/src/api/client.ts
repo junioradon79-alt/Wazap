@@ -110,6 +110,19 @@ function authHeaders(options: RequestInit): Record<string, string> {  const head
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  return (await requestWithResponse<T>(path, options)).data
+}
+
+/**
+ * Même chose que `request`, en conservant la réponse HTTP : nécessaire pour lire les en-têtes
+ * (P2 / C-09, total de lignes d'une liste paginée). Le corps est déjà consommé par l'appelant
+ * ordinaire, d'où ce point d'entrée unique plutôt qu'une seconde implémentation du cycle
+ * jeton/rafraîchissement — deux copies finiraient par diverger.
+ */
+async function requestWithResponse<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<{ data: T; response: Response }> {
   let res: Response
   let firstTry = true
 
@@ -162,8 +175,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     throw new ApiError(res.status, await readErrorMessage(res, `Erreur ${res.status}`))
   }
 
-  if (res.status === 204) return undefined as T
-  return (await res.json()) as T
+  if (res.status === 204) return { data: undefined as T, response: res }
+  return { data: (await res.json()) as T, response: res }
 }
 
 /**
@@ -207,6 +220,18 @@ async function readErrorMessage(res: Response, fallback: string): Promise<string
 
 export const api = {
   get: <T>(path: string) => request<T>(path),
+  /**
+   * Liste paginée : renvoie les lignes ET le total (`X-Total-Count`). L'écran des leads
+   * n'affichait que les 200 plus récents sans le dire ; avec le total, il annonce
+   * « 1–200 sur 1 234 » et propose la suite. `total` vaut `null` si l'API ne fournit pas
+   * l'en-tête : l'appelant doit alors rester prudent plutôt que d'inventer un total.
+   */
+  getPage: async <T>(path: string): Promise<{ items: T; total: number | null }> => {
+    const { data, response } = await requestWithResponse<T>(path)
+    const header = response.headers.get('X-Total-Count')
+    const total = header !== null && /^\d+$/.test(header) ? Number(header) : null
+    return { items: data, total }
+  },
   post: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: 'POST', body: body === undefined ? undefined : JSON.stringify(body) }),
   put: <T>(path: string, body?: unknown) =>
