@@ -93,4 +93,40 @@ public class OrderTests
         order.MarkDelivered();
         Assert.Throws<InvalidOperationException>(() => order.Cancel());
     }
+
+    [Fact]
+    public void Cancel_WhenInTransit_ShouldThrow()
+    {
+        var order = CreateOrder();
+        order.ConfirmByVendor();
+        order.AwaitRiderAcceptance();
+        order.AssignRider("789");
+        order.MarkReadyForPickup();
+        order.MarkPickedUp();
+        order.MarkInTransit();
+        Assert.Throws<InvalidOperationException>(() => order.Cancel(OrderCancellationReason.CustomerCancelled));
+    }
+
+    [Fact]
+    public void Cancel_WithReasonAndComment_ShouldStoreThem()
+    {
+        var order = CreateOrder();
+        order.Cancel(OrderCancellationReason.TimeoutNoRider, "Aucun livreur disponible dans le secteur.");
+
+        Assert.Equal(OrderStatus.Cancelled, order.Status);
+        Assert.NotNull(order.CancelledAt);
+        Assert.Equal(OrderCancellationReason.TimeoutNoRider, order.CancellationReason);
+        Assert.Equal("Aucun livreur disponible dans le secteur.", order.CancellationComment);
+    }
+
+    [Fact]
+    public void Cancel_DefaultReason_ShouldBeManual()
+    {
+        var order = CreateOrder();
+        order.Cancel();
+
+        Assert.Equal(OrderStatus.Cancelled, order.Status);
+        Assert.Equal(OrderCancellationReason.Manual, order.CancellationReason);
+        Assert.Null(order.CancellationComment);
+    }
 }

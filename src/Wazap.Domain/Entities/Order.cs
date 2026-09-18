@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using Wazap.Domain.Enums;
@@ -27,6 +27,8 @@ public class Order
     public DateTime? PickedUpAt { get; private set; }
     public DateTime? DeliveredAt { get; private set; }
     public DateTime? CancelledAt { get; private set; }
+    public OrderCancellationReason CancellationReason { get; private set; } = OrderCancellationReason.None;
+    public string? CancellationComment { get; private set; }
 
     // Suivi acheteur (PWA) : la commande attend les coordonnées du client avant la
     // recherche des livreurs. Coordonnées de livraison (client) une fois validées.
@@ -152,12 +154,14 @@ public class Order
         DeliveredAt = DateTime.UtcNow;
     }
 
-    public void Cancel()
+    public void Cancel(OrderCancellationReason reason = OrderCancellationReason.Manual, string? comment = null)
     {
         if (_status == OrderStatus.Delivered || _status == OrderStatus.InTransit)
             throw new InvalidOperationException($"Impossible d'annuler une commande en statut {_status}.");
         _status = OrderStatus.Cancelled;
         CancelledAt = DateTime.UtcNow;
+        CancellationReason = reason;
+        CancellationComment = comment;
     }
     public void LinkVendor(Guid vendorUserId) => VendorUserId = vendorUserId;
 

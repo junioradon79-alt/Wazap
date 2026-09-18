@@ -272,4 +272,63 @@ public class WebhookRoutingTests
         // pas ici : le fournisseur InMemory évalue côté client et l'aurait accepté.
         // Seul PostgreSQL levait « The LINQ expression could not be translated ».
     }
+
+    // -------------------------------------------------------- Offres : acceptation & refus (T3)
+
+    [Fact]
+    public async Task RefuseOffer_WithCode_DeclinesOfferAndNotifiesRider()
+    {
+        using var h = new WebhookHarness();
+        var rider = AddRider(h);
+        var order = new Order("Client", ClientPhone, VendorPhone, "1 pagne", 5000m);
+        h.Context.Orders.Add(order);
+        var offer = new DeliveryOffer(order.Id, rider.Id, 0);
+        h.Context.DeliveryOffers.Add(offer);
+        await h.Context.SaveChangesAsync();
+
+        var shortCode = offer.Id.ToString("N")[..8].ToUpperInvariant();
+        await h.SendAsync(RiderPhone, $"REFUSE {shortCode}");
+
+        var updated = await h.Context.DeliveryOffers.FindAsync(offer.Id);
+        Assert.NotNull(updated);
+        Assert.Equal(DeliveryOfferStatus.Declined, updated.Status);
+        Assert.NotNull(updated.RespondedAt);
+        Assert.Contains("Course refusée", h.LastMessageTo(RiderPhone));
+    }
+
+    [Fact]
+    public async Task RefuseOffer_WithoutCode_FindsPendingOfferAndDeclines()
+    {
+        using var h = new WebhookHarness();
+        var rider = AddRider(h);
+        var order = new Order("Client", ClientPhone, VendorPhone, "1 pagne", 5000m);
+        h.Context.Orders.Add(order);
+        var offer = new DeliveryOffer(order.Id, rider.Id, 0);
+        h.Context.DeliveryOffers.Add(offer);
+        await h.Context.SaveChangesAsync();
+
+        await h.SendAsync(RiderPhone, "NON");
+
+        var updated = await h.Context.DeliveryOffers.FindAsync(offer.Id);
+        Assert.NotNull(updated);
+        Assert.Equal(DeliveryOfferStatus.Declined, updated.Status);
+        Assert.Contains("Course refusée", h.LastMessageTo(RiderPhone));
+    }
+
+    [Fact]
+    public async Task VendorReply_Refuser_CancelsWithVendorRejectedReason()
+    {
+        using var h = new WebhookHarness();
+        AddVendor(h);
+        var order = new Order("Client", ClientPhone, VendorPhone, "1 pagne", 5000m);
+        h.Context.Orders.Add(order);
+        await h.Context.SaveChangesAsync();
+
+        await h.SendAsync(VendorPhone, "Refuser");
+
+        var updated = await h.Context.Orders.FindAsync(order.Id);
+        Assert.NotNull(updated);
+        Assert.Equal(OrderStatus.Cancelled, updated.Status);
+        Assert.Equal(OrderCancellationReason.VendorRejected, updated.CancellationReason);
+    }
 }

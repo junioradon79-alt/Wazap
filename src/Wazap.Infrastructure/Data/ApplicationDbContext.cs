@@ -48,7 +48,14 @@ namespace Wazap.Infrastructure.Data
                 .HasMaxLength(4);
 
             modelBuilder.Entity<Order>()
+                .Property(o => o.CancellationComment)
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<Order>()
                 .HasIndex(o => o.Status);
+
+            modelBuilder.Entity<Order>()
+                .HasIndex(o => o.CancellationReason);
 
             modelBuilder.Entity<Order>()
                 .HasIndex(o => o.CreatedAt);

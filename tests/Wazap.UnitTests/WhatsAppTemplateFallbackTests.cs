@@ -4,6 +4,7 @@ using Wazap.Application.Configuration;
 using Wazap.Application.Dtos;
 using Wazap.Application.Exceptions;
 using Wazap.Application.Services;
+using Wazap.Domain.Entities;
 using Xunit;
 
 namespace Wazap.UnitTests;
@@ -74,6 +75,100 @@ public class WhatsAppTemplateFallbackTests
         Assert.Contains("Awa Koné", vendorText);
         // Le client voit le nom de la boutique, plus le mot « Vendeur ».
         Assert.Contains("Chez Awa", clientText);
+    }
+
+    [Fact]
+    public async Task ClientTrackingLink_WhenTemplateAccepted_SendsTemplateWithVariables()
+    {
+        var sender = new RecordingWhatsAppSender();
+        var service = CreateService(sender);
+
+        await service.SendClientTrackingLinkAsync("+2250700000003", "CMD12345", "Boutique Wax", "https://wazap.ci/suivi/123");
+
+        var template = Assert.Single(sender.TemplateMessages);
+        Assert.Equal("+2250700000003", template.Phone);
+        Assert.Equal("client_tracking_link", template.Template);
+        Assert.Equal("Boutique Wax", template.Variables["1"]);
+        Assert.Equal("CMD12345", template.Variables["2"]);
+        Assert.Equal("https://wazap.ci/suivi/123", template.Variables["3"]);
+        Assert.Empty(sender.TextMessages);
+    }
+
+    [Fact]
+    public async Task ClientTrackingLink_WhenTemplateRefused_FallsBackToText()
+    {
+        var sender = new RefusingSender(permanent: true);
+        var service = CreateService(sender);
+
+        await service.SendClientTrackingLinkAsync("+2250700000003", "CMD12345", "Boutique Wax", "https://wazap.ci/suivi/123");
+
+        var text = Assert.Single(sender.TextMessages);
+        Assert.Equal("+2250700000003", text.Phone);
+        Assert.Contains("CMD12345", text.Message);
+        Assert.Contains("https://wazap.ci/suivi/123", text.Message);
+    }
+
+    [Fact]
+    public async Task OrderDelivered_WhenTemplateAccepted_SendsTemplateWithVariables()
+    {
+        var sender = new RecordingWhatsAppSender();
+        var service = CreateService(sender);
+        var order = new Order("Client", "+2250700000003", "+2250700000002", "Colis", 5000m);
+
+        await service.SendDeliveredNotificationAsync(order);
+
+        var template = Assert.Single(sender.TemplateMessages);
+        Assert.Equal("+2250700000003", template.Phone);
+        Assert.Equal("order_delivered", template.Template);
+        Assert.Equal(order.Id.ToString("N")[..8].ToUpperInvariant(), template.Variables["1"]);
+        Assert.Empty(sender.TextMessages);
+    }
+
+    [Fact]
+    public async Task OrderDelivered_WhenTemplateRefused_FallsBackToText()
+    {
+        var sender = new RefusingSender(permanent: true);
+        var service = CreateService(sender);
+        var order = new Order("Client", "+2250700000003", "+2250700000002", "Colis", 5000m);
+
+        await service.SendDeliveredNotificationAsync(order);
+
+        var text = Assert.Single(sender.TextMessages);
+        Assert.Equal("+2250700000003", text.Phone);
+        Assert.Contains("livré", text.Message);
+        Assert.Contains("NOTE", text.Message);
+    }
+
+    [Fact]
+    public async Task DeliveryCode_WhenTemplateAccepted_SendsTemplateWithCode()
+    {
+        var sender = new RecordingWhatsAppSender();
+        var service = CreateService(sender);
+        var order = new Order("Client", "+2250700000003", "+2250700000002", "Colis", 5000m);
+        order.EnsureDeliveryCode();
+
+        await service.SendDeliveryCodeAsync(order);
+
+        var template = Assert.Single(sender.TemplateMessages);
+        Assert.Equal("+2250700000003", template.Phone);
+        Assert.Equal("delivery_code", template.Template);
+        Assert.Equal(order.DeliveryCode, template.Variables["1"]);
+        Assert.Empty(sender.TextMessages);
+    }
+
+    [Fact]
+    public async Task DeliveryCode_WhenTemplateRefused_FallsBackToText()
+    {
+        var sender = new RefusingSender(permanent: true);
+        var service = CreateService(sender);
+        var order = new Order("Client", "+2250700000003", "+2250700000002", "Colis", 5000m);
+        order.EnsureDeliveryCode();
+
+        await service.SendDeliveryCodeAsync(order);
+
+        var text = Assert.Single(sender.TextMessages);
+        Assert.Equal("+2250700000003", text.Phone);
+        Assert.Contains(order.DeliveryCode!, text.Message);
     }
 
     /// <summary>Passerelle qui refuse tout envoi de template, mais accepte le texte.</summary>

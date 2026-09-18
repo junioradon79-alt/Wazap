@@ -25,11 +25,21 @@ namespace Wazap.Application.Configuration
         public string TemplateRiderAssignedClient { get; set; } = "rider_assigned_client";
         public string TemplateRiderAssignedVendor { get; set; } = "rider_assigned_vendor";
 
-        // Code de livraison remis au client (variables : 1 = id court, 2 = code à 4 chiffres).
+        // Code de livraison remis au client (variables : 1 = code à 4 chiffres, ou 1 = id court, 2 = code).
         // Message DÉDIÉ (et non un ajout au message d'assignation) pour que le code parvienne
         // au client aussi bien en mode texte qu'une fois les templates approuvés par Meta.
-        // Vide = envoi en texte.
-        public string TemplateDeliveryCode { get; set; } = "";
+        // Vide = repli en message texte (fenêtre 24 h requise).
+        public string TemplateDeliveryCode { get; set; } = "delivery_code";
+
+        // Lien de la page de suivi envoyé au client après confirmation vendeur (T1) :
+        // 1 = nom du vendeur, 2 = code commande, 3 = URL de suivi.
+        // Vide = repli en texte.
+        public string TemplateClientTrackingLink { get; set; } = "client_tracking_link";
+
+        // Notification de livraison au client final (T1) :
+        // 1 = code court de commande.
+        // Vide = repli en texte.
+        public string TemplateOrderDelivered { get; set; } = "order_delivered";
 
         // Templates de crédits (vide = envoi en texte). `credit_purchase` : 2 variables
         // (pack, commandes). `low_credit` : 1 variable (crédits restants) ;

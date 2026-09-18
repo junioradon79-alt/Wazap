@@ -175,7 +175,7 @@ namespace Wazap.API.Services
             // Annule la commande et notifie le vendeur (aucun livreur trouvé).
             async Task FailDispatchAsync(Wazap.Domain.Entities.Order order)
             {
-                order.Cancel();
+                order.Cancel(OrderCancellationReason.TimeoutNoRider, "Délai global dépassé sans acceptation de livreur.");
                 _logger.LogWarning("Commande {OrderId} : aucun livreur (timeout global) — annulée.", order.Id);
 
                 var code = order.Id.ToString("N")[..8].ToUpperInvariant();

@@ -253,7 +253,9 @@ public sealed class OrderService
                 Amount = o.Amount,
                 Status = o.Status,
                 CreatedAt = o.CreatedAt,
-                HasProofPhoto = o.DeliveryProofPhotoFileName != null
+                HasProofPhoto = o.DeliveryProofPhotoFileName != null,
+                CancellationReason = o.CancellationReason,
+                CancellationComment = o.CancellationComment
             })
             .ToListAsync();
 
@@ -296,7 +298,7 @@ public sealed class OrderService
                 order.MarkDelivered();
                 break;
             case OrderStatus.Cancelled:
-                order.Cancel();
+                order.Cancel(request.CancellationReason ?? OrderCancellationReason.Manual, request.CancellationComment);
                 break;
             default:
                 throw new ArgumentException("Statut non pris en charge.");

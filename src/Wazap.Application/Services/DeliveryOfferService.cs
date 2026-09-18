@@ -476,6 +476,36 @@ namespace Wazap.Application.Services
         /// </summary>
         public Task AcceptOfferAsync(Guid offerId) => _acceptance.AcceptOfferAsync(offerId);
 
+        /// <summary>
+        /// Décline une offre (livreur) : passe le statut à Declined et renseigne RespondedAt (T3).
+        /// Si riderUserId est fourni, vérifie que l'offre lui est bien destinée.
+        /// </summary>
+        public async Task<bool> DeclineOfferAsync(Guid offerId, Guid? riderUserId = null, CancellationToken ct = default)
+        {
+            var offer = await _context.DeliveryOffers.FirstOrDefaultAsync(o => o.Id == offerId, ct);
+            if (offer is null)
+                return false;
+
+            if (riderUserId is not null && offer.RiderUserId != riderUserId.Value)
+            {
+                _logger.LogWarning("Tentative de décliner l'offre {OfferId} par un autre livreur ({UserId} vs {RiderId}).",
+                    offerId, riderUserId, offer.RiderUserId);
+                return false;
+            }
+
+            if (offer.Status != DeliveryOfferStatus.Pending)
+            {
+                _logger.LogInformation("Offre {OfferId} déjà en statut {Status}, impossible de décliner.", offerId, offer.Status);
+                return false;
+            }
+
+            offer.Decline();
+            await _context.SaveChangesAsync(ct);
+
+            _logger.LogInformation("Offre {OfferId} déclinée par le livreur {RiderId}.", offer.Id, offer.RiderUserId);
+            return true;
+        }
+
         /// <summary>Message d'erreur quand la diffusion attend un paiement client (option bloquante).</summary>
         private const string RequiresClientPaymentMessage =
             "Le paiement du client est requis avant la diffusion des livreurs " +

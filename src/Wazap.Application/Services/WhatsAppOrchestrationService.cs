@@ -366,10 +366,17 @@ namespace Wazap.Application.Services
         /// </summary>
         public async Task SendClientTrackingLinkAsync(string clientPhone, string orderCode, string vendorName, string trackingUrl, CancellationToken ct = default)
         {
-            await SendStatusAsync(clientPhone, string.Empty,
+            var templateData = new Dictionary<string, string>
+            {
+                ["1"] = vendorName,
+                ["2"] = orderCode,
+                ["3"] = trackingUrl
+            };
+
+            await SendStatusAsync(clientPhone, _whatsAppOptions.TemplateClientTrackingLink,
                 $"✅ {vendorName} a accepté votre commande #{orderCode} !\n" +
                 $"Confirmez votre adresse pour lancer la livraison : {trackingUrl}",
-                new Dictionary<string, string>(), ct);
+                templateData, ct);
         }
 
         /// <summary>
@@ -434,15 +441,20 @@ namespace Wazap.Application.Services
         }
 
         /// <summary>
-        /// Notifie le client que sa livraison a été effectuée (texte, best-effort).
+        /// Notifie le client que sa livraison a été effectuée (template si configuré, repli en texte).
         /// </summary>
         public async Task SendDeliveredNotificationAsync(Order order, CancellationToken ct = default)
         {
             var orderCode = order.Id.ToString("N")[..8].ToUpperInvariant();
-            await SendStatusAsync(order.ClientWhatsAppNumber, string.Empty,
+            var templateData = new Dictionary<string, string>
+            {
+                ["1"] = orderCode
+            };
+
+            await SendStatusAsync(order.ClientWhatsAppNumber, _whatsAppOptions.TemplateOrderDelivered,
                 $"✅ Votre colis #{orderCode} a été livré. Merci d'avoir choisi WAZAP !\n" +
                 "⭐ Notez votre livreur en répondant NOTE suivi de 1 à 5 (ex : NOTE 5).",
-                new Dictionary<string, string>(), ct);
+                templateData, ct);
         }
 
         /// <summary>

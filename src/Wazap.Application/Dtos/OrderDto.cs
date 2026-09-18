@@ -13,4 +13,8 @@ public class OrderDto
 
     /// <summary>Une photo de preuve de livraison accompagne la commande (litiges).</summary>
     public bool HasProofPhoto { get; init; }
+
+    /// <summary>Motif d'annulation de la commande si annulée (T4).</summary>
+    public OrderCancellationReason CancellationReason { get; init; }
+    public string? CancellationComment { get; init; }
 }

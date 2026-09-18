@@ -357,41 +357,68 @@ public class WebhookWhatsAppController : ControllerBase
                 return Ok();
         }
 
-        // 4) Acceptation d'une offre (texte « ACCEPTE {code_court} » ou bouton « ACCEPT_{id} »)
-        var offerId = await ExtractOfferIdAsync(buttonId, buttonTitle, text);
+        // 4) Réponse à une offre de course (livreur) : acceptation (« ACCEPTE {code} » / bouton « Accepter »)
+        //    ou refus explicite (« REFUSE {code} », « NON {code} » / bouton « Refuser ») — chantier T3.
+        var isAccept = (text?.TrimStart().StartsWith("ACCEPTE", StringComparison.OrdinalIgnoreCase) == true)
+                    || (text?.TrimStart().StartsWith("ACCEPT", StringComparison.OrdinalIgnoreCase) == true)
+                    || (!string.IsNullOrWhiteSpace(buttonId) && buttonId.StartsWith("ACCEPT", StringComparison.OrdinalIgnoreCase))
+                    || (!string.IsNullOrWhiteSpace(buttonTitle) && buttonTitle.Contains("accept", StringComparison.OrdinalIgnoreCase));
 
-        // 4b) Bouton générique « Accepter » (template à bouton) : le clic n'embarque pas le code,
-        //     on résout l'offre en attente la plus récente du livreur.
-        if (offerId is null)
+        var isDecline = (text?.TrimStart().StartsWith("REFUSE", StringComparison.OrdinalIgnoreCase) == true)
+                     || (text?.TrimStart().StartsWith("DECLINE", StringComparison.OrdinalIgnoreCase) == true)
+                     || (text?.TrimStart().StartsWith("NON", StringComparison.OrdinalIgnoreCase) == true)
+                     || (!string.IsNullOrWhiteSpace(buttonId) && (buttonId.StartsWith("DECLINE", StringComparison.OrdinalIgnoreCase) || buttonId.StartsWith("REFUSE", StringComparison.OrdinalIgnoreCase)))
+                     || (!string.IsNullOrWhiteSpace(buttonTitle) && (buttonTitle.Contains("refus", StringComparison.OrdinalIgnoreCase) || buttonTitle.Contains("decline", StringComparison.OrdinalIgnoreCase)));
+
+        if (isAccept)
         {
-            var buttonReplies = new[] { buttonId, buttonTitle }
-                .Where(v => !string.IsNullOrWhiteSpace(v))
-                .Select(v => v!.Trim().ToLowerInvariant())
-                .ToList();
-            if (buttonReplies.Any(r => r.Contains("accept")))
+            var offerId = await ExtractOfferIdAsync(buttonId, buttonTitle, text);
+            if (offerId is null)
                 offerId = await FindPendingOfferForRiderAsync(phone);
-        }
 
-        if (offerId is not null)
+            if (offerId is not null)
+            {
+                try
+                {
+                    await _deliveryOfferService.AcceptOfferAsync(offerId.Value);
+                    _logger.LogInformation("Offre {OfferId} acceptée via webhook.", offerId);
+                    return Ok();
+                }
+                catch (PaymentRequiredException ex)
+                {
+                    // Le vendeur n'a plus de crédits : le livreur DOIT être prévenu.
+                    _logger.LogWarning(ex, "Acceptation de l'offre {OfferId} refusée (crédits vendeur épuisés).", offerId);
+                    await ReplyToPhoneAsync(phone, "❌ " + ex.Message);
+                    return Ok();
+                }
+                catch (InvalidOperationException ex)
+                {
+                    // Offre déjà prise par un autre livreur, ou expirée entre-temps.
+                    _logger.LogInformation("Acceptation de l'offre {OfferId} impossible : {Reason}", offerId, ex.Message);
+                    await ReplyToPhoneAsync(phone, "❌ " + ex.Message);
+                    return Ok();
+                }
+            }
+        }
+        else if (isDecline)
         {
-            try
+            var offerId = await ExtractOfferIdAsync(buttonId, buttonTitle, text);
+            if (offerId is null)
+                offerId = await FindPendingOfferForRiderAsync(phone);
+
+            if (offerId is not null)
             {
-                await _deliveryOfferService.AcceptOfferAsync(offerId.Value);
-                _logger.LogInformation("Offre {OfferId} acceptée via webhook.", offerId);
-            }
-            catch (PaymentRequiredException ex)
-            {
-                // Le vendeur n'a plus de crédits : le livreur DOIT être prévenu, sinon il
-                // attend une course qui n'arrivera jamais (et la passerelle réessaie le
-                // webhook en boucle, l'exception remontant en 500).
-                _logger.LogWarning(ex, "Acceptation de l'offre {OfferId} refusée (crédits vendeur épuisés).", offerId);
-                await ReplyToPhoneAsync(phone, "❌ " + ex.Message);
-            }
-            catch (InvalidOperationException ex)
-            {
-                // Offre déjà prise par un autre livreur, ou expirée entre-temps.
-                _logger.LogInformation("Acceptation de l'offre {OfferId} impossible : {Reason}", offerId, ex.Message);
-                await ReplyToPhoneAsync(phone, "❌ " + ex.Message);
+                var rider = await FindUserByPhoneAsync(phone, UserRole.Rider);
+                var declined = await _deliveryOfferService.DeclineOfferAsync(offerId.Value, rider?.Id, RequestAborted);
+                if (declined)
+                {
+                    await ReplyToPhoneAsync(phone, "ℹ️ Course refusée. Vous restez disponible pour les prochaines offres.");
+                }
+                else
+                {
+                    await ReplyToPhoneAsync(phone, "ℹ️ Cette offre n'est plus en attente.");
+                }
+                return Ok();
             }
         }
 
@@ -683,7 +710,7 @@ public class WebhookWhatsAppController : ControllerBase
             }
             else
             {
-                order.Cancel();
+                order.Cancel(OrderCancellationReason.VendorRejected, "Refusée par le commerçant via WhatsApp.");
                 await _context.SaveChangesAsync();
                 _logger.LogInformation("Commande refusée par le vendeur {Phone}.", phone);
             }

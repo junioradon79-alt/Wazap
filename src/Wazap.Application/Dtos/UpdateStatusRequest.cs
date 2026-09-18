@@ -6,4 +6,6 @@ public class UpdateStatusRequest
 {
     public OrderStatus Status { get; set; }
     public string? RiderWhatsAppNumber { get; set; }
+    public OrderCancellationReason? CancellationReason { get; set; }
+    public string? CancellationComment { get; set; }
 }
