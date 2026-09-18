@@ -167,7 +167,7 @@ internal sealed class ServiceScopeFactoryStub : IServiceScopeFactory, IServiceSc
 
     public object? GetService(Type serviceType)
     {
-        if (serviceType == typeof(ApplicationDbContext)) return _context;
+        if (serviceType == typeof(ApplicationDbContext) || serviceType == typeof(IApplicationDbContext)) return _context;
         if (serviceType == typeof(IWhatsAppSender)) return _sender;
         if (serviceType == typeof(ILogger<PublicApiService>)) return _logger;
         if (serviceType == typeof(WhatsAppOrchestrationService)) return BuildOrchestrator();

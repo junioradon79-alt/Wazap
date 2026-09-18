@@ -35,6 +35,9 @@ public interface IApplicationDbContext
     /// <summary>Messages webhook entrants déjà traités (déduplication des reprises).</summary>
     DbSet<ProcessedWebhookMessage> ProcessedWebhookMessages { get; }
 
+    /// <summary>Journal des messages WhatsApp émis et reçus (T2).</summary>
+    DbSet<WhatsAppMessageLog> WhatsAppMessageLogs { get; }
+
     DatabaseFacade Database { get; }
 
     /// <summary>

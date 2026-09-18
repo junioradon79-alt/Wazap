@@ -166,8 +166,28 @@ sequenceDiagram
 
 ## 3. Flux B — Livraison à la demande (vendeur WhatsApp)
 
-Commandes texte pour téléphones basiques : la commande est créée **déjà confirmée**, groupée
-et diffusée immédiatement. Le crédit n'est **jamais** débité à la création.
+Commandes texte directes adaptées à l'Afrique de l'Ouest (smartphones ou téléphones basiques avec WhatsApp) :
+le vendeur initie la course via la commande textuelle `LIVRAISON`. La commande est créée **déjà confirmée** (`VendorConfirmed`), le client destinataire reçoit son lien de suivi sécurisé, et les livreurs reçoivent les offres de course.
+
+### Cycle de vie et règles d'exécution de la commande `LIVRAISON`
+
+1. **Syntaxe acceptée** :
+   - `LIVRAISON <articles / colis> à <destination> tél <numéro_client>`
+   - Exemples : `LIVRAISON 2 paires de chaussures à Angré Djibi tél 0708091011`, `LIVRAISON 3 robes à Yopougon Maroc 0501020304`.
+2. **Parsing & normalisation** :
+   - Le numéro du client est extrait et normalisé (plan ARTCI 10 chiffres Côte d'Ivoire).
+   - Le texte restant constitue les instructions de retrait / livraison.
+3. **Prérequis vendeur** :
+   - Le vendeur doit avoir préalablement défini son quartier ou ses coordonnées GPS (`ZONE Cocody`, `GPS`). Si absent, le système l'invite à définir sa zone avant de créer la course.
+4. **Statut initial direct (`OrderStatus.VendorConfirmed`)** :
+   - Contrairement aux commandes initiées par les clients (Flux A) qui démarrent à `PendingVendorConfirmation`, la commande initiée par le vendeur lui-même n'exige **aucune validation ultérieure**.
+   - Aucun template `order_confirm` n'est envoyé au vendeur (économie de coût Meta et suppression d'une étape redondante).
+5. **Notification au client destinataire** :
+   - Si `BuyerTrackingOptions.Enabled` est actif et le numéro client renseigné, le client reçoit immédiatement le lien de suivi sécurisé (`SendClientTrackingLinkAsync`) vers la page PWA `/suivi/{publicTrackingCode}`.
+6. **Recherche de livreur & groupage** :
+   - La commande intègre immédiatement le mécanisme de groupage (`JoinOrCreateBatchAsync`) et la diffusion d'offres (`BroadcastBatchAsync` aux livreurs disponibles de la zone).
+7. **Consommation de crédits** :
+   - **Aucun débit à la création** : le crédit vendeur n'est prélevé qu'au moment précis où un livreur accepte la course (`DeliveryOfferService.AcceptOfferAsync`). Si aucun livreur n'accepte ou si la course expire, aucun crédit n'est perdu.
 
 ![04-flux-b-livraison-a-la-demande-vendeur-whatsapp](diagrams/04-flux-b-livraison-a-la-demande-vendeur-whatsapp.svg)
 
@@ -179,6 +199,7 @@ sequenceDiagram
     actor V as Vendeur
     participant W as WebhookWhatsApp
     participant O as OrderService
+    participant C as Client
     participant D as DeliveryOfferService
     participant DB as PostgreSQL
 
@@ -187,7 +208,10 @@ sequenceDiagram
     alt vendeur sans GPS ni Zone
         O-->>V: Définissez d'abord votre zone — ZONE <quartier>
     else vendeur valide
-        O->>DB: crée Order + ConfirmByVendor (VendorConfirmed)
+        O->>DB: crée Order (VendorConfirmed direct)
+        opt BuyerTracking activé
+            O->>C: Lien de suivi PWA (/suivi/{trackingCode})
+        end
         O->>D: JoinOrCreateBatchAsync
         D->>DB: rejoint ou crée un lot ouvert (fenêtre de groupage)
         O->>D: BroadcastBatchAsync
@@ -195,7 +219,7 @@ sequenceDiagram
         O-->>V: Course #code enregistrée — Crédits restants : N
     end
 
-    note over O,D: le crédit n'est PAS débité à la création — seulement à l'acceptation
+    note over O,D: le crédit n'est PAS débité à la création — seulement à l'acceptation par le livreur
 ```
 
 </details>

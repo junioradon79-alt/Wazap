@@ -28,17 +28,20 @@ public sealed class MetaCloudApiWhatsAppSender : IWhatsAppSender
     private readonly MetaApiOptions _options;
     private readonly IvoryCoastNumberingOptions _ciNumbering;
     private readonly ILogger<MetaCloudApiWhatsAppSender> _logger;
+    private readonly IWhatsAppMessageLogService? _messageLogService;
 
     public MetaCloudApiWhatsAppSender(
         HttpClient httpClient,
         MetaApiOptions options,
         IvoryCoastNumberingOptions ciNumbering,
-        ILogger<MetaCloudApiWhatsAppSender> logger)
+        ILogger<MetaCloudApiWhatsAppSender> logger,
+        IWhatsAppMessageLogService? messageLogService = null)
     {
         _httpClient = httpClient;
         _options = options;
         _ciNumbering = ciNumbering;
         _logger = logger;
+        _messageLogService = messageLogService;
     }
 
     /// <summary>
@@ -73,7 +76,7 @@ public sealed class MetaCloudApiWhatsAppSender : IWhatsAppSender
             }
         };
 
-        await SendAsync(payload, $"template {templateName} vers {recipient}", ct);
+        await SendAsync(payload, $"template {templateName} vers {recipient}", recipient, templateName, null, ct);
     }
 
     public async Task SendTextMessageAsync(string toPhoneNumber, string message, CancellationToken ct = default)
@@ -88,10 +91,16 @@ public sealed class MetaCloudApiWhatsAppSender : IWhatsAppSender
             text = new { preview_url = false, body = message }
         };
 
-        await SendAsync(payload, $"message texte vers {recipient}", ct);
+        await SendAsync(payload, $"message texte vers {recipient}", recipient, null, message, ct);
     }
 
-    private async Task SendAsync(object payload, string context, CancellationToken ct)
+    private async Task SendAsync(
+        object payload,
+        string context,
+        string recipientPhone,
+        string? templateName,
+        string? messageText,
+        CancellationToken ct)
     {
         try
         {
@@ -112,12 +121,40 @@ public sealed class MetaCloudApiWhatsAppSender : IWhatsAppSender
             if (response.IsSuccessStatusCode)
             {
                 _logger.LogInformation("Compte Meta Cloud API : {Context}. Réponse : {Content}", context, content);
+
+                if (_messageLogService != null)
+                {
+                    var messageId = ExtractMetaMessageId(content);
+                    await _messageLogService.LogOutboundAsync(
+                        recipientPhone,
+                        templateName,
+                        messageText,
+                        provider: "Meta",
+                        success: true,
+                        providerMessageId: messageId,
+                        ct: ct);
+                }
+
                 return;
             }
 
             // HTTP non-2xx = refus Meta : extraire code + message (body Graph { error: {…} }).
             var (code, reason) = ParseGraphError(content, (int)response.StatusCode);
             _logger.LogWarning("Compte Meta Cloud API : refus {Code} ({Context}) : {Reason}", code, context, reason);
+
+            if (_messageLogService != null)
+            {
+                await _messageLogService.LogOutboundAsync(
+                    recipientPhone,
+                    templateName,
+                    messageText,
+                    provider: "Meta",
+                    success: false,
+                    errorCode: code,
+                    errorMessage: reason,
+                    ct: ct);
+            }
+
             throw new WhatsAppSendException(
                 $"Meta a refusé l'envoi ({context}) : [{code}] {reason}",
                 IsPermanent(code, reason));
@@ -125,6 +162,19 @@ public sealed class MetaCloudApiWhatsAppSender : IWhatsAppSender
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {
             _logger.LogError(ex, "Compte Meta Cloud API : erreur réseau ({Context}).", context);
+
+            if (_messageLogService != null)
+            {
+                await _messageLogService.LogOutboundAsync(
+                    recipientPhone,
+                    templateName,
+                    messageText,
+                    provider: "Meta",
+                    success: false,
+                    errorMessage: ex.Message,
+                    ct: ct);
+            }
+
             throw;
         }
     }
@@ -181,4 +231,35 @@ public sealed class MetaCloudApiWhatsAppSender : IWhatsAppSender
         => int.TryParse(key, out var index) && index > 0
             ? index
             : throw new ArgumentException($"Clé de variable de template invalide : « {key} » (attendu : 1, 2, 3…).");
+
+    /// <summary>
+    /// Extrait l'identifiant unique du message (wamid) depuis la réponse JSON de Meta.
+    /// Exemple : {"messaging_product":"whatsapp","contacts":[...],"messages":[{"id":"wamid.HBgL..."}]}
+    /// </summary>
+    internal static string? ExtractMetaMessageId(string? content)
+    {
+        if (string.IsNullOrWhiteSpace(content)) return null;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(content);
+            if (doc.RootElement.ValueKind == JsonValueKind.Object &&
+                doc.RootElement.TryGetProperty("messages", out var messages) &&
+                messages.ValueKind == JsonValueKind.Array &&
+                messages.GetArrayLength() > 0)
+            {
+                var first = messages[0];
+                if (first.TryGetProperty("id", out var id) && id.ValueKind == JsonValueKind.String)
+                {
+                    return id.GetString();
+                }
+            }
+        }
+        catch
+        {
+            // En cas d'erreur de parsing, ne bloque pas le retour
+        }
+
+        return null;
+    }
 }

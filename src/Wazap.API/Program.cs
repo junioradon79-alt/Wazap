@@ -358,6 +358,7 @@ builder.Services.AddSingleton<IReadOnlyList<RiderPriorityPackConfiguration>>(rid
 // Injection des services applicatifs
 builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<WhatsAppOrchestrationService>();
+builder.Services.AddScoped<IWhatsAppMessageLogService, WhatsAppMessageLogService>();
 builder.Services.AddScoped<AuthService>();
 
 // Services géolocalisation / matching / tableau de bord

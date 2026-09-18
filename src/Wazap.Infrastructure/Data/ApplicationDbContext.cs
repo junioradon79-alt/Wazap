@@ -32,8 +32,8 @@ namespace Wazap.Infrastructure.Data
         public DbSet<ClientOrderDraft> ClientOrderDrafts { get; set; }
         public DbSet<RiderPriorityPurchase> RiderPriorityPurchases { get; set; }
 
-        /// <summary>Messages webhook entrants déjà traités (déduplication des reprises).</summary>
         public DbSet<ProcessedWebhookMessage> ProcessedWebhookMessages { get; set; }
+        public DbSet<WhatsAppMessageLog> WhatsAppMessageLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -420,6 +420,51 @@ namespace Wazap.Infrastructure.Data
 
             modelBuilder.Entity<Lead>()
                 .HasIndex(l => new { l.Status, l.CreatedAt });
+
+            modelBuilder.Entity<WhatsAppMessageLog>(entity =>
+            {
+                entity.ToTable("WhatsAppMessageLogs");
+
+                entity.Property(l => l.RecipientPhone)
+                    .HasMaxLength(30);
+
+                entity.Property(l => l.SenderPhone)
+                    .HasMaxLength(30);
+
+                entity.Property(l => l.Direction)
+                    .HasMaxLength(20);
+
+                entity.Property(l => l.MessageType)
+                    .HasMaxLength(30);
+
+                entity.Property(l => l.Provider)
+                    .HasMaxLength(30);
+
+                entity.Property(l => l.Status)
+                    .HasMaxLength(30);
+
+                entity.Property(l => l.TemplateName)
+                    .HasMaxLength(100);
+
+                entity.Property(l => l.Category)
+                    .HasMaxLength(30);
+
+                entity.Property(l => l.ProviderMessageId)
+                    .HasMaxLength(150);
+
+                entity.Property(l => l.ErrorMessage)
+                    .HasMaxLength(500);
+
+                entity.Property(l => l.EstimatedCostFcfa)
+                    .HasPrecision(18, 2);
+
+                entity.HasIndex(l => l.CreatedAt);
+                entity.HasIndex(l => l.OrderId);
+                entity.HasIndex(l => l.RecipientPhone);
+                entity.HasIndex(l => l.ProviderMessageId);
+                entity.HasIndex(l => l.Category);
+                entity.HasIndex(l => l.Status);
+            });
         }
 
         // --- Webhooks sortants : détection des événements commande à la sauvegarde ----------

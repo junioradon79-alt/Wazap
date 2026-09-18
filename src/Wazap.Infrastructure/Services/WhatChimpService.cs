@@ -18,9 +18,10 @@ public class WhatChimpService : IWhatsAppSender
     private readonly string _languageCode;
     private readonly ILogger<WhatChimpService> _logger;
     private readonly IvoryCoastNumberingOptions _ciNumbering;
+    private readonly IWhatsAppMessageLogService? _messageLogService;
 
     public WhatChimpService(HttpClient httpClient, IConfiguration config, ILogger<WhatChimpService> logger,
-        IvoryCoastNumberingOptions ciNumbering)
+        IvoryCoastNumberingOptions ciNumbering, IWhatsAppMessageLogService? messageLogService = null)
     {
         _httpClient = httpClient;
         _apiToken = config["WhatChimp:ApiToken"] ?? throw new ArgumentNullException("WhatChimp:ApiToken");
@@ -29,6 +30,7 @@ public class WhatChimpService : IWhatsAppSender
         _languageCode = config["WhatChimp:LanguageCode"] ?? "fr";
         _logger = logger;
         _ciNumbering = ciNumbering;
+        _messageLogService = messageLogService;
     }
 
     /// <summary>
@@ -66,10 +68,34 @@ public class WhatChimpService : IWhatsAppSender
             var content = await response.Content.ReadAsStringAsync(ct);
             EnsureGatewayAccepted(content, $"template {templateName} vers {recipient}");
             _logger.LogInformation($"Template {templateName} envoyé à {recipient}. Réponse : {content}");
+
+            if (_messageLogService != null)
+            {
+                await _messageLogService.LogOutboundAsync(
+                    recipient,
+                    templateName,
+                    messageText: null,
+                    provider: "WhatChimp",
+                    success: true,
+                    ct: ct);
+            }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Erreur lors de l'envoi du template {templateName} à {toPhoneNumber}");
+
+            if (_messageLogService != null)
+            {
+                await _messageLogService.LogOutboundAsync(
+                    toPhoneNumber,
+                    templateName,
+                    messageText: null,
+                    provider: "WhatChimp",
+                    success: false,
+                    errorMessage: ex.Message,
+                    ct: ct);
+            }
+
             throw;
         }
     }
@@ -91,10 +117,34 @@ public class WhatChimpService : IWhatsAppSender
             var content = await response.Content.ReadAsStringAsync(ct);
             EnsureGatewayAccepted(content, $"message texte vers {recipient}");
             _logger.LogInformation($"Message texte envoyé à {recipient}. Réponse : {content}");
+
+            if (_messageLogService != null)
+            {
+                await _messageLogService.LogOutboundAsync(
+                    recipient,
+                    templateName: null,
+                    messageText: message,
+                    provider: "WhatChimp",
+                    success: true,
+                    ct: ct);
+            }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Erreur lors de l'envoi du message à {toPhoneNumber}");
+
+            if (_messageLogService != null)
+            {
+                await _messageLogService.LogOutboundAsync(
+                    toPhoneNumber,
+                    templateName: null,
+                    messageText: message,
+                    provider: "WhatChimp",
+                    success: false,
+                    errorMessage: ex.Message,
+                    ct: ct);
+            }
+
             throw;
         }
     }

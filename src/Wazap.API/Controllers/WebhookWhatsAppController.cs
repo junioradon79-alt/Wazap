@@ -36,6 +36,7 @@ public class WebhookWhatsAppController : ControllerBase
     private readonly RiderTextCommands _riderCommands;
     private readonly RiderScansOptions _scans;
     private readonly ILogger<WebhookWhatsAppController> _logger;
+    private readonly IWhatsAppMessageLogService? _messageLogService;
     private readonly string? _webhookToken;
     private readonly string? _teamPhone;
 
@@ -62,7 +63,8 @@ public class WebhookWhatsAppController : ControllerBase
         RiderTextCommands riderCommands,
         RiderScansOptions scans,
         ILogger<WebhookWhatsAppController> logger,
-        IConfiguration config)
+        IConfiguration config,
+        IWhatsAppMessageLogService? messageLogService = null)
     {
         _riderRatings = riderRatings;
         _riderDeliveries = riderDeliveries;
@@ -81,6 +83,7 @@ public class WebhookWhatsAppController : ControllerBase
         _mediaDownloader = mediaDownloader;
         _scans = scans;
         _logger = logger;
+        _messageLogService = messageLogService;
         // AUCUNE valeur de repli : un token codé en dur dans un dépôt public n'authentifie
         // rien. Non configuré => la vérification du webhook échoue (fail closed).
         // Meta:WebhookVerifyToken (nouveau WABA) prime ; WhatChimp:WebhookToken en repli
@@ -171,6 +174,19 @@ public class WebhookWhatsAppController : ControllerBase
 
                 try
                 {
+                    if (_messageLogService != null && !string.IsNullOrWhiteSpace(metaEvent.From))
+                    {
+                        var msgType = !string.IsNullOrWhiteSpace(metaEvent.MediaId) ? "Media" :
+                                      !string.IsNullOrWhiteSpace(metaEvent.ButtonId) ? "Interactive" : "Text";
+                        await _messageLogService.LogInboundAsync(
+                            metaEvent.From,
+                            metaEvent.Text ?? metaEvent.ButtonTitle,
+                            msgType,
+                            provider: "Meta",
+                            providerMessageId: messageId,
+                            ct: RequestAborted);
+                    }
+
                     last = await RouteMessageAsync(
                         metaEvent.From, metaEvent.Text, metaEvent.Latitude, metaEvent.Longitude,
                         metaEvent.ButtonId, metaEvent.ButtonTitle,
@@ -211,6 +227,18 @@ public class WebhookWhatsAppController : ControllerBase
         var longitude = JsonPayloadReader.Dbl(location, "longitude");
         var buttonId = JsonPayloadReader.Str(buttonReply, "id");
         var buttonTitle = JsonPayloadReader.Str(buttonReply, "title");
+
+        if (_messageLogService != null && !string.IsNullOrWhiteSpace(phone))
+        {
+            var msgType = !string.IsNullOrWhiteSpace(buttonId) ? "Interactive" : "Text";
+            await _messageLogService.LogInboundAsync(
+                phone,
+                text ?? buttonTitle,
+                msgType,
+                provider: "WhatChimp",
+                providerMessageId: null,
+                ct: RequestAborted);
+        }
 
         return await RouteMessageAsync(phone, text, latitude, longitude, buttonId, buttonTitle,
             mediaUrl: null, mediaId: null, mimeType: null, message);

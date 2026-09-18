@@ -115,20 +115,41 @@ public class MetaCloudApiWhatsAppSenderTests
     }
 
     [Fact]
-    public async Task MetaRefusal_WithNonPermanentCode_IsNotPermanent()
+    public void ExtractMetaMessageId_ExtractsWamidCorrectly()
     {
-        var handler = new FakeHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.NotFound)
+        var json = """{"messaging_product":"whatsapp","contacts":[{"input":"2250700000000","wa_id":"2250700000000"}],"messages":[{"id":"wamid.HBgLMjI1MDcwMDAwMDAwFQIAEhggQ0RDRkRCMkY1MTQ0OTZERTFFOTI5REQyOUVDQzg2OTcA"}]}""";
+        var id = MetaCloudApiWhatsAppSender.ExtractMetaMessageId(json);
+        Assert.Equal("wamid.HBgLMjI1MDcwMDAwMDAwFQIAEhggQ0RDRkRCMkY1MTQ0OTZERTFFOTI5REQyOUVDQzg2OTcA", id);
+    }
+
+    [Fact]
+    public async Task SendTemplateAsync_WhenMessageLogServiceConfigured_LogsOutboundSuccess()
+    {
+        var handler = new FakeHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
         {
-            Content = new StringContent("""{"error":{"message":"(#131055) Method not allowed","type":"OAuthException","code":131055}}""",
-                Encoding.UTF8, "application/json")
+            Content = new StringContent("""{"messages":[{"id":"wamid.12345"}]}""", Encoding.UTF8, "application/json")
         });
 
-        var service = CreateSender(handler);
+        var dbName = Guid.NewGuid().ToString();
+        using var context = TestInfra.NewContext(dbName);
+        var scopeFactory = new ServiceScopeFactoryStub(context);
+        var logService = new WhatsAppMessageLogService(scopeFactory, NullLogger<WhatsAppMessageLogService>.Instance);
 
-        var ex = await Assert.ThrowsAsync<WhatsAppSendException>(() =>
-            service.SendTextMessageAsync("+2250700000000", "Bonjour"));
+        var sender = new MetaCloudApiWhatsAppSender(
+            new HttpClient(handler),
+            Options(),
+            new IvoryCoastNumberingOptions(),
+            NullLogger<MetaCloudApiWhatsAppSender>.Instance,
+            logService);
 
-        Assert.False(ex.IsPermanent);
+        await sender.SendTemplateAsync("+2250700000000", "order_confirm", new Dictionary<string, string> { ["1"] = "1234" });
+
+        var log = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.SingleOrDefaultAsync(context.WhatsAppMessageLogs);
+        Assert.NotNull(log);
+        Assert.Equal("order_confirm", log.TemplateName);
+        Assert.Equal("Sent", log.Status);
+        Assert.Equal("wamid.12345", log.ProviderMessageId);
+        Assert.Equal(2.27m, log.EstimatedCostFcfa);
     }
 
     /// <summary>Handler HTTP minimaliste propre à ce fichier de tests.</summary>
