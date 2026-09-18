@@ -310,3 +310,36 @@ export interface VendorProductRequest {
   price: number
   emoji?: string | null
 }
+
+/** Journalisation d'audit d'un message WhatsApp (chantier T2 / C1). */
+export interface WhatsAppMessageLogDto {
+  id: string
+  orderId: string | null
+  recipientUserId: string | null
+  recipientPhone: string
+  senderPhone: string | null
+  direction: string
+  messageType: string
+  templateName: string | null
+  category: string | null
+  provider: string
+  providerMessageId: string | null
+  status: string
+  errorCode: number | null
+  errorMessage: string | null
+  estimatedCostFcfa: number | null
+  createdAt: string
+}
+
+/** Synthèse financière des coûts WhatsApp pour la Côte d'Ivoire. */
+export interface WhatsAppCostSummaryDto {
+  totalMessages: number
+  outboundCount: number
+  inboundCount: number
+  failedCount: number
+  totalEstimatedCostFcfa: number
+  messagesByCategory: Record<string, number>
+  costByCategory: Record<string, number>
+  averageCostPerOrder: number
+}
+

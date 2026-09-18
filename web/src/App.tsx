@@ -19,6 +19,7 @@ const LeadsPage = lazy(() => import('./pages/LeadsPage'))
 const ClaimsPage = lazy(() => import('./pages/ClaimsPage'))
 const RatingsPage = lazy(() => import('./pages/RatingsPage'))
 const AccountPage = lazy(() => import('./pages/AccountPage'))
+const WhatsAppLogsPage = lazy(() => import('./pages/WhatsAppLogsPage'))
 const SuiviPage = lazy(() => import('./pages/SuiviPage'))
 const VentePage = lazy(() => import('./pages/VentePage'))
 const ParrainagePage = lazy(() => import('./pages/ParrainagePage'))
@@ -92,6 +93,10 @@ export default function App() {
           <Route path="/avis" element={<RatingsPage />} />
           <Route path="/riders" element={<RidersPage />} />
           <Route path="/orders" element={<OrdersPage />} />
+          <Route
+            path="/whatsapp"
+            element={user?.role === 'Admin' ? <WhatsAppLogsPage /> : <Navigate to="/" replace />}
+          />
           <Route path="/account" element={<AccountPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
