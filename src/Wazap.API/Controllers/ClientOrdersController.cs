@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Wazap.API.Services;
 using Wazap.Application.Services;
+using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
 using Wazap.Infrastructure.Data;
 
@@ -19,15 +21,18 @@ public class ClientOrdersController : ControllerBase
     private readonly ApplicationDbContext _context;
     private readonly DeliveryOfferService _deliveryOfferService;
     private readonly ClientPaymentService _clientPayments;
+    private readonly RiderService _riderService;
 
     public ClientOrdersController(
         ApplicationDbContext context,
         DeliveryOfferService deliveryOfferService,
-        ClientPaymentService clientPayments)
+        ClientPaymentService clientPayments,
+        RiderService riderService)
     {
         _context = context;
         _deliveryOfferService = deliveryOfferService;
         _clientPayments = clientPayments;
+        _riderService = riderService;
     }
 
     // GET: api/client/orders/{id} — état visible par le client (public, id non devinable)
@@ -36,6 +41,7 @@ public class ClientOrdersController : ControllerBase
     public async Task<IActionResult> Get(Guid id)
     {
         var order = await _context.Orders.AsNoTracking()
+            .Include(o => o.OrderLines)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order is null)
@@ -47,6 +53,11 @@ public class ClientOrdersController : ControllerBase
                 .Select(u => u.Username)
                 .FirstOrDefaultAsync()
             : null;
+
+        var rating = await _context.RiderRatings.AsNoTracking()
+            .Where(r => r.OrderId == id)
+            .Select(r => new { r.Score, r.Comment, r.CreatedAt })
+            .FirstOrDefaultAsync();
 
         var payment = await _context.OrderPayments.AsNoTracking()
             .Where(p => p.OrderId == id)
@@ -61,11 +72,34 @@ public class ClientOrdersController : ControllerBase
             vendorName,
             status = order.Status.ToString(),
             description = order.Description,
+            amount = order.Amount,
+            deliveryCode = order.DeliveryCode,
+            hasProofPhoto = order.DeliveryProofPhotoFileName != null,
+            riderPhone = order.RiderWhatsAppNumber,
             needsCoordinates = order.RequiresClientCoordinates,
             hasCoordinates = order.ClientLatitude is not null && order.ClientLongitude is not null,
             address = order.ClientAddress,
             riderAssigned = order.Status == OrderStatus.RiderAssigned,
             delivered = order.Status == OrderStatus.Delivered,
+            cancellationReason = order.CancellationReason != OrderCancellationReason.None ? order.CancellationReason.ToString() : null,
+            cancellationComment = order.CancellationComment,
+            timestamps = new
+            {
+                createdAt = order.CreatedAt,
+                vendorConfirmedAt = order.VendorConfirmedAt,
+                riderAssignedAt = order.RiderAssignedAt,
+                pickedUpAt = order.PickedUpAt,
+                deliveredAt = order.DeliveredAt,
+                cancelledAt = order.CancelledAt
+            },
+            orderLines = order.OrderLines.Select(l => new
+            {
+                productName = l.ProductName,
+                quantity = l.Quantity,
+                unitPrice = l.UnitPrice,
+                totalPrice = l.TotalPrice
+            }),
+            rating = rating is null ? null : new { score = rating.Score, comment = rating.Comment, createdAt = rating.CreatedAt },
             payment = payment is null
                 ? null
                 : new
@@ -172,6 +206,64 @@ public class ClientOrdersController : ControllerBase
             riderName = rider.Username
         });
     }
+
+    // GET: api/client/orders/{id}/proof-photo — photo de preuve de livraison déchiffrée
+    [HttpGet("{id:guid}/proof-photo")]
+    [EnableRateLimiting("client")]
+    public async Task<IActionResult> GetProofPhoto(Guid id)
+    {
+        var photo = await _riderService.GetDeliveryProofPhotoAsync(id);
+        if (photo is null || photo.Value.Content is null)
+            return NotFound();
+
+        var contentType = Path.GetExtension(photo.Value.FileName) switch
+        {
+            ".png" => "image/png",
+            ".webp" => "image/webp",
+            _ => "image/jpeg"
+        };
+        return File(photo.Value.Content, contentType);
+    }
+
+    // POST: api/client/orders/{id}/rate — note et avis du client pour son livreur
+    [HttpPost("{id:guid}/rate")]
+    [EnableRateLimiting("client")]
+    public async Task<IActionResult> SubmitRating(Guid id, [FromBody] SubmitClientRatingRequest request)
+    {
+        if (request.Score is < RiderRating.MinScore or > RiderRating.MaxScore)
+            return BadRequest(new { message = $"La note doit être comprise entre {RiderRating.MinScore} et {RiderRating.MaxScore} étoiles." });
+
+        var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id);
+        if (order is null)
+            return NotFound();
+
+        if (order.Status != OrderStatus.Delivered)
+            return BadRequest(new { message = "Seule une commande livrée peut être notée." });
+
+        if (order.RiderUserId is null)
+            return BadRequest(new { message = "Aucun livreur associé à cette commande." });
+
+        if (await _context.RiderRatings.AnyAsync(r => r.OrderId == id))
+            return Conflict(new { message = "Vous avez déjà noté cette livraison." });
+
+        var rating = new RiderRating(
+            order.Id,
+            order.RiderUserId.Value,
+            order.ClientWhatsAppNumber,
+            request.Score,
+            request.Comment);
+
+        _context.RiderRatings.Add(rating);
+        await _context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            success = true,
+            score = rating.Score,
+            comment = rating.Comment
+        });
+    }
 }
 
 public sealed record SetClientCoordinatesRequest(double Latitude, double Longitude, string? Address);
+public sealed record SubmitClientRatingRequest(int Score, string? Comment);

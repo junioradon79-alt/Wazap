@@ -149,17 +149,53 @@ export interface ClientPaymentInfo {
   paymentLink: string | null
 }
 
+export interface ClientOrderLine {
+  productName: string
+  quantity: number
+  unitPrice: number
+  totalPrice: number
+}
+
+export interface ClientOrderTimestamps {
+  createdAt: string
+  vendorConfirmedAt: string | null
+  riderAssignedAt: string | null
+  pickedUpAt: string | null
+  deliveredAt: string | null
+  cancelledAt: string | null
+}
+
+export interface ClientOrderRating {
+  score: number
+  comment: string | null
+  createdAt?: string | null
+}
+
+export interface SubmitClientRatingRequest {
+  score: number
+  comment?: string | null
+}
+
 export interface ClientOrderStatus {
   id: string
   code: string
   vendorName: string | null
   status: string
   description: string | null
+  amount?: number
+  deliveryCode?: string | null
+  hasProofPhoto?: boolean
+  riderPhone?: string | null
   needsCoordinates: boolean
   hasCoordinates: boolean
   address: string | null
   riderAssigned: boolean
   delivered: boolean
+  cancellationReason?: string | null
+  cancellationComment?: string | null
+  timestamps?: ClientOrderTimestamps
+  orderLines?: ClientOrderLine[]
+  rating?: ClientOrderRating | null
   payment: ClientPaymentInfo | null
 }
 

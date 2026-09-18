@@ -2,35 +2,80 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '../api/client'
 import type { ClientOrderStatus, ClientPaymentResponse } from '../api/types'
+import '../styles/suivi.css'
 
-const STATUS_FR: Record<string, string> = {
-  PendingVendorConfirmation: 'En attente du vendeur',
-  VendorConfirmed: 'Vendeur accepté',
-  AwaitingRiderAcceptance: 'Recherche d’un livreur…',
-  RiderAssigned: 'Livreur en route',
-  ReadyForPickup: 'Prêt',
-  PickedUp: 'Colis récupéré',
-  InTransit: 'En cours de livraison',
-  Delivered: 'Livré ✓',
-  Cancelled: 'Annulé',
+const STATUS_DETAILS: Record<string, { label: string; sub: string; step: number }> = {
+  PendingVendorConfirmation: {
+    label: 'En attente du vendeur',
+    sub: 'Le commerçant vérifie la disponibilité de vos articles.',
+    step: 1,
+  },
+  VendorConfirmed: {
+    label: 'Commande confirmée',
+    sub: 'Le commerçant a validé vos articles. Vos repères de livraison sont requis.',
+    step: 1,
+  },
+  AwaitingRiderAcceptance: {
+    label: 'Recherche d’un livreur…',
+    sub: 'Nous mobilisons les livreurs certifiés les plus proches à Abidjan.',
+    step: 2,
+  },
+  RiderAssigned: {
+    label: 'Livreur assigné',
+    sub: 'Votre livreur se dirige vers le commerçant pour récupérer votre colis.',
+    step: 3,
+  },
+  ReadyForPickup: {
+    label: 'Colis prêt',
+    sub: 'Le commerçant a emballé votre colis. Prêt pour le départ.',
+    step: 3,
+  },
+  PickedUp: {
+    label: 'Colis récupéré',
+    sub: 'Le livreur a pris en charge votre colis et démarre la livraison.',
+    step: 4,
+  },
+  InTransit: {
+    label: 'En cours de livraison',
+    sub: 'Votre livreur est en route vers votre adresse.',
+    step: 4,
+  },
+  Delivered: {
+    label: 'Colis livré avec succès ✓',
+    sub: 'Votre commande a été remise en main propre. Merci pour votre confiance !',
+    step: 5,
+  },
+  Cancelled: {
+    label: 'Commande annulée',
+    sub: 'Cette commande a été annulée.',
+    step: 0,
+  },
 }
 
-const s = {
-  wrap: { maxWidth: 460, margin: '0 auto', padding: '20px 16px 40px', fontFamily: 'system-ui, sans-serif', color: '#1c2733' },
-  logo: { fontWeight: 800, fontSize: 20, margin: '6px 0 16px' },
-  card: { background: '#fff', borderRadius: 14, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,.05)', marginBottom: 14 },
-  muted: { color: '#6b7684', fontSize: 13 },
-  pill: { display: 'inline-block', background: '#e7f6ee', color: '#0e7a3e', fontWeight: 700, fontSize: 12, borderRadius: 999, padding: '4px 10px' },
-  label: { display: 'block', fontSize: 13, fontWeight: 600, margin: '12px 0 4px' },
-  input: { width: '100%', padding: 12, border: '1px solid #d5dbe2', borderRadius: 10, fontSize: 15, boxSizing: 'border-box' as const },
-  coords: { fontSize: 12, color: '#6b7684', marginTop: 6, wordBreak: 'break-all' as const },
-  btn: { width: '100%', padding: 14, border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', background: '#1db954', color: '#fff', marginTop: 12 },
-  btn2: { width: '100%', padding: 14, border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: 'pointer', background: '#eef1f4', color: '#1c2733', marginTop: 8 },
-  row: { display: 'flex', justifyContent: 'space-between' as const, alignItems: 'center' as const, gap: 8 },
-  payBtn: { display: 'block', textAlign: 'center' as const, padding: 14, border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', background: '#f7c948', color: '#1c2733', marginTop: 12, textDecoration: 'none' },
-  payDone: { background: '#e7f6ee', color: '#0e7a3e', fontWeight: 700, fontSize: 14, borderRadius: 8, padding: 10, marginTop: 12, textAlign: 'center' as const },
-  err: { color: '#c0392b', background: '#fdecea', padding: 10, borderRadius: 8, fontSize: 14, marginTop: 10, whiteSpace: 'pre-wrap' as const },
+function calculateDistanceAndEta(
+  lat1: number | null | undefined,
+  lng1: number | null | undefined,
+  lat2: number | null | undefined,
+  lng2: number | null | undefined
+) {
+  if (lat1 == null || lng1 == null || lat2 == null || lng2 == null) return null
+  const R = 6371
+  const dLat = ((lat2 - lat1) * Math.PI) / 180
+  const dLon = ((lng2 - lng1) * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  const km = R * c
+  const distanceText = km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`
+  const minutes = Math.max(2, Math.round((km / 22) * 60))
+  const etaText = `~${minutes} min`
+  return { distanceText, etaText }
 }
+
 export default function SuiviPage() {
   const { id } = useParams<{ id: string }>()
   const [order, setOrder] = useState<ClientOrderStatus | null>(null)
@@ -44,6 +89,16 @@ export default function SuiviPage() {
   const [rider, setRider] = useState<{ riderName?: string; location?: { latitude: number; longitude: number } | null } | null>(null)
   const [paying, setPaying] = useState(false)
   const [payErr, setPayErr] = useState<string | null>(null)
+  const [copiedKey, setCopiedKey] = useState<string | null>(null)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+
+  // Rating state
+  const [ratingScore, setRatingScore] = useState<number>(5)
+  const [ratingComment, setRatingComment] = useState('')
+  const [ratingSubmitting, setRatingSubmitting] = useState(false)
+  const [ratingDone, setRatingDone] = useState(false)
+  const [ratingErr, setRatingErr] = useState<string | null>(null)
+
   const timer = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const fetchOrder = useCallback(async () => {
@@ -51,14 +106,32 @@ export default function SuiviPage() {
       const o = await api.get<ClientOrderStatus>(`/client/orders/${id}`)
       setOrder(o)
       setSent(o.hasCoordinates)
+      if (o.rating) {
+        setRatingDone(true)
+        setRatingScore(o.rating.score)
+        setRatingComment(o.rating.comment || '')
+      }
+      const active = ['RiderAssigned', 'ReadyForPickup', 'PickedUp', 'InTransit'].includes(o.status)
+      if (active) {
+        try {
+          const r = await api.get<{ riderName?: string; location?: { latitude: number; longitude: number } | null }>(
+            `/client/orders/${id}/rider-location`
+          )
+          setRider(r)
+        } catch {
+          /* silencieux */
+        }
+      }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Erreur de chargement')
+      setError(e instanceof Error ? e.message : 'Erreur lors du chargement de la commande')
     }
   }, [id])
 
   useEffect(() => {
     fetchOrder()
-    return () => { if (timer.current) clearInterval(timer.current) }
+    return () => {
+      if (timer.current) clearInterval(timer.current)
+    }
   }, [fetchOrder])
 
   const startPolling = useCallback(() => {
@@ -71,40 +144,60 @@ export default function SuiviPage() {
         const active = ['RiderAssigned', 'ReadyForPickup', 'PickedUp', 'InTransit'].includes(o.status)
         if (active) {
           try {
-            const r = await api.get<{ riderName?: string; location?: { latitude: number; longitude: number } | null }>(`/client/orders/${id}/rider-location`)
+            const r = await api.get<{ riderName?: string; location?: { latitude: number; longitude: number } | null }>(
+              `/client/orders/${id}/rider-location`
+            )
             setRider(r)
-          } catch { /* silencieux */ }
+          } catch {
+            /* silencieux */
+          }
         }
-      } catch { /* silencieux */ }
+      } catch {
+        /* silencieux */
+      }
     }, 5000)
   }, [id])
 
-  // Le suivi ne démarrait qu'après l'ENVOI des coordonnées : un client qui rouvrait ou
-  // rafraîchissait sa page de suivi ne voyait plus jamais le livreur bouger ni le statut
-  // évoluer — le cœur de la page restait figé. On reprend le suivi dès que la commande
-  // est en cours, et on l'arrête quand elle est terminée.
-  // La dépendance est un BOOLÉEN (et non l'objet commande) : sinon chaque réponse du
-  // sondage relançait le minuteur et le suivi dérivait.
   const tracking = Boolean(order?.hasCoordinates) && !order?.delivered && order?.status !== 'Cancelled'
 
   useEffect(() => {
     if (!tracking) return
     startPolling()
-    return () => { if (timer.current) clearInterval(timer.current) }
+    return () => {
+      if (timer.current) clearInterval(timer.current)
+    }
   }, [tracking, startPolling])
+
+  const copyText = (text: string, key: string) => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text)
+    }
+    setCopiedKey(key)
+    setTimeout(() => setCopiedKey(null), 2500)
+  }
 
   const useGeo = () => {
     setGeoErr(null)
-    if (!navigator.geolocation) { setGeoErr('Géolocalisation non supportée — saisissez votre adresse.'); return }
+    if (!navigator.geolocation) {
+      setGeoErr('Géolocalisation non supportée par votre navigateur — veuillez saisir votre repère.')
+      return
+    }
     navigator.geolocation.getCurrentPosition(
-      (p) => { setLat(p.coords.latitude); setLng(p.coords.longitude) },
-      () => setGeoErr('Position impossible — saisissez votre adresse (le livreur vous appellera).'),
+      (p) => {
+        setLat(p.coords.latitude)
+        setLng(p.coords.longitude)
+      },
+      () => setGeoErr('Position impossible à récupérer. Décrivez votre carrefour ou quartier ci-dessous.')
     )
   }
 
-  const submit = async () => {
-    if (lat == null || lng == null) { setGeoErr('Activez votre position (📍) avant de valider.'); return }
+  const submitCoordinates = async () => {
+    if (lat == null || lng == null) {
+      setGeoErr('Veuillez activer votre position GPS avant de valider.')
+      return
+    }
     setSending(true)
+    setGeoErr(null)
     try {
       await api.post<{ status: string }>(`/client/orders/${id}/coordinates`, {
         latitude: lat,
@@ -115,9 +208,27 @@ export default function SuiviPage() {
       await fetchOrder()
       startPolling()
     } catch (e) {
-      setGeoErr(e instanceof Error ? e.message : 'Erreur d’envoi')
+      setGeoErr(e instanceof Error ? e.message : 'Erreur d’enregistrement des coordonnées')
     } finally {
       setSending(false)
+    }
+  }
+
+  const submitRating = async () => {
+    if (!id) return
+    setRatingSubmitting(true)
+    setRatingErr(null)
+    try {
+      await api.post(`/client/orders/${id}/rate`, {
+        score: ratingScore,
+        comment: ratingComment.trim() || null,
+      })
+      setRatingDone(true)
+      await fetchOrder()
+    } catch (e) {
+      setRatingErr(e instanceof Error ? e.message : 'Erreur lors de l’envoi de votre avis')
+    } finally {
+      setRatingSubmitting(false)
     }
   }
 
@@ -128,81 +239,580 @@ export default function SuiviPage() {
       await api.post<ClientPaymentResponse>(`/client/orders/${id}/pay`)
       await fetchOrder()
     } catch (e) {
-      setPayErr(e instanceof Error ? e.message : 'Erreur de paiement')
+      setPayErr(e instanceof Error ? e.message : 'Erreur d’initialisation du paiement')
     } finally {
       setPaying(false)
     }
   }
 
-  if (error) return <div style={s.wrap}><div style={{ ...s.card, ...s.err }}>{error}</div></div>
-  if (!order) return <div style={s.wrap}><div style={{ ...s.card, ...s.muted }}>Chargement de votre commande…</div></div>
+  if (error) {
+    return (
+      <div className="suivi-page-wrapper">
+        <div className="suivi-container">
+          <div className="suivi-error-msg" style={{ padding: '24px', textAlign: 'center', marginTop: '40px' }}>
+            <h3 style={{ margin: '0 0 8px', fontSize: '18px' }}>⚠️ Impossible de charger la commande</h3>
+            <p style={{ margin: 0, fontSize: '14px' }}>{error}</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
-  const statusLabel = order.delivered ? 'Livré ✓' : STATUS_FR[order.status] || order.status
+  if (!order) {
+    return (
+      <div className="suivi-page-wrapper">
+        <div className="suivi-container" style={{ textAlign: 'center', paddingTop: '100px' }}>
+          <div className="suivi-live-dot" style={{ margin: '0 auto 16px', width: '20px', height: '20px' }} />
+          <p style={{ color: 'var(--suivi-text-muted)', fontSize: '16px', fontWeight: 600 }}>
+            Connexion au suivi WAZAP en direct…
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  const statusMeta = STATUS_DETAILS[order.status] || {
+    label: order.status,
+    sub: 'Statut de livraison en cours de mise à jour.',
+    step: 2,
+  }
+
+  const currentStep = order.delivered ? 5 : order.status === 'Cancelled' ? 0 : statusMeta.step
+
+  const distanceInfo = calculateDistanceAndEta(
+    lat ?? 5.3484, // Abidjan fallback lat
+    lng ?? -4.0175,
+    rider?.location?.latitude,
+    rider?.location?.longitude
+  )
+
+  const quickReviewTags = ['⚡ Rapide & efficace', '👍 Très poli', '📦 Colis impeccable', '⏰ Ponctuel']
+
+  const proofPhotoUrl = `/api/client/orders/${order.id}/proof-photo`
 
   return (
-    <div style={s.wrap}>
-      <div style={s.logo}>⚡ WAZAP <span style={s.muted}>— Suivi</span></div>
-      {order.needsCoordinates && !order.hasCoordinates && !sent ? (
-        <div style={s.card}>
-          <div style={s.row}><h2 style={{ margin: 0 }}>Commande #{order.code}</h2></div>
-          <p style={s.muted}>Vendeur : {order.vendorName || '—'}</p>
-          {order.description && <p>{order.description}</p>}
-          <label style={s.label}>Votre adresse / repère (quartier, rue…)</label>
-          <input style={s.input} value={address} onChange={(e) => setAddress(e.target.value)}
-            placeholder="Ex : Marcory, rue Princesse, près de la pharmacie" />
-          <button style={s.btn2} type="button" onClick={useGeo}>📍 Utiliser ma position GPS</button>
-          {(lat != null && lng != null) && <div style={s.coords}>Position : {lat.toFixed(5)}, {lng.toFixed(5)}</div>}
-          {geoErr && <div style={s.err}>{geoErr}</div>}
-          <button style={{ ...s.btn, opacity: sending ? 0.6 : 1 }} disabled={sending} onClick={submit}>
-            {sending ? 'Envoi…' : 'Valider et lancer la livraison'}
-          </button>
-        </div>
-      ) : (
-        <div style={s.card}>
-          <div style={s.row}>
-            <h2 style={{ margin: 0 }}>Commande #{order.code}</h2>
-            <span style={s.pill}>{statusLabel}</span>
+    <div className="suivi-page-wrapper">
+      <div className="suivi-container">
+        {/* TOP BAR */}
+        <header className="suivi-topbar">
+          <div className="suivi-brand">
+            <span className="suivi-brand-bolt">⚡</span>
+            <span>WAZAP</span>
+            <span style={{ color: 'var(--suivi-text-muted)', fontWeight: 500, fontSize: '14px' }}>Suivi</span>
           </div>
-          <p style={s.muted}>Vendeur : {order.vendorName || '—'}</p>
-          {order.description && <p>{order.description}</p>}
-          {order.address && <p style={s.muted}>📍 {order.address}</p>}
-        </div>
-      )}
-      {rider && (
-        <div style={s.card}>
-          <div style={s.row}><span style={{ fontWeight: 700 }}>🛵 {rider.riderName || 'Livreur'}</span><span style={s.pill}>En route</span></div>
-          {rider.location
-            ? <a
-                href={`https://www.google.com/maps/search/?api=1&query=${rider.location.latitude},${rider.location.longitude}`}
-                target="_blank" rel="noreferrer"
-                style={{ ...s.btn, textDecoration: 'none', textAlign: 'center', display: 'block' }}
-              >📍 Voir le livreur sur la carte</a>
-            : <p style={s.muted}>Le livreur se rapproche de chez vous…</p>}
-        </div>
-      )}
-      {order.payment && order.payment.status !== 'Completed' && (
-        <div style={s.card}>
-          <div style={s.row}>
-            <span style={{ fontWeight: 700 }}>💳 Paiement de votre commande</span>
-            <span style={s.pill}>{order.payment.amount.toLocaleString('fr-FR')} FCFA</span>
+          <div className="suivi-live-tag">
+            <span className="suivi-live-dot" />
+            <span>En Direct</span>
           </div>
-          {order.payment.paymentLink ? (
-            <a href={order.payment.paymentLink} target="_blank" rel="noreferrer" style={s.payBtn}>
-              Payer par Mobile Money
-            </a>
-          ) : (
-            <button style={{ ...s.payBtn, opacity: paying ? 0.6 : 1 }} disabled={paying} onClick={pay}>
-              {paying ? 'Préparation…' : 'Payer par Mobile Money'}
-            </button>
+        </header>
+
+        {/* HERO STATUS CARD */}
+        <section className="suivi-hero-card">
+          <div className="suivi-hero-top">
+            <div className="suivi-order-num">
+              <span>COMMANDE #{order.code}</span>
+              <button
+                type="button"
+                className="suivi-copy-btn"
+                onClick={() => copyText(order.code, 'code')}
+              >
+                {copiedKey === 'code' ? 'Copié !' : 'Copier'}
+              </button>
+            </div>
+            {order.amount != null && order.amount > 0 && (
+              <div
+                style={{
+                  background: 'rgba(0, 214, 108, 0.12)',
+                  color: 'var(--suivi-emerald)',
+                  fontWeight: 800,
+                  fontSize: '13px',
+                  padding: '4px 10px',
+                  borderRadius: '999px',
+                }}
+              >
+                {order.amount.toLocaleString('fr-FR')} FCFA
+              </div>
+            )}
+          </div>
+
+          <h1 className="suivi-hero-status">{order.delivered ? 'Livré ✓' : statusMeta.label}</h1>
+          <p className="suivi-hero-sub">{statusMeta.sub}</p>
+
+          {/* STEPPER TIMELINE */}
+          {order.status !== 'Cancelled' && (
+            <div className="suivi-stepper">
+              {/* Step 1 */}
+              <div className="suivi-step-row">
+                <div className={`suivi-step-line ${currentStep > 1 ? 'completed' : ''}`} />
+                <div className={`suivi-step-node ${currentStep > 1 ? 'completed' : currentStep === 1 ? 'active' : 'pending'}`}>
+                  {currentStep > 1 ? '✓' : '1'}
+                </div>
+                <div className="suivi-step-content">
+                  <div className="suivi-step-title">Commande confirmée</div>
+                  <div className="suivi-step-desc">Vendeur : {order.vendorName || 'Boutique'}</div>
+                </div>
+              </div>
+
+              {/* Step 2 */}
+              <div className="suivi-step-row">
+                <div className={`suivi-step-line ${currentStep > 2 ? 'completed' : ''}`} />
+                <div className={`suivi-step-node ${currentStep > 2 ? 'completed' : currentStep === 2 ? 'active' : 'pending'}`}>
+                  {currentStep > 2 ? '✓' : '2'}
+                </div>
+                <div className="suivi-step-content">
+                  <div className="suivi-step-title">Adresse & Repères GPS</div>
+                  <div className="suivi-step-desc">
+                    {order.hasCoordinates ? (order.address || 'Coordonnées validées') : 'Validation client requise'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 3 */}
+              <div className="suivi-step-row">
+                <div className={`suivi-step-line ${currentStep > 3 ? 'completed' : ''}`} />
+                <div className={`suivi-step-node ${currentStep > 3 ? 'completed' : currentStep === 3 ? 'active' : 'pending'}`}>
+                  {currentStep > 3 ? '✓' : '3'}
+                </div>
+                <div className="suivi-step-content">
+                  <div className="suivi-step-title">Livreur assigné</div>
+                  <div className="suivi-step-desc">
+                    {rider?.riderName || order.riderPhone ? `${rider?.riderName || 'Livreur'} en route` : 'Recherche automatique…'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 4 */}
+              <div className="suivi-step-row">
+                <div className={`suivi-step-line ${currentStep > 4 ? 'completed' : ''}`} />
+                <div className={`suivi-step-node ${currentStep > 4 ? 'completed' : currentStep === 4 ? 'active' : 'pending'}`}>
+                  {currentStep > 4 ? '✓' : '4'}
+                </div>
+                <div className="suivi-step-content">
+                  <div className="suivi-step-title">Colis récupéré & en route</div>
+                  <div className="suivi-step-desc">Acheminement vers votre point de livraison</div>
+                </div>
+              </div>
+
+              {/* Step 5 */}
+              <div className="suivi-step-row">
+                <div className={`suivi-step-node ${currentStep === 5 ? 'completed' : 'pending'}`}>
+                  {currentStep === 5 ? '✓' : '5'}
+                </div>
+                <div className="suivi-step-content">
+                  <div className="suivi-step-title">Colis livré</div>
+                  <div className="suivi-step-desc">Remise sécurisée en main propre</div>
+                </div>
+              </div>
+            </div>
           )}
-          <p style={{ ...s.muted, marginTop: 8 }}>Ou en espèces à la livraison.</p>
-          {payErr && <div style={s.err}>{payErr}</div>}
-        </div>
-      )}
-      {order.payment?.status === 'Completed' && (
-        <div style={s.payDone}>✅ Paiement reçu — merci !</div>
-      )}
+        </section>
+
+        {/* ONBOARDING COORDINATES FORM (when needed) */}
+        {order.needsCoordinates && !order.hasCoordinates && !sent && (
+          <section className="suivi-geo-card">
+            <h2 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 800 }}>
+              📍 Où souhaitez-vous être livré ?
+            </h2>
+            <p style={{ margin: '0 0 16px', fontSize: '13px', color: 'var(--suivi-text-muted)', lineHeight: 1.4 }}>
+              Activez votre position GPS en 1 clic pour que le livreur vienne directement à votre porte, même sans nom de rue.
+            </p>
+
+            <button type="button" className="suivi-btn-geo" onClick={useGeo}>
+              <span>📍 Détecter ma position GPS exacte</span>
+            </button>
+
+            {lat != null && lng != null && (
+              <div
+                style={{
+                  background: 'rgba(0, 214, 108, 0.12)',
+                  color: 'var(--suivi-emerald)',
+                  borderRadius: '10px',
+                  padding: '10px 12px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  marginTop: '12px',
+                  border: '1px solid rgba(0, 214, 108, 0.3)',
+                }}
+              >
+                ✓ GPS détecté : {lat.toFixed(5)}, {lng.toFixed(5)}
+              </div>
+            )}
+
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginTop: '16px', color: '#fff' }}>
+              Repère ou quartier (facultatif mais recommandé) :
+            </label>
+            <input
+              className="suivi-input"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="Ex : Marcory, rue Princesse, face à la pharmacie…"
+            />
+
+            {geoErr && <div className="suivi-error-msg">{geoErr}</div>}
+
+            <button
+              type="button"
+              className="suivi-btn-validate"
+              disabled={sending}
+              onClick={submitCoordinates}
+              style={{ opacity: sending ? 0.7 : 1 }}
+            >
+              {sending ? 'Recherche des livreurs…' : 'Confirmer et lancer la livraison ⚡'}
+            </button>
+          </section>
+        )}
+
+        {/* SECRET DELIVERY PIN (COLIS SÛR) */}
+        {order.deliveryCode && !order.delivered && (
+          <section className="suivi-pin-card">
+            <div className="suivi-pin-header">
+              <div className="suivi-pin-title">
+                <span>🔒 Code Secret de Remise</span>
+              </div>
+              <button
+                type="button"
+                className="suivi-copy-btn"
+                style={{ background: 'rgba(247, 201, 72, 0.15)', borderColor: 'var(--suivi-gold)', color: 'var(--suivi-gold)' }}
+                onClick={() => copyText(order.deliveryCode!, 'pin')}
+              >
+                {copiedKey === 'pin' ? 'Copié !' : 'Copier le code'}
+              </button>
+            </div>
+
+            <div className="suivi-pin-boxes">
+              {order.deliveryCode.split('').map((digit, idx) => (
+                <div key={idx} className="suivi-pin-digit">
+                  {digit}
+                </div>
+              ))}
+            </div>
+
+            <div className="suivi-pin-note">
+              <strong>Garantie Colis Sûr :</strong> Ne communiquez ce code à votre livreur qu’au moment précis où il vous tend le colis. Ce code confirme la bonne réception.
+            </div>
+          </section>
+        )}
+
+        {/* RADAR & LIVE MAP CARD (when rider location is available) */}
+        {rider && (
+          <section className="suivi-map-card">
+            <div className="suivi-radar-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '18px' }}>🛵</span>
+                <span style={{ fontWeight: 800, fontSize: '15px' }}>{rider.riderName || 'Livreur en approche'}</span>
+              </div>
+              {distanceInfo && (
+                <div className="suivi-radar-badge">
+                  <span>📍 {distanceInfo.distanceText}</span>
+                  <span>•</span>
+                  <span>{distanceInfo.etaText}</span>
+                </div>
+              )}
+            </div>
+
+            {rider.location ? (
+              <>
+                <div className="suivi-map-frame-box">
+                  <iframe
+                    title="Carte de livraison"
+                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${rider.location.longitude - 0.01}%2C${rider.location.latitude - 0.01}%2C${rider.location.longitude + 0.01}%2C${rider.location.latitude + 0.01}&layer=mapnik&marker=${rider.location.latitude}%2C${rider.location.longitude}`}
+                    loading="lazy"
+                  />
+                </div>
+
+                <div className="suivi-map-actions">
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${rider.location.latitude},${rider.location.longitude}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="suivi-btn-nav suivi-btn-gmaps"
+                  >
+                    🗺️ Google Maps
+                  </a>
+                  <a
+                    href={`https://waze.com/ul?ll=${rider.location.latitude},${rider.location.longitude}&navigate=yes`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="suivi-btn-nav suivi-btn-waze"
+                  >
+                    🚗 Waze
+                  </a>
+                </div>
+              </>
+            ) : (
+              <p style={{ margin: 0, fontSize: '13px', color: 'var(--suivi-text-muted)' }}>
+                Position GPS en cours de synchronisation avec le smartphone du livreur…
+              </p>
+            )}
+          </section>
+        )}
+
+        {/* RIDER PROFILE & TIP CARD */}
+        {(rider?.riderName || order.riderPhone) && !order.delivered && (
+          <section className="suivi-rider-card">
+            <div className="suivi-rider-row">
+              <div className="suivi-rider-info">
+                <div className="suivi-rider-avatar">🛵</div>
+                <div>
+                  <h3 className="suivi-rider-name">{rider?.riderName || 'Livreur WAZAP'}</h3>
+                  <div className="suivi-rider-badge">Identité Vérifiée ⚡</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="suivi-rider-actions">
+              {order.riderPhone && (
+                <>
+                  <a href={`tel:${order.riderPhone}`} className="suivi-btn-contact suivi-btn-call">
+                    📞 Appeler
+                  </a>
+                  <a
+                    href={`https://wa.me/${order.riderPhone.replace(/\D/g, '')}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="suivi-btn-contact suivi-btn-wa"
+                  >
+                    💬 WhatsApp
+                  </a>
+                </>
+              )}
+            </div>
+
+            {order.riderPhone && (
+              <div className="suivi-tip-box">
+                <div className="suivi-tip-header">
+                  <span>💚 Pourboire au livreur (Wave / OM)</span>
+                  <button
+                    type="button"
+                    className="suivi-copy-btn"
+                    onClick={() => copyText(order.riderPhone!, 'tip')}
+                  >
+                    {copiedKey === 'tip' ? 'Copié !' : 'Copier numéro'}
+                  </button>
+                </div>
+                <div>Un geste apprécié pour encourager votre livreur sur la route.</div>
+                <div className="suivi-tip-phone">
+                  <span>Numéro Mobile Money :</span>
+                  <span>{order.riderPhone}</span>
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* PROOF PHOTO CARD (When delivered or photo exists) */}
+        {order.hasProofPhoto && (
+          <section className="suivi-proof-card">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontWeight: 800, fontSize: '14px', color: 'var(--suivi-emerald)' }}>
+                📸 Preuve Photo de Livraison
+              </span>
+              <span style={{ fontSize: '12px', color: 'var(--suivi-text-muted)' }}>Garantie Colis Sûr</span>
+            </div>
+
+            <div className="suivi-proof-thumb-box" onClick={() => setLightboxOpen(true)}>
+              <img
+                src={proofPhotoUrl}
+                alt="Preuve de livraison prise par le livreur"
+                loading="lazy"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none'
+                }}
+              />
+              <div className="suivi-proof-badge">🔍 Agrandir la photo</div>
+            </div>
+          </section>
+        )}
+
+        {/* LIGHTBOX MODAL */}
+        {lightboxOpen && (
+          <div className="suivi-modal-overlay" onClick={() => setLightboxOpen(false)}>
+            <div className="suivi-modal-content" onClick={(e) => e.stopPropagation()}>
+              <button
+                type="button"
+                className="suivi-modal-close"
+                onClick={() => setLightboxOpen(false)}
+                aria-label="Fermer la photo"
+              >
+                ✕
+              </button>
+              <img src={proofPhotoUrl} alt="Preuve de livraison plein écran" />
+            </div>
+          </div>
+        )}
+
+        {/* POST-DELIVERY 5-STAR RATING WIDGET */}
+        {order.delivered && (
+          <section className="suivi-rating-card">
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, textAlign: 'center', color: '#fff' }}>
+              {ratingDone ? '⭐ Merci pour votre avis !' : '⭐ Notez votre livraison'}
+            </h3>
+            <p style={{ margin: '4px 0 14px', fontSize: '13px', textAlign: 'center', color: 'var(--suivi-text-muted)' }}>
+              {ratingDone
+                ? 'Votre retour aide nos livreurs certifiés à maintenir un service exemplaire.'
+                : 'Comment s’est déroulée votre course avec le livreur ?'}
+            </p>
+
+            <div className="suivi-rating-stars">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  className={`suivi-star-btn ${star <= ratingScore ? 'suivi-star-gold' : ''}`}
+                  disabled={ratingDone || ratingSubmitting}
+                  onClick={() => setRatingScore(star)}
+                  aria-label={`${star} étoile${star > 1 ? 's' : ''}`}
+                >
+                  {star <= ratingScore ? '⭐' : '☆'}
+                </button>
+              ))}
+            </div>
+
+            {!ratingDone && (
+              <>
+                <div className="suivi-chips">
+                  {quickReviewTags.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      className={`suivi-chip ${ratingComment.includes(tag) ? 'selected' : ''}`}
+                      onClick={() => {
+                        if (ratingComment.includes(tag)) {
+                          setRatingComment((prev) => prev.replace(tag, '').trim())
+                        } else {
+                          setRatingComment((prev) => (prev ? `${prev} • ${tag}` : tag))
+                        }
+                      }}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+
+                <textarea
+                  className="suivi-rating-input"
+                  placeholder="Un commentaire pour le livreur ou l'équipe Wazap ? (facultatif)"
+                  value={ratingComment}
+                  onChange={(e) => setRatingComment(e.target.value)}
+                />
+
+                {ratingErr && <div className="suivi-error-msg">{ratingErr}</div>}
+
+                <button
+                  type="button"
+                  className="suivi-btn-submit-rating"
+                  disabled={ratingSubmitting}
+                  onClick={submitRating}
+                  style={{ opacity: ratingSubmitting ? 0.7 : 1 }}
+                >
+                  {ratingSubmitting ? 'Envoi…' : 'Envoyer mon avis ⭐'}
+                </button>
+              </>
+            )}
+
+            {ratingDone && ratingComment && (
+              <p
+                style={{
+                  margin: '10px 0 0',
+                  fontSize: '13px',
+                  fontStyle: 'italic',
+                  color: 'var(--suivi-text-muted)',
+                  textAlign: 'center',
+                }}
+              >
+                « {ratingComment} »
+              </p>
+            )}
+          </section>
+        )}
+
+        {/* ORDER DETAILS SUMMARY */}
+        <section className="suivi-details-card">
+          <div className="suivi-details-header">Détails de la commande</div>
+
+          <div className="suivi-details-row">
+            <span className="suivi-details-label">Vendeur</span>
+            <span className="suivi-details-val">{order.vendorName || 'Boutique Partenaire'}</span>
+          </div>
+
+          {order.description && (
+            <div className="suivi-details-row">
+              <span className="suivi-details-label">Contenu</span>
+              <span className="suivi-details-val">{order.description}</span>
+            </div>
+          )}
+
+          {order.orderLines && order.orderLines.length > 0 && (
+            <div style={{ margin: '8px 0', padding: '8px 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+              {order.orderLines.map((line, idx) => (
+                <div key={idx} className="suivi-details-row" style={{ fontSize: '12px' }}>
+                  <span className="suivi-details-label">
+                    {line.quantity}x {line.productName}
+                  </span>
+                  <span className="suivi-details-val">{line.totalPrice.toLocaleString('fr-FR')} FCFA</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {order.address && (
+            <div className="suivi-details-row">
+              <span className="suivi-details-label">Point de livraison</span>
+              <span className="suivi-details-val">📍 {order.address}</span>
+            </div>
+          )}
+
+          {order.amount != null && (
+            <div className="suivi-details-row" style={{ borderBottom: 'none', paddingTop: '10px' }}>
+              <span className="suivi-details-label" style={{ fontWeight: 800, color: '#fff' }}>
+                Montant total
+              </span>
+              <span className="suivi-details-val" style={{ color: 'var(--suivi-emerald)', fontWeight: 800, fontSize: '15px' }}>
+                {order.amount.toLocaleString('fr-FR')} FCFA
+              </span>
+            </div>
+          )}
+        </section>
+
+        {/* PAYMENT CARD */}
+        {order.payment && order.payment.status !== 'Completed' && (
+          <section className="suivi-payment-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: 800, fontSize: '15px' }}>💳 Règlement de la commande</span>
+              <span style={{ color: 'var(--suivi-gold)', fontWeight: 800, fontSize: '15px' }}>
+                {order.payment.amount.toLocaleString('fr-FR')} FCFA
+              </span>
+            </div>
+
+            {order.payment.paymentLink ? (
+              <a href={order.payment.paymentLink} target="_blank" rel="noreferrer" className="suivi-btn-pay">
+                Payer par Mobile Money (Wave / Orange / MTN)
+              </a>
+            ) : (
+              <button
+                type="button"
+                className="suivi-btn-pay"
+                disabled={paying}
+                onClick={pay}
+                style={{ opacity: paying ? 0.7 : 1 }}
+              >
+                {paying ? 'Connexion à l’opérateur…' : 'Payer par Mobile Money (Wave / OM)'}
+              </button>
+            )}
+
+            <p style={{ margin: '10px 0 0', fontSize: '12px', color: 'var(--suivi-text-muted)', textAlign: 'center' }}>
+              Ou règlement en espèces directement auprès du livreur à la remise du colis.
+            </p>
+            {payErr && <div className="suivi-error-msg">{payErr}</div>}
+          </section>
+        )}
+
+        {order.payment?.status === 'Completed' && (
+          <div className="suivi-pay-done">
+            ✅ Commande payée par Mobile Money — Aucun frais supplémentaire à remettre au livreur.
+          </div>
+        )}
+      </div>
     </div>
   )
 }
-
