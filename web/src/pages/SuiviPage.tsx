@@ -76,6 +76,36 @@ function calculateDistanceAndEta(
   return { distanceText, etaText }
 }
 
+const DEMO_ORDER: ClientOrderStatus = {
+  id: 'demo',
+  code: 'WZ8942',
+  vendorName: 'Boutique Wax Élégance (Plateau)',
+  status: 'InTransit',
+  description: '2x Boubous brodés haut de gamme + 1 Foulard en soie',
+  amount: 35000,
+  deliveryCode: '7492',
+  riderPhone: '+2250700000002',
+  needsCoordinates: false,
+  hasCoordinates: true,
+  address: 'Cocody Riviera Bonoumin, carrefour pharmacie Ste-Marie',
+  riderAssigned: true,
+  delivered: false,
+  orderLines: [
+    { productName: 'Boubou brodé grand modèle', quantity: 2, unitPrice: 15000, totalPrice: 30000 },
+    { productName: 'Foulard soie assorti', quantity: 1, unitPrice: 5000, totalPrice: 5000 },
+  ],
+  payment: {
+    status: 'Pending',
+    amount: 35000,
+    paymentLink: 'https://pay.wazap.ci/demo-wave',
+  },
+}
+
+const DEMO_RIDER = {
+  riderName: 'Amara Fofana',
+  location: { latitude: 5.352, longitude: -3.985 },
+}
+
 export default function SuiviPage() {
   const { id } = useParams<{ id: string }>()
   const [order, setOrder] = useState<ClientOrderStatus | null>(null)
@@ -101,7 +131,22 @@ export default function SuiviPage() {
 
   const timer = useRef<ReturnType<typeof setInterval> | null>(null)
 
+  const isDemo = id === 'demo' || id === 'demo-livre'
+
   const fetchOrder = useCallback(async () => {
+    if (id === 'demo' || id === 'demo-livre') {
+      const isDelivered = id === 'demo-livre'
+      setOrder({
+        ...DEMO_ORDER,
+        id,
+        status: isDelivered ? 'Delivered' : 'InTransit',
+        delivered: isDelivered,
+        hasProofPhoto: isDelivered,
+      })
+      setSent(true)
+      setRider(DEMO_RIDER)
+      return
+    }
     try {
       const o = await api.get<ClientOrderStatus>(`/client/orders/${id}`)
       setOrder(o)
@@ -218,6 +263,13 @@ export default function SuiviPage() {
     if (!id) return
     setRatingSubmitting(true)
     setRatingErr(null)
+    if (isDemo) {
+      setTimeout(() => {
+        setRatingDone(true)
+        setRatingSubmitting(false)
+      }, 400)
+      return
+    }
     try {
       await api.post(`/client/orders/${id}/rate`, {
         score: ratingScore,
@@ -233,6 +285,10 @@ export default function SuiviPage() {
   }
 
   const pay = async () => {
+    if (isDemo) {
+      window.open('https://pay.wazap.ci/demo-wave', '_blank')
+      return
+    }
     setPaying(true)
     setPayErr(null)
     try {
