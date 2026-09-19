@@ -793,3 +793,239 @@
     gap: 10px;
   }
 }
+
+/* ==========================================================================
+   Comparatif Avant / Après (Sans WAZAP vs Avec WAZAP)
+   ========================================================================== */
+.comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin: 40px auto 60px;
+  max-width: 960px;
+}
+
+.comparison-card {
+  border-radius: 20px;
+  padding: 30px;
+  border: 1px solid var(--wz-l-border);
+  transition: all 0.3s ease;
+}
+
+.comparison-card--bad {
+  background: rgba(239, 68, 68, 0.04);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.comparison-card--bad:hover {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.07);
+}
+
+.comparison-card--good {
+  background: rgba(0, 214, 108, 0.05);
+  border-color: rgba(0, 214, 108, 0.28);
+  box-shadow: 0 8px 32px rgba(0, 214, 108, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.comparison-card--good::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #00d66c, #34d399);
+}
+
+.comparison-card--good:hover {
+  border-color: rgba(0, 214, 108, 0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 214, 108, 0.15);
+}
+
+.comparison-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.comparison-header__icon {
+  font-size: 24px;
+}
+
+.comparison-header__title {
+  font-size: 19px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.comparison-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.comparison-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.comparison-item--bad {
+  color: #cbd5e1;
+}
+
+.comparison-item--bad .comparison-item__icon {
+  color: #ef4444;
+  font-weight: 900;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.comparison-item--good {
+  color: #f1f5f9;
+}
+
+.comparison-item--good .comparison-item__icon {
+  color: #00d66c;
+  font-weight: 900;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Témoignages Commerçants & Livreurs avec Avatars Réels
+   ========================================================================== */
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 22px;
+  margin: 40px 0 60px;
+}
+
+.testimonial-card {
+  background: var(--wz-l-card);
+  border: 1px solid var(--wz-l-border);
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.testimonial-card:hover {
+  background: var(--wz-l-card-hover);
+  border-color: var(--wz-l-border-hover);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+
+.testimonial-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.testimonial-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #00d66c;
+  box-shadow: 0 0 12px rgba(0, 214, 108, 0.25);
+  flex-shrink: 0;
+}
+
+.testimonial-info__name {
+  font-weight: 800;
+  font-size: 15px;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.testimonial-info__role {
+  font-size: 12px;
+  color: var(--wz-l-text-muted);
+  margin: 2px 0 0;
+}
+
+.testimonial-stars {
+  color: #f59e0b;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.testimonial-quote {
+  font-size: 14px;
+  color: #e2e8f0;
+  line-height: 1.6;
+  font-style: italic;
+  margin: 0 0 16px;
+  flex-grow: 1;
+}
+
+.testimonial-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(0, 214, 108, 0.1);
+  color: #34d399;
+  font-size: 11px;
+  font-weight: 700;
+  align-self: flex-start;
+}
+
+/* ==========================================================================
+   Boîte d'Incentive & Urgence Positive Formulaire
+   ========================================================================== */
+.incentive-box {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(0, 214, 108, 0.12), rgba(14, 122, 62, 0.08));
+  border: 1px solid rgba(0, 214, 108, 0.3);
+  border-radius: 14px;
+  margin-bottom: 24px;
+}
+
+.incentive-box__icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.incentive-box__title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #00d66c;
+  margin: 0 0 2px;
+}
+
+.incentive-box__sub {
+  font-size: 12px;
+  color: #cbd5e1;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .comparison-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

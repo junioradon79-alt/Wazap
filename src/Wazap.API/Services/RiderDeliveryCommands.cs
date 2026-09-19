@@ -24,6 +24,7 @@ public sealed class RiderDeliveryCommands
     private readonly DeliveryProofOptions _deliveryProof;
     private readonly WhatsAppOrchestrationService _whatsApp;
     private readonly RiderProgramService _riderProgram;
+    private readonly ClientOptions _clientOptions;
     private readonly ILogger<RiderDeliveryCommands> _logger;
 
     public RiderDeliveryCommands(
@@ -31,30 +32,46 @@ public sealed class RiderDeliveryCommands
         DeliveryProofOptions deliveryProof,
         WhatsAppOrchestrationService whatsApp,
         RiderProgramService riderProgram,
-        ILogger<RiderDeliveryCommands> logger)
+        ILogger<RiderDeliveryCommands> logger,
+        ClientOptions? clientOptions = null)
     {
         _context = context;
         _deliveryProof = deliveryProof;
         _whatsApp = whatsApp;
         _riderProgram = riderProgram;
         _logger = logger;
+        _clientOptions = clientOptions ?? new ClientOptions();
     }
 
     /// <summary>
-    /// Reconnaît les messages pris en charge ici. Le contrôleur teste d'abord ce prédicat :
-    /// il doit rester strictement aligné sur le comportement d'origine (préfixe suivi d'un espace,
-    /// jamais « RECUXXX » ou « LIVREUR »).
+    /// Reconnaît les messages pris en charge ici :
+    /// - Prise en charge / départ en livraison : RECU, EN ROUTE, PARTI, DECLENCHER, LIVRAISON DECLENCHEE
+    /// - Remise au client : LIVRE [code course] [CODE <4 chiffres>]
     /// </summary>
     public static bool Matches(string upperText)
         => upperText == "RECU" || upperText.StartsWith("RECU ")
+           || upperText == "EN ROUTE" || upperText.StartsWith("EN ROUTE ")
+           || upperText == "PARTI" || upperText.StartsWith("PARTI ")
+           || upperText == "DECLENCHER" || upperText.StartsWith("DECLENCHER ")
+           || upperText == "LIVRAISON DECLENCHEE" || upperText.StartsWith("LIVRAISON DECLENCHEE ")
            || upperText == "LIVRE" || upperText.StartsWith("LIVRE ");
 
     /// <summary>Traite la commande. <paramref name="reply"/> envoie la réponse WhatsApp au livreur.</summary>
     public async Task HandleAsync(User user, string command, Func<User, string, Task> reply)
     {
         var upper = command.ToUpperInvariant();
-        var marker = upper.StartsWith("RECU") ? "RECU" : "LIVRE";
-        var code = command.Length > marker.Length ? command[marker.Length..].Trim() : string.Empty;
+        var isPickup = upper == "RECU" || upper.StartsWith("RECU ")
+                       || upper == "EN ROUTE" || upper.StartsWith("EN ROUTE ")
+                       || upper == "PARTI" || upper.StartsWith("PARTI ")
+                       || upper == "DECLENCHER" || upper.StartsWith("DECLENCHER ")
+                       || upper == "LIVRAISON DECLENCHEE" || upper.StartsWith("LIVRAISON DECLENCHEE ");
+        var marker = isPickup ? "RECU" : "LIVRE";
+        var prefix = isPickup
+            ? (upper.StartsWith("LIVRAISON DECLENCHEE") ? "LIVRAISON DECLENCHEE"
+               : upper.StartsWith("EN ROUTE") ? "EN ROUTE"
+               : upper.Split(' ')[0])
+            : "LIVRE";
+        var code = command.Length > prefix.Length ? command[prefix.Length..].Trim() : string.Empty;
 
         // Preuve de livraison : « LIVRE <code course> CODE <4 chiffres> ».
         string? clientCode = null;
@@ -146,14 +163,32 @@ public sealed class RiderDeliveryCommands
 
         await _context.SaveChangesAsync();
 
-        // Notification « livré » à CHAQUE client concerné (best-effort).
-        if (marker == "LIVRE")
+        // 1) Événement « Livraison déclenchée » : notifications GPS en temps réel (Client + Vendeur).
+        if (marker == "RECU")
         {
             foreach (var order in orders)
             {
                 try
                 {
-                    await _whatsApp.SendDeliveredNotificationAsync(order);
+                    var trackingUrl = $"{_clientOptions.TrackingBaseUrl.TrimEnd('/')}/{order.Id}";
+                    await _whatsApp.SendInTransitNotificationAsync(order, user, trackingUrl);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Notification en transit impossible pour {OrderId}.", order.Id);
+                }
+            }
+        }
+
+        // 2) Notification « livré » à CHAQUE client et vendeur concerné (best-effort).
+        if (marker == "LIVRE")
+        {
+            var vendorDashboardUrl = "https://junioradon79gm-001-site1.jtempurl.com/app/vendor/dashboard";
+            foreach (var order in orders)
+            {
+                try
+                {
+                    await _whatsApp.SendDeliveredNotificationsAsync(order, user, vendorDashboardUrl);
                 }
                 catch (Exception ex)
                 {

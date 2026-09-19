@@ -368,6 +368,12 @@ namespace Wazap.Infrastructure.Migrations
                     b.Property<DateTime?>("DeliveryCodeVerifiedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<decimal>("DeliveryFee")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasDefaultValue(1000m);
+
                     b.Property<string>("DeliveryProofPhotoFileName")
                         .HasColumnType("text");
 

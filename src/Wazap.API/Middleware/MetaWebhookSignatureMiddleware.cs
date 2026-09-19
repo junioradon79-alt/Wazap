@@ -102,23 +102,34 @@ public sealed class MetaWebhookSignatureMiddleware
             return;
         }
 
-        // 3) Jeton partagé de la passerelle historique (query ?token= ou en-tête X-Webhook-Token).
-        var sharedToken = _configuration["Meta:WebhookVerifyToken"] ?? _configuration["WhatChimp:WebhookToken"];
-        if (string.IsNullOrWhiteSpace(sharedToken))
+        // 3) Jeton partagé (WAHA, Meta verify token ou WhatChimp).
+        var wahaSecret = _configuration["Waha:WebhookSecret"];
+        var metaToken = _configuration["Meta:WebhookVerifyToken"];
+        var whatChimpToken = _configuration["WhatChimp:WebhookToken"];
+
+        var hasAnyToken = !string.IsNullOrWhiteSpace(wahaSecret)
+                          || !string.IsNullOrWhiteSpace(metaToken)
+                          || !string.IsNullOrWhiteSpace(whatChimpToken);
+
+        if (!hasAnyToken)
         {
             _logger.LogError(
-                "POST sans signature refusé : aucun jeton partagé configuré "
-                + "(Meta:WebhookVerifyToken / WhatChimp:WebhookToken).");
+                "POST sans signature refusé : aucun jeton configuré "
+                + "(Waha:WebhookSecret / Meta:WebhookVerifyToken / WhatChimp:WebhookToken).");
             await RejectAsync(context, StatusCodes.Status503ServiceUnavailable,
                 "Webhook non configuré (jeton de vérification absent).");
             return;
         }
 
         var provided = context.Request.Query["token"].FirstOrDefault()
-                       ?? context.Request.Headers[SharedTokenHeader].FirstOrDefault();
+                       ?? context.Request.Headers[SharedTokenHeader].FirstOrDefault()
+                       ?? context.Request.Headers["X-Api-Key"].FirstOrDefault();
 
-        if (!string.IsNullOrWhiteSpace(provided)
-            && Wazap.Application.Helpers.SecurityHelper.FixedTimeEquals(provided, sharedToken))
+        var isAuthorized = (!string.IsNullOrWhiteSpace(wahaSecret) && Wazap.Application.Helpers.SecurityHelper.FixedTimeEquals(provided ?? "", wahaSecret))
+                        || (!string.IsNullOrWhiteSpace(metaToken) && Wazap.Application.Helpers.SecurityHelper.FixedTimeEquals(provided ?? "", metaToken))
+                        || (!string.IsNullOrWhiteSpace(whatChimpToken) && Wazap.Application.Helpers.SecurityHelper.FixedTimeEquals(provided ?? "", whatChimpToken));
+
+        if (!string.IsNullOrWhiteSpace(provided) && isAuthorized)
         {
             await _next(context);
             return;

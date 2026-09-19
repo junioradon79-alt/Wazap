@@ -42,8 +42,12 @@ public sealed class ClientOrderBotService
     private const string AddressPrompt =
         "📍 Dernière étape — où livrer ? (quartier + repère, ex. « Marcory, rue Princesse »)";
 
-    /// <summary>Intention client explicite (« commande » couvre « commander », « je commande »…).</summary>
-    private static readonly string[] OrderIntentKeywords = ["commande", "acheter", "achat", "panier"];
+    /// <summary>Intention client explicite (« commande » couvre « commander », « je commande », « menu », « catalogue »…).</summary>
+    private static readonly string[] OrderIntentKeywords =
+    [
+        "commande", "commander", "acheter", "achat", "panier",
+        "menu", "catalogue", "catalog", "carte", "produit", "produits"
+    ];
 
     /// <summary>
     /// Intention de PARTENARIAT — le bot prospects doit garder la main : un prospect
@@ -116,6 +120,48 @@ public sealed class ClientOrderBotService
                 _context.ClientOrderDrafts.Add(draft);
                 await _context.SaveChangesAsync();
 
+                // Intention directe de catalogue / menu (« MENU Chez Sarah », « CATALOGUE », etc.)
+                if (IsCatalogIntent(trimmed))
+                {
+                    var vendorQuery = ExtractVendorQuery(trimmed);
+                    if (!string.IsNullOrWhiteSpace(vendorQuery))
+                    {
+                        var vendors = await FindVendorsAsync(vendorQuery);
+                        if (vendors.Count == 1)
+                        {
+                            draft.SubmitItems("Commande catalogue " + vendors[0].Username);
+                            await SelectVendorAsync(draft, vendors[0]);
+                            _logger.LogInformation("Bot commande : menu catalogue direct {Vendor} pour {Phone}.", vendors[0].Username, normalized);
+                            return true;
+                        }
+
+                        if (vendors.Count > 1)
+                        {
+                            draft.SubmitItems("Commande catalogue");
+                            draft.SetVendorCandidates(vendors.Select(v => v.Id).ToList());
+                            await _context.SaveChangesAsync();
+
+                            var choices = string.Join("\n", vendors.Select((v, i) =>
+                                $"{i + 1}. {v.Username}" + (string.IsNullOrWhiteSpace(v.Zone) ? string.Empty : $" ({v.Zone})")));
+                            await SendAsync(normalized,
+                                $"🏪 Plusieurs commerces correspondent :\n{choices}\n\n" +
+                                "Répondez avec le NUMÉRO de votre choix (ex. « 1 »).\n" +
+                                "Écrivez ANNULER pour arrêter.");
+                            return true;
+                        }
+                    }
+
+                    // « MENU » ou « CATALOGUE » seul sans commerce identifié
+                    draft.SubmitItems("Commande catalogue");
+                    await _context.SaveChangesAsync();
+                    await SendAsync(normalized,
+                        "🏪 Chez quel commerçant ou restaurant souhaitez-vous commander ?\n" +
+                        "Indiquez son nom ou son numéro WhatsApp (ex. « Chez Sarah » ou « 0708091011 »).\n" +
+                        "Écrivez ANNULER pour arrêter.");
+                    _logger.LogInformation("Bot commande : invitation choix commerce pour catalogue avec {Phone}.", normalized);
+                    return true;
+                }
+
                 await SendAsync(normalized,
                     "🛒 C'est parti ! Étape 1/3 — que voulez-vous commander ?\n" +
                     "Ex. « 1 poulet braisé + alloco ».\n" +
@@ -151,6 +197,26 @@ public sealed class ClientOrderBotService
         var lower = text.ToLowerInvariant();
         return OrderIntentKeywords.Any(lower.Contains)
             && !PartnerKeywords.Any(lower.Contains);
+    }
+
+    /// <summary>Vérifie si le message exprime une volonté de voir un catalogue ou un menu.</summary>
+    internal static bool IsCatalogIntent(string text)
+    {
+        var lower = text.ToLowerInvariant();
+        return lower.StartsWith("menu") || lower.StartsWith("catalogue") || lower.StartsWith("catalog")
+               || lower.StartsWith("carte") || lower.Contains("le menu") || lower.Contains("le catalogue");
+    }
+
+    /// <summary>Extrait le terme de recherche du commerce après les mots-clés de menu.</summary>
+    internal static string ExtractVendorQuery(string text)
+    {
+        var cleaned = text.Trim();
+        foreach (var prefix in new[] { "catalogue", "catalog", "menu", "carte", "produits", "produit", "chez", "de", "du" })
+        {
+            if (cleaned.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                cleaned = cleaned[prefix.Length..].Trim();
+        }
+        return cleaned.Trim();
     }
 
     /// <summary>Le client renonce à sa commande en cours.</summary>
@@ -286,10 +352,11 @@ public sealed class ClientOrderBotService
         if (products.Count > 0)
         {
             await SendAsync(draft.ClientWhatsAppNumber,
-                $"🏪 Commerce retenu : {vendor.Username}.\n" +
-                "🛒 Étape 3/3 — composez votre commande :\n" +
+                $"🏪 {vendor.Username}\n" +
+                "📜 Catalogue des produits disponibles :\n\n" +
                 BuildProductMenuText(products) +
-                "\nRépondez avec le(s) NUMÉRO(S) des articles (ex. « 1 » ou « 1 2 »).");
+                "\n\n👉 Répondez avec le(s) NUMÉRO(S) des articles (ex. « 1 » ou « 1 2 »).\n" +
+                "Écrivez ANNULER pour arrêter.");
             return;
         }
 
@@ -444,12 +511,15 @@ public sealed class ClientOrderBotService
         var description = BuildOrderDescription(draft.Description, lines, address);
         var vendorPhone = vendor.PhoneNumber ?? string.Empty;
 
+        var deliveryFee = 1000m;
+
         // Catalogue → commande enrichie de lignes (montant calculé) ; sinon mode texte libre.
         var order = lines.Count > 0
-            ? new Order("Client", draft.ClientWhatsAppNumber, vendorPhone, vendor.Id, lines, description)
-            : new Order("Client", draft.ClientWhatsAppNumber, vendorPhone, description, 0m);
+            ? new Order("Client", draft.ClientWhatsAppNumber, vendorPhone, vendor.Id, lines, description, deliveryFee)
+            : new Order("Client", draft.ClientWhatsAppNumber, vendorPhone, description, 0m, deliveryFee);
 
         order.LinkVendor(vendor.Id);
+        order.EnsureDeliveryCode();
         _context.Orders.Add(order);
 
         foreach (var line in lines)
@@ -464,11 +534,19 @@ public sealed class ClientOrderBotService
         var code = order.Id.ToString("N")[..8].ToUpperInvariant();
         await SendAsync(draft.ClientWhatsAppNumber,
             $"✅ Commande #{code} transmise à {vendor.Username} !\n" +
-            $"🛒 {draft.Description}\n📍 {address}\n" +
-            "Le commerce confirme, puis un livreur est recherché. ⚡");
+            $"🛒 {draft.Description}\n" +
+            $"📦 Marchandise : {order.Amount:N0} FCFA\n" +
+            $"🛵 Frais de livraison (dus au livreur) : {order.DeliveryFee:N0} FCFA\n" +
+            $"💰 Total à régler : {order.TotalAmount:N0} FCFA\n" +
+            $"📍 {address}\n\n" +
+            "Dès que le commerce valide, votre livreur est recherché immédiatement. ⚡");
         await SendAsync(vendorPhone,
             $"🛎️ Nouvelle commande client #{code} :\n{description}\n" +
-            "Ouvrez l'application pour la confirmer.");
+            $"• Prix marchandise : {order.Amount:N0} FCFA\n" +
+            $"• Frais de livraison (au livreur) : {order.DeliveryFee:N0} FCFA\n" +
+            $"• Total client : {order.TotalAmount:N0} FCFA\n\n" +
+            $"👉 Répondez « CONFIRMER {code} » ou « OUI {code} » pour valider et déclencher la recherche de livreurs.\n" +
+            "Ou confirmez en 1 clic sur votre espace marchand.");
 
         _logger.LogInformation(
             "Bot commande : commande {OrderId} créée pour {Vendor} via WhatsApp ({Lines} ligne(s)).",

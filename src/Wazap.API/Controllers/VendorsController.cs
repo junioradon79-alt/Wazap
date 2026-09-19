@@ -24,10 +24,14 @@ public class VendorsController : ControllerBase
     private readonly VendorProductService _products;
     private readonly ICurrentUser _currentUser;
     private readonly ApplicationDbContext _context;
+    private readonly DeliveryOfferService? _deliveryOfferService;
+    private readonly WhatsAppOrchestrationService? _whatsApp;
 
     public VendorsController(VendorService vendorService, PackService packService,
         ClientPaymentService clientPayments, VendorProductService products,
-        ICurrentUser currentUser, ApplicationDbContext context)
+        ICurrentUser currentUser, ApplicationDbContext context,
+        DeliveryOfferService? deliveryOfferService = null,
+        WhatsAppOrchestrationService? whatsApp = null)
     {
         _vendorService = vendorService;
         _packService = packService;
@@ -35,6 +39,8 @@ public class VendorsController : ControllerBase
         _products = products;
         _currentUser = currentUser;
         _context = context;
+        _deliveryOfferService = deliveryOfferService;
+        _whatsApp = whatsApp;
     }
 
     [HttpGet]
@@ -99,16 +105,40 @@ public class VendorsController : ControllerBase
             .Take(5)
             .ToList();
 
+        var riderIds = orders.Where(o => o.RiderUserId.HasValue).Select(o => o.RiderUserId!.Value).Distinct().ToList();
+        var ridersMap = new Dictionary<Guid, (string Username, string? PhoneNumber)>();
+        if (riderIds.Count > 0)
+        {
+            var riderList = await _context.Users.AsNoTracking()
+                .Where(u => riderIds.Contains(u.Id))
+                .Select(u => new { u.Id, u.Username, u.PhoneNumber })
+                .ToListAsync();
+            foreach (var r in riderList)
+            {
+                ridersMap[r.Id] = (r.Username, r.PhoneNumber);
+            }
+        }
+
         var recent = orders
             .OrderByDescending(o => o.CreatedAt)
             .Take(15)
-            .Select(o => new VendorOrderItem(
-                o.Id,
-                o.Id.ToString("N")[..8].ToUpperInvariant(),
-                o.ClientName,
-                o.Description,
-                o.Status.ToString(),
-                o.CreatedAt))
+            .Select(o =>
+            {
+                var riderName = o.RiderUserId.HasValue && ridersMap.TryGetValue(o.RiderUserId.Value, out var r) ? r.Username : null;
+                var riderPhone = o.RiderUserId.HasValue && ridersMap.TryGetValue(o.RiderUserId.Value, out var r2) ? (r2.PhoneNumber ?? o.RiderWhatsAppNumber) : o.RiderWhatsAppNumber;
+                return new VendorOrderItem(
+                    o.Id,
+                    o.Id.ToString("N")[..8].ToUpperInvariant(),
+                    o.ClientName,
+                    o.Description,
+                    o.Status.ToString(),
+                    o.CreatedAt,
+                    riderName,
+                    riderPhone,
+                    o.Amount,
+                    o.DeliveryFee,
+                    o.TotalAmount);
+            })
             .ToList();
 
         // Parrainage
@@ -235,6 +265,64 @@ public class VendorsController : ControllerBase
                 "Ce produit figure dans des commandes passées : il ne peut pas être supprimé (modifiez-le plutôt)."),
             _ => NotFound()
         };
+    }
+
+    // POST: api/vendors/orders/{id}/confirm — confirmation directe d'une commande par le vendeur
+    [HttpPost("orders/{id:guid}/confirm")]
+    public async Task<IActionResult> ConfirmOrder(Guid id)
+    {
+        var vendor = await _context.Users.FirstOrDefaultAsync(u => u.Id == _currentUser.Id && u.Role == UserRole.Vendor);
+        if (vendor is null && _currentUser.Role != UserRole.Admin)
+            return Forbid();
+
+        var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id);
+        if (order is null)
+            return NotFound();
+
+        var isOwner = (vendor is not null && order.VendorUserId == vendor.Id)
+            || (vendor is not null && !string.IsNullOrWhiteSpace(vendor.PhoneNumber) && PhoneNumberNormalizer.SameSubscriber(order.VendorWhatsAppNumber, vendor.PhoneNumber));
+
+        if (!isOwner && _currentUser.Role != UserRole.Admin)
+            return Forbid();
+
+        if (order.Status != OrderStatus.PendingVendorConfirmation)
+            return BadRequest(new { message = $"La commande est en statut {order.Status} et ne peut plus être confirmée." });
+
+        order.ConfirmByVendor();
+        await _context.SaveChangesAsync();
+
+        var code = order.Id.ToString("N")[..8].ToUpperInvariant();
+        var vendorName = vendor?.Username ?? "le vendeur";
+
+        if (_whatsApp is not null && !string.IsNullOrWhiteSpace(order.ClientWhatsAppNumber))
+        {
+            try
+            {
+                await _whatsApp.SendOrderConfirmedByVendorAsync(order.ClientWhatsAppNumber, code, vendorName);
+            }
+            catch
+            {
+                // Best effort
+            }
+        }
+
+        if (_deliveryOfferService is not null)
+        {
+            try
+            {
+                await _deliveryOfferService.ConfirmAndRouteAsync(order.Id);
+            }
+            catch
+            {
+                // Best effort
+            }
+        }
+
+        return Ok(new
+        {
+            status = order.Status.ToString(),
+            message = "Commande confirmée avec succès ! Recherche des livreurs déclenchée."
+        });
     }
 
     private void EnsureCanManage(Guid vendorId)

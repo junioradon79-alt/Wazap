@@ -36,7 +36,7 @@ namespace Wazap.Application.Services
         /// Un refus TRANSITOIRE n'est pas rattrapé ici : il doit remonter pour que l'outbox
         /// réessaie.
         /// </summary>
-        private async Task SendTemplateOrTextAsync(string? phoneNumber, string templateName,
+        private async Task SendTemplateOrTextAsync(string? phoneNumber, string? templateName,
             string textMessage, Dictionary<string, string> variables, CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(phoneNumber))
@@ -247,6 +247,8 @@ namespace Wazap.Application.Services
             // Livreur : confirmation de course + détails + liens cartographiques
             var riderText = $"✅ Course acceptée #{orderCode}.\n" +
                             $"📦 À livrer : {order.Description}\n" +
+                            $"🛵 Vos frais de livraison : {order.DeliveryFee:N0} FCFA (dus par le commerçant/client)\n" +
+                            (order.Amount > 0 ? $"💵 Montant marchandise (si encaissement espèces) : {order.Amount:N0} FCFA\n" : string.Empty) +
                             "📍 Retrait chez le vendeur.";
 
             if (!string.IsNullOrWhiteSpace(vendorPickupLink))
@@ -441,6 +443,27 @@ namespace Wazap.Application.Services
         }
 
         /// <summary>
+        /// Notifie le client et le vendeur que le livreur a récupéré le colis et déclenché la livraison (GPS live).
+        /// </summary>
+        public async Task SendInTransitNotificationAsync(Order order, User? rider, string trackingUrl, CancellationToken ct = default)
+        {
+            var orderCode = order.Id.ToString("N")[..8].ToUpperInvariant();
+            var riderName = rider?.Username ?? "Votre livreur";
+
+            // 1) Client : colis récupéré, en route avec lien radar GPS
+            await SendStatusAsync(order.ClientWhatsAppNumber, null,
+                $"🚀 Votre commande #{orderCode} est en route ! Le livreur {riderName} a récupéré votre colis.\n" +
+                $"📍 Suivez son arrivée en direct sur la carte : {trackingUrl}",
+                new Dictionary<string, string>(), ct);
+
+            // 2) Vendeur : livreur parti, suivi live
+            await SendStatusAsync(order.VendorWhatsAppNumber, null,
+                $"📦 Le livreur {riderName} a récupéré la commande #{orderCode} et commence la livraison vers le client.\n" +
+                $"📍 Suivez la course en direct : {trackingUrl}",
+                new Dictionary<string, string>(), ct);
+        }
+
+        /// <summary>
         /// Notifie le client que sa livraison a été effectuée (template si configuré, repli en texte).
         /// </summary>
         public async Task SendDeliveredNotificationAsync(Order order, CancellationToken ct = default)
@@ -455,6 +478,42 @@ namespace Wazap.Application.Services
                 $"✅ Votre colis #{orderCode} a été livré. Merci d'avoir choisi WAZAP !\n" +
                 "⭐ Notez votre livreur en répondant NOTE suivi de 1 à 5 (ex : NOTE 5).",
                 templateData, ct);
+        }
+
+        /// <summary>
+        /// Notifie le client (colis reçu + avis) ET le vendeur (fin de course + invitation à régler le livreur).
+        /// </summary>
+        public async Task SendDeliveredNotificationsAsync(Order order, User? rider, string? vendorDashboardUrl = null, CancellationToken ct = default)
+        {
+            // 1) Client : colis livré + notation
+            await SendDeliveredNotificationAsync(order, ct);
+
+            // 2) Vendeur : notification de fin de course + détail des montants + lien vers le règlement
+            var orderCode = order.Id.ToString("N")[..8].ToUpperInvariant();
+            var riderName = rider?.Username ?? "Le livreur";
+            var vendorMessage = string.IsNullOrWhiteSpace(vendorDashboardUrl)
+                ? $"🎉 Course terminée ! La commande #{orderCode} a été livrée avec succès par {riderName}.\n" +
+                  $"• Prix marchandise : {order.Amount:N0} FCFA (encaissé)\n" +
+                  $"• Frais de livraison dus au livreur : {order.DeliveryFee:N0} FCFA."
+                : $"🎉 Course terminée ! La commande #{orderCode} a été livrée avec succès par {riderName}.\n" +
+                  $"• Prix marchandise : {order.Amount:N0} FCFA (encaissé)\n" +
+                  $"• Frais de livraison dus au livreur : {order.DeliveryFee:N0} FCFA.\n" +
+                  $"💳 Réglez directement les {order.DeliveryFee:N0} FCFA au coursier via votre espace marchand :\n{vendorDashboardUrl}";
+
+            await SendStatusAsync(order.VendorWhatsAppNumber, null, vendorMessage, new Dictionary<string, string>(), ct);
+        }
+
+        /// <summary>
+        /// Notifie le client que le vendeur a confirmé sa commande et que la recherche du livreur démarre.
+        /// </summary>
+        public async Task SendOrderConfirmedByVendorAsync(string clientWhatsAppNumber, string orderCode, string vendorName, CancellationToken ct = default)
+        {
+            if (string.IsNullOrWhiteSpace(clientWhatsAppNumber))
+                return;
+
+            await SendStatusAsync(clientWhatsAppNumber, null,
+                $"🏪 {vendorName} a validé votre commande #{orderCode} ! Recherche du coursier le plus proche en cours... ⚡",
+                new Dictionary<string, string>(), ct);
         }
 
         /// <summary>
@@ -477,7 +536,7 @@ namespace Wazap.Application.Services
         /// </summary>
         private Task SendStatusAsync(
             string? phoneNumber,
-            string templateName,
+            string? templateName,
             string textMessage,
             Dictionary<string, string> variables,
             CancellationToken ct = default)

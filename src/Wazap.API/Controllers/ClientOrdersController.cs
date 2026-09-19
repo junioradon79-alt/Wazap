@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using QRCoder;
 using Wazap.API.Services;
+using Wazap.Application.Configuration;
 using Wazap.Application.Services;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
@@ -22,17 +24,23 @@ public class ClientOrdersController : ControllerBase
     private readonly DeliveryOfferService _deliveryOfferService;
     private readonly ClientPaymentService _clientPayments;
     private readonly RiderService _riderService;
+    private readonly WhatsAppOrchestrationService? _whatsApp;
+    private readonly ClientOptions _clientOptions;
 
     public ClientOrdersController(
         ApplicationDbContext context,
         DeliveryOfferService deliveryOfferService,
         ClientPaymentService clientPayments,
-        RiderService riderService)
+        RiderService riderService,
+        WhatsAppOrchestrationService? whatsApp = null,
+        ClientOptions? clientOptions = null)
     {
         _context = context;
         _deliveryOfferService = deliveryOfferService;
         _clientPayments = clientPayments;
         _riderService = riderService;
+        _whatsApp = whatsApp;
+        _clientOptions = clientOptions ?? new ClientOptions();
     }
 
     // GET: api/client/orders/{id} — état visible par le client (public, id non devinable)
@@ -54,6 +62,13 @@ public class ClientOrdersController : ControllerBase
                 .FirstOrDefaultAsync()
             : null;
 
+        var riderName = order.RiderUserId is { } riderId
+            ? await _context.Users.AsNoTracking()
+                .Where(u => u.Id == riderId)
+                .Select(u => u.Username)
+                .FirstOrDefaultAsync()
+            : null;
+
         var rating = await _context.RiderRatings.AsNoTracking()
             .Where(r => r.OrderId == id)
             .Select(r => new { r.Score, r.Comment, r.CreatedAt })
@@ -70,10 +85,15 @@ public class ClientOrdersController : ControllerBase
             id = order.Id,
             code = order.Id.ToString("N")[..8].ToUpperInvariant(),
             vendorName,
+            riderName,
             status = order.Status.ToString(),
             description = order.Description,
             amount = order.Amount,
+            deliveryFee = order.DeliveryFee,
+            totalAmount = order.TotalAmount,
             deliveryCode = order.DeliveryCode,
+            qrUrl = $"/api/client/orders/{order.Id}/qr",
+            trackingUrl = $"{_clientOptions.TrackingBaseUrl.TrimEnd('/')}/{order.Id}",
             hasProofPhoto = order.DeliveryProofPhotoFileName != null,
             riderPhone = order.RiderWhatsAppNumber,
             needsCoordinates = order.RequiresClientCoordinates,
@@ -263,7 +283,147 @@ public class ClientOrdersController : ControllerBase
             comment = rating.Comment
         });
     }
+
+    // GET: api/client/orders/{id}/qr — QR Code de livraison à scanner par le livreur
+    [HttpGet("{id:guid}/qr")]
+    [EnableRateLimiting("client")]
+    public async Task<IActionResult> GetDeliveryQr(Guid id)
+    {
+        var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id);
+        if (order is null)
+            return NotFound();
+
+        var code = order.EnsureDeliveryCode();
+        await _context.SaveChangesAsync();
+
+        var targetUrl = $"{_clientOptions.TrackingBaseUrl.TrimEnd('/')}/{order.Id}?valider=1&code={code}";
+
+        using var generator = new QRCodeGenerator();
+        using var qrData = generator.CreateQrCode(targetUrl, QRCodeGenerator.ECCLevel.M);
+        using var png = new PngByteQRCode(qrData);
+        var bytes = png.GetGraphic(10, drawQuietZones: true);
+
+        return File(bytes, "image/png", $"wazap-delivery-qr-{order.Id.ToString("N")[..8]}.png");
+    }
+
+    // POST: api/client/orders/{id}/start-delivery — le livreur déclenche la course ("Livraison déclenchée")
+    [HttpPost("{id:guid}/start-delivery")]
+    [EnableRateLimiting("client")]
+    public async Task<IActionResult> StartDelivery(Guid id)
+    {
+        var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id);
+        if (order is null)
+            return NotFound();
+
+        if (order.Status == OrderStatus.InTransit)
+            return Ok(new { status = order.Status.ToString(), message = "Livraison déjà en cours." });
+
+        if (order.Status is not (OrderStatus.RiderAssigned or OrderStatus.ReadyForPickup or OrderStatus.PickedUp))
+            return BadRequest(new { message = $"Impossible de démarrer la course en statut {order.Status}." });
+
+        if (order.Status == OrderStatus.RiderAssigned)
+            order.MarkReadyForPickup();
+        if (order.Status == OrderStatus.ReadyForPickup)
+            order.MarkPickedUp();
+        if (order.Status == OrderStatus.PickedUp)
+            order.MarkInTransit();
+
+        await _context.SaveChangesAsync();
+
+        if (_whatsApp is not null)
+        {
+            var rider = order.RiderUserId is { } rId
+                ? await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == rId)
+                : null;
+
+            if (rider is not null)
+            {
+                var trackingUrl = $"{_clientOptions.TrackingBaseUrl.TrimEnd('/')}/{order.Id}";
+                try
+                {
+                    await _whatsApp.SendInTransitNotificationAsync(order, rider, trackingUrl);
+                }
+                catch (Exception)
+                {
+                    // Best effort
+                }
+            }
+        }
+
+        return Ok(new { status = order.Status.ToString(), message = "Livraison déclenchée avec succès." });
+    }
+
+    // POST: api/client/orders/{id}/validate-delivery — validation de remise (scan QR ou code PIN)
+    [HttpPost("{id:guid}/validate-delivery")]
+    [EnableRateLimiting("client")]
+    public async Task<IActionResult> ValidateDelivery(Guid id, [FromBody] ValidateDeliveryRequest request)
+    {
+        var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id);
+        if (order is null)
+            return NotFound();
+
+        if (order.Status == OrderStatus.Delivered)
+            return Ok(new { status = order.Status.ToString(), message = "Commande déjà validée et livrée." });
+
+        if (order.Status is not (OrderStatus.RiderAssigned or OrderStatus.ReadyForPickup or OrderStatus.PickedUp or OrderStatus.InTransit))
+            return BadRequest(new { message = $"Impossible de valider la livraison en statut {order.Status}." });
+
+        var verifyResult = order.VerifyDeliveryCode(request.Code);
+        if (verifyResult is DeliveryCodeResult.Mismatch or DeliveryCodeResult.Locked)
+        {
+            await _context.SaveChangesAsync();
+            var remaining = Order.MaxDeliveryCodeAttempts - order.DeliveryCodeAttempts;
+            return BadRequest(new
+            {
+                message = verifyResult == DeliveryCodeResult.Mismatch
+                    ? "Code PIN incorrect."
+                    : "Trop de tentatives erronées. Contactez le vendeur.",
+                remainingAttempts = Math.Max(0, remaining)
+            });
+        }
+
+        if (order.Status == OrderStatus.RiderAssigned)
+            order.MarkReadyForPickup();
+        if (order.Status == OrderStatus.ReadyForPickup)
+            order.MarkPickedUp();
+        if (order.Status == OrderStatus.PickedUp)
+            order.MarkInTransit();
+        if (order.Status == OrderStatus.InTransit)
+            order.MarkDelivered();
+
+        await _context.SaveChangesAsync();
+
+        if (_whatsApp is not null)
+        {
+            var rider = order.RiderUserId is { } rId
+                ? await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == rId)
+                : null;
+
+            if (rider is not null)
+            {
+                var vendorDashboardUrl = "https://junioradon79gm-001-site1.jtempurl.com/app/vendor/dashboard";
+                try
+                {
+                    await _whatsApp.SendDeliveredNotificationsAsync(order, rider, vendorDashboardUrl);
+                }
+                catch (Exception)
+                {
+                    // Best effort
+                }
+            }
+        }
+
+        return Ok(new
+        {
+            status = order.Status.ToString(),
+            message = "Livraison validée avec succès !",
+            amount = order.Amount,
+            deliveryFee = order.DeliveryFee,
+            totalAmount = order.TotalAmount
+        });
+    }
 }
 
 public sealed record SetClientCoordinatesRequest(double Latitude, double Longitude, string? Address);
 public sealed record SubmitClientRatingRequest(int Score, string? Comment);
+public sealed record ValidateDeliveryRequest(string Code);

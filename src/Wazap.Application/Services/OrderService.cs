@@ -75,6 +75,10 @@ public sealed class OrderService
             }
         }
 
+        var deliveryFee = request.DeliveryFee.HasValue && request.DeliveryFee.Value > 0
+            ? request.DeliveryFee.Value
+            : 1000m;
+
         var order = lines is not null
             ? new Order(
                 request.ClientName,
@@ -82,13 +86,15 @@ public sealed class OrderService
                 request.VendorWhatsAppNumber,
                 vendor.Id,
                 lines,
-                request.Description)
+                request.Description,
+                deliveryFee)
             : new Order(
                 request.ClientName,
                 request.ClientWhatsAppNumber,
                 request.VendorWhatsAppNumber,
                 request.Description,
-                request.Amount);
+                request.Amount,
+                deliveryFee);
 
         // Le vendeur résolu (via son numéro WhatsApp) devient propriétaire de la commande.
         order.LinkVendor(vendor.Id);

@@ -136,4 +136,72 @@ public class ClientOrdersControllerTests : IDisposable
         var result = await _controller.GetProofPhoto(order.Id);
         Assert.IsType<NotFoundResult>(result);
     }
+
+    [Fact]
+    public async Task GetDeliveryQr_ReturnsPngFileBytes()
+    {
+        var order = new Order("Client E", "+2250500000005", "+2250700000001", "Colis QR", 8000m);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var result = await _controller.GetDeliveryQr(order.Id);
+        var fileResult = Assert.IsType<FileContentResult>(result);
+
+        Assert.Equal("image/png", fileResult.ContentType);
+        Assert.NotEmpty(fileResult.FileContents);
+        Assert.NotNull(order.DeliveryCode);
+    }
+
+    [Fact]
+    public async Task StartDelivery_TransitionsOrderToInTransit()
+    {
+        var rider = new User("rider_express", "hash", UserRole.Rider, "+2250100000009");
+        _db.Users.Add(rider);
+
+        var order = new Order("Client F", "+2250500000006", "+2250700000001", "Colis Express", 9000m);
+        order.ConfirmByVendor();
+        order.AwaitRiderAcceptance();
+        order.AssignRider(rider.PhoneNumber!);
+        order.LinkRider(rider.Id);
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        var result = await _controller.StartDelivery(order.Id);
+        var okResult = Assert.IsType<OkObjectResult>(result);
+
+        dynamic val = okResult.Value!;
+        Assert.Equal("InTransit", (string)val.status);
+        Assert.Equal(OrderStatus.InTransit, order.Status);
+    }
+
+    [Fact]
+    public async Task ValidateDelivery_WhenCodeMatches_MarksDelivered()
+    {
+        var rider = new User("rider_speedy", "hash", UserRole.Rider, "+2250100000010");
+        _db.Users.Add(rider);
+
+        var order = new Order("Client G", "+2250500000007", "+2250700000001", "Colis Validé", 12000m);
+        order.ConfirmByVendor();
+        order.AwaitRiderAcceptance();
+        order.AssignRider(rider.PhoneNumber!);
+        order.LinkRider(rider.Id);
+        var pin = order.EnsureDeliveryCode();
+        order.MarkReadyForPickup();
+        order.MarkPickedUp();
+        order.MarkInTransit();
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        // 1. Mauvais code -> BadRequest
+        var badResult = await _controller.ValidateDelivery(order.Id, new ValidateDeliveryRequest("9999"));
+        Assert.IsType<BadRequestObjectResult>(badResult);
+
+        // 2. Bon code -> Succès et Delivered
+        var goodResult = await _controller.ValidateDelivery(order.Id, new ValidateDeliveryRequest(pin));
+        var okResult = Assert.IsType<OkObjectResult>(goodResult);
+        dynamic val = okResult.Value!;
+        Assert.Equal("Delivered", (string)val.status);
+        Assert.Equal(OrderStatus.Delivered, order.Status);
+    }
 }
+

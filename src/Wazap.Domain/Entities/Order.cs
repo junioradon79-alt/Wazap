@@ -20,7 +20,16 @@ public class Order
     /// <summary>Lot de livraison groupée auquel appartient la commande (null = commande seule).</summary>
     public Guid? BatchId { get; private set; }
     public string Description { get; private set; } = default!;
+
+    /// <summary>Prix de la marchandise livrée (FCFA), revenant au vendeur.</summary>
     public decimal Amount { get; private set; }
+
+    /// <summary>Frais de livraison (FCFA) dus au livreur pour sa course (1 000 à 2 000 FCFA).</summary>
+    public decimal DeliveryFee { get; private set; } = 1000m;
+
+    /// <summary>Montant total (marchandise + livraison) dû par le client final (FCFA).</summary>
+    public decimal TotalAmount => Amount + DeliveryFee;
+
     public DateTime CreatedAt { get; private set; }
     public DateTime? VendorConfirmedAt { get; private set; }
     public DateTime? RiderAssignedAt { get; private set; }
@@ -64,7 +73,7 @@ public class Order
     public List<OrderLine> OrderLines { get; private set; } = new();
 
     // Constructeur public pour la création (mode texte libre)
-    public Order(string clientName, string clientWhatsAppNumber, string vendorWhatsAppNumber, string description, decimal amount)
+    public Order(string clientName, string clientWhatsAppNumber, string vendorWhatsAppNumber, string description, decimal amount, decimal deliveryFee = 1000m)
     {
         Id = Guid.NewGuid();
         ClientName = clientName;
@@ -72,12 +81,13 @@ public class Order
         VendorWhatsAppNumber = vendorWhatsAppNumber;
         Description = description;
         Amount = amount;
+        DeliveryFee = deliveryFee >= 0 ? deliveryFee : 1000m;
         CreatedAt = DateTime.UtcNow;
         _status = OrderStatus.PendingVendorConfirmation;
     }
 
     // Constructeur public pour la création (mode catalogue produit)
-    public Order(string clientName, string clientWhatsAppNumber, string vendorWhatsAppNumber, Guid vendorUserId, List<OrderLine> lines, string description)
+    public Order(string clientName, string clientWhatsAppNumber, string vendorWhatsAppNumber, Guid vendorUserId, List<OrderLine> lines, string description, decimal deliveryFee = 1000m)
     {
         Id = Guid.NewGuid();
         ClientName = clientName;
@@ -85,10 +95,18 @@ public class Order
         VendorWhatsAppNumber = vendorWhatsAppNumber;
         VendorUserId = vendorUserId;
         Description = description;
+        DeliveryFee = deliveryFee >= 0 ? deliveryFee : 1000m;
         foreach (var line in lines)
             AddLine(line);
         CreatedAt = DateTime.UtcNow;
         _status = OrderStatus.PendingVendorConfirmation;
+    }
+
+    public void SetDeliveryFee(decimal deliveryFee)
+    {
+        if (deliveryFee < 0)
+            throw new ArgumentOutOfRangeException(nameof(deliveryFee), "Les frais de livraison ne peuvent pas être négatifs.");
+        DeliveryFee = deliveryFee;
     }
 
     public void AddLine(OrderLine line)

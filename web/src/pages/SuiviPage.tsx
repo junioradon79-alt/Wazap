@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 import type { ClientOrderStatus, ClientPaymentResponse } from '../api/types'
+import BrandLogo from '../components/BrandLogo'
 import '../styles/suivi.css'
 
 const STATUS_DETAILS: Record<string, { label: string; sub: string; step: number }> = {
@@ -83,6 +84,8 @@ const DEMO_ORDER: ClientOrderStatus = {
   status: 'InTransit',
   description: '2x Boubous brodés haut de gamme + 1 Foulard en soie',
   amount: 35000,
+  deliveryFee: 1500,
+  totalAmount: 36500,
   deliveryCode: '7492',
   riderPhone: '+2250700000002',
   needsCoordinates: false,
@@ -96,7 +99,7 @@ const DEMO_ORDER: ClientOrderStatus = {
   ],
   payment: {
     status: 'Pending',
-    amount: 35000,
+    amount: 36500,
     paymentLink: 'https://pay.wazap.ci/demo-wave',
   },
 }
@@ -128,6 +131,19 @@ export default function SuiviPage() {
   const [ratingSubmitting, setRatingSubmitting] = useState(false)
   const [ratingDone, setRatingDone] = useState(false)
   const [ratingErr, setRatingErr] = useState<string | null>(null)
+
+  // Rider QR validation state
+  const [searchParams] = useSearchParams()
+  const isRiderValidationMode = searchParams.get('valider') === '1'
+  const paramCode = searchParams.get('code') || ''
+  const [codeToValidate, setCodeToValidate] = useState(paramCode)
+  const [validatingDelivery, setValidatingDelivery] = useState(false)
+  const [validationSuccess, setValidationSuccess] = useState<string | null>(null)
+  const [validationErr, setValidationErr] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (paramCode) setCodeToValidate(paramCode)
+  }, [paramCode])
 
   const timer = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -301,6 +317,29 @@ export default function SuiviPage() {
     }
   }
 
+  const handleValidateDelivery = async () => {
+    if (!id || !codeToValidate) return
+    setValidatingDelivery(true)
+    setValidationErr(null)
+    setValidationSuccess(null)
+    try {
+      if (isDemo) {
+        setValidationSuccess('Livraison validée avec succès ! (Mode démo)')
+        if (order) {
+          setOrder({ ...order, status: 'Delivered', delivered: true })
+        }
+        return
+      }
+      await api.post(`/client/orders/${id}/validate-delivery`, { code: codeToValidate })
+      setValidationSuccess('Livraison validée avec succès ! Le vendeur a été notifié pour votre règlement.')
+      await fetchOrder()
+    } catch (e) {
+      setValidationErr(e instanceof Error ? e.message : 'Code PIN incorrect ou erreur de validation.')
+    } finally {
+      setValidatingDelivery(false)
+    }
+  }
+
   if (error) {
     return (
       <div className="suivi-page-wrapper">
@@ -351,16 +390,81 @@ export default function SuiviPage() {
       <div className="suivi-container">
         {/* TOP BAR */}
         <header className="suivi-topbar">
-          <div className="suivi-brand">
-            <span className="suivi-brand-bolt">⚡</span>
-            <span>WAZAP</span>
-            <span style={{ color: 'var(--suivi-text-muted)', fontWeight: 500, fontSize: '14px' }}>Suivi</span>
+          <div className="suivi-brand" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <BrandLogo size="sm" variant="inline" showTagline={false} />
+            <span style={{ color: 'var(--suivi-text-muted)', fontWeight: 600, fontSize: '13px', background: 'rgba(255, 255, 255, 0.06)', padding: '3px 8px', borderRadius: '6px' }}>
+              Suivi
+            </span>
           </div>
           <div className="suivi-live-tag">
             <span className="suivi-live-dot" />
             <span>En Direct</span>
           </div>
         </header>
+
+        {/* RIDER VALIDATION BANNER (when accessed with ?valider=1) */}
+        {isRiderValidationMode && !order.delivered && (
+          <section className="suivi-rider-validation-card" style={{
+            background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(0, 214, 108, 0.12))',
+            border: '2px solid var(--suivi-gold)',
+            borderRadius: '16px',
+            padding: '20px',
+            marginBottom: '20px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '26px', marginBottom: '6px' }}>🛵⚡</div>
+            <h3 style={{ margin: '0 0 6px', fontSize: '18px', color: '#fff', fontWeight: 800 }}>
+              Espace Livreur — Validation de Remise
+            </h3>
+            <p style={{ margin: '0 0 14px', fontSize: '13px', color: 'var(--suivi-text-muted)' }}>
+              Vous avez scanné le QR Code client. Confirmez le code PIN pour clôturer la livraison et déclencher le règlement de votre course.
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '14px' }}>
+              <input
+                type="text"
+                maxLength={4}
+                value={codeToValidate}
+                onChange={(e) => setCodeToValidate(e.target.value.trim())}
+                placeholder="Code à 4 chiffres"
+                style={{
+                  width: '180px',
+                  textAlign: 'center',
+                  fontSize: '22px',
+                  fontWeight: 800,
+                  letterSpacing: '6px',
+                  padding: '10px',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  background: 'rgba(0,0,0,0.4)',
+                  color: '#fff'
+                }}
+              />
+            </div>
+
+            {validationErr && (
+              <div style={{ color: '#ef4444', fontSize: '13px', marginBottom: '12px', fontWeight: 600 }}>
+                ⚠️ {validationErr}
+              </div>
+            )}
+
+            {validationSuccess && (
+              <div style={{ color: 'var(--suivi-emerald)', fontSize: '14px', fontWeight: 700, marginBottom: '12px' }}>
+                ✓ {validationSuccess}
+              </div>
+            )}
+
+            <button
+              type="button"
+              className="suivi-btn-validate"
+              disabled={validatingDelivery || codeToValidate.length < 4}
+              onClick={handleValidateDelivery}
+              style={{ width: '100%', maxWidth: '320px', margin: '0 auto', display: 'block' }}
+            >
+              {validatingDelivery ? 'Validation en cours…' : 'Valider la livraison effective ✓'}
+            </button>
+          </section>
+        )}
 
         {/* HERO STATUS CARD */}
         <section className="suivi-hero-card">
@@ -375,18 +479,34 @@ export default function SuiviPage() {
                 {copiedKey === 'code' ? 'Copié !' : 'Copier'}
               </button>
             </div>
-            {order.amount != null && order.amount > 0 && (
-              <div
-                style={{
-                  background: 'rgba(0, 214, 108, 0.12)',
-                  color: 'var(--suivi-emerald)',
-                  fontWeight: 800,
-                  fontSize: '13px',
-                  padding: '4px 10px',
-                  borderRadius: '999px',
-                }}
-              >
-                {order.amount.toLocaleString('fr-FR')} FCFA
+            {((order.amount ?? 0) > 0 || (order.deliveryFee ?? 0) > 0) && (
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                <span
+                  title="Prix de la marchandise vendue"
+                  style={{
+                    background: 'rgba(0, 214, 108, 0.12)',
+                    color: 'var(--suivi-emerald)',
+                    fontWeight: 700,
+                    fontSize: '12px',
+                    padding: '4px 9px',
+                    borderRadius: '8px',
+                  }}
+                >
+                  📦 {(order.amount ?? 0).toLocaleString('fr-FR')} F
+                </span>
+                <span
+                  title="Frais de livraison dus au livreur"
+                  style={{
+                    background: 'rgba(245, 158, 11, 0.15)',
+                    color: 'var(--suivi-gold)',
+                    fontWeight: 700,
+                    fontSize: '12px',
+                    padding: '4px 9px',
+                    borderRadius: '8px',
+                  }}
+                >
+                  🛵 {(order.deliveryFee ?? 1000).toLocaleString('fr-FR')} F
+                </span>
               </div>
             )}
           </div>
@@ -543,8 +663,22 @@ export default function SuiviPage() {
               ))}
             </div>
 
+            {/* QR Code pour scan direct par le livreur */}
+            <div style={{ textAlign: 'center', margin: '18px 0 14px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--suivi-text-muted)', marginBottom: '8px' }}>
+                📷 Ou faites scanner ce QR Code par votre livreur à l’arrivée :
+              </div>
+              <div style={{ display: 'inline-block', padding: '10px', background: '#fff', borderRadius: '12px', boxShadow: '0 4px 16px rgba(0,0,0,0.35)' }}>
+                <img
+                  src={order.qrUrl || `/api/client/orders/${order.id}/qr`}
+                  alt="QR Code de livraison"
+                  style={{ width: '150px', height: '150px', display: 'block' }}
+                />
+              </div>
+            </div>
+
             <div className="suivi-pin-note">
-              <strong>Garantie Colis Sûr :</strong> Ne communiquez ce code à votre livreur qu’au moment précis où il vous tend le colis. Ce code confirme la bonne réception.
+              <strong>Garantie Colis Sûr :</strong> Ne montrez ce QR Code ou ne communiquez ce code PIN à votre livreur qu’au moment précis où il vous remet le colis en main propre.
             </div>
           </section>
         )}
@@ -818,16 +952,24 @@ export default function SuiviPage() {
             </div>
           )}
 
-          {order.amount != null && (
-            <div className="suivi-details-row" style={{ borderBottom: 'none', paddingTop: '10px' }}>
-              <span className="suivi-details-label" style={{ fontWeight: 800, color: '#fff' }}>
-                Montant total
+          <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="suivi-details-row" style={{ fontSize: '13px' }}>
+              <span className="suivi-details-label">📦 Marchandise</span>
+              <span className="suivi-details-val" style={{ fontWeight: 600 }}>{(order.amount ?? 0).toLocaleString('fr-FR')} FCFA</span>
+            </div>
+            <div className="suivi-details-row" style={{ fontSize: '13px' }}>
+              <span className="suivi-details-label">🛵 Frais de livraison (au livreur)</span>
+              <span className="suivi-details-val" style={{ color: 'var(--suivi-gold)', fontWeight: 600 }}>{(order.deliveryFee ?? 1000).toLocaleString('fr-FR')} FCFA</span>
+            </div>
+            <div className="suivi-details-row" style={{ borderBottom: 'none', paddingTop: '8px' }}>
+              <span className="suivi-details-label" style={{ fontWeight: 800, color: '#fff', fontSize: '14px' }}>
+                Total à régler
               </span>
-              <span className="suivi-details-val" style={{ color: 'var(--suivi-emerald)', fontWeight: 800, fontSize: '15px' }}>
-                {order.amount.toLocaleString('fr-FR')} FCFA
+              <span className="suivi-details-val" style={{ color: 'var(--suivi-emerald)', fontWeight: 800, fontSize: '16px' }}>
+                {(order.totalAmount ?? ((order.amount ?? 0) + (order.deliveryFee ?? 1000))).toLocaleString('fr-FR')} FCFA
               </span>
             </div>
-          )}
+          </div>
         </section>
 
         {/* PAYMENT CARD */}
@@ -857,7 +999,7 @@ export default function SuiviPage() {
             )}
 
             <p style={{ margin: '10px 0 0', fontSize: '12px', color: 'var(--suivi-text-muted)', textAlign: 'center' }}>
-              Ou règlement en espèces directement auprès du livreur à la remise du colis.
+              Règlement en espèces à la livraison : {(order.amount ?? 0).toLocaleString('fr-FR')} F (marchandise) + {(order.deliveryFee ?? 1000).toLocaleString('fr-FR')} F (course au livreur) = <strong>{(order.totalAmount ?? ((order.amount ?? 0) + (order.deliveryFee ?? 1000))).toLocaleString('fr-FR')} FCFA</strong>.
             </p>
             {payErr && <div className="suivi-error-msg">{payErr}</div>}
           </section>

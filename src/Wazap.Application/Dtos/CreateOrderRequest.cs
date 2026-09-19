@@ -13,7 +13,11 @@ public class CreateOrderRequest
     public string ClientWhatsAppNumber { get; set; } = default!;
     public string VendorWhatsAppNumber { get; set; } = default!;
     public string Description { get; set; } = default!;
+    /// <summary>Prix de la marchandise (FCFA).</summary>
     public decimal Amount { get; set; }
+
+    /// <summary>Frais de livraison (FCFA) dus au coursier (1 000 à 2 000 FCFA, défaut 1 000 FCFA).</summary>
+    public decimal? DeliveryFee { get; set; }
 
     /// <summary>
     /// Lignes de commande issues du catalogue vendeur (Optionnel).

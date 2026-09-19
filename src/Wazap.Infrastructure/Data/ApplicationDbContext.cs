@@ -44,6 +44,11 @@ namespace Wazap.Infrastructure.Data
                 .HasPrecision(18, 2);
 
             modelBuilder.Entity<Order>()
+                .Property(o => o.DeliveryFee)
+                .HasPrecision(18, 2)
+                .HasDefaultValue(1000m);
+
+            modelBuilder.Entity<Order>()
                 .Property(o => o.DeliveryCode)
                 .HasMaxLength(4);
 

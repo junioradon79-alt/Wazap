@@ -183,6 +183,8 @@ export interface ClientOrderStatus {
   status: string
   description: string | null
   amount?: number
+  deliveryFee?: number
+  totalAmount?: number
   deliveryCode?: string | null
   hasProofPhoto?: boolean
   riderPhone?: string | null
@@ -197,6 +199,9 @@ export interface ClientOrderStatus {
   orderLines?: ClientOrderLine[]
   rating?: ClientOrderRating | null
   payment: ClientPaymentInfo | null
+  qrUrl?: string
+  riderName?: string | null
+  trackingUrl?: string
 }
 
 export interface ClientPaymentResponse {
@@ -217,6 +222,11 @@ export interface VendorOrderItem {
   description: string
   status: string
   createdAt: string
+  riderName?: string | null
+  riderPhone?: string | null
+  amount?: number
+  deliveryFee?: number
+  totalAmount?: number
 }
 
 export interface RiderCertification {

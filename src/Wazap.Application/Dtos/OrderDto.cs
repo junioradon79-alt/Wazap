@@ -7,7 +7,15 @@ public class OrderDto
     public Guid Id { get; init; }
     public string ClientName { get; init; } = default!;
     public string Description { get; init; } = default!;
+    /// <summary>Prix de la marchandise (FCFA).</summary>
     public decimal Amount { get; init; }
+
+    /// <summary>Frais de livraison dus au livreur (FCFA, typiquement 1 000 à 2 000 FCFA).</summary>
+    public decimal DeliveryFee { get; init; } = 1000m;
+
+    /// <summary>Montant total (marchandise + livraison) en FCFA.</summary>
+    public decimal TotalAmount => Amount + DeliveryFee;
+
     public OrderStatus Status { get; init; }
     public DateTime CreatedAt { get; init; }
 

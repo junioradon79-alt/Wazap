@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import BrandLogo from './BrandLogo'
 
 const NAV = [
   { to: '/', label: 'Tableau de bord', icon: '📊', end: true },
@@ -28,8 +29,8 @@ export default function Layout() {
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <div className="sidebar__brand">
-          <img src={`${import.meta.env.BASE_URL}logo.png`} alt="WAZAP" className="brand__logo-img" />
+        <div className="sidebar__brand" style={{ display: 'flex', justifyContent: 'center', padding: '12px 10px 20px' }}>
+          <BrandLogo size="md" variant="inline" />
         </div>
 
         <nav className="sidebar__nav">

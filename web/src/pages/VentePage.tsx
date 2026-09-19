@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { api } from '../api/client'
+import BrandLogo from '../components/BrandLogo'
 import '../styles/landing.css'
 
 interface CommuneInfo {
@@ -46,6 +47,58 @@ const FAQ_ITEMS = [
     a: 'Vous gardez vos habitudes : le client paie en espèces à la livraison ou par Mobile Money (Wave, Orange, MTN). WAZAP ne prend aucune commission sur le montant de vos articles.',
   },
 ]
+
+const COMPARISON_BAD = [
+  'Appels à répétition pour chercher un coursier disponible',
+  'Clients impatients qui annulent après 45 minutes d’attente',
+  'Colis perdus ou abîmés sans recours ni indemnisation',
+  'Livreurs injoignables sous la pluie ou dans les embouteillages',
+  'Commissions élevées prélevées sur vos marges commerciales',
+]
+
+const COMPARISON_GOOD = [
+  'Assignation automatique en moins de 3 minutes sur WhatsApp',
+  'Lien de suivi GPS en direct envoyé automatiquement au client',
+  'Garantie Colis Sûr avec code PIN secret et remboursement sous 48h',
+  'Flotte active de livreurs certifiés avec CNI vérifiée sur 10 communes',
+  '0% de commission sur vos articles et 15 courses offertes au départ',
+]
+
+const TESTIMONIALS = [
+  {
+    name: 'Aïcha B.',
+    role: 'Boutique Chic & Glam · Cocody Angré',
+    avatar: '/app/avatars/aicha.jpg',
+    stars: '★★★★★',
+    quote: 'Avant WAZAP, je perdais 4 à 5 ventes par jour parce que mes livreurs habituels ne décrochaient pas. Maintenant, je confirme sur WhatsApp, en 3 minutes le coursier est devant mon magasin.',
+    tag: '⚡ +120 000 F / semaine sauvés',
+  },
+  {
+    name: 'Amara T.',
+    role: 'Chez Amara Grill · Marcory Zone 4',
+    avatar: '/app/avatars/amara.jpg',
+    stars: '★★★★★',
+    quote: 'Mes braisés partent encore tout chauds ! Le client reçoit son lien GPS et son code PIN de livraison. Fini les litiges ou les contestations à l’arrivée.',
+    tag: '🛡️ Sécurité PIN Colis Sûr',
+  },
+  {
+    name: 'Fatou D.',
+    role: 'Douceurs de Fatou · Yopougon Maroc',
+    avatar: '/app/avatars/fatou.jpg',
+    stars: '★★★★★',
+    quote: 'Les 15 courses offertes m’ont convaincue tout de suite. Zéro engagement, pas d’application compliquée. Tout se passe dans WhatsApp, c’est magique pour mon commerce.',
+    tag: '🎁 15 courses sans risque',
+  },
+  {
+    name: 'Koffi E.',
+    role: 'Livreur Partenaire · Koumassi & Marcory',
+    avatar: '/app/avatars/koffi.jpg',
+    stars: '★★★★★',
+    quote: 'Je ne tourne plus à vide dans Abidjan. Les alertes tombent sur mon WhatsApp avec l’adresse exacte. Et 100% des frais de course (1 000 à 2 000 F) me reviennent directement.',
+    tag: '🛵 100% des frais au livreur',
+  },
+]
+
 
 export default function VentePage() {
   const location = useLocation()
@@ -129,9 +182,8 @@ export default function VentePage() {
       {/* Topbar sticky */}
       <header className="landing-topbar">
         <div className="landing-container landing-topbar__inner">
-          <Link to="/" className="landing-logo">
-            <div className="landing-logo__icon">⚡</div>
-            <span className="landing-logo__text">WAZAP</span>
+          <Link to="/" style={{ textDecoration: 'none' }}>
+            <BrandLogo size="md" variant="inline" showTagline={false} />
           </Link>
 
           <div className="landing-topbar__actions">
@@ -186,6 +238,15 @@ export default function VentePage() {
                 💬 Discuter en direct
               </a>
             )}
+            <a
+              href="/demo-video.html"
+              target="_blank"
+              rel="noreferrer"
+              className="landing-btn landing-btn--ghost"
+              style={{ padding: '12px 18px', fontSize: 13 }}
+            >
+              ▶️ Démo vidéo (58s)
+            </a>
           </div>
 
           <div className="landing-hero__perks">
@@ -213,7 +274,9 @@ export default function VentePage() {
           <div className="mockup-phone">
             <div className="mockup-phone__notch" />
             <div className="mockup-wa-header">
-              <div className="mockup-wa-avatar">⚡</div>
+              <div className="mockup-wa-avatar" style={{ padding: 2, background: '#fff', overflow: 'hidden' }}>
+                <img src="/app/logo-badge.png" alt="WAZAP" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '50%' }} />
+              </div>
               <div>
                 <div style={{ fontWeight: 800, fontSize: 13, color: '#fff' }}>WAZAP Livraison</div>
                 <div style={{ fontSize: 10, color: '#a7f3d0' }}>● En ligne · Abidjan</div>
@@ -289,6 +352,53 @@ export default function VentePage() {
           </div>
         </section>
       </div>
+
+      {/* Comparatif Avant / Après */}
+      <section className="landing-container" style={{ marginTop: 60 }}>
+        <div className="section-head">
+          <span className="landing-pill">POURQUOI CHOISIR WAZAP</span>
+          <h2 className="section-head__title">Fini le casse-tête des livraisons à Abidjan</h2>
+          <p className="section-head__sub">
+            Comparez la méthode artisanale avec la rapidité et la sérénité de l’automatisation WAZAP.
+          </p>
+        </div>
+
+        <div className="comparison-grid">
+          <div className="comparison-card comparison-card--bad">
+            <div className="comparison-header">
+              <span className="comparison-header__icon">❌</span>
+              <h3 className="comparison-header__title" style={{ color: '#fca5a5' }}>
+                Sans WAZAP (Méthode classique)
+              </h3>
+            </div>
+            <ul className="comparison-list">
+              {COMPARISON_BAD.map((item, idx) => (
+                <li key={idx} className="comparison-item comparison-item--bad">
+                  <span className="comparison-item__icon">✕</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="comparison-card comparison-card--good">
+            <div className="comparison-header">
+              <span className="comparison-header__icon">⚡</span>
+              <h3 className="comparison-header__title" style={{ color: '#34d399' }}>
+                Avec WAZAP (100% WhatsApp)
+              </h3>
+            </div>
+            <ul className="comparison-list">
+              {COMPARISON_GOOD.map((item, idx) => (
+                <li key={idx} className="comparison-item comparison-item--good">
+                  <span className="comparison-item__icon">✓</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
 
       {/* Audience Toggle : Commerçants vs Livreurs */}
       <section className="landing-container">
@@ -392,6 +502,36 @@ export default function VentePage() {
             </div>
           </div>
         )}
+      </section>
+
+      {/* Témoignages Commerçants avec Avatars Réels */}
+      <section className="landing-container" style={{ marginTop: 70 }}>
+        <div className="section-head">
+          <span className="landing-pill">ILS LIVRENT DÉJÀ AVEC WAZAP</span>
+          <h2 className="section-head__title">Adopté par les commerçants d’Abidjan</h2>
+          <p className="section-head__sub">
+            Découvrez comment ils ont sécurisé leurs livraisons, éliminé le stress et fidélisé leur clientèle.
+          </p>
+        </div>
+
+        <div className="testimonials-grid">
+          {TESTIMONIALS.map((t, idx) => (
+            <div key={idx} className="testimonial-card">
+              <div>
+                <div className="testimonial-header">
+                  <img src={t.avatar} alt={t.name} className="testimonial-avatar" />
+                  <div>
+                    <h4 className="testimonial-info__name">{t.name}</h4>
+                    <p className="testimonial-info__role">{t.role}</p>
+                  </div>
+                </div>
+                <div className="testimonial-stars">{t.stars}</div>
+                <p className="testimonial-quote">« {t.quote} »</p>
+              </div>
+              <div className="testimonial-tag">{t.tag}</div>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* Simulator Section */}
@@ -609,6 +749,18 @@ export default function VentePage() {
                 </p>
               </div>
 
+              {audience === 'vendor' && (
+                <div className="incentive-box">
+                  <div className="incentive-box__icon">🎁</div>
+                  <div>
+                    <div className="incentive-box__title">Pack Découverte Réservé : 15 Livraisons Offertes</div>
+                    <div className="incentive-box__sub">
+                      Profitez de 15 courses sans débourser un centime. Sans engagement, sans carte bancaire.
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {error && (
                 <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', color: '#fca5a5', padding: '12px 16px', borderRadius: 10, fontSize: 14, marginBottom: 18 }}>
                   ⚠️ {error}
@@ -641,6 +793,9 @@ export default function VentePage() {
                   </option>
                 ))}
               </select>
+              <div style={{ fontSize: 13, color: '#34d399', fontWeight: 700, marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span>🟢</span> {(COMMUNES[zone] || COMMUNES['Marcory']).ridersCount}+ livreurs certifiés actifs en ce moment à {zone}
+              </div>
 
               <label className="landing-label" htmlFor="whatsapp-phone">
                 Numéro WhatsApp joignable *
@@ -679,9 +834,13 @@ export default function VentePage() {
                 {busy ? 'Traitement de l’activation…' : '🚀 Valider et recevoir mes 15 courses gratuites'}
               </button>
 
-              <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--wz-l-text-dim)', marginTop: 14 }}>
-                🔒 Vos informations sont strictement confidentielles et ne sont jamais revendues.
-              </p>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 14, fontSize: 12, color: 'var(--wz-l-text-dim)', flexWrap: 'wrap' }}>
+                <span>🔒 100% Confidentiel</span>
+                <span>•</span>
+                <span>⚡ Activation en 5 min</span>
+                <span>•</span>
+                <span>💳 Zéro carte bancaire</span>
+              </div>
             </div>
           )}
         </div>

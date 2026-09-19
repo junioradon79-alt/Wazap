@@ -37,7 +37,6 @@ public class WebhookWhatsAppController : ControllerBase
     private readonly RiderScansOptions _scans;
     private readonly ILogger<WebhookWhatsAppController> _logger;
     private readonly IWhatsAppMessageLogService? _messageLogService;
-    private readonly string? _webhookToken;
     private readonly string? _teamPhone;
 
     // Après les extractions (P2 / C-13), le contrôleur ne dépend PLUS des services qui ont suivi
@@ -86,11 +85,15 @@ public class WebhookWhatsAppController : ControllerBase
         _messageLogService = messageLogService;
         // AUCUNE valeur de repli : un token codé en dur dans un dépôt public n'authentifie
         // rien. Non configuré => la vérification du webhook échoue (fail closed).
-        // Meta:WebhookVerifyToken (nouveau WABA) prime ; WhatChimp:WebhookToken en repli
-        // pendant la transition.
-        _webhookToken = config["Meta:WebhookVerifyToken"] ?? config["WhatChimp:WebhookToken"];
+        _metaVerifyToken = config["Meta:WebhookVerifyToken"];
+        _wahaToken = config["Waha:WebhookSecret"];
+        _whatChimpToken = config["WhatChimp:WebhookToken"];
         _teamPhone = config["Prospect:TeamPhone"];
     }
+
+    private readonly string? _metaVerifyToken;
+    private readonly string? _wahaToken;
+    private readonly string? _whatChimpToken;
 
     /// <summary>
     /// Jeton d'annulation de la requête en cours.
@@ -99,7 +102,7 @@ public class WebhookWhatsAppController : ControllerBase
     /// </summary>
     private CancellationToken RequestAborted => HttpContext?.RequestAborted ?? CancellationToken.None;
 
-    // GET: api/webhook/whatsapp — vérification passerelle (Meta Cloud API et WhatChimp legacy)
+    // GET: api/webhook/whatsapp — vérification passerelle (Meta Cloud API, WAHA et WhatChimp legacy)
     [HttpGet]
     public IActionResult Verify(
         [FromQuery(Name = "hub.mode")] string? hubMode,
@@ -108,11 +111,15 @@ public class WebhookWhatsAppController : ControllerBase
         [FromQuery] string? token,
         [FromQuery] string? challenge)
     {
-        if (string.IsNullOrWhiteSpace(_webhookToken))
+        var hasConfiguredToken = !string.IsNullOrWhiteSpace(_metaVerifyToken)
+                                 || !string.IsNullOrWhiteSpace(_wahaToken)
+                                 || !string.IsNullOrWhiteSpace(_whatChimpToken);
+
+        if (!hasConfiguredToken)
         {
             // Fail closed : mieux vaut un webhook non vérifiable qu'un webhook validé
             // par un secret connu de tous.
-            _logger.LogError("Token de vérification du webhook non configuré (Meta:WebhookVerifyToken).");
+            _logger.LogError("Aucun token de vérification de webhook configuré (Meta / WAHA / WhatChimp).");
             return StatusCode(StatusCodes.Status503ServiceUnavailable, "Webhook non configuré.");
         }
 
@@ -122,15 +129,27 @@ public class WebhookWhatsAppController : ControllerBase
             if (string.IsNullOrWhiteSpace(hubChallenge))
                 return BadRequest("hub.challenge requis.");
 
-            return SecurityHelper.FixedTimeEquals(hubVerifyToken ?? string.Empty, _webhookToken)
+            var isMetaValid = !string.IsNullOrWhiteSpace(_metaVerifyToken)
+                              && SecurityHelper.FixedTimeEquals(hubVerifyToken ?? string.Empty, _metaVerifyToken);
+            var isWahaValid = !string.IsNullOrWhiteSpace(_wahaToken)
+                              && SecurityHelper.FixedTimeEquals(hubVerifyToken ?? string.Empty, _wahaToken);
+
+            return isMetaValid || isWahaValid
                 ? Ok(hubChallenge)
                 : BadRequest("hub.verify_token invalide.");
         }
 
-        // WhatChimp legacy : token & challenge en query (retiré au jour de la bascule).
+        // WhatChimp legacy / WAHA query token : token & challenge en query
         if (!string.IsNullOrWhiteSpace(token))
         {
-            return SecurityHelper.FixedTimeEquals(token, _webhookToken)
+            var isMetaValid = !string.IsNullOrWhiteSpace(_metaVerifyToken)
+                              && SecurityHelper.FixedTimeEquals(token, _metaVerifyToken);
+            var isWahaValid = !string.IsNullOrWhiteSpace(_wahaToken)
+                              && SecurityHelper.FixedTimeEquals(token, _wahaToken);
+            var isWhatChimpValid = !string.IsNullOrWhiteSpace(_whatChimpToken)
+                                   && SecurityHelper.FixedTimeEquals(token, _whatChimpToken);
+
+            return isMetaValid || isWahaValid || isWhatChimpValid
                 ? Ok(challenge)
                 : BadRequest("Token invalide.");
         }
@@ -197,6 +216,57 @@ public class WebhookWhatsAppController : ControllerBase
                 {
                     // Le traitement a échoué : on libère le marqueur pour que la reprise de la
                     // passerelle puisse retraiter le message (sinon il serait perdu).
+                    if (!string.IsNullOrWhiteSpace(messageId))
+                        await ReleaseClaimAsync(messageId);
+
+                    throw;
+                }
+            }
+
+            return last ?? Ok();
+        }
+
+        // Passerelle WAHA (WhatsApp HTTP API) : payload autonome { event, session, payload }
+        if (WahaWebhookParser.IsWahaPayload(raw))
+        {
+            var events = WahaWebhookParser.ParseAll(raw);
+            if (events.Count == 0)
+                return Ok(); // messages fromMe ignorés, accusés de réception, etc.
+
+            IActionResult? last = null;
+            foreach (var wahaEvent in events)
+            {
+                var messageId = wahaEvent.MessageId;
+                if (!string.IsNullOrWhiteSpace(messageId) && !await TryClaimMessageAsync(messageId))
+                {
+                    _logger.LogInformation(
+                        "Webhook WAHA {MessageId} déjà traité : ignoré (reprise de la passerelle).", messageId);
+                    continue;
+                }
+
+                try
+                {
+                    if (_messageLogService != null && !string.IsNullOrWhiteSpace(wahaEvent.From))
+                    {
+                        var msgType = !string.IsNullOrWhiteSpace(wahaEvent.MediaId) ? "Media" :
+                                      !string.IsNullOrWhiteSpace(wahaEvent.ButtonId) ? "Interactive" : "Text";
+                        await _messageLogService.LogInboundAsync(
+                            wahaEvent.From,
+                            wahaEvent.Text ?? wahaEvent.ButtonTitle,
+                            msgType,
+                            provider: "WAHA",
+                            providerMessageId: messageId,
+                            ct: RequestAborted);
+                    }
+
+                    last = await RouteMessageAsync(
+                        wahaEvent.From, wahaEvent.Text, wahaEvent.Latitude, wahaEvent.Longitude,
+                        wahaEvent.ButtonId, wahaEvent.ButtonTitle,
+                        wahaEvent.MediaUrl, wahaEvent.MediaId, wahaEvent.MimeType,
+                        message: null);
+                }
+                catch
+                {
                     if (!string.IsNullOrWhiteSpace(messageId))
                         await ReleaseClaimAsync(messageId);
 
@@ -353,17 +423,18 @@ public class WebhookWhatsAppController : ControllerBase
             .Select(v => v!.Trim().ToLowerInvariant())
             .ToList();
 
-        var shortText = text is { Length: <= 25 } ? text.Trim().ToLowerInvariant() : null;
+        var shortText = text is { Length: <= 30 } ? text.Trim().ToLowerInvariant() : null;
+        var orderCode = ExtractOrderCode(text ?? buttonId);
 
-        var wantsConfirm = vendorButtonReplies.Any(r => r.Contains("confirmer"))
-                           || (shortText is not null && shortText.Contains("confirmer"));
-        var wantsReject = vendorButtonReplies.Any(r => r.Contains("refuser"))
-                          || (shortText is not null && shortText.Contains("refuser"));
+        var wantsConfirm = vendorButtonReplies.Any(r => r.Contains("confirmer") || r.Contains("confirm") || r == "oui" || r == "valider")
+                           || (shortText is not null && (shortText.Contains("confirmer") || shortText.StartsWith("oui") || shortText.Contains("valide") || shortText.StartsWith("accepte")));
+        var wantsReject = vendorButtonReplies.Any(r => r.Contains("refuser") || r.Contains("reject") || r == "non")
+                          || (shortText is not null && (shortText.Contains("refuser") || shortText.StartsWith("non") || shortText.Contains("annuler")));
 
-        if (wantsConfirm && await ConfirmOrRejectAsync(phone, confirm: true))
+        if (wantsConfirm && await ConfirmOrRejectAsync(phone, confirm: true, orderCode))
             return Ok();
 
-        if (wantsReject && await ConfirmOrRejectAsync(phone, confirm: false))
+        if (wantsReject && await ConfirmOrRejectAsync(phone, confirm: false, orderCode))
             return Ok();
 
         // 3) Numéro de l'ÉQUIPE (Prospect:TeamPhone) → commande « CONVERTIR [+numéro] » :
@@ -385,16 +456,20 @@ public class WebhookWhatsAppController : ControllerBase
                 return Ok();
         }
 
-        // 4) Réponse à une offre de course (livreur) : acceptation (« ACCEPTE {code} » / bouton « Accepter »)
-        //    ou refus explicite (« REFUSE {code} », « NON {code} » / bouton « Refuser ») — chantier T3.
-        var isAccept = (text?.TrimStart().StartsWith("ACCEPTE", StringComparison.OrdinalIgnoreCase) == true)
-                    || (text?.TrimStart().StartsWith("ACCEPT", StringComparison.OrdinalIgnoreCase) == true)
+        // 4) Réponse à une offre de course (livreur) : acceptation (« ACCEPTE {code} » / bouton « Accepter » / « 1 » / « OUI »)
+        //    ou refus explicite (« REFUSE {code} », « NON {code} » / bouton « Refuser » / « 2 ») — chantier T3.
+        var trimmedText = text?.Trim();
+        var isAccept = (trimmedText?.StartsWith("ACCEPTE", StringComparison.OrdinalIgnoreCase) == true)
+                    || (trimmedText?.StartsWith("ACCEPT", StringComparison.OrdinalIgnoreCase) == true)
+                    || string.Equals(trimmedText, "1", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(trimmedText, "OUI", StringComparison.OrdinalIgnoreCase)
                     || (!string.IsNullOrWhiteSpace(buttonId) && buttonId.StartsWith("ACCEPT", StringComparison.OrdinalIgnoreCase))
                     || (!string.IsNullOrWhiteSpace(buttonTitle) && buttonTitle.Contains("accept", StringComparison.OrdinalIgnoreCase));
 
-        var isDecline = (text?.TrimStart().StartsWith("REFUSE", StringComparison.OrdinalIgnoreCase) == true)
-                     || (text?.TrimStart().StartsWith("DECLINE", StringComparison.OrdinalIgnoreCase) == true)
-                     || (text?.TrimStart().StartsWith("NON", StringComparison.OrdinalIgnoreCase) == true)
+        var isDecline = (trimmedText?.StartsWith("REFUSE", StringComparison.OrdinalIgnoreCase) == true)
+                     || (trimmedText?.StartsWith("DECLINE", StringComparison.OrdinalIgnoreCase) == true)
+                     || (trimmedText?.StartsWith("NON", StringComparison.OrdinalIgnoreCase) == true)
+                     || string.Equals(trimmedText, "2", StringComparison.OrdinalIgnoreCase)
                      || (!string.IsNullOrWhiteSpace(buttonId) && (buttonId.StartsWith("DECLINE", StringComparison.OrdinalIgnoreCase) || buttonId.StartsWith("REFUSE", StringComparison.OrdinalIgnoreCase)))
                      || (!string.IsNullOrWhiteSpace(buttonTitle) && (buttonTitle.Contains("refus", StringComparison.OrdinalIgnoreCase) || buttonTitle.Contains("decline", StringComparison.OrdinalIgnoreCase)));
 
@@ -692,12 +767,10 @@ public class WebhookWhatsAppController : ControllerBase
     }
 
     /// <summary>
-    /// Traite une réponse « Confirmer » / « Refuser ». Retourne <c>true</c> si un ordre en
-    /// attente a été trouvé pour ce numéro (le message est alors consommé) et <c>false</c>
-    /// sinon, afin que le message poursuive son routage vers les autres bots au lieu d'être
-    /// perdu en silence.
+    /// Traite une réponse « Confirmer » / « Refuser » du vendeur.
+    /// Retourne <c>true</c> si un ordre en attente a été trouvé pour ce numéro.
     /// </summary>
-    private async Task<bool> ConfirmOrRejectAsync(string? phone, bool confirm)
+    private async Task<bool> ConfirmOrRejectAsync(string? phone, bool confirm, string? orderCode = null)
     {
         if (string.IsNullOrWhiteSpace(phone))
         {
@@ -705,7 +778,7 @@ public class WebhookWhatsAppController : ControllerBase
             return false;
         }
 
-        var order = await FindPendingOrderAsync(phone);
+        var order = await FindPendingOrderAsync(phone, orderCode);
         if (order is null)
         {
             _logger.LogDebug("Aucune commande en attente pour ce numéro : message routé normalement.");
@@ -725,6 +798,19 @@ public class WebhookWhatsAppController : ControllerBase
                 await _context.SaveChangesAsync();
                 _logger.LogInformation("Commande confirmée par le vendeur {Phone}.", phone);
 
+                var shortCode = order.Id.ToString("N")[..8].ToUpperInvariant();
+                await ReplyToPhoneAsync(phone, $"✅ Commande #{shortCode} confirmée ! Recherche des livreurs les plus proches lancée. 🛵⚡");
+
+                if (!string.IsNullOrWhiteSpace(order.ClientWhatsAppNumber))
+                {
+                    try
+                    {
+                        await _whatsAppSender.SendTextMessageAsync(order.ClientWhatsAppNumber,
+                            $"🏪 {vendor?.Username ?? "Le commerçant"} a validé votre commande #{shortCode} ! Recherche du coursier le plus proche en cours... ⚡", RequestAborted);
+                    }
+                    catch { /* best-effort */ }
+                }
+
                 // Routage : parcours acheteur (envoi du lien de suivi au client) OU groupage
                 // classique (worker). La diffusion est déclenchée par le worker/les coordonnées.
                 try
@@ -741,6 +827,7 @@ public class WebhookWhatsAppController : ControllerBase
                 order.Cancel(OrderCancellationReason.VendorRejected, "Refusée par le commerçant via WhatsApp.");
                 await _context.SaveChangesAsync();
                 _logger.LogInformation("Commande refusée par le vendeur {Phone}.", phone);
+                await ReplyToPhoneAsync(phone, "❌ Commande refusée et annulée.");
             }
         }
         catch (Exception ex)
@@ -873,17 +960,35 @@ public class WebhookWhatsAppController : ControllerBase
         return offer?.Id;
     }
 
-    private async Task<Order?> FindPendingOrderAsync(string vendorWhatsApp)
+    private async Task<Order?> FindPendingOrderAsync(string vendorWhatsApp, string? orderCode = null)
     {
         if (string.IsNullOrWhiteSpace(vendorWhatsApp)) return null;
 
-        var orders = await _context.Orders
-            .Where(o => o.Status == OrderStatus.PendingVendorConfirmation)
+        var query = _context.Orders
+            .Where(o => o.Status == OrderStatus.PendingVendorConfirmation);
+
+        var orders = await query
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();
 
+        if (!string.IsNullOrWhiteSpace(orderCode))
+        {
+            var match = orders.FirstOrDefault(o =>
+                o.Id.ToString("N").StartsWith(orderCode, StringComparison.OrdinalIgnoreCase)
+                && PhoneNumberNormalizer.SameSubscriber(o.VendorWhatsAppNumber, vendorWhatsApp));
+            if (match is not null)
+                return match;
+        }
+
         return orders.FirstOrDefault(o =>
             PhoneNumberNormalizer.SameSubscriber(o.VendorWhatsAppNumber, vendorWhatsApp));
+    }
+
+    private static string? ExtractOrderCode(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        var match = System.Text.RegularExpressions.Regex.Match(text, @"\b([A-Fa-f0-9]{6,8})\b");
+        return match.Success ? match.Groups[1].Value : null;
     }
 
     private async Task<User?> FindUserByPhoneAsync(string? phone, UserRole role)

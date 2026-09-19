@@ -28,6 +28,13 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Prise en charge dynamique du port Render / PaaS via variable d'environnement PORT
+var customPort = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(customPort) && int.TryParse(customPort, out var p))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{p}");
+}
+
 // Logs structurés JSON en production (une ligne JSON par événement, collectable tel quel) ;
 // en développement on garde la console lisible.
 if (builder.Environment.IsProduction())
@@ -97,6 +104,10 @@ builder.Services.AddSingleton(clientOptions);
 // Options templates WhatsApp
 var whatsAppOptions = builder.Configuration.GetSection(WhatsAppOptions.SectionName).Get<WhatsAppOptions>() ?? new WhatsAppOptions();
 builder.Services.AddSingleton(whatsAppOptions);
+
+// Options passerelle WAHA (WhatsApp HTTP API — devlikeapro/waha)
+var wahaOptions = builder.Configuration.GetSection(WahaOptions.SectionName).Get<WahaOptions>() ?? new WahaOptions();
+builder.Services.AddSingleton(wahaOptions);
 
 // Options passerelle Meta WhatsApp Cloud (WABA dédié) — la bascule Meta:Enabled=true
 // remplace WhatChimp pour TOUTES les notifications (envoi + médias entrants).
@@ -332,7 +343,14 @@ builder.Services.AddRateLimiter(options =>
 var sendTimeout = TimeSpan.FromSeconds(30);
 var mediaTimeout = TimeSpan.FromSeconds(60);
 
-if (metaApiOptions.Enabled)
+if (wahaOptions.Enabled)
+{
+    builder.Services.AddHttpClient<IWhatsAppSender, WahaWhatsAppSender>()
+        .ConfigureHttpClient(c => c.Timeout = sendTimeout);
+    builder.Services.AddHttpClient<IWhatsAppMediaDownloader, WahaMediaDownloader>()
+        .ConfigureHttpClient(c => c.Timeout = mediaTimeout);
+}
+else if (metaApiOptions.Enabled)
 {
     builder.Services.AddHttpClient<IWhatsAppSender, MetaCloudApiWhatsAppSender>()
         .ConfigureHttpClient(c => c.Timeout = sendTimeout);

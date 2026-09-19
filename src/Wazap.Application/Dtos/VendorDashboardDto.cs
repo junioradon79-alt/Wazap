@@ -32,7 +32,12 @@ public sealed record VendorOrderItem(
     string? ClientName,
     string Description,
     string Status,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    string? RiderName = null,
+    string? RiderPhone = null,
+    decimal Amount = 0m,
+    decimal DeliveryFee = 1000m,
+    decimal TotalAmount = 0m);
 
 public sealed record ReferredVendorItem(
     Guid Id,
