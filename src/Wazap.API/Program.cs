@@ -464,12 +464,11 @@ var app = builder.Build();
 // ⚠️ Ce contrôle est volontairement APRÈS `builder.Build()` : les outils de conception
 // (`dotnet ef migrations …`) construisent l'hôte pour récupérer le DbContext et s'arrêtent à
 // ce point. Placé avant, il faisait échouer les MIGRATIONS de production (run #62).
-if (!metaApiOptions.Enabled && string.IsNullOrWhiteSpace(builder.Configuration["WhatChimp:ApiToken"]))
+if (!wahaOptions.Enabled && !metaApiOptions.Enabled && string.IsNullOrWhiteSpace(builder.Configuration["WhatChimp:ApiToken"]))
 {
-    throw new InvalidOperationException(
-        "Aucun canal d'envoi WhatsApp configuré : Meta:Enabled est à false et "
-        + "WhatChimp:ApiToken est absent. Renseignez WhatChimp__ApiToken "
-        + "(ou activez Meta:Enabled avec son jeton) — sans quoi aucune notification ne peut partir.");
+    app.Logger.LogWarning(
+        "Aucun canal d'envoi WhatsApp actif configuré (Meta:Enabled=false, Waha:Enabled=false, WhatChimp:ApiToken absent). "
+        + "L'application démarre normalement en attente de la configuration de la passerelle WhatsApp.");
 }
 
 // Contrôle de cohérence de la configuration AVANT de servir du trafic. Auparavant, une valeur
