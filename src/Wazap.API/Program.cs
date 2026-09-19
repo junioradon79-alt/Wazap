@@ -357,12 +357,17 @@ else if (metaApiOptions.Enabled)
     builder.Services.AddHttpClient<IWhatsAppMediaDownloader, MetaCloudApiMediaDownloader>()
         .ConfigureHttpClient(c => c.Timeout = mediaTimeout);
 }
-else
+else if (!string.IsNullOrWhiteSpace(builder.Configuration["WhatChimp:ApiToken"]))
 {
     builder.Services.AddHttpClient<IWhatsAppSender, WhatChimpService>()
         .ConfigureHttpClient(c => c.Timeout = sendTimeout);
     builder.Services.AddHttpClient<IWhatsAppMediaDownloader, WhatChimpMediaDownloader>()
         .ConfigureHttpClient(c => c.Timeout = mediaTimeout);
+}
+else
+{
+    builder.Services.AddSingleton<IWhatsAppSender, NoOpWhatsAppSender>();
+    builder.Services.AddSingleton<IWhatsAppMediaDownloader, NoOpWhatsAppMediaDownloader>();
 }
 
 // Catalogue des packs prépayés (payé à l'usage, sans abonnement)
