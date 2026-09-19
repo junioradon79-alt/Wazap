@@ -70,9 +70,12 @@ builder.Services.AddSwaggerGen(options =>
 
 });
 
-// Configuration du DbContext (PostgreSQL)
+// Configuration du DbContext (PostgreSQL) — supporte aussi bien le format URI Render/PaaS (postgresql://) que le format clé-valeur standard ADO.NET.
+var rawConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var normalizedConnectionString = PostgresConnectionStringNormalizer.Normalize(rawConnectionString);
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(normalizedConnectionString));
 
 // Les services d'application dépendent du port IApplicationDbContext (implémentation réelle : ApplicationDbContext).
 builder.Services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<ApplicationDbContext>());
