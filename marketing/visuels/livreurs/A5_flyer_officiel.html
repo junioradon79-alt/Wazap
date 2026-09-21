@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>WAZAP — Flyer Officiel Recrutement Livreurs</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  body {
+    width: 896px;
+    height: 1200px;
+    overflow: hidden;
+    font-family: 'Segoe UI', system-ui, Arial, sans-serif;
+    background: #0c1811;
+    position: relative;
+  }
+
+  /* Photo de fond du livreur */
+  .bg-photo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 896px;
+    height: 1200px;
+    object-fit: cover;
+    z-index: 1;
+  }
+
+  /* Badge officiel WAZAP brodé sur le polo (recouvre exactement le faux logo) */
+  .polo-badge {
+    position: absolute;
+    top: 495px;
+    left: 493px;
+    width: 132px;
+    height: 132px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35), inset 0 0 0 2.5px #0e7a3e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    overflow: hidden;
+  }
+  .polo-badge img {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+  }
+
+  /* Carte Basse Complète : 100% opaque, Challenge + QR Code */
+  .bottom-card {
+    position: absolute;
+    bottom: 18px;
+    left: 22px;
+    right: 22px;
+    background: #ffffff;
+    border-radius: 26px;
+    padding: 20px 24px;
+    box-shadow: 0 16px 45px rgba(0,0,0,0.45);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    border: 2.5px solid #07a04b;
+  }
+
+  .offer-col {
+    flex: 1;
+    min-width: 0;
+  }
+  .gold-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff8e1;
+    color: #8c6004;
+    border: 1.5px solid #fed361;
+    font-weight: 800;
+    font-size: 13px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    margin-bottom: 7px;
+  }
+  .offer-title {
+    font-size: 24px;
+    font-weight: 900;
+    line-height: 1.15;
+    color: #0e7a3e;
+    margin-bottom: 9px;
+  }
+  .offer-title span {
+    color: #15221b;
+  }
+  .offer-rules {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 10px;
+  }
+  .rule-tag {
+    background: #e7f6ee;
+    color: #0e7a3e;
+    font-weight: 800;
+    font-size: 13px;
+    padding: 5px 11px;
+    border-radius: 8px;
+  }
+  .perks {
+    font-size: 13.5px;
+    color: #43544a;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 9px;
+  }
+  .phone-line {
+    font-size: 15.5px;
+    font-weight: 800;
+    color: #15221b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .phone-line b {
+    color: #0e7a3e;
+    font-size: 18px;
+  }
+
+  /* Bloc QR Code haute visibilité */
+  .qr-col {
+    flex: 0 0 216px;
+    background: #f7fbf8;
+    border: 2px solid #0e7a3e;
+    border-radius: 20px;
+    padding: 12px;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(14,122,62,0.18);
+  }
+  .qr-badge-title {
+    font-size: 12.5px;
+    font-weight: 900;
+    color: #0e7a3e;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .qr-box {
+    width: 180px;
+    height: 180px;
+    margin: 0 auto 6px;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    padding: 4px;
+    box-shadow: inset 0 0 0 1px #e0eee4;
+  }
+  .qr-box img {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .qr-sub {
+    font-size: 11.5px;
+    font-weight: 800;
+    color: #0e7a3e;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Photo haute qualité du coursier -->
+  <img class="bg-photo" src="A5_flyer_livreurs_redmi_15c.jpg" alt="Livreur WAZAP Redmi 15C" />
+
+  <!-- Badge officiel WAZAP brodé sur le polo -->
+  <div class="polo-badge">
+    <img src="../../../web/public/logo-badge.png" alt="Logo Officiel WAZAP" />
+  </div>
+
+  <!-- Carte basse : Offre + QR Code officiel scannable -->
+  <div class="bottom-card">
+    <div class="offer-col">
+      <div class="gold-pill">🏆 DÉFI 50 PREMIERS LIVREURS</div>
+      <h2 class="offer-title">GAGNE TON SMARTPHONE<br><span>REDMI 15C NEUF !</span></h2>
+      <div class="offer-rules">
+        <span class="rule-tag">🎯 250 livraisons</span>
+        <span class="rule-tag">👥 5 parrainages</span>
+        <span class="rule-tag">🛡️ CNI validée</span>
+      </div>
+      <div class="perks">
+        ✨ <b>0 FCFA</b> d'avance · <b>100%</b> sur WhatsApp · Payé <b>1 000 à 2 000 F</b> par course
+      </div>
+      <div class="phone-line">
+        <span>💬 WhatsApp Officiel :</span>
+        <b>+225 07 87 11 95 20</b>
+      </div>
+    </div>
+
+    <!-- QR Code scannable garanti -->
+    <div class="qr-col">
+      <div class="qr-badge-title">📲 SCANNEZ ICI</div>
+      <div class="qr-box">
+        <img src="qr-livreur.png" alt="QR Code WhatsApp WAZAP" />
+      </div>
+      <div class="qr-sub">Inscription immédiate</div>
+    </div>
+  </div>
+
+</body>
+</html>
