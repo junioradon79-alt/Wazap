@@ -81,6 +81,10 @@ public class RiderTextCommandsTests
     [Theory]
     [InlineData("DISPO", true)]
     [InlineData("INDISPO", true)]
+    [InlineData("DASHBOARD", true)]
+    [InlineData("STATS", true)]
+    [InlineData("SOLDE", true)]
+    [InlineData("TABLEAU DE BORD", true)]
     [InlineData("PROGRAMME", true)]
     [InlineData("AMBASSADEUR", true)]
     [InlineData("AVIS", true)]
@@ -191,5 +195,19 @@ public class RiderTextCommandsTests
         // Le livreur n'a encore rien livré : la progression existe malgré tout (objectifs à 0).
         Assert.NotEmpty(f.LastReply);
         Assert.DoesNotContain("n'est pas actif", f.LastReply);
+    }
+
+    [Fact]
+    public async Task Dashboard_RetourneSyntheseEtStatutLivreur()
+    {
+        using var f = new Fixture(programEnabled: true);
+
+        await f.Commands.HandleAsync(f.Rider, "DASHBOARD", f.Reply);
+
+        Assert.NotEmpty(f.LastReply);
+        Assert.Contains("TABLEAU DE BORD LIVREUR", f.LastReply);
+        Assert.Contains("livreur", f.LastReply);
+        Assert.Contains("Statut :", f.LastReply);
+        Assert.Contains("ACTIONS RAPIDES", f.LastReply);
     }
 }

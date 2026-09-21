@@ -903,10 +903,11 @@ public class WebhookWhatsAppController : ControllerBase
                   + "• ZONE <quartier> : votre zone de livraison\n"
                   + "• SINISTRE <code> : signaler un colis perdu/volé (Garantie Colis Sûr)\n"
                   + "• AIDE : ce menu"
-                : "📱 Menu livreur :\n• ZONE <quartier> : définir ta zone\n• DISPO / INDISPO : en ligne / hors ligne\n"
+                : "📱 Menu livreur :\n• DASHBOARD : tes stats, gains, courses et défi Redmi 15C\n• ZONE <quartier> : définir ta zone\n• DISPO / INDISPO : en ligne / hors ligne\n"
                   + "• ACCEPTE <code> : accepter une course\n• RECU : colis récupéré\n"
                   + "• LIVRE <code> CODE <4 chiffres> : livré (code donné par le client)\n"
-                  + "• PROGRAMME : ta progression Ambassadeur (livraisons, filleuls)";
+                  + "• PROGRAMME : ta progression Ambassadeur (livraisons, filleuls)\n"
+                  + "• AVIS : tes retours et notes clients";
 
             await ReplyAsync(user, menu);
             return true;
