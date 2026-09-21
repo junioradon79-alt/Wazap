@@ -1,10 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using Wazap.Application.Dtos;
 using Wazap.Application.Services;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
 using Wazap.Infrastructure.Data;
 using Xunit;
+
 
 namespace Wazap.UnitTests;
 
@@ -175,5 +177,36 @@ public class PaymentSplitServiceTests
         Assert.Contains(result.RiderDisbursementRef, riderMsg.Message);
         Assert.Contains("2 500", riderMsg.Message);
     }
+
+    [Fact]
+    public void CalculateSplit_OptionsFrais_Client_Vendeur_Partage()
+    {
+        // Arrange : Commande 25 000 F marchandise + 1 500 F livraison = 26 500 F
+        var order = CreateTestOrder(amount: 25000m, deliveryFee: 1500m);
+        var customFee = 300m; // Forfait sécurité 300 F
+
+        // 1. Mode Client (+300 F payés par le client, 100% net vendeur)
+        var calcClient = PaymentSplitService.CalculateSplit(order, SplitFeePayer.Client, customFee);
+        Assert.Equal(25000m, calcClient.MerchantAmount); // 100% net
+        Assert.Equal(1500m, calcClient.RiderDeliveryFee);
+        Assert.Equal(26800m, calcClient.TotalAmount);    // 26 500 + 300
+        Assert.Equal(300m, calcClient.GatewayFee);
+        Assert.Equal(SplitFeePayer.Client, calcClient.FeePayer);
+
+        // 2. Mode Vendeur (-300 F pris en charge par le vendeur, client paye prix normal)
+        var calcVendor = PaymentSplitService.CalculateSplit(order, SplitFeePayer.Vendor, customFee);
+        Assert.Equal(24700m, calcVendor.MerchantAmount); // 25 000 - 300
+        Assert.Equal(1500m, calcVendor.RiderDeliveryFee);
+        Assert.Equal(26500m, calcVendor.TotalAmount);    // 26 500 pile
+        Assert.Equal(SplitFeePayer.Vendor, calcVendor.FeePayer);
+
+        // 3. Mode Partagé 50/50 (+150 F client / -150 F vendeur)
+        var calcShared = PaymentSplitService.CalculateSplit(order, SplitFeePayer.Shared, customFee);
+        Assert.Equal(24850m, calcShared.MerchantAmount); // 25 000 - 150
+        Assert.Equal(1500m, calcShared.RiderDeliveryFee);
+        Assert.Equal(26650m, calcShared.TotalAmount);    // 26 500 + 150
+        Assert.Equal(SplitFeePayer.Shared, calcShared.FeePayer);
+    }
 }
+
 

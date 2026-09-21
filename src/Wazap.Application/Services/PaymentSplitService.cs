@@ -53,15 +53,43 @@ public sealed class PaymentSplitService
         amount.ToString("#,##0", CultureInfo.InvariantCulture).Replace(",", " ");
 
     /// <summary>
-    /// Calcule la ventilation exacte des montants pour une commande (Marchandise vs Livraison).
+    /// Calcule la ventilation exacte des montants pour une commande (Marchandise vs Livraison vs Frais de sécurité).
+    /// Supporte la répartition des frais : Client (+frais), Vendeur (-frais), ou Partagé 50/50.
     /// </summary>
-    public static SplitPaymentCalculation CalculateSplit(Order order)
+    public static SplitPaymentCalculation CalculateSplit(Order order, SplitFeePayer? feePayer = null, decimal? customGatewayFee = null)
     {
         ArgumentNullException.ThrowIfNull(order);
 
-        var merchantAmount = order.Amount;
+        // Frais passerelle estimés ou réels (par défaut ~1.5% ou forfait 300 FCFA si l'option est activée)
+        var gatewayFee = customGatewayFee ?? (feePayer.HasValue ? Math.Round(order.TotalAmount * 0.015m, 0, MidpointRounding.AwayFromZero) : 0m);
+        if (feePayer.HasValue && gatewayFee < 100m) gatewayFee = 100m;
+
+        decimal clientExtra = 0;
+        decimal vendorDeduction = 0;
+
+        if (feePayer.HasValue)
+        {
+            switch (feePayer.Value)
+            {
+                case SplitFeePayer.Client:
+                    clientExtra = gatewayFee;
+                    vendorDeduction = 0;
+                    break;
+                case SplitFeePayer.Vendor:
+                    clientExtra = 0;
+                    vendorDeduction = gatewayFee;
+                    break;
+                case SplitFeePayer.Shared:
+                    var half = Math.Round(gatewayFee / 2m, 0, MidpointRounding.AwayFromZero);
+                    clientExtra = half;
+                    vendorDeduction = gatewayFee - half;
+                    break;
+            }
+        }
+
+        var merchantAmount = Math.Max(0, order.Amount - vendorDeduction);
         var riderFee = order.DeliveryFee;
-        var total = order.TotalAmount;
+        var total = order.TotalAmount + clientExtra;
         var code = order.Id.ToString("N")[..8].ToUpperInvariant();
 
         return new SplitPaymentCalculation(
@@ -71,7 +99,9 @@ public sealed class PaymentSplitService
             MerchantPhone: order.VendorWhatsAppNumber,
             RiderPhone: order.RiderWhatsAppNumber,
             OrderCode: code,
-            PaymentDescription: $"WAZAP #{code} : {order.Description} ({FormatXof(merchantAmount)} F marchandise + {FormatXof(riderFee)} F livraison)"
+            PaymentDescription: $"WAZAP #{code} : {order.Description} ({FormatXof(merchantAmount)} F marchandise + {FormatXof(riderFee)} F livraison)",
+            GatewayFee: gatewayFee,
+            FeePayer: feePayer ?? SplitFeePayer.Client
         );
     }
 
