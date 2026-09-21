@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { api } from '../api/client'
+import { useAuth } from '../auth/AuthContext'
 import BrandLogo from '../components/BrandLogo'
 import '../styles/landing.css'
 
@@ -101,6 +102,7 @@ const TESTIMONIALS = [
 
 
 export default function VentePage() {
+  const { user } = useAuth()
   const location = useLocation()
   const query = useMemo(() => new URLSearchParams(location.search), [location.search])
   const src = query.get('src') || 'page-vente'
@@ -187,6 +189,23 @@ export default function VentePage() {
           </Link>
 
           <div className="landing-topbar__actions">
+            {user ? (
+              <Link
+                to="/"
+                className="landing-btn landing-btn--ghost"
+                style={{ padding: '8px 16px', fontSize: 13 }}
+              >
+                📊 Mon Espace
+              </Link>
+            ) : (
+              <Link
+                to="/login"
+                className="landing-btn landing-btn--ghost"
+                style={{ padding: '8px 16px', fontSize: 13 }}
+              >
+                🔐 Espace Marchand
+              </Link>
+            )}
             {waLink('Bonjour WAZAP 👋 Je souhaite avoir des informations sur la livraison de mon commerce.') && (
               <a
                 href={waLink('Bonjour WAZAP 👋 Je souhaite avoir des informations sur la livraison de mon commerce.')!}

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 
 export default function LoginPage() {
@@ -29,7 +29,7 @@ export default function LoginPage() {
       <div className="panel login-card">
         <img src={`${import.meta.env.BASE_URL}logo.png`} alt="WAZAP" className="login-logo" />
         <h1>Connexion</h1>
-        <p>Espace d'administration WAZAP</p>
+        <p>Espace Marchand & Administration</p>
 
         <form onSubmit={submit}>
           <div className="field">
@@ -60,6 +60,12 @@ export default function LoginPage() {
             {busy ? 'Connexion…' : 'Se connecter'}
           </button>
         </form>
+
+        <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: 13 }}>
+          <Link to="/" style={{ color: 'var(--color-text-muted, #64748b)', textDecoration: 'none' }}>
+            ← Retour à l'accueil WAZAP
+          </Link>
+        </div>
       </div>
     </div>
   )

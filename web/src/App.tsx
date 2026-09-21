@@ -62,13 +62,15 @@ function Protected({ children }: { children: ReactNode }) {
 }
 
 export default function App() {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
+
+  if (loading) return <PageLoader />
 
   return (
     // Le repli s'affiche le temps de charger le morceau de page demandé.
     <Suspense fallback={<PageLoader />}>
       <Routes>
-        {/* Pages publiques : suivi acheteur & page de vente (aucune authentification) */}
+        {/* Pages publiques : suivi acheteur & parrainage */}
         <Route path="/suivi/:id" element={<SuiviPage />} />
         <Route path="/vente" element={<VentePage />} />
         <Route path="/parrainage" element={<ParrainagePage />} />
@@ -76,6 +78,8 @@ export default function App() {
           path="/login"
           element={user ? <Navigate to="/" replace /> : <LoginPage />}
         />
+
+        {/* Espace connecté (Admin & Marchand) */}
         <Route
           element={
             <Protected>
@@ -83,7 +87,12 @@ export default function App() {
             </Protected>
           }
         >
-          <Route path="/" element={user?.role === 'Vendor' ? <VendorDashboardPage /> : <DashboardPage />} />
+          {user && (
+            <Route
+              path="/"
+              element={user.role === 'Vendor' ? <VendorDashboardPage /> : <DashboardPage />}
+            />
+          )}
           <Route path="/packs" element={<PacksPage />} />
           <Route path="/transactions" element={<TransactionsPage />} />
           <Route path="/vendors" element={<VendorsPage />} />
@@ -99,6 +108,10 @@ export default function App() {
           />
           <Route path="/account" element={<AccountPage />} />
         </Route>
+
+        {/* Visiteurs non connectés : la racine / affiche la vitrine officielle VentePage */}
+        {!user && <Route path="/" element={<VentePage />} />}
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

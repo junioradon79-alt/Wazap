@@ -1,0 +1,286 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "wazap_whatsapp_templates",
+  "waba_name": "WAZAP CI",
+  "language": "fr",
+  "templates": [
+    {
+      "name": "order_confirm",
+      "category": "UTILITY",
+      "language": "fr",
+      "components": [
+        {
+          "type": "HEADER",
+          "format": "TEXT",
+          "text": "🛎️ Nouvelle commande"
+        },
+        {
+          "type": "BODY",
+          "text": "Bonjour, vous avez reçu une nouvelle commande de {{1}} : {{2}} pour un montant de {{3}} FCFA.\n\nRépondez Confirmer pour lancer la recherche d'un coursier, ou Refuser.",
+          "example": {
+            "body_text": [
+              ["Mme Koné", "Robe fleurie taille M", "15000"]
+            ]
+          }
+        },
+        {
+          "type": "FOOTER",
+          "text": "WAZAP · Livraisons Abidjan"
+        },
+        {
+          "type": "BUTTONS",
+          "buttons": [
+            { "type": "QUICK_REPLY", "text": "Confirmer" },
+            { "type": "QUICK_REPLY", "text": "Refuser" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "order_received",
+      "category": "UTILITY",
+      "language": "fr",
+      "components": [
+        {
+          "type": "HEADER",
+          "format": "TEXT",
+          "text": "✅ Commande prise en compte"
+        },
+        {
+          "type": "BODY",
+          "text": "Bonjour ! {{2}} a bien validé votre commande #{{1}}.\nDélai estimé : {{3}}.\nVotre livreur vous contactera dès le départ de la course.",
+          "example": {
+            "body_text": [
+              ["A8B39F21", "Boutique Chic & Glam", "15-30 minutes"]
+            ]
+          }
+        },
+        {
+          "type": "FOOTER",
+          "text": "WAZAP · Livraisons Abidjan"
+        }
+      ]
+    },
+    {
+      "name": "rider_offer_v2",
+      "category": "UTILITY",
+      "language": "fr",
+      "components": [
+        {
+          "type": "HEADER",
+          "format": "TEXT",
+          "text": "🛵 Nouvelle course disponible"
+        },
+        {
+          "type": "BODY",
+          "text": "Une course est disponible à proximité de votre position.\n\nPour prendre la course, répondez simplement ACCEPTE {{1}}.\nPremier livreur à répondre = course attribuée !",
+          "example": {
+            "body_text": [
+              ["OFFRE-492"]
+            ]
+          }
+        },
+        {
+          "type": "FOOTER",
+          "text": "WAZAP Livreur"
+        },
+        {
+          "type": "BUTTONS",
+          "buttons": [
+            { "type": "QUICK_REPLY", "text": "ACCEPTE {{1}}" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rider_batch_offer",
+      "category": "UTILITY",
+      "language": "fr",
+      "components": [
+        {
+          "type": "HEADER",
+          "format": "TEXT",
+          "text": "📦 Tournée groupée disponible"
+        },
+        {
+          "type": "BODY",
+          "text": "Livraison groupée : {{1}} commandes à récupérer chez le même vendeur.\n\nRépondez ACCEPTE {{2}} pour prendre la totalité de la tournée.",
+          "example": {
+            "body_text": [
+              ["3", "LOT-781"]
+            ]
+          }
+        },
+        {
+          "type": "FOOTER",
+          "text": "WAZAP Livreur"
+        }
+      ]
+    },
+    {
+      "name": "rider_assigned_client",
+      "category": "UTILITY",
+      "language": "fr",
+      "components": [
+        {
+          "type": "HEADER",
+          "format": "TEXT",
+          "text": "🛵 Votre livreur est en route"
+        },
+        {
+          "type": "BODY",
+          "text": "Bonjour ! Votre livreur {{2}} a accepté la livraison de votre commande #{{1}}.\n\nIl récupère votre colis et arrive vers vous. Gardez votre téléphone à portée de main !",
+          "example": {
+            "body_text": [
+              ["A8B39F21", "Mamadou K."]
+            ]
+          }
+        },
+        {
+          "type": "FOOTER",
+          "text": "WAZAP · Livraisons Abidjan"
+        }
+      ]
+    },
+    {
+      "name": "rider_assigned_vendor",
+      "category": "UTILITY",
+      "language": "fr",
+      "components": [
+        {
+          "type": "HEADER",
+          "format": "TEXT",
+          "text": "🏍️ Coursier en approche"
+        },
+        {
+          "type": "BODY",
+          "text": "Le livreur {{1}} a accepté la commande #{{3}} pour votre client {{2}}.\n\nIl arrive à votre point de collecte. Merci de préparer le colis scellé.",
+          "example": {
+            "body_text": [
+              ["Mamadou K.", "Mme Koné", "A8B39F21"]
+            ]
+          }
+        },
+        {
+          "type": "FOOTER",
+          "text": "WAZAP Marchand"
+        }
+      ]
+    },
+    {
+      "name": "delivery_code",
+      "category": "AUTHENTICATION",
+      "language": "fr",
+      "components": [
+        {
+          "type": "BODY",
+          "text": "Votre code secret de livraison Colis Sûr est : {{1}}.\n\nNe donnez ce code au livreur qu'au moment précis où vous avez votre colis en mains propres !",
+          "example": {
+            "body_text": [
+              ["7492"]
+            ]
+          }
+        },
+        {
+          "type": "FOOTER",
+          "text": "WAZAP · Sécurité Colis Sûr"
+        }
+      ]
+    },
+    {
+      "name": "client_tracking_link",
+      "category": "UTILITY",
+      "language": "fr",
+      "components": [
+        {
+          "type": "HEADER",
+          "format": "TEXT",
+          "text": "📍 Suivi de votre livraison"
+        },
+        {
+          "type": "BODY",
+          "text": "{{1}} a préparé votre commande #{{2}} !\n\nConfirmez votre adresse et suivez votre coursier en direct sur la carte : {{3}}",
+          "example": {
+            "body_text": [
+              ["Boutique Chic & Glam", "A8B39F21", "https://wazap-api.onrender.com/app/suivi/A8B39F21"]
+            ]
+          }
+        },
+        {
+          "type": "FOOTER",
+          "text": "WAZAP · Suivi en direct"
+        }
+      ]
+    },
+    {
+      "name": "credit_purchase",
+      "category": "UTILITY",
+      "language": "fr",
+      "components": [
+        {
+          "type": "HEADER",
+          "format": "TEXT",
+          "text": "🎉 Pack de crédits activé"
+        },
+        {
+          "type": "BODY",
+          "text": "Félicitations ! Vous avez acheté le pack {{1}}.\n\nVous disposez maintenant de {{2}} courses de livraison disponibles sur WAZAP.\nBons envois à Abidjan !",
+          "example": {
+            "body_text": [
+              ["Pack Moyen - 80 courses", "80"]
+            ]
+          }
+        },
+        {
+          "type": "FOOTER",
+          "text": "WAZAP Marchand"
+        }
+      ]
+    },
+    {
+      "name": "low_credit",
+      "category": "UTILITY",
+      "language": "fr",
+      "components": [
+        {
+          "type": "HEADER",
+          "format": "TEXT",
+          "text": "⚠️ Solde de crédits bientôt épuisé"
+        },
+        {
+          "type": "BODY",
+          "text": "Attention : il ne vous reste que {{1}} courses de livraison sur votre compte WAZAP.\n\nRechargez dès maintenant pour continuer à livrer vos clients sans aucune interruption.",
+          "example": {
+            "body_text": [
+              ["3"]
+            ]
+          }
+        },
+        {
+          "type": "FOOTER",
+          "text": "WAZAP Marchand"
+        }
+      ]
+    },
+    {
+      "name": "no_credit",
+      "category": "UTILITY",
+      "language": "fr",
+      "components": [
+        {
+          "type": "HEADER",
+          "format": "TEXT",
+          "text": "🚫 Plus de crédits disponibles"
+        },
+        {
+          "type": "BODY",
+          "text": "Vous n'avez plus de crédits de livraison sur votre compte WAZAP.\n\nAchetez un nouveau pack depuis votre espace marchand pour continuer à expédier vos colis."
+        },
+        {
+          "type": "FOOTER",
+          "text": "WAZAP Marchand"
+        }
+      ]
+    }
+  ]
+}

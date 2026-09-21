@@ -694,7 +694,9 @@ app.MapRazorComponents<App>()
 app.MapFallbackToFile("app/{*path:nonfile}", "app/index.html");
 
 // Liens courts marketing (évitent le long préfixe /app) :
+//   /            → redirection vers la vitrine /app
 //   /vente       → page de vente          ·   /parrainage → page parrainage
+app.MapGet("/", () => Results.Redirect("/app"));
 app.MapGet("/vente", () => Results.Redirect("/app/vente"));
 app.MapGet("/parrainage", () => Results.Redirect("/app/parrainage"));
 
