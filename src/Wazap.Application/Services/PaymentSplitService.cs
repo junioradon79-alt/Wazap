@@ -60,9 +60,9 @@ public sealed class PaymentSplitService
     {
         ArgumentNullException.ThrowIfNull(order);
 
-        // Frais passerelle estimés ou réels (par défaut ~1.5% ou forfait 300 FCFA si l'option est activée)
-        var gatewayFee = customGatewayFee ?? (feePayer.HasValue ? Math.Round(order.TotalAmount * 0.015m, 0, MidpointRounding.AwayFromZero) : 0m);
-        if (feePayer.HasValue && gatewayFee < 100m) gatewayFee = 100m;
+        // Frais officiels GeniusPay : 100 FCFA fixe + 1% du montant total
+        var gatewayFee = customGatewayFee ?? (feePayer.HasValue ? Math.Round(100m + (order.TotalAmount * 0.01m), 0, MidpointRounding.AwayFromZero) : 0m);
+
 
         decimal clientExtra = 0;
         decimal vendorDeduction = 0;
