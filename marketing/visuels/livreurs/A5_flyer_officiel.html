@@ -14,7 +14,7 @@
     position: relative;
   }
 
-  /* Photo de fond du livreur */
+  /* Photo haute qualité du coursier : polo vert avec texte WAZAP pur (sans dessin) */
   .bg-photo {
     position: absolute;
     top: 0;
@@ -25,29 +25,7 @@
     z-index: 1;
   }
 
-  /* Badge officiel WAZAP brodé sur le polo (recouvre exactement le faux logo) */
-  .polo-badge {
-    position: absolute;
-    top: 495px;
-    left: 493px;
-    width: 132px;
-    height: 132px;
-    border-radius: 50%;
-    background: #ffffff;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.35), inset 0 0 0 2.5px #0e7a3e;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 5;
-    overflow: hidden;
-  }
-  .polo-badge img {
-    width: 120px;
-    height: 120px;
-    object-fit: contain;
-  }
-
-  /* Carte Basse Complète : 100% opaque, Challenge + QR Code */
+  /* Carte Basse Opaque : Challenge + QR Code haute visibilité */
   .bottom-card {
     position: absolute;
     bottom: 18px;
@@ -167,13 +145,8 @@
 </head>
 <body>
 
-  <!-- Photo haute qualité du coursier -->
-  <img class="bg-photo" src="A5_flyer_livreurs_redmi_15c.jpg" alt="Livreur WAZAP Redmi 15C" />
-
-  <!-- Badge officiel WAZAP brodé sur le polo -->
-  <div class="polo-badge">
-    <img src="../../../web/public/logo-badge.png" alt="Logo Officiel WAZAP" />
-  </div>
+  <!-- Photo haute qualité : coursier à moto, polo vert avec WAZAP pur (sans dessin) -->
+  <img class="bg-photo" src="background_wazap_clean.jpg" alt="Livreur WAZAP Redmi 15C" />
 
   <!-- Carte basse : Offre + QR Code officiel scannable -->
   <div class="bottom-card">
@@ -194,7 +167,7 @@
       </div>
     </div>
 
-    <!-- QR Code scannable garanti -->
+    <!-- QR Code scannable garanti pointant sur le WhatsApp officiel -->
     <div class="qr-col">
       <div class="qr-badge-title">📲 SCANNEZ ICI</div>
       <div class="qr-box">
