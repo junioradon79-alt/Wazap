@@ -446,13 +446,14 @@ public class WebhookWhatsAppController : ControllerBase
             return Ok();
         }
 
-        // 4) Commandes texte (téléphones basiques sans GPS) : ZONE, DISPO, INDISPO, AIDE
-        if (!string.IsNullOrWhiteSpace(text))
+        // 4) Commandes texte ou boutons cliquables : ZONE, DISPO, INDISPO, RECU, DASHBOARD, AIDE
+        var effectiveText = text ?? buttonId ?? buttonTitle;
+        if (!string.IsNullOrWhiteSpace(effectiveText))
         {
             var user = await FindUserByPhoneAsync(phone, UserRole.Rider)
                        ?? await FindUserByPhoneAsync(phone, UserRole.Vendor);
 
-            if (user is not null && await TryHandleTextCommandAsync(user, text))
+            if (user is not null && await TryHandleTextCommandAsync(user, effectiveText))
                 return Ok();
         }
 

@@ -45,8 +45,8 @@ public sealed class RiderDeliveryCommands
 
     /// <summary>
     /// Reconnaît les messages pris en charge ici :
-    /// - Prise en charge / départ en livraison : RECU, EN ROUTE, PARTI, DECLENCHER, LIVRAISON DECLENCHEE
-    /// - Remise au client : LIVRE [code course] [CODE <4 chiffres>]
+    /// - Prise en charge / départ en livraison : RECU, EN ROUTE, PARTI, DECLENCHER, LIVRAISON DECLENCHEE, COLIS RECU
+    /// - Remise au client : LIVRE [code course] [CODE <4 chiffres>] OU saisie directe du code PIN 4 chiffres (ex: 4821 ou CODE 4821)
     /// </summary>
     public static bool Matches(string upperText)
         => upperText == "RECU" || upperText.StartsWith("RECU ")
@@ -54,29 +54,51 @@ public sealed class RiderDeliveryCommands
            || upperText == "PARTI" || upperText.StartsWith("PARTI ")
            || upperText == "DECLENCHER" || upperText.StartsWith("DECLENCHER ")
            || upperText == "LIVRAISON DECLENCHEE" || upperText.StartsWith("LIVRAISON DECLENCHEE ")
-           || upperText == "LIVRE" || upperText.StartsWith("LIVRE ");
+           || upperText == "COLIS RECU" || upperText.StartsWith("COLIS RECU")
+           || upperText == "LIVRE" || upperText.StartsWith("LIVRE ")
+           || IsSimplePin(upperText);
+
+    public static bool IsSimplePin(string text)
+    {
+        var t = text.Trim();
+        if (t.StartsWith("CODE ", StringComparison.OrdinalIgnoreCase))
+            t = t[5..].Trim();
+        return t.Length == 4 && t.All(char.IsDigit);
+    }
 
     /// <summary>Traite la commande. <paramref name="reply"/> envoie la réponse WhatsApp au livreur.</summary>
     public async Task HandleAsync(User user, string command, Func<User, string, Task> reply)
     {
         var upper = command.ToUpperInvariant();
-        var isPickup = upper == "RECU" || upper.StartsWith("RECU ")
+        var isSimplePin = IsSimplePin(upper);
+        var isPickup = !isSimplePin && (upper == "RECU" || upper.StartsWith("RECU ")
                        || upper == "EN ROUTE" || upper.StartsWith("EN ROUTE ")
                        || upper == "PARTI" || upper.StartsWith("PARTI ")
                        || upper == "DECLENCHER" || upper.StartsWith("DECLENCHER ")
-                       || upper == "LIVRAISON DECLENCHEE" || upper.StartsWith("LIVRAISON DECLENCHEE ");
+                       || upper == "LIVRAISON DECLENCHEE" || upper.StartsWith("LIVRAISON DECLENCHEE ")
+                       || upper == "COLIS RECU" || upper.StartsWith("COLIS RECU"));
         var marker = isPickup ? "RECU" : "LIVRE";
         var prefix = isPickup
             ? (upper.StartsWith("LIVRAISON DECLENCHEE") ? "LIVRAISON DECLENCHEE"
                : upper.StartsWith("EN ROUTE") ? "EN ROUTE"
+               : upper.StartsWith("COLIS RECU") ? "COLIS RECU"
                : upper.Split(' ')[0])
             : "LIVRE";
-        var code = command.Length > prefix.Length ? command[prefix.Length..].Trim() : string.Empty;
+        var code = !isSimplePin && command.Length > prefix.Length ? command[prefix.Length..].Trim() : string.Empty;
 
-        // Preuve de livraison : « LIVRE <code course> CODE <4 chiffres> ».
+        // Preuve de livraison : « LIVRE <code course> CODE <4 chiffres> » ou simple code PIN 4 chiffres
         string? clientCode = null;
-        if (marker == "LIVRE")
+        if (isSimplePin)
+        {
+            var raw = upper.Trim();
+            if (raw.StartsWith("CODE ", StringComparison.OrdinalIgnoreCase))
+                raw = raw[5..].Trim();
+            clientCode = raw;
+        }
+        else if (marker == "LIVRE")
+        {
             (code, clientCode) = RiderCommandParser.SplitDeliveryCommand(code);
+        }
 
         var targetStatus = marker == "RECU"
             ? OrderStatus.RiderAssigned

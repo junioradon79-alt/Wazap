@@ -106,9 +106,12 @@ public class RiderDeliveryCommandsTests
     [Theory]
     [InlineData("RECU", true)]
     [InlineData("RECU A1B2C3D4", true)]
+    [InlineData("COLIS RECU", true)]
     [InlineData("LIVRE", true)]
     [InlineData("LIVRE TOUT", true)]
     [InlineData("LIVRE A1B2C3D4 CODE 1234", true)]
+    [InlineData("1234", true)]
+    [InlineData("CODE 1234", true)]
     [InlineData("LIVREUR", false)]
     [InlineData("RECUPERE", false)]
     [InlineData("LIVRER", false)]
@@ -269,5 +272,19 @@ public class RiderDeliveryCommandsTests
         await f.Commands.HandleAsync(f.Rider, "LIVRE ZZZZZZZZ", f.Reply);
 
         Assert.Contains("Aucune course en cours de livraison", f.LastReply);
+    }
+
+    [Fact]
+    public async Task Simple4DigitPin_ClotureLaLivraisonEnTransitDirectement()
+    {
+        using var f = new Fixture();
+        var order = await f.AddOrderAsync(OrderStatus.InTransit);
+        var expectedPin = order.EnsureDeliveryCode();
+
+        // Le livreur tape UNIQUEMENT les 4 chiffres sans aucun mot de passe ni syntaxe
+        await f.Commands.HandleAsync(f.Rider, expectedPin, f.Reply);
+
+        Assert.Equal(OrderStatus.Delivered, order.Status);
+        Assert.Contains("livrée(s)", f.LastReply);
     }
 }
