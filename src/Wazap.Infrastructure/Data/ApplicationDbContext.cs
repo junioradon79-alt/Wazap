@@ -169,6 +169,19 @@ namespace Wazap.Infrastructure.Data
                 entity.HasIndex(d => new { d.ClientWhatsAppNumber, d.Stage });
             });
 
+            // Catalogue produits des vendeurs : index par vendeur et disponibilité
+            modelBuilder.Entity<VendorProduct>(entity =>
+            {
+                entity.Property(p => p.Name).HasMaxLength(100);
+                entity.Property(p => p.Description).HasMaxLength(300);
+                entity.Property(p => p.Price).HasPrecision(18, 2);
+                entity.Property(p => p.Emoji).HasMaxLength(10);
+                entity.Property(p => p.ImageUrl).HasMaxLength(500);
+                entity.Property(p => p.IsAvailable).HasDefaultValue(true);
+                entity.HasIndex(p => p.VendorId);
+                entity.HasIndex(p => new { p.VendorId, p.IsAvailable });
+            });
+
             modelBuilder.Entity<User>()
                 .Property(u => u.Username)
                 .HasMaxLength(50);

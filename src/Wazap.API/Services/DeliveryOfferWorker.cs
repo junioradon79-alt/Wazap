@@ -172,6 +172,23 @@ namespace Wazap.API.Services
             if (timedOutOrders.Count > 0)
                 await db.SaveChangesAsync(ct);
 
+            // 4) Watchdog de supervision (Chantier 4) : alerte si des commandes attendent un livreur depuis > 10 min
+            var watchdogCutoff = now.AddMinutes(-10);
+            var delayedOrdersCount = await db.Orders.AsNoTracking()
+                .CountAsync(o => o.Status == OrderStatus.AwaitingRiderAcceptance && o.CreatedAt < watchdogCutoff, ct);
+
+            if (delayedOrdersCount > 0)
+            {
+                var alertService = scope.ServiceProvider.GetService<MonitoringAlertService>();
+                if (alertService != null)
+                {
+                    await alertService.NotifyAsync(
+                        "unassigned_orders_delay",
+                        $"Watchdog WAZAP : {delayedOrdersCount} commande(s) en attente de livreur depuis plus de 10 minutes à Abidjan.",
+                        ct);
+                }
+            }
+
             // Annule la commande et notifie le vendeur (aucun livreur trouvé).
             async Task FailDispatchAsync(Wazap.Domain.Entities.Order order)
             {

@@ -55,7 +55,14 @@ public sealed class VendorProductService
     {
         await EnsureVendorAsync(vendorId);
 
-        var product = new VendorProduct(vendorId, request.Name, Describe(request), request.Price, request.Emoji);
+        var product = new VendorProduct(
+            vendorId,
+            request.Name,
+            Describe(request),
+            request.Price,
+            request.Emoji,
+            request.IsAvailable,
+            request.ImageUrl);
         _context.VendorProducts.Add(product);
         await _context.SaveChangesAsync();
 
@@ -71,8 +78,28 @@ public sealed class VendorProductService
         if (product is null)
             return false;
 
-        product.Update(request.Name, Describe(request), request.Price, request.Emoji);
+        product.Update(
+            request.Name,
+            Describe(request),
+            request.Price,
+            request.Emoji,
+            request.IsAvailable,
+            request.ImageUrl);
         await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> SetAvailabilityAsync(Guid vendorId, Guid productId, bool isAvailable)
+    {
+        var product = await _context.VendorProducts
+            .FirstOrDefaultAsync(p => p.Id == productId && p.VendorId == vendorId);
+        if (product is null)
+            return false;
+
+        product.SetAvailability(isAvailable);
+        await _context.SaveChangesAsync();
+        _logger.LogInformation("Catalogue : produit « {Name} » ({ProductId}) passé à {Status} par le vendeur {VendorId}.",
+            product.Name, productId, isAvailable ? "En stock" : "Épuisé", vendorId);
         return true;
     }
 
@@ -123,6 +150,8 @@ public sealed class VendorProductService
         Description = product.Description,
         Price = product.Price,
         Emoji = product.Emoji,
+        IsAvailable = product.IsAvailable,
+        ImageUrl = product.ImageUrl,
         CreatedAt = product.CreatedAt
     };
 }

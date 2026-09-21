@@ -14,6 +14,8 @@ public class VendorProductDto
     public string Description { get; set; } = default!;
     public decimal Price { get; set; }
     public string? Emoji { get; set; }
+    public bool IsAvailable { get; set; } = true;
+    public string? ImageUrl { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 
@@ -35,4 +37,17 @@ public class VendorProductRequest
 
     [MaxLength(10)]
     public string? Emoji { get; set; }
+
+    public bool IsAvailable { get; set; } = true;
+
+    [MaxLength(500)]
+    public string? ImageUrl { get; set; }
+}
+
+/// <summary>
+/// Mise à jour rapide de la disponibilité en stock (1-click toggle).
+/// </summary>
+public class UpdateProductAvailabilityRequest
+{
+    public bool IsAvailable { get; set; }
 }

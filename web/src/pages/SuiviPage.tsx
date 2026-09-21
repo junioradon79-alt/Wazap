@@ -514,6 +514,60 @@ export default function SuiviPage() {
           <h1 className="suivi-hero-status">{order.delivered ? 'Livré ✓' : statusMeta.label}</h1>
           <p className="suivi-hero-sub">{statusMeta.sub}</p>
 
+          {/* ACTION BUTTONS: WhatsApp Share & Quick Call */}
+          <div style={{ display: 'flex', gap: '10px', marginTop: '16px', flexWrap: 'wrap' }}>
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(
+                `Bonjour ! Suivez ma commande #${order.code || order.id} en direct sur WAZAP ici :\n${typeof window !== 'undefined' ? window.location.href : ''}\nCode secret de remise : ${order.deliveryCode || 'fourni à l\'arrivée'}`
+              )}`}
+              target="_blank"
+              rel="noreferrer"
+              className="suivi-btn-nav"
+              style={{
+                background: 'linear-gradient(135deg, #25D366, #128C7E)',
+                color: '#fff',
+                textDecoration: 'none',
+                flex: 1,
+                minWidth: '200px',
+                textAlign: 'center',
+                padding: '10px 16px',
+                borderRadius: '10px',
+                fontWeight: 700,
+                fontSize: '13px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 14px rgba(37, 211, 102, 0.35)',
+              }}
+            >
+              <span>📱 Partager le suivi sur WhatsApp</span>
+            </a>
+
+            {order.riderPhone && !order.delivered && (
+              <a
+                href={`tel:${order.riderPhone}`}
+                className="suivi-btn-nav"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  color: '#fff',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  textDecoration: 'none',
+                  padding: '10px 16px',
+                  borderRadius: '10px',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                }}
+              >
+                <span>📞 Appeler le livreur</span>
+              </a>
+            )}
+          </div>
+
           {/* STEPPER TIMELINE */}
           {order.status !== 'Cancelled' && (
             <div className="suivi-stepper">

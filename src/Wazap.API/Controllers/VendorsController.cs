@@ -253,6 +253,13 @@ public class VendorsController : ControllerBase
         return await _products.UpdateAsync(id, productId, request) ? NoContent() : NotFound();
     }
 
+    [HttpPatch("{id:guid}/products/{productId:guid}/availability")]
+    public async Task<IActionResult> UpdateProductAvailability(Guid id, Guid productId, [FromBody] UpdateProductAvailabilityRequest request)
+    {
+        EnsureCanManage(id);
+        return await _products.SetAvailabilityAsync(id, productId, request.IsAvailable) ? NoContent() : NotFound();
+    }
+
     [HttpDelete("{id:guid}/products/{productId:guid}")]
     public async Task<IActionResult> DeleteProduct(Guid id, Guid productId)
     {

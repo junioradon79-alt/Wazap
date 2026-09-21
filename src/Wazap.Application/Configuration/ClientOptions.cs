@@ -8,5 +8,5 @@ public sealed class ClientOptions
     public const string SectionName = "Client";
 
     /// <summary>URL de base de la page de suivi (SPA `/app/suivi/`) envoyée au client.</summary>
-    public string TrackingBaseUrl { get; set; } = "https://junioradon79gm-001-site1.jtempurl.com/app/suivi";
+    public string TrackingBaseUrl { get; set; } = "https://wazap-api.onrender.com/app/suivi";
 }

@@ -381,10 +381,10 @@ public sealed class ClientOrderBotService
         await SendAsync(draft.ClientWhatsAppNumber, "✅ Articles notés.\n" + AddressPrompt);
     }
 
-    /// <summary>Catalogue courant du commerce (menu borné, ordre alphabétique stable).</summary>
+    /// <summary>Catalogue courant du commerce (menu borné, ordre alphabétique stable, articles en stock).</summary>
     private Task<List<VendorProduct>> LoadCatalogAsync(Guid vendorId) =>
         _context.VendorProducts.AsNoTracking()
-            .Where(p => p.VendorId == vendorId)
+            .Where(p => p.VendorId == vendorId && p.IsAvailable)
             .OrderBy(p => p.Name)
             .Take(MaxProductsInMenu)
             .ToListAsync();

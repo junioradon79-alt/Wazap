@@ -7,7 +7,7 @@ import '../styles/vendor-dashboard.css'
 
 /* ─── Constants ─────────────────────────────────────────── */
 const WHATSAPP_BOT = '2250787119520'
-const TRACKING_BASE = 'https://junioradon79gm-001-site1.jtempurl.com/app/suivi'
+const TRACKING_BASE = typeof window !== 'undefined' ? `${window.location.origin}/app/suivi` : 'https://wazap-api.onrender.com/app/suivi'
 
 const STATUS_FR: Record<string, string> = {
   PendingVendorConfirmation: 'Attente vendeur',
@@ -290,6 +290,13 @@ export default function VendorDashboardPage() {
           >
             💳 Recharger
           </button>
+          <a
+            href="/app/catalogue"
+            className="vd-btn vd-btn--secondary"
+            id="btn-catalogue"
+          >
+            📦 Mon Catalogue
+          </a>
           <a
             href={waLink('Bonjour WAZAP ! Je veux passer une commande LIVRAISON.')}
             target="_blank"

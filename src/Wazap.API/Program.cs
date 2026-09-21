@@ -112,6 +112,10 @@ builder.Services.AddSingleton(whatsAppOptions);
 var wahaOptions = builder.Configuration.GetSection(WahaOptions.SectionName).Get<WahaOptions>() ?? new WahaOptions();
 builder.Services.AddSingleton(wahaOptions);
 
+// Options passerelle YCloud (Tier-1 Meta Business Solution Provider)
+var yCloudOptions = builder.Configuration.GetSection(YCloudOptions.SectionName).Get<YCloudOptions>() ?? new YCloudOptions();
+builder.Services.AddSingleton(yCloudOptions);
+
 // Options passerelle Meta WhatsApp Cloud (WABA dédié) — la bascule Meta:Enabled=true
 // remplace WhatChimp pour TOUTES les notifications (envoi + médias entrants).
 var metaApiOptions = builder.Configuration.GetSection(MetaApiOptions.SectionName).Get<MetaApiOptions>() ?? new MetaApiOptions();
@@ -353,6 +357,13 @@ if (wahaOptions.Enabled)
     builder.Services.AddHttpClient<IWhatsAppMediaDownloader, WahaMediaDownloader>()
         .ConfigureHttpClient(c => c.Timeout = mediaTimeout);
 }
+else if (yCloudOptions.Enabled)
+{
+    builder.Services.AddHttpClient<IWhatsAppSender, YCloudWhatsAppSender>()
+        .ConfigureHttpClient(c => c.Timeout = sendTimeout);
+    builder.Services.AddHttpClient<IWhatsAppMediaDownloader, YCloudMediaDownloader>()
+        .ConfigureHttpClient(c => c.Timeout = mediaTimeout);
+}
 else if (metaApiOptions.Enabled)
 {
     builder.Services.AddHttpClient<IWhatsAppSender, MetaCloudApiWhatsAppSender>()
@@ -472,10 +483,10 @@ var app = builder.Build();
 // ⚠️ Ce contrôle est volontairement APRÈS `builder.Build()` : les outils de conception
 // (`dotnet ef migrations …`) construisent l'hôte pour récupérer le DbContext et s'arrêtent à
 // ce point. Placé avant, il faisait échouer les MIGRATIONS de production (run #62).
-if (!wahaOptions.Enabled && !metaApiOptions.Enabled && string.IsNullOrWhiteSpace(builder.Configuration["WhatChimp:ApiToken"]))
+if (!wahaOptions.Enabled && !yCloudOptions.Enabled && !metaApiOptions.Enabled && string.IsNullOrWhiteSpace(builder.Configuration["WhatChimp:ApiToken"]))
 {
     app.Logger.LogWarning(
-        "Aucun canal d'envoi WhatsApp actif configuré (Meta:Enabled=false, Waha:Enabled=false, WhatChimp:ApiToken absent). "
+        "Aucun canal d'envoi WhatsApp actif configuré (YCloud:Enabled=false, Meta:Enabled=false, Waha:Enabled=false, WhatChimp:ApiToken absent). "
         + "L'application démarre normalement en attente de la configuration de la passerelle WhatsApp.");
 }
 
@@ -692,8 +703,31 @@ app.MapGet("/parrainage", () => Results.Redirect("/app/parrainage"));
 app.MapGet("/devenir-livreur", (IWebHostEnvironment env) =>
     Results.File(Path.Combine(env.WebRootPath, "devenir-livreur.html"), "text/html; charset=utf-8"));
 
-// Les migrations sont appliquées hors démarrage (étape de déploiement dédiée) :
-//   dotnet ef database update --project src\Wazap.Infrastructure --startup-project src\Wazap.API
+// Application automatique des migrations EF Core (PaaS / Render).
+if (builder.Configuration.GetValue<bool>("AutoMigrateDatabase", true))
+{
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        if (db.Database.IsRelational())
+        {
+            var pending = (await db.Database.GetPendingMigrationsAsync()).ToList();
+            if (pending.Count > 0)
+            {
+                app.Logger.LogInformation("Application automatique de {Count} migration(s) EF Core : {Migrations}",
+                    pending.Count, string.Join(", ", pending));
+                await db.Database.MigrateAsync();
+                app.Logger.LogInformation("Migrations EF Core appliquées avec succès.");
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Erreur lors de l'application automatique des migrations EF Core au démarrage.");
+    }
+}
+
 app.Run();
 
 /// <summary>

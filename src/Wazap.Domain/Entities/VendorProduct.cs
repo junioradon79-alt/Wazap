@@ -22,6 +22,12 @@ public class VendorProduct
     /// <summary>Emoji d'affichage optionnel (ex. « 🍗 »).</summary>
     public string? Emoji { get; private set; }
 
+    /// <summary>Indique si le produit est actuellement disponible en stock.</summary>
+    public bool IsAvailable { get; private set; } = true;
+
+    /// <summary>URL de la photo ou image illustrative du produit.</summary>
+    public string? ImageUrl { get; private set; }
+
     public DateTime CreatedAt { get; private set; }
 
     /// <summary>Lignes de commande liées à ce produit (navigation EF Core).</summary>
@@ -29,7 +35,14 @@ public class VendorProduct
 
     private VendorProduct() { }
 
-    public VendorProduct(Guid vendorId, string name, string description, decimal price, string? emoji = null)
+    public VendorProduct(
+        Guid vendorId,
+        string name,
+        string description,
+        decimal price,
+        string? emoji = null,
+        bool isAvailable = true,
+        string? imageUrl = null)
     {
         if (vendorId == Guid.Empty)
             throw new ArgumentException("Le vendeur est obligatoire.", nameof(vendorId));
@@ -46,11 +59,19 @@ public class VendorProduct
         Description = description.Trim();
         Price = price;
         Emoji = emoji?.Trim();
+        IsAvailable = isAvailable;
+        ImageUrl = string.IsNullOrWhiteSpace(imageUrl) ? null : imageUrl.Trim();
         CreatedAt = DateTime.UtcNow;
     }
 
-    /// <summary>Met à jour la fiche produit (nom, description, prix, emoji).</summary>
-    public void Update(string name, string description, decimal price, string? emoji)
+    /// <summary>Met à jour la fiche produit (nom, description, prix, emoji, disponibilité, image).</summary>
+    public void Update(
+        string name,
+        string description,
+        decimal price,
+        string? emoji,
+        bool isAvailable = true,
+        string? imageUrl = null)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentNullException(nameof(name));
@@ -63,10 +84,25 @@ public class VendorProduct
         Description = description.Trim();
         Price = price;
         Emoji = emoji?.Trim();
+        IsAvailable = isAvailable;
+        ImageUrl = string.IsNullOrWhiteSpace(imageUrl) ? null : imageUrl.Trim();
+    }
+
+    /// <summary>Bascule rapide du stock (disponible / épuisé).</summary>
+    public void SetAvailability(bool isAvailable)
+    {
+        IsAvailable = isAvailable;
     }
 
     /// <summary>Représentation textuelle pour l'affichage du menu WhatsApp.</summary>
-    public string DisplayText => string.IsNullOrEmpty(Emoji)
-        ? $"{Name} — {Price:N0} FCFA"
-        : $"{Emoji} {Name} — {Price:N0} FCFA";
+    public string DisplayText
+    {
+        get
+        {
+            var baseText = string.IsNullOrEmpty(Emoji)
+                ? $"{Name} — {Price:N0} FCFA"
+                : $"{Emoji} {Name} — {Price:N0} FCFA";
+            return IsAvailable ? baseText : $"{baseText} (Épuisé)";
+        }
+    }
 }

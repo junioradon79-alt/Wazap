@@ -99,4 +99,60 @@ public class CatalogOrderLifecycleTests
         Assert.Equal(OrderStatus.InTransit, order.Status);
         Assert.Contains("récupéré", lastReply);
     }
+
+    [Fact]
+    public void VendorProduct_SetAvailability_UpdatesStockAndDisplayText()
+    {
+        var vendorId = Guid.NewGuid();
+        var product = new VendorProduct(
+            vendorId,
+            "Attiéké Poisson",
+            "Portion individuelle",
+            2500m,
+            "🐟",
+            isAvailable: true,
+            imageUrl: "https://wazap.ci/img/poisson.jpg");
+
+        Assert.True(product.IsAvailable);
+        Assert.Equal("https://wazap.ci/img/poisson.jpg", product.ImageUrl);
+        Assert.StartsWith("🐟 Attiéké Poisson — ", product.DisplayText);
+        Assert.EndsWith("FCFA", product.DisplayText);
+        Assert.DoesNotContain("(Épuisé)", product.DisplayText);
+
+        // Bascule vers épuisé
+        product.SetAvailability(false);
+        Assert.False(product.IsAvailable);
+        Assert.Contains("(Épuisé)", product.DisplayText);
+
+        // Remise en stock
+        product.SetAvailability(true);
+        Assert.True(product.IsAvailable);
+        Assert.DoesNotContain("(Épuisé)", product.DisplayText);
+    }
+
+    [Fact]
+    public async Task VendorProductService_SetAvailabilityAsync_TogglesStockInDatabase()
+    {
+        var db = TestInfra.NewContext(Guid.NewGuid().ToString("N"));
+        var vendor = new User("chez_awa", "hash", UserRole.Vendor, "+2250700000088");
+        db.Users.Add(vendor);
+
+        var product = new VendorProduct(vendor.Id, "Poulet Braisé", "1/2 poulet", 4000m, "🍗");
+        db.VendorProducts.Add(product);
+        await db.SaveChangesAsync();
+
+        var service = new VendorProductService(db, NullLogger<VendorProductService>.Instance);
+
+        var toggled = await service.SetAvailabilityAsync(vendor.Id, product.Id, false);
+        Assert.True(toggled);
+
+        var updated = await service.GetProductAsync(vendor.Id, product.Id);
+        Assert.NotNull(updated);
+        Assert.False(updated!.IsAvailable);
+
+        // Vendeur tiers ne peut pas modifier la disponibilité
+        var rogueVendorId = Guid.NewGuid();
+        var denied = await service.SetAvailabilityAsync(rogueVendorId, product.Id, true);
+        Assert.False(denied);
+    }
 }

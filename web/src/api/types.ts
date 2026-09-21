@@ -346,6 +346,8 @@ export interface VendorProduct {
   description: string
   price: number
   emoji: string | null
+  isAvailable: boolean
+  imageUrl?: string | null
   createdAt: string
 }
 
@@ -355,6 +357,8 @@ export interface VendorProductRequest {
   description?: string | null
   price: number
   emoji?: string | null
+  isAvailable?: boolean
+  imageUrl?: string | null
 }
 
 /** Journalisation d'audit d'un message WhatsApp (chantier T2 / C1). */

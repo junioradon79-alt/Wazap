@@ -134,6 +134,20 @@ public sealed class OrderService
 
         _context.OutboxMessages.Add(outboxMessage);
 
+        if (vendor.Credits <= 1)
+        {
+            _context.OutboxMessages.Add(new OutboxMessage(
+                "VendorLowCredits",
+                JsonSerializer.Serialize(new
+                {
+                    vendorId = vendor.Id,
+                    username = vendor.Username,
+                    phoneNumber = vendor.PhoneNumber,
+                    credits = vendor.Credits,
+                    isZero = vendor.Credits <= 0
+                })));
+        }
+
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
 
