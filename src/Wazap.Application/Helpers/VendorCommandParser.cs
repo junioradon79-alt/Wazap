@@ -49,9 +49,11 @@ public static class VendorCommandParser
         if (string.IsNullOrWhiteSpace(text))
             return null;
 
-        // Candidats : +225XXXXXXXXXX (nouveau), +225XXXXXXXX (ancien),
-        // 0XXXXXXXXX (nouveau 10) / 0XXXXXXXX (ancien 8).
-        var match = Regex.Match(text, @"(?:\+?\s?225[\s.-]?)?(?:0[157]\d{8}|0\d{7})");
+        // Candidats avec ou sans séparateurs : +225 XXXXXXXXXX, 07 08 09 10 11, 07-08-09-10-11, 0708091011...
+        var match = Regex.Match(text, @"(?:\+?\s?225[\s.-]?)?(?:0[157](?:[\s.-]?\d){8}|0(?:[\s.-]?\d){7})");
+        if (!match.Success)
+            match = Regex.Match(text, @"(?:\+?\s?225[\s.-]?)?(?:0[157]\d{8}|0\d{7})");
+
         if (!match.Success)
             return null;
 
@@ -66,4 +68,161 @@ public static class VendorCommandParser
 
         return null;
     }
+
+    private static readonly (string Zone, string[] Aliases)[] CommunesAbidjan = new[]
+    {
+        ("Cocody", new[] { "Cocody", "Angré", "Angre", "Riviera", "Deux-Plateaux", "Deux Plateaux", "2 Plateaux", "Danga", "Anono" }),
+        ("Yopougon", new[] { "Yopougon", "Niangon", "Toit Rouge", "Maroc", "Siporex", "Gesco", "Sideci", "Kouté", "Koute" }),
+        ("Plateau", new[] { "Plateau" }),
+        ("Marcory", new[] { "Marcory", "Zone 4", "Zone 3", "Biétry", "Bietry", "Anoumabo" }),
+        ("Koumassi", new[] { "Koumassi", "Remblais", "Campement", "Prodomo" }),
+        ("Treichville", new[] { "Treichville", "Arras", "Belleville" }),
+        ("Adjamé", new[] { "Adjamé", "Adjame", "220 Logements", "Williamsville" }),
+        ("Abobo", new[] { "Abobo", "Gagnoa gare", "Sogefiha", "PK18", "Avocatier" }),
+        ("Port-Bouët", new[] { "Port-Bouët", "Port-Bouet", "Port Bouet", "Vridi", "Gonzagueville" }),
+        ("Attécoubé", new[] { "Attécoubé", "Attecoube", "Locodjro" }),
+        ("Bingerville", new[] { "Bingerville", "Feh Kessé" }),
+        ("Songon", new[] { "Songon" })
+    };
+
+    /// <summary>
+    /// Extraction intelligente des données de commande depuis un texte libre (ex: message WhatsApp du client).
+    /// Détecte automatiquement : nom, téléphone ivoirien, article, prix en FCFA, commune et adresse.
+    /// </summary>
+    public static ParsedOrderInfo ParseFreeTextOrder(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return new ParsedOrderInfo(null, null, null, 0m, 1500m, null, null);
+
+        var lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(l => l.Trim())
+            .Where(l => l.Length > 0)
+            .ToList();
+
+        string? clientPhone = TryExtractClientPhone(text);
+        string? clientName = null;
+        string? description = null;
+        decimal amount = 0m;
+        string? address = null;
+        string? detectedZone = null;
+
+        // 1. Détection du montant (ex: « 25 000 FCFA », « 15000 F », « 35k »)
+        var priceMatch = Regex.Match(text, @"(?i)(?:prix|montant|total|somme)?\s*[:=]?\s*([0-9]{1,3}(?:[\s.][0-9]{3})+|[0-9]{3,7})\s*(?:f\b|fcfa\b|cfa\b|francs?\b|xof\b)");
+        if (priceMatch.Success)
+        {
+            var rawNum = priceMatch.Groups[1].Value.Replace(" ", "").Replace(".", "");
+            if (decimal.TryParse(rawNum, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsedAmt))
+                amount = parsedAmt;
+        }
+        else
+        {
+            var kMatch = Regex.Match(text, @"(?i)\b([0-9]{1,3})\s*k\b");
+            if (kMatch.Success && decimal.TryParse(kMatch.Groups[1].Value, out var kVal))
+                amount = kVal * 1000m;
+        }
+
+        // 2. Détection de la Commune & Zone
+        foreach (var (zone, aliases) in CommunesAbidjan)
+        {
+            foreach (var alias in aliases)
+            {
+                if (Regex.IsMatch(text, $@"(?i)\b{Regex.Escape(alias)}\b"))
+                {
+                    detectedZone = zone;
+                    break;
+                }
+            }
+            if (detectedZone is not null) break;
+        }
+
+        // 3. Détection par lignes étiquetées (ex : « Nom : ... », « Adresse : ... », « Article : ... »)
+        var usedLines = new HashSet<int>();
+
+        for (var i = 0; i < lines.Count; i++)
+        {
+            var line = lines[i];
+
+            // Nom
+            var nameMatch = Regex.Match(line, @"^(?i)(?:nom|client|destinataire|pour|mme|mr|m\.)\s*[:=\-]?\s*([a-zA-ZÀ-ÿ\s'-]{2,50})$");
+            if (nameMatch.Success && clientName is null)
+            {
+                clientName = nameMatch.Groups[1].Value.Trim();
+                usedLines.Add(i);
+                continue;
+            }
+
+            // Adresse
+            var addrMatch = Regex.Match(line, @"^(?i)(?:adresse|lieu|livraison(?:\s*à)?|vers|destination)\s*[:=\-]?\s*(.+)$");
+            if (addrMatch.Success && address is null)
+            {
+                address = addrMatch.Groups[1].Value.Trim();
+                usedLines.Add(i);
+                continue;
+            }
+
+            // Article / Description
+            var descMatch = Regex.Match(line, @"^(?i)(?:article|produit|commande|colis)\s*[:=\-]?\s*(.+)$");
+            if (descMatch.Success && description is null)
+            {
+                description = descMatch.Groups[1].Value.Trim();
+                usedLines.Add(i);
+                continue;
+            }
+        }
+
+        // 4. Si non trouvé par étiquettes, extraction heuristique en texte conversationnel
+        if (clientName is null)
+        {
+            var namePattern = Regex.Match(text, @"(?i)(?:je m'appelle|mon nom c'est|moi c'est|nom\s*:?)\s*([a-zA-ZÀ-ÿ\s'-]{2,30})");
+            if (namePattern.Success)
+                clientName = namePattern.Groups[1].Value.Trim();
+        }
+
+        if (address is null && detectedZone is not null)
+        {
+            // Cherche la ligne ou phrase contenant la commune
+            var addrLine = lines.FirstOrDefault(l => Regex.IsMatch(l, $@"(?i)\b{detectedZone}\b"));
+            if (addrLine is not null)
+            {
+                // Nettoie les mots introductifs
+                address = Regex.Replace(addrLine, @"^(?i)(?:je suis à|livraison à|vers|chez moi à|à)\s*", "").Trim();
+            }
+            else
+            {
+                address = detectedZone;
+            }
+        }
+
+        // Description résiduelle si non étiquetée
+        if (description is null)
+        {
+            var unused = lines.Where((l, idx) => !usedLines.Contains(idx)
+                && TryExtractClientPhone(l) is null
+                && (address is null || !l.Contains(address))
+                && (clientName is null || !l.Contains(clientName))).ToList();
+
+            if (unused.Count > 0)
+                description = unused[0].Trim();
+        }
+
+        return new ParsedOrderInfo(
+            ClientName: clientName,
+            ClientPhone: clientPhone,
+            Description: description,
+            Amount: amount,
+            DeliveryFee: 1500m,
+            Address: address,
+            Zone: detectedZone);
+    }
 }
+
+/// <summary>Résultat d'extraction intelligente d'une commande client en texte libre.</summary>
+public sealed record ParsedOrderInfo(
+    string? ClientName,
+    string? ClientPhone,
+    string? Description,
+    decimal Amount,
+    decimal DeliveryFee,
+    string? Address,
+    string? Zone);
+

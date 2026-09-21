@@ -274,6 +274,17 @@ public class VendorsController : ControllerBase
         };
     }
 
+    // POST: api/vendors/orders/parse — analyse automatique intelligente du message WhatsApp client
+    [HttpPost("orders/parse")]
+    public IActionResult ParseOrderText([FromBody] ParseOrderTextRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request?.RawText))
+            return BadRequest("Le texte est requis pour l'analyse.");
+
+        var parsed = VendorCommandParser.ParseFreeTextOrder(request.RawText);
+        return Ok(parsed);
+    }
+
     // POST: api/vendors/orders/{id}/confirm — confirmation directe d'une commande par le vendeur
     [HttpPost("orders/{id:guid}/confirm")]
     public async Task<IActionResult> ConfirmOrder(Guid id)
@@ -349,3 +360,5 @@ public sealed record UpdateVendorAddressRequest(string Address);
 public sealed record TopUpCreditsRequest(int Credits);
 
 public sealed record SetVendorZoneRequest(string Zone);
+
+public sealed record ParseOrderTextRequest(string RawText);

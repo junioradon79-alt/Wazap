@@ -258,4 +258,24 @@ public class VendorTextCommandsTests
         Assert.NotEmpty(f.LastReply);
         Assert.DoesNotContain("Exception", f.LastReply);
     }
+
+    [Fact]
+    public void ParseFreeTextOrder_ExtraitAutomatiquementToutesLesInfosClient()
+    {
+        var raw = "Nom : Sarah Diop\n"
+                + "Tél : 07 08 09 10 11\n"
+                + "Article : Robe Wax Dorée\n"
+                + "Prix : 25 000 FCFA\n"
+                + "Adresse : Cocody Angré 8e tranche vers la pharmacie du 22e";
+
+        var parsed = Wazap.Application.Helpers.VendorCommandParser.ParseFreeTextOrder(raw);
+
+        Assert.Equal("Sarah Diop", parsed.ClientName);
+        Assert.Equal("+2250708091011", parsed.ClientPhone);
+        Assert.Equal("Robe Wax Dorée", parsed.Description);
+        Assert.Equal(25000m, parsed.Amount);
+        Assert.Equal("Cocody", parsed.Zone);
+        Assert.Contains("Angré", parsed.Address);
+    }
 }
+
