@@ -108,7 +108,7 @@ public sealed class PaymentSplitService
     /// <summary>
     /// Initie un paiement fractionné pour une commande et génère les liens/QR codes de paiement Wave/Mobile Money.
     /// </summary>
-    public async Task<SplitPaymentInitiationResult> InitiateSplitPaymentAsync(Guid orderId, string baseUrl = "https://wazap-api.onrender.com")
+    public async Task<SplitPaymentInitiationResult> InitiateSplitPaymentAsync(Guid orderId, string baseUrl = "https://wazap-api.onrender.com", SplitFeePayer? feePayer = null)
     {
         var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == orderId);
         if (order is null)
@@ -118,7 +118,7 @@ public sealed class PaymentSplitService
             return new SplitPaymentInitiationResult(false, order.Status.ToString(), order.TotalAmount, order.Amount, order.DeliveryFee, null, null,
                 $"Impossible d'initier un paiement pour une commande {order.Status}.");
 
-        var calculation = CalculateSplit(order);
+        var calculation = CalculateSplit(order, feePayer);
 
         // Recherche ou création d'un paiement
         var existing = await _context.OrderPayments
@@ -165,14 +165,16 @@ public sealed class PaymentSplitService
         await _context.SaveChangesAsync();
 
         return new SplitPaymentInitiationResult(
-            Success: true,
-            Status: payment.Status.ToString(),
-            TotalAmount: calculation.TotalAmount,
-            MerchantAmount: calculation.MerchantAmount,
-            RiderDeliveryFee: calculation.RiderDeliveryFee,
-            PaymentLink: paymentLink,
-            QrPayload: qrPayload,
-            ErrorMessage: null
+            true,
+            "Pending",
+            calculation.TotalAmount,
+            calculation.MerchantAmount,
+            calculation.RiderDeliveryFee,
+            paymentLink,
+            qrPayload,
+            null,
+            calculation.GatewayFee,
+            calculation.FeePayer
         );
     }
 

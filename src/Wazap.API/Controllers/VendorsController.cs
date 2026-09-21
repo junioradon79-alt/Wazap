@@ -137,8 +137,29 @@ public class VendorsController : ControllerBase
                     riderPhone,
                     o.Amount,
                     o.DeliveryFee,
-                    o.TotalAmount);
+                    o.TotalAmount,
+                    o.ClientWhatsAppNumber,
+                    o.ClientAddress);
             })
+            .ToList();
+
+        var pendingOrders = orders
+            .Where(o => o.Status == OrderStatus.PendingVendorConfirmation)
+            .OrderByDescending(o => o.CreatedAt)
+            .Select(o => new VendorOrderItem(
+                o.Id,
+                o.Id.ToString("N")[..8].ToUpperInvariant(),
+                o.ClientName,
+                o.Description,
+                o.Status.ToString(),
+                o.CreatedAt,
+                null,
+                null,
+                o.Amount,
+                o.DeliveryFee,
+                o.TotalAmount,
+                o.ClientWhatsAppNumber,
+                o.ClientAddress))
             .ToList();
 
         // Parrainage
@@ -176,7 +197,8 @@ public class VendorsController : ControllerBase
             ordersThisWeek,
             ordersLastMonth,
             deliveredLastMonth,
-            topClients));
+            topClients,
+            pendingOrders));
     }
 
     [HttpPut("{id:guid}/address")]
@@ -287,7 +309,7 @@ public class VendorsController : ControllerBase
 
     // POST: api/vendors/orders/{id}/confirm — confirmation directe d'une commande par le vendeur
     [HttpPost("orders/{id:guid}/confirm")]
-    public async Task<IActionResult> ConfirmOrder(Guid id)
+    public async Task<IActionResult> ConfirmOrder(Guid id, [FromBody] ConfirmVendorOrderRequest? request = null)
     {
         var vendor = await _context.Users.FirstOrDefaultAsync(u => u.Id == _currentUser.Id && u.Role == UserRole.Vendor);
         if (vendor is null && _currentUser.Role != UserRole.Admin)
@@ -309,6 +331,7 @@ public class VendorsController : ControllerBase
         order.ConfirmByVendor();
         await _context.SaveChangesAsync();
 
+        var calculation = PaymentSplitService.CalculateSplit(order, request?.FeePayer);
         var code = order.Id.ToString("N")[..8].ToUpperInvariant();
         var vendorName = vendor?.Username ?? "le vendeur";
 
@@ -339,7 +362,12 @@ public class VendorsController : ControllerBase
         return Ok(new
         {
             status = order.Status.ToString(),
-            message = "Commande confirmée avec succès ! Recherche des livreurs déclenchée."
+            message = "Commande confirmée avec succès ! Recherche des livreurs déclenchée.",
+            feePayer = calculation.FeePayer.ToString(),
+            merchantAmount = calculation.MerchantAmount,
+            riderDeliveryFee = calculation.RiderDeliveryFee,
+            gatewayFee = calculation.GatewayFee,
+            totalClient = calculation.TotalAmount
         });
     }
 
@@ -362,3 +390,5 @@ public sealed record TopUpCreditsRequest(int Credits);
 public sealed record SetVendorZoneRequest(string Zone);
 
 public sealed record ParseOrderTextRequest(string RawText);
+
+public sealed record ConfirmVendorOrderRequest(SplitFeePayer? FeePayer = null);

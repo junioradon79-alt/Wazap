@@ -80,5 +80,5 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }
 
 export function useAuth(): AuthContextValue {
-  return useContext(AuthContext)
+  return useContext(AuthContext) ?? { user: null, loading: false, login: async () => {}, logout: () => {} }
 }

@@ -139,11 +139,11 @@ export default function VendorDashboardPage() {
   }
 
   /* ─── Confirm order ──────────────────────────────────── */
-  const confirmOrder = async (orderId: string) => {
+  const confirmOrder = async (orderId: string, feePayer: 'Client' | 'Vendor' | 'Shared' = 'Shared') => {
     setConfirmingId(orderId)
     setError('')
     try {
-      await api.post(`/vendors/orders/${orderId}/confirm`)
+      await api.post(`/vendors/orders/${orderId}/confirm`, { feePayer })
       setConfirmMsg('Commande confirmée avec succès ! Recherche des livreurs déclenchée.')
       await load()
       setTimeout(() => setConfirmMsg(null), 5000)
@@ -338,6 +338,65 @@ export default function VendorDashboardPage() {
             + Recharger maintenant
           </button>
         </div>
+
+        {/* ── COMMANDES WHATSAPP PRÊTES EN 1 CLIC ── */}
+        {dash.pendingOrders && dash.pendingOrders.length > 0 && (
+          <div className="vd-pending-orders-banner" style={{ marginTop: 24, background: 'linear-gradient(135deg, rgba(0,214,108,0.08), rgba(15,23,42,0.6))', border: '1px solid rgba(0,214,108,0.35)', borderRadius: 16, padding: '18px 20px' }}>
+            <div className="vd-pending-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
+              <div>
+                <h2 style={{ fontSize: 16, fontWeight: 900, color: 'var(--vd-emerald)', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+                  <span>📥 Commandes WhatsApp Reçues ({dash.pendingOrders.length})</span>
+                  <span style={{ fontSize: 11, background: 'var(--vd-emerald)', color: '#000', fontWeight: 800, padding: '2px 8px', borderRadius: 6 }}>1 Clic</span>
+                </h2>
+                <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--vd-text-muted)' }}>
+                  Commandes reçues via le bot WhatsApp. Expédiez en 1 clic sans rien retaper !
+                </p>
+              </div>
+            </div>
+
+            <div className="vd-pending-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>
+              {dash.pendingOrders.map((po) => (
+                <div key={po.id} style={{ background: 'var(--vd-surface)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: 16, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 10 }}>
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <strong style={{ fontSize: 15, color: '#fff' }}>{po.clientName || 'Client WhatsApp'}</strong>
+                      <span className="vd-order-code">#{po.code}</span>
+                    </div>
+                    {po.clientPhone && (
+                      <div style={{ fontSize: 12, color: 'var(--vd-emerald)', fontWeight: 600, marginBottom: 4 }}>
+                        📱 {po.clientPhone}
+                      </div>
+                    )}
+                    {po.address && (
+                      <div style={{ fontSize: 12, color: 'var(--vd-text-muted)', marginBottom: 6 }}>
+                        📍 {po.address}
+                      </div>
+                    )}
+                    <div style={{ fontSize: 13, color: 'var(--vd-text)', lineHeight: 1.4, margin: '6px 0' }}>
+                      {po.description}
+                    </div>
+                    <div style={{ display: 'flex', gap: 12, marginTop: 8, fontSize: 13 }}>
+                      <span>📦 <strong>{(po.amount ?? 0).toLocaleString()} F</strong></span>
+                      <span style={{ color: 'var(--vd-amber)' }}>🛵 Course : <strong>{(po.deliveryFee ?? 1000).toLocaleString()} F</strong></span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
+                    <button
+                      type="button"
+                      className="vd-btn vd-btn--primary"
+                      style={{ flex: 1, justifyContent: 'center', fontWeight: 800 }}
+                      disabled={confirmingId === po.id}
+                      onClick={() => void confirmOrder(po.id, 'Shared')}
+                    >
+                      {confirmingId === po.id ? 'Expédition…' : '🚀 Expédier en 1 Clic'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── KPI GRID ── */}
         <div className="vd-kpi-grid" style={{ marginTop: 20 }}>

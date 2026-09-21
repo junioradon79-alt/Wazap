@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using QRCoder;
 using Wazap.API.Services;
 using Wazap.Application.Configuration;
+using Wazap.Application.Dtos;
 using Wazap.Application.Services;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
@@ -130,7 +131,17 @@ public class ClientOrdersController : ControllerBase
                     status = payment.Status.ToString(),
                     amount = payment.Amount,
                     paymentLink = payment.PaymentLink
-                }
+                },
+            splitPayment = new
+            {
+                merchantAmount = PaymentSplitService.CalculateSplit(order, SplitFeePayer.Shared).MerchantAmount,
+                riderDeliveryFee = PaymentSplitService.CalculateSplit(order, SplitFeePayer.Shared).RiderDeliveryFee,
+                gatewayFee = PaymentSplitService.CalculateSplit(order, SplitFeePayer.Shared).GatewayFee,
+                feePayer = PaymentSplitService.CalculateSplit(order, SplitFeePayer.Shared).FeePayer.ToString(),
+                totalAmount = PaymentSplitService.CalculateSplit(order, SplitFeePayer.Shared).TotalAmount,
+                qrPaymentUrl = $"/api/client/orders/{order.Id}/qr-payment",
+                supportedOperators = new[] { "Wave", "OrangeMoney", "MTN", "Moov", "Visa" }
+            }
         });
     }
 
@@ -502,24 +513,26 @@ public class ClientOrdersController : ControllerBase
     // POST: api/client/orders/{id}/pay-split — Initialise le paiement fractionné direct (Digital COD Anti-Fuite)
     [HttpPost("{id:guid}/pay-split")]
     [EnableRateLimiting("client")]
-    public async Task<IActionResult> PaySplit(Guid id)
+    public async Task<IActionResult> PaySplit(Guid id, [FromBody] PaySplitRequest? request = null)
     {
         var order = await _context.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == id);
         if (order is null)
             return NotFound();
 
-        var calculation = PaymentSplitService.CalculateSplit(order);
+        var calculation = PaymentSplitService.CalculateSplit(order, request?.FeePayer);
         var paymentLink = $"{_clientOptions.TrackingBaseUrl.TrimEnd('/')}/{order.Id}?payer=1&mode=split";
 
         if (_paymentSplit is not null)
         {
-            var initResult = await _paymentSplit.InitiateSplitPaymentAsync(id, _clientOptions.TrackingBaseUrl);
+            var initResult = await _paymentSplit.InitiateSplitPaymentAsync(id, _clientOptions.TrackingBaseUrl, request?.FeePayer);
             return Ok(new
             {
                 success = initResult.Success,
                 totalAmount = initResult.TotalAmount,
                 merchantAmount = initResult.MerchantAmount,
                 riderDeliveryFee = initResult.RiderDeliveryFee,
+                gatewayFee = initResult.GatewayFee,
+                feePayer = initResult.FeePayer.ToString(),
                 paymentLink = initResult.PaymentLink,
                 qrPayload = initResult.QrPayload,
                 status = initResult.Status
@@ -532,6 +545,8 @@ public class ClientOrdersController : ControllerBase
             totalAmount = calculation.TotalAmount,
             merchantAmount = calculation.MerchantAmount,
             riderDeliveryFee = calculation.RiderDeliveryFee,
+            gatewayFee = calculation.GatewayFee,
+            feePayer = calculation.FeePayer.ToString(),
             paymentLink,
             qrPayload = paymentLink,
             status = "Pending"
@@ -568,3 +583,5 @@ public sealed record SetClientCoordinatesRequest(double Latitude, double Longitu
 public sealed record SubmitClientRatingRequest(int Score, string? Comment);
 public sealed record ValidateDeliveryRequest(string Code);
 public sealed record CompleteSplitRequest(string? PaymentReference);
+public sealed record PaySplitRequest(SplitFeePayer? FeePayer = null);
+

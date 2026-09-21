@@ -24,7 +24,8 @@ public sealed record VendorDashboardDto(
     int OrdersThisWeek,
     int OrdersLastMonth,
     int DeliveredLastMonth,
-    List<VendorClientItem> TopClients);
+    List<VendorClientItem> TopClients,
+    List<VendorOrderItem>? PendingOrders = null);
 
 public sealed record VendorOrderItem(
     Guid Id,
@@ -37,7 +38,9 @@ public sealed record VendorOrderItem(
     string? RiderPhone = null,
     decimal Amount = 0m,
     decimal DeliveryFee = 1000m,
-    decimal TotalAmount = 0m);
+    decimal TotalAmount = 0m,
+    string? ClientPhone = null,
+    string? Address = null);
 
 public sealed record ReferredVendorItem(
     Guid Id,

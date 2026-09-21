@@ -31,7 +31,9 @@ public sealed record SplitPaymentInitiationResult(
     decimal RiderDeliveryFee,
     string? PaymentLink,
     string? QrPayload,
-    string? ErrorMessage
+    string? ErrorMessage,
+    decimal GatewayFee = 0,
+    SplitFeePayer FeePayer = SplitFeePayer.Client
 );
 
 public sealed record SplitPaymentCompletionResult(

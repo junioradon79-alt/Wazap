@@ -199,9 +199,31 @@ export interface ClientOrderStatus {
   orderLines?: ClientOrderLine[]
   rating?: ClientOrderRating | null
   payment: ClientPaymentInfo | null
+  splitPayment?: {
+    merchantAmount: number
+    riderDeliveryFee: number
+    gatewayFee: number
+    feePayer: 'Client' | 'Vendor' | 'Shared'
+    totalAmount: number
+    qrPaymentUrl: string
+    supportedOperators: string[]
+  } | null
   qrUrl?: string
   riderName?: string | null
   trackingUrl?: string
+}
+
+export interface SplitPaymentInitResponse {
+  success: boolean
+  status: string
+  totalAmount: number
+  merchantAmount: number
+  riderDeliveryFee: number
+  gatewayFee?: number
+  feePayer?: string
+  paymentLink: string | null
+  qrPayload: string | null
+  errorMessage?: string | null
 }
 
 export interface ClientPaymentResponse {
@@ -227,6 +249,8 @@ export interface VendorOrderItem {
   amount?: number
   deliveryFee?: number
   totalAmount?: number
+  clientPhone?: string | null
+  address?: string | null
 }
 
 export interface RiderCertification {
@@ -330,6 +354,7 @@ export interface VendorDashboard {
   ordersLastMonth: number
   deliveredLastMonth: number
   topClients: VendorClientItem[]
+  pendingOrders?: VendorOrderItem[]
 }
 
 export interface VendorClientItem {

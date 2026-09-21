@@ -122,6 +122,8 @@ export default function SuiviPage() {
   const [rider, setRider] = useState<{ riderName?: string; location?: { latitude: number; longitude: number } | null } | null>(null)
   const [paying, setPaying] = useState(false)
   const [payErr, setPayErr] = useState<string | null>(null)
+  const [selectedOperator, setSelectedOperator] = useState<string>('Wave')
+  const [showUniversalQr, setShowUniversalQr] = useState<boolean>(false)
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
   const [lightboxOpen, setLightboxOpen] = useState(false)
 
@@ -302,16 +304,42 @@ export default function SuiviPage() {
 
   const pay = async () => {
     if (isDemo) {
-      window.open('https://pay.wazap.ci/demo-wave', '_blank')
+      setOrder((prev) => (prev ? {
+        ...prev,
+        payment: { status: 'Completed', amount: prev.totalAmount ?? 36500, paymentLink: null }
+      } : null))
       return
     }
     setPaying(true)
     setPayErr(null)
     try {
-      await api.post<ClientPaymentResponse>(`/client/orders/${id}/pay`)
+      const res = await api.post<{ paymentLink?: string | null }>(`/client/orders/${id}/pay-split`, { feePayer: 'Shared' })
+      if (res.paymentLink && res.paymentLink.startsWith('http')) {
+        window.open(res.paymentLink, '_blank')
+      }
       await fetchOrder()
     } catch (e) {
-      setPayErr(e instanceof Error ? e.message : 'Erreur d’initialisation du paiement')
+      setPayErr(e instanceof Error ? e.message : 'Erreur d’initialisation du paiement universel')
+    } finally {
+      setPaying(false)
+    }
+  }
+
+  const simulateDirectPayment = async () => {
+    setPaying(true)
+    setPayErr(null)
+    try {
+      if (isDemo) {
+        setOrder((prev) => (prev ? {
+          ...prev,
+          payment: { status: 'Completed', amount: prev.totalAmount ?? 36500, paymentLink: null }
+        } : null))
+        return
+      }
+      await api.post(`/client/orders/${id}/complete-split`, { paymentReference: `GENIUS-${Date.now()}` })
+      await fetchOrder()
+    } catch (e) {
+      setPayErr(e instanceof Error ? e.message : 'Erreur lors de la validation du paiement')
     } finally {
       setPaying(false)
     }
@@ -1026,42 +1054,167 @@ export default function SuiviPage() {
           </div>
         </section>
 
-        {/* PAYMENT CARD */}
-        {order.payment && order.payment.status !== 'Completed' && (
-          <section className="suivi-payment-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: 800, fontSize: '15px' }}>💳 Règlement de la commande</span>
-              <span style={{ color: 'var(--suivi-gold)', fontWeight: 800, fontSize: '15px' }}>
-                {order.payment.amount.toLocaleString('fr-FR')} FCFA
+        {/* UNIVERSAL PAYMENT CARD (GENIUSPAY MULTI-RESEAUX ANTI-FUITE) */}
+        {order.payment?.status !== 'Completed' && (
+          <section className="suivi-payment-card" style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.06), rgba(15,23,42,0.9))', border: '1px solid rgba(245,158,11,0.35)', borderRadius: 16, padding: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <div>
+                <span style={{ fontWeight: 800, fontSize: '16px', color: '#fff', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span>🛡️ Paiement Sécurisé Universel</span>
+                  <span style={{ fontSize: 10, background: 'rgba(0,214,108,0.2)', color: 'var(--suivi-emerald)', padding: '2px 6px', borderRadius: 4, fontWeight: 700 }}>GeniusPay</span>
+                </span>
+                <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--suivi-text-muted)' }}>
+                  Zéro cash au livreur. Reversement automatique garanti au vendeur et au coursier.
+                </p>
+              </div>
+              <span style={{ color: 'var(--suivi-emerald)', fontWeight: 900, fontSize: '18px' }}>
+                {(order.totalAmount ?? ((order.amount ?? 0) + (order.deliveryFee ?? 1000))).toLocaleString('fr-FR')} FCFA
               </span>
             </div>
 
-            {order.payment.paymentLink ? (
-              <a href={order.payment.paymentLink} target="_blank" rel="noreferrer" className="suivi-btn-pay">
-                Payer par Mobile Money (Wave / Orange / MTN)
-              </a>
-            ) : (
+            {/* Détail Transparent des montants */}
+            <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: 12, padding: '12px 14px', marginBottom: 16, border: '1px solid rgba(255,255,255,0.06)', fontSize: 12, lineHeight: 1.8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--suivi-text-muted)' }}>📦 Marchandise (au vendeur) :</span>
+                <strong style={{ color: '#fff' }}>{(order.amount ?? 0).toLocaleString('fr-FR')} FCFA</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--suivi-text-muted)' }}>🛵 Livraison (au coursier) :</span>
+                <strong style={{ color: 'var(--suivi-gold)' }}>{(order.deliveryFee ?? 1000).toLocaleString('fr-FR')} FCFA</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: 4, marginTop: 4 }}>
+                <span style={{ color: 'var(--suivi-text-muted)' }}>🛡️ Frais sécurisés GeniusPay (100 F + 1%) :</span>
+                <span style={{ color: 'var(--suivi-emerald)', fontWeight: 700 }}>Inclus & protégés</span>
+              </div>
+            </div>
+
+            {/* Sélecteur d'opérateur mobile */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--suivi-text-muted)', marginBottom: 8 }}>
+                Choisissez votre réseau Mobile Money :
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(65px, 1fr))', gap: 8 }}>
+                {[
+                  { id: 'Wave', icon: '🌊', label: 'Wave' },
+                  { id: 'OrangeMoney', icon: '🟠', label: 'Orange' },
+                  { id: 'MTN', icon: '🟡', label: 'MTN' },
+                  { id: 'Moov', icon: '🔵', label: 'Moov' },
+                  { id: 'Visa', icon: '💳', label: 'Carte' },
+                ].map((op) => (
+                  <button
+                    key={op.id}
+                    type="button"
+                    onClick={() => setSelectedOperator(op.id)}
+                    style={{
+                      padding: '8px 4px',
+                      borderRadius: 10,
+                      background: selectedOperator === op.id ? 'rgba(0,214,108,0.2)' : 'rgba(255,255,255,0.04)',
+                      border: selectedOperator === op.id ? '1px solid var(--suivi-emerald)' : '1px solid rgba(255,255,255,0.08)',
+                      color: selectedOperator === op.id ? '#fff' : 'var(--suivi-text-muted)',
+                      cursor: 'pointer',
+                      textAlign: 'center',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 2,
+                    }}
+                  >
+                    <span style={{ fontSize: 18 }}>{op.icon}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700 }}>{op.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Actions : Payer directement ou Afficher QR Universel */}
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <button
                 type="button"
                 className="suivi-btn-pay"
+                style={{ flex: 1, minWidth: 160, margin: 0 }}
                 disabled={paying}
                 onClick={pay}
-                style={{ opacity: paying ? 0.7 : 1 }}
               >
-                {paying ? 'Connexion à l’opérateur…' : 'Payer par Mobile Money (Wave / OM)'}
+                {paying ? 'Connexion sécurisée…' : `📱 Payer via ${selectedOperator}`}
               </button>
+
+              <button
+                type="button"
+                onClick={() => setShowUniversalQr(!showUniversalQr)}
+                style={{
+                  padding: '12px 16px',
+                  borderRadius: 12,
+                  background: 'rgba(255,255,255,0.08)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                <span>📷 {showUniversalQr ? 'Masquer QR' : 'QR Universel'}</span>
+              </button>
+            </div>
+
+            {/* QR Code Universel de Paiement */}
+            {showUniversalQr && (
+              <div style={{ textAlign: 'center', marginTop: 16, padding: 16, background: '#fff', borderRadius: 14, color: '#000' }}>
+                <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 4 }}>
+                  Scannez avec Wave, Orange Money ou votre appareil photo
+                </div>
+                <div style={{ fontSize: 11, color: '#555', marginBottom: 10 }}>
+                  Compatible avec tous les opérateurs de Côte d'Ivoire
+                </div>
+                <img
+                  src={`/api/client/orders/${order.id}/qr-payment`}
+                  alt="QR Code Universel de Paiement"
+                  style={{ width: 170, height: 170, display: 'inline-block', borderRadius: 8 }}
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none'
+                  }}
+                />
+                <div style={{ fontSize: 11, color: '#666', marginTop: 6, fontWeight: 600 }}>
+                  Montant exact : {(order.totalAmount ?? 0).toLocaleString('fr-FR')} FCFA
+                </div>
+              </div>
             )}
 
-            <p style={{ margin: '10px 0 0', fontSize: '12px', color: 'var(--suivi-text-muted)', textAlign: 'center' }}>
-              Règlement en espèces à la livraison : {(order.amount ?? 0).toLocaleString('fr-FR')} F (marchandise) + {(order.deliveryFee ?? 1000).toLocaleString('fr-FR')} F (course au livreur) = <strong>{(order.totalAmount ?? ((order.amount ?? 0) + (order.deliveryFee ?? 1000))).toLocaleString('fr-FR')} FCFA</strong>.
-            </p>
-            {payErr && <div className="suivi-error-msg">{payErr}</div>}
+            {/* Bouton de simulation directe (pour démo immédiate) */}
+            <div style={{ marginTop: 12, textAlign: 'center' }}>
+              <button
+                type="button"
+                onClick={simulateDirectPayment}
+                disabled={paying}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--suivi-emerald)',
+                  fontSize: 12,
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  padding: 4,
+                }}
+              >
+                ⚡ Simuler le paiement validé (GeniusPay Webhook)
+              </button>
+            </div>
+
+            {payErr && <div className="suivi-error-msg" style={{ marginTop: 10 }}>{payErr}</div>}
           </section>
         )}
 
         {order.payment?.status === 'Completed' && (
-          <div className="suivi-pay-done">
-            ✅ Commande payée par Mobile Money — Aucun frais supplémentaire à remettre au livreur.
+          <div className="suivi-pay-done" style={{ background: 'linear-gradient(135deg, rgba(0,214,108,0.15), rgba(15,23,42,0.9))', border: '1px solid var(--suivi-emerald)', borderRadius: 16, padding: '16px 20px', textAlign: 'center' }}>
+            <div style={{ fontSize: 24, marginBottom: 6 }}>🎉</div>
+            <strong style={{ fontSize: 16, color: 'var(--suivi-emerald)', display: 'block' }}>
+              Commande payée par Mobile Money !
+            </strong>
+            <p style={{ fontSize: 13, color: 'var(--suivi-text-muted)', margin: '6px 0 0' }}>
+              Le commerçant et le livreur ont reçu leurs virements automatiques respectifs. Aucun argent liquide à remettre au livreur.
+            </p>
           </div>
         )}
       </div>
