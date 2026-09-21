@@ -19,6 +19,7 @@ public class GeniusPayWebhookController : ControllerBase
     private readonly PackService _packService;
     private readonly RiderPriorityService _riderPriority;
     private readonly ClientPaymentService _clientPayments;
+    private readonly PaymentSplitService? _paymentSplit;
     private readonly GeniusPayOptions _options;
     private readonly ILogger<GeniusPayWebhookController> _logger;
 
@@ -28,7 +29,8 @@ public class GeniusPayWebhookController : ControllerBase
         RiderPriorityService riderPriority,
         ClientPaymentService clientPayments,
         GeniusPayOptions options,
-        ILogger<GeniusPayWebhookController> logger)
+        ILogger<GeniusPayWebhookController> logger,
+        PaymentSplitService? paymentSplit = null)
     {
         _context = context;
         _packService = packService;
@@ -36,7 +38,9 @@ public class GeniusPayWebhookController : ControllerBase
         _clientPayments = clientPayments;
         _options = options;
         _logger = logger;
+        _paymentSplit = paymentSplit;
     }
+
 
     // POST: api/webhook/geniuspay — notification de paiement (IPN)
     [HttpPost]
@@ -133,6 +137,12 @@ public class GeniusPayWebhookController : ControllerBase
                 _logger.LogWarning("Montant webhook {Paid} ≠ paiement commande {Expected} pour {Id}. Ignoré.",
                     info.Amount, orderPayment.Amount, orderPayment.Id);
                 return;
+            }
+
+            if (_paymentSplit is not null)
+            {
+                await _paymentSplit.CompleteSplitPaymentAsync(
+                    orderPayment.OrderId, info.Reference ?? $"GENIUS-{orderPayment.Id:N}");
             }
 
             await _clientPayments.CompletePaymentAsync(

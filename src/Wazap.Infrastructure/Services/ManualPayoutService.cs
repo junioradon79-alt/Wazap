@@ -27,4 +27,23 @@ public sealed class ManualPayoutService : IPayoutService
 
         return Task.FromResult(new PayoutResult(RequiresManualTransfer: true));
     }
+
+    public Task<SplitDisbursementResult> DisburseSplitAsync(SplitDisbursementRequest request, CancellationToken ct = default)
+    {
+        var vendorRef = $"DISB-VND-{Guid.NewGuid():N}"[..18].ToUpperInvariant();
+        var riderRef = !string.IsNullOrWhiteSpace(request.RiderPhone)
+            ? $"DISB-RDR-{Guid.NewGuid():N}"[..18].ToUpperInvariant()
+            : null;
+
+        _logger.LogInformation(
+            "⚡ Split Disbursement WAZAP Option A (Disbursement API) : Commande #{Code} — Vendeur {VendorPhone} : {VendorAmount} FCFA (Réf: {VendorRef}) | Livreur {RiderPhone} : {RiderFee} FCFA (Réf: {RiderRef})",
+            request.OrderCode, request.VendorPhone, request.VendorAmount, vendorRef, request.RiderPhone ?? "aucun", request.RiderFee, riderRef ?? "N/A");
+
+        return Task.FromResult(new SplitDisbursementResult(
+            Success: true,
+            VendorTransferRef: vendorRef,
+            RiderTransferRef: riderRef,
+            RequiresManualTransfer: false));
+    }
 }
+

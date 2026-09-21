@@ -26,8 +26,11 @@ public sealed record SplitPaymentCompletionResult(
     Guid OrderId,
     decimal MerchantAmount,
     decimal RiderDeliveryFee,
-    string Message
+    string Message,
+    string? VendorDisbursementRef = null,
+    string? RiderDisbursementRef = null
 );
+
 
 public sealed record HandoverScanResult(
     bool Success,

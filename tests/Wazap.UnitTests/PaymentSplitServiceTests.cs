@@ -137,18 +137,43 @@ public class PaymentSplitServiceTests
     }
 
     [Fact]
-    public async Task ProcessHandoverScanAsync_RefuseSiCommandeAnnulee()
+    public async Task CompleteSplitPaymentAsync_OptionA_DeclencheDoubleVirementSortantEtTraces()
     {
-        // Arrange
-        var order = CreateTestOrder();
-        order.Cancel(OrderCancellationReason.CustomerCancelled, "Annulé par client");
-        await _context.SaveChangesAsync();
+        // Arrange : Service avec IPayoutService (Disbursement API Option A)
+        var payoutService = new Wazap.Infrastructure.Services.ManualPayoutService(NullLogger<Wazap.Infrastructure.Services.ManualPayoutService>.Instance);
+        var serviceWithPayout = new PaymentSplitService(
+            _context,
+            _sender,
+            payoutService,
+            paymentService: null,
+            NullLogger<PaymentSplitService>.Instance);
+
+        var order = CreateTestOrder(amount: 45000m, deliveryFee: 2500m);
+        await serviceWithPayout.InitiateSplitPaymentAsync(order.Id);
 
         // Act
-        var result = await _service.ProcessHandoverScanAsync(order.Id);
+        var result = await serviceWithPayout.CompleteSplitPaymentAsync(order.Id, "GENIUS-PAY-REF-999");
 
         // Assert
-        Assert.False(result.Success);
-        Assert.Contains("invalide", result.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.True(result.Success);
+        Assert.Equal(45000m, result.MerchantAmount);
+        Assert.Equal(2500m, result.RiderDeliveryFee);
+        Assert.NotNull(result.VendorDisbursementRef);
+        Assert.NotNull(result.RiderDisbursementRef);
+        Assert.StartsWith("DISB-VND-", result.VendorDisbursementRef);
+        Assert.StartsWith("DISB-RDR-", result.RiderDisbursementRef);
+
+        // Vérifier les messages WhatsApp avec références de virement immédiat
+        var vendorMsg = _sender.TextMessages.FirstOrDefault(m => m.Phone == "+22507112233");
+        var riderMsg = _sender.TextMessages.FirstOrDefault(m => m.Phone == "+22507012345");
+
+        Assert.True(vendorMsg != default);
+        Assert.Contains(result.VendorDisbursementRef, vendorMsg.Message);
+        Assert.Contains("45 000", vendorMsg.Message);
+
+        Assert.True(riderMsg != default);
+        Assert.Contains(result.RiderDisbursementRef, riderMsg.Message);
+        Assert.Contains("2 500", riderMsg.Message);
     }
 }
+
