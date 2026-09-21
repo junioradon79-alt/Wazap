@@ -4,70 +4,100 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>WAZAP — La livraison WhatsApp en 30 secondes</title>
+<title>WAZAP — La livraison WhatsApp à Abidjan en 30 secondes</title>
+<link rel="icon" type="image/png" href="app/logo.png">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:#f6faf7;color:#15221b}
-.wrap{max-width:860px;margin:0 auto;padding:2.5vh 4vw}
-.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px}
-.logo-mark{width:34px;height:34px;border-radius:8px;background:#0e7a3e;display:flex;align-items:center;justify-content:center;color:#fff}
-header{background:linear-gradient(170deg,#0e7a3e,#07a04b);color:#fff;padding:4vh 4vw;text-align:center}
-header h1{font-size:clamp(20px,5vw,30px);line-height:1.15;font-weight:800}
-header p{font-size:clamp(14px,3vw,17px);margin-top:10px;opacity:.93}
-.player{margin:3vh 0;background:#0c1a14;border-radius:18px;padding:1.5vh}
-video{display:block;width:100%;border-radius:12px;background:#000}
-.video-fallback{display:none;color:#cfe3d2;text-align:center;padding:7vh 4vw;font-weight:700}
-.badge{display:inline-block;margin-top:12px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.34);border-radius:999px;padding:4px 14px;font-size:12px}
-.cta{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:2.5vh}
-.btn{display:inline-flex;align-items:center;gap:8px;background:#fff;color:#0e7a3e;font-weight:800;font-size:15px;border:none;border-radius:999px;padding:13px 26px;text-decoration:none}
-.btn--ghost{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.5)}
-.steps{margin-top:3vh}
-.step{background:#eef6ef;border:1px solid #d7e9da;border-radius:14px;padding:14px 16px;margin:10px 0}
-.step b{color:#0e7a3e}
-.phone{font-size:16px;font-weight:800;margin-top:18px;text-align:center}
-footer{font-size:12px;color:#7a8a7d;text-align:center;margin:3vh 0}
+body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;background:#0f172a;color:#f8fafc;min-height:100vh}
+.wrap{max-width:680px;margin:0 auto;padding:2vh 4vw}
+header{background:linear-gradient(175deg,#064e3b 0%,#047857 60%,#0f172a 100%);color:#fff;padding:4vh 4vw 2vh;text-align:center;border-bottom:1px solid rgba(255,255,255,0.08)}
+.logo-container{display:inline-flex;align-items:center;gap:10px;font-weight:900;font-size:22px;letter-spacing:-0.5px;margin-bottom:14px}
+.logo-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 4px 12px rgba(16,185,129,0.35)}
+header h1{font-size:clamp(22px,5.5vw,32px);line-height:1.2;font-weight:800;color:#fff}
+header h1 span{color:#facc15}
+header p{font-size:clamp(14px,3.2vw,16px);margin-top:10px;color:#cbd5e1;line-height:1.5}
+.badge{display:inline-flex;align-items:center;gap:6px;margin-top:16px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:999px;padding:6px 16px;font-size:12px;font-weight:600;color:#e2e8f0;backdrop-filter:blur(8px)}
+.player-wrap{max-width:420px;margin:3vh auto;background:#1e293b;border-radius:24px;padding:10px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.1)}
+video{display:block;width:100%;aspect-ratio:9/16;border-radius:18px;background:#000;object-fit:cover}
+.video-fallback{display:none;color:#94a3b8;text-align:center;padding:8vh 4vw;font-weight:600}
+.cta-box{display:flex;flex-direction:column;gap:12px;margin:3vh auto;max-width:440px}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-weight:800;font-size:16px;border:none;border-radius:14px;padding:16px 24px;text-decoration:none;box-shadow:0 8px 20px rgba(16,185,129,0.35);transition:transform .15s,box-shadow .15s}
+.btn:active{transform:scale(0.98)}
+.btn--ghost{background:#1e293b;color:#f8fafc;border:1px solid rgba(255,255,255,0.15);box-shadow:none}
+.btn--whatsapp{background:#25d366;color:#fff;box-shadow:0 8px 20px rgba(37,211,102,0.3)}
+.phone-badge{font-size:14px;color:#94a3b8;margin-top:8px;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px}
+.steps{margin-top:3.5vh;display:flex;flex-direction:column;gap:10px}
+.step{background:#1e293b;border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:16px;display:flex;align-items:center;gap:14px;font-size:14px;color:#cbd5e1}
+.step-num{font-size:20px;flex-shrink:0}
+.step b{color:#f8fafc}
+footer{font-size:12px;color:#64748b;text-align:center;margin:4vh 0 3vh;line-height:1.6}
+footer a{color:#10b981;text-decoration:none}
 </style>
 </head>
 <body>
 <header>
   <div class="wrap">
-    <div class="logo"><span class="logo-mark">W</span>WAZAP</div>
-    <h1>La livraison à la demande, en 30 secondes</h1>
-    <p>Vos clients commandent par WhatsApp. Un livreur certifié est assigné. Suivi en direct. Sans appli.</p>
-    <span class="badge">🎬 Vidéo démo · Abidjan 🇨🇮</span>
+    <div class="logo-container">
+      <span class="logo-mark">⚡</span>
+      <span>WAZAP</span>
+    </div>
+    <h1>La livraison à Abidjan <span>en 30 secondes</span></h1>
+    <p>Vos clients commandent sur WhatsApp. Un coursier certifié est trouvé en 3 minutes. Suivi GPS en direct. 0 appli à installer.</p>
+    <div class="badge">🎬 Démonstration Officielle · Abidjan 🇨🇮</div>
   </div>
 </header>
 
 <section class="wrap">
-  <div class="player">
-    <video id="demo" controls preload="metadata" poster="" playsinline
+  <div class="player-wrap">
+    <video id="demo" controls preload="metadata" poster="demo-poster.jpg" playsinline
            src="demo.mp4">
-      Votre navigateur ne peut pas lire cette vidéo.
+      Votre navigateur ne prend pas en charge la lecture de cette vidéo.
     </video>
     <div class="video-fallback" id="fallback">
-      🎬 La vidéo de démonstration arrive très bientôt.<br>
-      En attendant, activez votre commerce en 2 minutes 👇
+      🎬 La vidéo se charge... En attendant, découvrez notre offre ci-dessous 👇
     </div>
   </div>
 
-  <div class="cta">
-    <a class="btn" href="https://junioradon79gm-001-site1.jtempurl.com/app/vente" target="_blank">🚀 Activer mon commerce</a>
-    <a class="btn btn--ghost" href="https://wa.me/2250575803801?text=Bonjour%20WAZAP%20!%20Je%20veux%20livrer" target="_blank">🛵 Devenir livreur</a>
+  <div class="cta-box">
+    <a class="btn" href="/app/vente">
+      🚀 Activer mon commerce (15 courses offertes)
+    </a>
+    <a class="btn btn--whatsapp" href="https://wa.me/2250787119520?text=Bonjour%20WAZAP%20👋%20Je%20souhaite%20activer%20mon%20commerce%20pour%20la%20livraison." target="_blank" rel="noreferrer">
+      💬 Discuter sur WhatsApp (+225 07 87 11 95 20)
+    </a>
+    <a class="btn btn--ghost" href="https://wa.me/2250787119520?text=Bonjour%20WAZAP%20!%20Je%20souhaite%20devenir%20livreur%20partenaire." target="_blank" rel="noreferrer">
+      🛵 Devenir livreur partenaire
+    </a>
   </div>
-  <div class="phone">📱 225 05 75 80 38 01</div>
+
+  <div class="phone-badge">
+    <span>📱 WhatsApp Officiel :</span> <b>+225 07 87 11 95 20</b>
+  </div>
 
   <div class="steps">
-    <div class="step"><b>1️⃣</b> Vos clients envoient leur commande sur <b>WhatsApp</b>.</div>
-    <div class="step"><b>2️⃣</b> Un livreur certifié proche est assigné automatiquement.</div>
-    <div class="step"><b>3️⃣</b> Suivi en direct, preuve de remise par code, paiement Mobile Money.</div>
+    <div class="step">
+      <div class="step-num">1️⃣</div>
+      <div><b>Zéro application à installer :</b> Vos clients commandent naturellement par WhatsApp ou via votre lien direct.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2️⃣</div>
+      <div><b>Assignation éclair en 3 min :</b> Le coursier certifié (CNI vérifiée) le plus proche de votre commune est envoyé.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3️⃣</div>
+      <div><b>Suivi GPS & Garantie Colis Sûr :</b> Carte en direct et validation de la remise par code secret PIN à 4 chiffres.</div>
+    </div>
   </div>
 </section>
 
-<footer class="wrap">WAZAP — livraison à la demande à Abidjan · 15 premières commandes offertes</footer>
+<footer class="wrap">
+  WAZAP CI — Le standard de la livraison à la demande à Abidjan<br>
+  15 premières courses 100% offertes · 0 FCFA abonnement · 0% commission<br>
+  <a href="/app">Accéder à la plateforme</a>
+</footer>
 
 <script>
-// Repli sobre si le MP4 n'est pas encore déployé (lecteur muet → on affiche le message).
 (function () {
   var v = document.getElementById('demo');
   function fallback() {
@@ -75,12 +105,6 @@ footer{font-size:12px;color:#7a8a7d;text-align:center;margin:3vh 0}
     document.getElementById('fallback').style.display = 'block';
   }
   v.addEventListener('error', fallback, true);
-  if (v.readyState === 0) {
-    // Attente : le fichier peut encore être en cours de téléversement.
-    setTimeout(function () {
-      if (v.readyState === 0 || v.networkState === 3) fallback();
-    }, 2500);
-  }
 })();
 </script>
 </body>

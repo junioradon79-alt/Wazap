@@ -704,6 +704,10 @@ app.MapGet("/parrainage", () => Results.Redirect("/app/parrainage"));
 // Servie depuis wwwroot (même mécanisme que suivi.html / demo.html), URL courte pour le QR.
 app.MapGet("/devenir-livreur", (IWebHostEnvironment env) =>
     Results.File(Path.Combine(env.WebRootPath, "devenir-livreur.html"), "text/html; charset=utf-8"));
+app.MapGet("/demo-video", (IWebHostEnvironment env) =>
+    Results.File(Path.Combine(env.WebRootPath, "demo-video.html"), "text/html; charset=utf-8"));
+app.MapGet("/demo", (IWebHostEnvironment env) =>
+    Results.File(Path.Combine(env.WebRootPath, "demo-video.html"), "text/html; charset=utf-8"));
 
 // Application automatique des migrations EF Core (PaaS / Render).
 if (builder.Configuration.GetValue<bool>("AutoMigrateDatabase", true))
