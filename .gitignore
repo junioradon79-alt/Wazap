@@ -32,3 +32,6 @@ scripts/activation/web.config.remote
 /relance_log.txt
 /Prospects_relances.csv
 /Prospects_preflight.csv
+
+# Archives locales vidéo
+marketing/demo-video/
