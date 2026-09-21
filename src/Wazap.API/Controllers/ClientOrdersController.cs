@@ -23,6 +23,7 @@ public class ClientOrdersController : ControllerBase
     private readonly ApplicationDbContext _context;
     private readonly DeliveryOfferService _deliveryOfferService;
     private readonly ClientPaymentService _clientPayments;
+    private readonly PaymentSplitService? _paymentSplit;
     private readonly RiderService _riderService;
     private readonly WhatsAppOrchestrationService? _whatsApp;
     private readonly ClientOptions _clientOptions;
@@ -33,7 +34,8 @@ public class ClientOrdersController : ControllerBase
         ClientPaymentService clientPayments,
         RiderService riderService,
         WhatsAppOrchestrationService? whatsApp = null,
-        ClientOptions? clientOptions = null)
+        ClientOptions? clientOptions = null,
+        PaymentSplitService? paymentSplit = null)
     {
         _context = context;
         _deliveryOfferService = deliveryOfferService;
@@ -41,6 +43,7 @@ public class ClientOrdersController : ControllerBase
         _riderService = riderService;
         _whatsApp = whatsApp;
         _clientOptions = clientOptions ?? new ClientOptions();
+        _paymentSplit = paymentSplit;
     }
 
     // GET: api/client/orders/{id} — état visible par le client (public, id non devinable)
@@ -422,8 +425,146 @@ public class ClientOrdersController : ControllerBase
             totalAmount = order.TotalAmount
         });
     }
+
+    // GET: api/client/orders/{id}/qr-handover — QR Code de ramassage au magasin (affiché par le vendeur, scanné par le livreur)
+    [HttpGet("{id:guid}/qr-handover")]
+    [EnableRateLimiting("client")]
+    public async Task<IActionResult> GetHandoverQr(Guid id)
+    {
+        var order = await _context.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == id);
+        if (order is null)
+            return NotFound();
+
+        var targetUrl = $"{_clientOptions.TrackingBaseUrl.TrimEnd('/')}/{order.Id}?ramasser=1";
+
+        using var generator = new QRCodeGenerator();
+        using var qrData = generator.CreateQrCode(targetUrl, QRCodeGenerator.ECCLevel.M);
+        using var png = new PngByteQRCode(qrData);
+        var bytes = png.GetGraphic(10, drawQuietZones: true);
+
+        return File(bytes, "image/png", $"wazap-handover-qr-{order.Id.ToString("N")[..8]}.png");
+    }
+
+    // POST: api/client/orders/{id}/scan-handover — Le livreur scanne le QR code du colis/comptoir au magasin
+    [HttpPost("{id:guid}/scan-handover")]
+    [EnableRateLimiting("client")]
+    public async Task<IActionResult> ScanHandover(Guid id)
+    {
+        if (_paymentSplit is not null)
+        {
+            var result = await _paymentSplit.ProcessHandoverScanAsync(id);
+            if (!result.Success && result.Status != "InTransit")
+                return BadRequest(new { message = result.Message, status = result.Status });
+
+            return Ok(new { success = true, status = result.Status, message = result.Message });
+        }
+
+        var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id);
+        if (order is null)
+            return NotFound();
+
+        if (order.Status == OrderStatus.InTransit)
+            return Ok(new { status = order.Status.ToString(), message = "Colis déjà en cours d'acheminement." });
+
+        if (order.Status is not (OrderStatus.RiderAssigned or OrderStatus.ReadyForPickup or OrderStatus.PickedUp))
+            return BadRequest(new { message = $"Impossible de ramasser en statut {order.Status}." });
+
+        if (order.Status == OrderStatus.RiderAssigned)
+            order.MarkReadyForPickup();
+        if (order.Status == OrderStatus.ReadyForPickup)
+            order.MarkPickedUp();
+        if (order.Status == OrderStatus.PickedUp)
+            order.MarkInTransit();
+
+        await _context.SaveChangesAsync();
+        return Ok(new { success = true, status = order.Status.ToString(), message = "Colis récupéré avec succès par scan QR !" });
+    }
+
+    // GET: api/client/orders/{id}/qr-payment — QR Code de paiement direct Mobile Money (Wave / OM) pour le client
+    [HttpGet("{id:guid}/qr-payment")]
+    [EnableRateLimiting("client")]
+    public async Task<IActionResult> GetPaymentQr(Guid id)
+    {
+        var order = await _context.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == id);
+        if (order is null)
+            return NotFound();
+
+        var targetUrl = $"{_clientOptions.TrackingBaseUrl.TrimEnd('/')}/{order.Id}?payer=1&mode=split";
+
+        using var generator = new QRCodeGenerator();
+        using var qrData = generator.CreateQrCode(targetUrl, QRCodeGenerator.ECCLevel.M);
+        using var png = new PngByteQRCode(qrData);
+        var bytes = png.GetGraphic(10, drawQuietZones: true);
+
+        return File(bytes, "image/png", $"wazap-pay-qr-{order.Id.ToString("N")[..8]}.png");
+    }
+
+    // POST: api/client/orders/{id}/pay-split — Initialise le paiement fractionné direct (Digital COD Anti-Fuite)
+    [HttpPost("{id:guid}/pay-split")]
+    [EnableRateLimiting("client")]
+    public async Task<IActionResult> PaySplit(Guid id)
+    {
+        var order = await _context.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == id);
+        if (order is null)
+            return NotFound();
+
+        var calculation = PaymentSplitService.CalculateSplit(order);
+        var paymentLink = $"{_clientOptions.TrackingBaseUrl.TrimEnd('/')}/{order.Id}?payer=1&mode=split";
+
+        if (_paymentSplit is not null)
+        {
+            var initResult = await _paymentSplit.InitiateSplitPaymentAsync(id, _clientOptions.TrackingBaseUrl);
+            return Ok(new
+            {
+                success = initResult.Success,
+                totalAmount = initResult.TotalAmount,
+                merchantAmount = initResult.MerchantAmount,
+                riderDeliveryFee = initResult.RiderDeliveryFee,
+                paymentLink = initResult.PaymentLink,
+                qrPayload = initResult.QrPayload,
+                status = initResult.Status
+            });
+        }
+
+        return Ok(new
+        {
+            success = true,
+            totalAmount = calculation.TotalAmount,
+            merchantAmount = calculation.MerchantAmount,
+            riderDeliveryFee = calculation.RiderDeliveryFee,
+            paymentLink,
+            qrPayload = paymentLink,
+            status = "Pending"
+        });
+    }
+
+    // POST: api/client/orders/{id}/complete-split — Clôture du paiement fractionné et notification instantanée
+    [HttpPost("{id:guid}/complete-split")]
+    [EnableRateLimiting("client")]
+    public async Task<IActionResult> CompleteSplit(Guid id, [FromBody] CompleteSplitRequest request)
+    {
+        if (_paymentSplit is not null)
+        {
+            var result = await _paymentSplit.CompleteSplitPaymentAsync(id, request.PaymentReference ?? $"WAVE-{Guid.NewGuid():N}"[..16]);
+            return Ok(result);
+        }
+
+        var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id);
+        if (order is null)
+            return NotFound();
+
+        return Ok(new
+        {
+            success = true,
+            orderId = id,
+            merchantAmount = order.Amount,
+            riderDeliveryFee = order.DeliveryFee,
+            message = "Paiement fractionné complété."
+        });
+    }
 }
 
 public sealed record SetClientCoordinatesRequest(double Latitude, double Longitude, string? Address);
 public sealed record SubmitClientRatingRequest(int Score, string? Comment);
 public sealed record ValidateDeliveryRequest(string Code);
+public sealed record CompleteSplitRequest(string? PaymentReference);

@@ -410,6 +410,7 @@ builder.Services.AddScoped<DashboardService>();
 // Packs prépayés : catalogue + achat
 builder.Services.AddScoped<PackService>();
 builder.Services.AddScoped<ClientPaymentService>();
+builder.Services.AddScoped<PaymentSplitService>();
 
 // Pack prioritaire livreur : catalogue + achat (option payante)
 builder.Services.AddScoped<RiderPriorityService>();
