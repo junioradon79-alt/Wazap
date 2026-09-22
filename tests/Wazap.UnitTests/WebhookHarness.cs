@@ -121,6 +121,51 @@ internal sealed class WebhookHarness : IDisposable
         return Controller.Handle(payload);
     }
 
+    /// <summary>
+    /// Simule un clic sur un bouton interactif WhatsApp (type button_reply de Meta Cloud API).
+    /// </summary>
+    public Task SendInteractiveButtonAsync(string phone, string buttonId, string buttonTitle)
+    {
+        var payload = JsonSerializer.SerializeToElement(new
+        {
+            @object = "whatsapp_business_account",
+            entry = new[]
+            {
+                new
+                {
+                    changes = new[]
+                    {
+                        new
+                        {
+                            value = new
+                            {
+                                messages = new[]
+                                {
+                                    new
+                                    {
+                                        id = "wamid." + Guid.NewGuid().ToString("N"),
+                                        from = phone.TrimStart('+'),
+                                        type = "interactive",
+                                        interactive = new
+                                        {
+                                            type = "button_reply",
+                                            button_reply = new
+                                            {
+                                                id = buttonId,
+                                                title = buttonTitle
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        return Controller.Handle(payload);
+    }
+
     /// <summary>Dernier message envoyé au numéro indiqué (null si aucun).</summary>
     public string? LastMessageTo(string phone)
         => Sender.TextMessages.LastOrDefault(m => m.Phone == phone).Message;

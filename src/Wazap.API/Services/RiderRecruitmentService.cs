@@ -40,6 +40,7 @@ public sealed class RiderRecruitmentService
     private readonly RiderService _riderService;
     private readonly IWhatsAppSender _whatsApp;
     private readonly IWhatsAppMediaDownloader _mediaDownloader;
+    private readonly IOcrService? _ocrService;
     private readonly ILogger<RiderRecruitmentService> _logger;
     private readonly string? _teamPhone;
 
@@ -50,7 +51,8 @@ public sealed class RiderRecruitmentService
         IWhatsAppSender whatsApp,
         IWhatsAppMediaDownloader mediaDownloader,
         IConfiguration config,
-        ILogger<RiderRecruitmentService> logger)
+        ILogger<RiderRecruitmentService> logger,
+        IOcrService? ocrService = null)
     {
         _context = context;
         _passwordHasher = passwordHasher;
@@ -59,6 +61,7 @@ public sealed class RiderRecruitmentService
         _mediaDownloader = mediaDownloader;
         _logger = logger;
         _teamPhone = config["Prospect:TeamPhone"];
+        _ocrService = ocrService;
     }
 
     /// <summary>Traite un message TEXTE d'un candidat livreur (numéro sans compte). True si consommé.</summary>
@@ -117,9 +120,11 @@ public sealed class RiderRecruitmentService
 
         if (lead.Status == LeadStatus.Converted)
         {
-            await ReplyAsync(normalized,
-                "✅ Votre profil livreur WAZAP est déjà actif ! Envoyez DISPO pour recevoir les courses, " +
-                "ou ZONE <quartier> pour définir votre zone 🛵");
+            await ReplyInteractiveAsync(
+                normalized,
+                "✅ Votre profil livreur WAZAP est déjà actif ! Cliquez ci-dessous pour vous mettre en ligne et recevoir les courses 🛵",
+                new[] { ("DISPO", "🟢 DISPO") },
+                footerText: "WAZAP Livreur");
             return true;
         }
 
@@ -165,8 +170,11 @@ public sealed class RiderRecruitmentService
 
         if (lead.Status == LeadStatus.Converted)
         {
-            await ReplyAsync(normalized,
-                "✅ Votre profil livreur est déjà actif — envoyez DISPO pour recevoir les courses 🛵");
+            await ReplyInteractiveAsync(
+                normalized,
+                "✅ Votre profil livreur est déjà actif — cliquez ci-dessous pour recevoir les courses 🛵",
+                new[] { ("DISPO", "🟢 DISPO") },
+                footerText: "WAZAP Livreur");
             return true;
         }
 
@@ -187,7 +195,32 @@ public sealed class RiderRecruitmentService
 
         try
         {
-            var username = await BuildUniqueUsernameAsync(lead.ContactName);
+            // Analyse OCR de la CNI pour extraire automatiquement nom complet et numéro CNI :
+            string resolvedName = lead.ContactName ?? "Livreur WAZAP";
+            string? detectedCni = null;
+
+            if (_ocrService != null)
+            {
+                try
+                {
+                    var ocr = await _ocrService.ParseIdentityCardAsync(download.Value.Content, mimeType);
+                    if (ocr.Success)
+                    {
+                        if (!string.IsNullOrWhiteSpace(ocr.FullName) && (string.IsNullOrWhiteSpace(lead.ContactName) || lead.ContactName == "Candidat livreur"))
+                        {
+                            resolvedName = ocr.FullName;
+                            lead.Update(lead.BusinessName, resolvedName, lead.Source);
+                        }
+                        detectedCni = ocr.IdNumber;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Analyse OCR non bloquante en échec pour le livreur {Phone}", normalized);
+                }
+            }
+
+            var username = await BuildUniqueUsernameAsync(resolvedName);
             var tempPassword = "Wazap-" + Random.Shared.Next(100000, 999999);
             var user = new User(username, _passwordHasher.Hash(tempPassword), UserRole.Rider, normalized);
             user.SetZone(lead.Zone);
@@ -209,22 +242,38 @@ public sealed class RiderRecruitmentService
                 await _riderService.StoreScanAsync(user.Id, stream, download.Value.FileName, mediaUrl);
             await _riderService.RecordWhatsAppConsentAsync(user.Id);
 
+            // Mise à jour de l'identité avec les données extraites par l'OCR :
+            if (!string.IsNullOrWhiteSpace(detectedCni))
+            {
+                var identity = await _context.RiderIdentities.FirstOrDefaultAsync(i => i.UserId == user.Id);
+                identity?.UpdateParsedInfo(resolvedName, detectedCni);
+                await _context.SaveChangesAsync();
+            }
+
             lead.SetStatus(LeadStatus.Converted);
             await _context.SaveChangesAsync();
 
-            await ReplyAsync(normalized,
-                "🎉 Votre profil livreur WAZAP est créé !\n"
+            var cniNotice = !string.IsNullOrWhiteSpace(detectedCni) ? $"\n🪪 CNI reconnue : {detectedCni}" : "";
+            var welcomeText = $"🎉 Félicitations {resolvedName} ! Ton profil livreur WAZAP est créé !{cniNotice}\n\n"
+                + $"📍 Commune active : {lead.Zone}\n"
                 + $"• Identifiant : {username}\n"
-                + $"• Mot de passe : {tempPassword}\n"
-                + "🛵 Envoyez DISPO ici pour recevoir les courses, puis ZONE <quartier>.\n"
-                + "🛡️ Votre photo CNI est en cours de vérification : notre équipe vous certifie sous 24 h.");
-            await NotifyTeamAsync($"Candidature livreur COMPLÈTE : {normalized} — {lead.ContactName} · {lead.Zone}. " +
+                + $"• Mot de passe : {tempPassword}\n\n"
+                + "🛡️ Pièce d'identité enregistrée en sécurité (Assurance Colis Sûr).\n\n"
+                + "👉 Pour commencer à recevoir les courses maintenant, clique sur le bouton ci-dessous :";
+
+            await ReplyInteractiveAsync(
+                normalized,
+                welcomeText,
+                new[] { ("DISPO", "🟢 DISPO") },
+                footerText: "WAZAP Livreur");
+
+            await NotifyTeamAsync($"Candidature livreur COMPLÈTE (OCR) : {normalized} — {resolvedName} · {lead.Zone} · {detectedCni ?? "scan reçu"}. " +
                 (referrer is not null ? $"Parrain : {referrer.Username} ({referrer.ReferralCode}). " : string.Empty) +
                 "Vérifier le dossier dans /app/certifications (certification en 1 clic).");
 
             _logger.LogInformation(
-                "Candidat livreur {Phone} converti : compte {Username} créé, scan chiffré, consentement tracé.",
-                normalized, username);
+                "Candidat livreur {Phone} converti via OCR : compte {Username} ({FullName}), scan chiffré, CNI {Cni}.",
+                normalized, username, resolvedName, detectedCni);
         }
         catch (InvalidOperationException ex)
         {
@@ -395,5 +444,17 @@ public sealed class RiderRecruitmentService
         if (string.IsNullOrWhiteSpace(_teamPhone))
             return;
         await ReplyAsync("+" + PhoneNumberNormalizer.DigitsOnly(_teamPhone), "🤖 [Livreur] " + summary);
+    }
+
+    private async Task ReplyInteractiveAsync(string phone, string message, IReadOnlyList<(string Id, string Title)> buttons, string? footerText = null)
+    {
+        try
+        {
+            await _whatsApp.SendInteractiveButtonsAsync(phone, message, buttons, footerText: footerText);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Réponse interactive candidat livreur impossible vers {Phone}.", phone);
+        }
     }
 }

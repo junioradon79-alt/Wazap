@@ -71,6 +71,15 @@ public class RiderIdentity
         BlacklistReason = null;
     }
 
+    /// <summary>Met à jour les informations d'identité extraites automatiquement par OCR.</summary>
+    public void UpdateParsedInfo(string? fullName, string? idNumber)
+    {
+        if (!string.IsNullOrWhiteSpace(fullName))
+            FullName = Normalize(fullName);
+        if (!string.IsNullOrWhiteSpace(idNumber))
+            IdNumber = Normalize(idNumber, 40);
+    }
+
     /// <summary>Refuse la certification (dossier incomplet, incohérences…).</summary>
     public void Reject(string? reason, Guid? reviewerId)
     {

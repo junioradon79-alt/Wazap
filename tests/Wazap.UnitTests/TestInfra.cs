@@ -64,6 +64,22 @@ internal sealed class RecordingWhatsAppSender : IWhatsAppSender
         TextMessages.Add((toPhoneNumber, message));
         return Task.CompletedTask;
     }
+
+    public List<(string Phone, string Body, IReadOnlyList<(string Id, string Title)> Buttons)> InteractiveMessages { get; } = new();
+
+    public Task SendInteractiveButtonsAsync(
+        string toPhoneNumber,
+        string bodyText,
+        IReadOnlyList<(string Id, string Title)> buttons,
+        string? headerText = null,
+        string? footerText = null,
+        CancellationToken ct = default)
+    {
+        LastToken = ct;
+        InteractiveMessages.Add((toPhoneNumber, bodyText, buttons));
+        TextMessages.Add((toPhoneNumber, bodyText));
+        return Task.CompletedTask;
+    }
 }
 
 /// <summary>

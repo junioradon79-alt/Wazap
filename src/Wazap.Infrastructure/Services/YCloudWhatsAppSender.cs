@@ -92,6 +92,69 @@ public sealed class YCloudWhatsAppSender : IWhatsAppSender
         await SendAsync(payload, $"message texte vers {recipient}", recipient, null, message, ct);
     }
 
+    public async Task SendInteractiveButtonsAsync(
+        string toPhoneNumber,
+        string bodyText,
+        IReadOnlyList<(string Id, string Title)> buttons,
+        string? headerText = null,
+        string? footerText = null,
+        CancellationToken ct = default)
+    {
+        var recipient = PrepareRecipient(toPhoneNumber);
+
+        var actionButtons = buttons.Take(3).Select(b => new
+        {
+            type = "reply",
+            reply = new
+            {
+                id = b.Id,
+                title = b.Title.Length > 20 ? b.Title[..20] : b.Title
+            }
+        }).ToArray();
+
+        var interactiveObj = new Dictionary<string, object>
+        {
+            ["type"] = "button",
+            ["body"] = new { text = bodyText },
+            ["action"] = new { buttons = actionButtons }
+        };
+
+        if (!string.IsNullOrWhiteSpace(headerText))
+        {
+            interactiveObj["header"] = new { type = "text", text = headerText };
+        }
+        if (!string.IsNullOrWhiteSpace(footerText))
+        {
+            interactiveObj["footer"] = new { text = footerText };
+        }
+
+        var payload = new
+        {
+            from = PrepareSender(),
+            to = recipient,
+            type = "interactive",
+            interactive = interactiveObj
+        };
+
+        try
+        {
+            await SendAsync(payload, $"boutons interactifs vers {recipient}", recipient, null, bodyText, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Échec de l'envoi de boutons interactifs YCloud vers {Recipient}, repli en texte.", recipient);
+            var sb = new StringBuilder();
+            if (!string.IsNullOrWhiteSpace(headerText))
+                sb.AppendLine(headerText).AppendLine();
+            sb.AppendLine(bodyText).AppendLine();
+            foreach (var btn in buttons)
+                sb.AppendLine($"👉 {btn.Title}");
+            if (!string.IsNullOrWhiteSpace(footerText))
+                sb.AppendLine().AppendLine($"_{footerText}_");
+            await SendTextMessageAsync(toPhoneNumber, sb.ToString().TrimEnd(), ct);
+        }
+    }
+
     private async Task SendAsync(
         object payload,
         string context,

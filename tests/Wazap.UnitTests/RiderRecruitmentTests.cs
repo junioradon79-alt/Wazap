@@ -72,6 +72,16 @@ public class RiderRecruitmentTests
         Assert.Contains("Mot de passe", welcome);
         Assert.Contains(harness.Sender.TextMessages,
             m => m.Phone == "+2250500000000" && m.Message.Contains("Candidature livreur COMPLÈTE"));
+
+        // Bouton interactif DISPO reçu :
+        var interactive = Assert.Single(harness.Sender.InteractiveMessages, m => m.Phone == CandidatePhone);
+        Assert.Contains(interactive.Buttons, b => b.Id == "DISPO" && b.Title.Contains("DISPO"));
+
+        // Clic sur le bouton interactif DISPO par le livreur :
+        await harness.SendInteractiveButtonAsync(CandidatePhone, "DISPO", "🟢 DISPO");
+        var updatedRider = await harness.Context.Users.SingleAsync(u => u.Role == UserRole.Rider);
+        Assert.True(updatedRider.IsAvailable);
+        Assert.Contains("en ligne", harness.LastMessageTo(CandidatePhone));
     }
 
     [Fact]

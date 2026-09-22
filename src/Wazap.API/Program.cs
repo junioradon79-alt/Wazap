@@ -398,7 +398,8 @@ builder.Services.AddScoped<WhatsAppOrchestrationService>();
 builder.Services.AddScoped<IWhatsAppMessageLogService, WhatsAppMessageLogService>();
 builder.Services.AddScoped<AuthService>();
 
-// Services géolocalisation / matching / tableau de bord
+// Services géolocalisation / matching / tableau de bord / OCR
+builder.Services.AddHttpClient<IOcrService, GoogleVisionOcrService>();
 builder.Services.AddScoped<RiderService>();
 builder.Services.AddScoped<RiderRecruitmentService>();
 builder.Services.AddScoped<VendorService>();

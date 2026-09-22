@@ -14,4 +14,27 @@ public interface IWhatsAppSender
     Task SendTemplateAsync(string toPhoneNumber, string templateName, Dictionary<string, string> variables,
         CancellationToken ct = default);
     Task SendTextMessageAsync(string toPhoneNumber, string message, CancellationToken ct = default);
+
+    /// <summary>
+    /// Envoi de boutons cliquables interactifs WhatsApp (Quick Reply buttons, max 3 boutons).
+    /// En l'absence de support natif de la passerelle, un repli texte automatique est assuré.
+    /// </summary>
+    Task SendInteractiveButtonsAsync(
+        string toPhoneNumber,
+        string bodyText,
+        IReadOnlyList<(string Id, string Title)> buttons,
+        string? headerText = null,
+        string? footerText = null,
+        CancellationToken ct = default)
+    {
+        var sb = new System.Text.StringBuilder();
+        if (!string.IsNullOrWhiteSpace(headerText))
+            sb.AppendLine(headerText).AppendLine();
+        sb.AppendLine(bodyText).AppendLine();
+        foreach (var btn in buttons)
+            sb.AppendLine($"👉 {btn.Title}");
+        if (!string.IsNullOrWhiteSpace(footerText))
+            sb.AppendLine().AppendLine($"_{footerText}_");
+        return SendTextMessageAsync(toPhoneNumber, sb.ToString().TrimEnd(), ct);
+    }
 }

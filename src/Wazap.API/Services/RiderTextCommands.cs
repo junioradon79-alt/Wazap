@@ -47,6 +47,7 @@ public sealed class RiderTextCommands
     /// </summary>
     public static bool Matches(string upperText, string rawText)
         => upperText is "DISPO" or "INDISPO"
+           || upperText.Contains("DISPO")
            || upperText is "DASHBOARD" or "STATS" or "STATISTIQUES" or "SOLDE" or "COMPTE" or "TABLEAU DE BORD"
            || upperText is "PROGRAMME" or "MA PROGRAMME" or "AMBASSADEUR" or "RECOMPENSE"
            || RiderRatingService.IsMyRatingsCommand(rawText)
@@ -63,17 +64,17 @@ public sealed class RiderTextCommands
             return;
         }
 
-        if (upper == "DISPO")
-        {
-            await _riderService.SetAvailabilityAsync(user.Id, true);
-            await reply(user, "✅ Vous êtes en ligne.");
-            return;
-        }
-
-        if (upper == "INDISPO")
+        if (upper == "INDISPO" || upper.Contains("INDISPO") || upper.Contains("HORS LIGNE"))
         {
             await _riderService.SetAvailabilityAsync(user.Id, false);
             await reply(user, "🚫 Vous êtes hors ligne.");
+            return;
+        }
+
+        if (upper == "DISPO" || upper.Contains("DISPO"))
+        {
+            await _riderService.SetAvailabilityAsync(user.Id, true);
+            await reply(user, "✅ Vous êtes en ligne ! Vos courses dans votre commune vont commencer à arriver. 🛵💨");
             return;
         }
 
