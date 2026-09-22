@@ -24,7 +24,8 @@ public sealed class RiderRecruitmentService
     private static readonly string[] RiderKeywords =
     {
         "je veux livrer", "veux livrer", "devenir livreur", "livreur", "livrer", "coursier",
-        "motard", "moto", "a moto", "à moto", "recrut", "gagner", "dispo"
+        "motard", "moto", "a moto", "à moto", "recrut", "gagner", "dispo", "btn_moto", "btn_velo",
+        "btn_livreur", "à moto", "a pied", "en moto"
     };
 
     private static readonly string[] Zones =
@@ -272,11 +273,20 @@ public sealed class RiderRecruitmentService
         return match.Success ? "WA-" + match.Groups[1].Value.ToUpperInvariant() : null;
     }
 
-    /// <summary>Quartier connu mentionné dans le texte (casse normalisée), sinon vide.</summary>
+    /// <summary>Quartier connu mentionné dans le texte ou sélectionné par numéro (1 à 6), sinon vide.</summary>
     private static string CaptureZone(string text)
     {
-        var lower = text.ToLowerInvariant();
-        var zone = Zones.FirstOrDefault(z => lower.Contains(z)) ?? string.Empty;
+        var trimmed = text.Trim().ToLowerInvariant();
+
+        // Raccourcis ultra-simples par numéros pour les livreurs :
+        if (trimmed is "1" or "zone_1" or "cocody") return "Cocody";
+        if (trimmed is "2" or "zone_2" or "yopougon") return "Yopougon";
+        if (trimmed is "3" or "zone_3" or "marcory") return "Marcory";
+        if (trimmed is "4" or "zone_4" or "koumassi" or "treichville") return "Marcory"; // Zone Sud
+        if (trimmed is "5" or "zone_5" or "adjame" or "adjamé" or "plateau") return "Plateau";
+        if (trimmed is "6" or "zone_6" or "abobo") return "Abobo";
+
+        var zone = Zones.FirstOrDefault(z => trimmed.Contains(z)) ?? string.Empty;
         return zone.Length > 0 ? char.ToUpperInvariant(zone[0]) + zone[1..] : string.Empty;
     }
 
@@ -294,7 +304,7 @@ public sealed class RiderRecruitmentService
             return null;
 
         var lower = line.ToLowerInvariant();
-        if (RiderKeywords.Any(lower.Contains))
+        if (RiderKeywords.Any(lower.Contains) || lower.Length <= 2)
             return null;
         if (lower.StartsWith("je ") || lower.StartsWith("mon ") || lower.StartsWith("ma ")
             || lower is "bonjour" or "salut" or "ok" or "merci" or "oui" or "non")
@@ -309,26 +319,31 @@ public sealed class RiderRecruitmentService
 
     private static string BuildAskMessage(Lead lead)
     {
-        var missing = new List<string>();
-        if (string.IsNullOrWhiteSpace(lead.ContactName))
-            missing.Add("votre nom complet");
+        // Étape 1 : Si la zone n'est pas encore choisie, proposer le nom complet ou le choix direct de la commune :
         if (string.IsNullOrWhiteSpace(lead.Zone))
-            missing.Add("votre quartier (ex : Marcory)");
+        {
+            return "👋 Bienvenue chez WAZAP Livreur 🛵\n"
+                + "Gagne 1 000 à 2 000 FCFA par course (0 commission) !\n\n"
+                + "Pour activer ton compte, envoie ton nom complet et choisis ta commune principale (chiffre 1 à 6) :\n"
+                + "1️⃣ Cocody (Angré, 2 Plateaux, Riviera)\n"
+                + "2️⃣ Yopougon (Maroc, Siporex, Bel Air)\n"
+                + "3️⃣ Marcory (Zone 4, Biétry)\n"
+                + "4️⃣ Koumassi / Treichville\n"
+                + "5️⃣ Plateau / Adjamé\n"
+                + "6️⃣ Abobo\n\n"
+                + "👉 Réponds simplement avec ton nom complet et le chiffre de ta commune (ex: « Ibrahim 3 ») ou juste le chiffre :";
+        }
 
-        if (lead.Status == LeadStatus.New && missing.Count == 2)
-            return "👋 Bienvenue chez WAZAP 🛵 Pour devenir livreur, envoyez-moi :\n"
-                + "1️⃣ Votre nom complet\n"
-                + "2️⃣ Votre quartier\n"
-                + "3️⃣ Une photo de votre pièce d'identité (CNI)\n\n"
-                + "Un message texte pour 1️⃣ et 2️⃣, puis la photo.\n\n"
-                + "💡 Vous avez un code parrain WAZAP ? Envoyez-le aussi (ex. WA-AB12) pour le rejoindre.";
+        // Étape 2 : Nom ou pseudo
+        if (string.IsNullOrWhiteSpace(lead.ContactName))
+        {
+            return $"✅ Commune enregistrée : {lead.Zone} !\n\n"
+                + "Écris maintenant ton nom complet (prénom et nom) :";
+        }
 
-        if (missing.Count > 0)
-            return "Merci ! Il me manque : " + string.Join(" et ", missing) + ".\n"
-                + "Envoyez aussi la photo de votre CNI 🪪 (elle est indispensable à la certification « Garantie Colis Sûr »).";
-
-        return "✅ Parfait ! Dernière étape : envoyez une photo de votre pièce d'identité (CNI) 🪪 — "
-            + "elle est indispensable à la certification « Garantie Colis Sûr ».";
+        // Étape 3 : Photo de la pièce d'identité (Garantie Colis Sûr)
+        return $"✅ Parfait {lead.ContactName} ! Dernière étape : Prends en PHOTO ta pièce d'identité (CNI ou Passeport) 🪪 et envoie-la ici.\n\n"
+            + "Dès réception de la photo, ton compte est activé et tu reçois immédiatement tes premières courses 🛵💨";
     }
 
     private async Task<string> BuildUniqueUsernameAsync(string fullName)

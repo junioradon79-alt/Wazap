@@ -542,7 +542,9 @@ public class WebhookWhatsAppController : ControllerBase
 
         // 6) Numéro INCONNU → automatisation des échanges prospects (commerçant / livreur /
         //    parrainage) : création/qualification d'un Lead + réponse contextuelle.
-        if (!string.IsNullOrWhiteSpace(phone) && !string.IsNullOrWhiteSpace(text))
+        //    Supporte aussi bien le texte direct que les clics sur boutons interactifs ou listes (buttonTitle / buttonId).
+        var prospectInput = text ?? buttonTitle ?? buttonId;
+        if (!string.IsNullOrWhiteSpace(phone) && !string.IsNullOrWhiteSpace(prospectInput))
         {
             // SameSubscriber est une méthode C# : EF Core ne sait pas la traduire en SQL.
             // On emploie donc la clé de rapprochement INDEXÉE (8 derniers chiffres) pour le
@@ -560,15 +562,15 @@ public class WebhookWhatsAppController : ControllerBase
             if (!knownUser)
             {
                 // 6a) Candidat livreur (bot de recrutement : intention → nom/quartier → photo).
-                if (await _riderRecruitment.TryHandleCandidateAsync(phone, text))
+                if (await _riderRecruitment.TryHandleCandidateAsync(phone, prospectInput))
                     return Ok();
 
                 // 6b) Bot de COMMANDE CLIENT (article → commerce → adresse → commande réelle),
                 //     AVANT le bot prospects : un client qui veut commander n'est pas un prospect.
-                if (await _clientOrders.TryHandleAsync(phone, text))
+                if (await _clientOrders.TryHandleAsync(phone, prospectInput))
                     return Ok();
 
-                await _prospects.HandleAsync(phone, text);
+                await _prospects.HandleAsync(phone, prospectInput);
             }
         }
 
