@@ -223,7 +223,9 @@ namespace Wazap.Application.Services
             // Template Meta approuvé « Bonjour, votre livreur {{2}} a accepté votre commande
             // #{{1}} » → 1 = code court de commande, 2 = nom du livreur.
             await SendStatusAsync(order.ClientWhatsAppNumber, _whatsAppOptions.TemplateRiderAssignedClient,
-                $"🛵 {riderName} a accepté votre commande #{orderCode}. Livraison en route !",
+                $"🛵 {riderName} a accepté votre commande #{orderCode}. Livraison en route !\n" +
+                "💳 Scannez son QR Code Wave, Orange, MTN ou Moov à l'arrivée (sans frais + active votre Garantie Colis Sûr 2h).\n" +
+                "⚠️ Rappel sécurité : nos coursiers n'ont aucun fond de caisse (appoint exact obligatoire si cash).",
                 new Dictionary<string, string>
                 {
                     ["1"] = orderCode,
@@ -281,8 +283,8 @@ namespace Wazap.Application.Services
             var orderCode = order.Id.ToString("N")[..8].ToUpperInvariant();
 
             await SendStatusAsync(order.ClientWhatsAppNumber, _whatsAppOptions.TemplateDeliveryCode,
-                $"🔐 Votre code de livraison pour la commande #{orderCode} : {order.DeliveryCode}\n" +
-                "Donnez-le au livreur UNIQUEMENT quand vous avez le colis en main.",
+                $"🔐 Votre code secret Colis Sûr pour la commande #{orderCode} : {order.DeliveryCode}\n" +
+                "Donnez-le au coursier ou scannez son QR Code UNIQUEMENT quand vous avez le colis en main propre.",
                 new Dictionary<string, string>
                 {
                     // Template « delivery_code » (auth, 1 variable) : {{1}} = code de livraison.
@@ -309,7 +311,9 @@ namespace Wazap.Application.Services
                 var orderCode = order.Id.ToString("N")[..8].ToUpperInvariant();
                 // Template approuvé « Bonjour, votre livreur {{2}} a accepté votre commande #{{1}} ».
                 await SendStatusAsync(order.ClientWhatsAppNumber, _whatsAppOptions.TemplateRiderAssignedClient,
-                    $"🛵 {riderName} a accepté votre commande #{orderCode}. Livraison en route !",
+                    $"🛵 {riderName} a accepté votre commande #{orderCode}. Livraison en route !\n" +
+                    "💳 Scannez son QR Code Wave, Orange, MTN ou Moov à l'arrivée (sans frais + active votre Garantie Colis Sûr 2h).\n" +
+                    "⚠️ Rappel sécurité : nos coursiers n'ont aucun fond de caisse (appoint exact obligatoire si cash).",
                     new Dictionary<string, string>
                     {
                         ["1"] = orderCode,
@@ -476,6 +480,7 @@ namespace Wazap.Application.Services
 
             await SendStatusAsync(order.ClientWhatsAppNumber, _whatsAppOptions.TemplateOrderDelivered,
                 $"✅ Votre colis #{orderCode} a été livré. Merci d'avoir choisi WAZAP !\n" +
+                "🎁 Paiement validé : vous participez au tirage au sort hebdomadaire WAZAP pour tenter de gagner 25 000 FCFA d'achats !\n" +
                 "⭐ Notez votre livreur en répondant NOTE suivi de 1 à 5 (ex : NOTE 5).",
                 templateData, ct);
         }

@@ -1,23 +1,19 @@
 // Campagne WhatsApp : envoie un template à chaque prospect du CSV.
 // Entrée : CSV (Nom;WhatsApp_Number;…) — sortie : Prospects_relances.csv + relance_log.txt
 //
-// DEUX FOURNISSEURS (option --provider=…, défaut whatchimp) :
-//   whatchimp (défaut) : passerelle WhatChimp (GET /send). Réservé aux numéros
-//     SUBSCRIBERS du bot — tout envoi vers un numéro froid est traité en texte et
-//     refusé « outside 24 hour window ». Prérequis : template approuvé Meta ET mappé
-//     dans WhatChimp (diagnostic : scripts/campaign/Check-TemplateMapping.ps1 ;
-//     guide : prospection/MAPPING_VARIABLES_WHATCHIMP.md).
+// FOURNISSEURS (option --provider=…, défaut ycloud) :
+//   ycloud (défaut) : API officielle YCloud (POST /v2/whatsapp/messages/sendDirectly).
+//     Meta Tier-1 Business Solution Provider officiel de WAZAP.
 //   meta : API Meta WhatsApp Cloud DIRECTE (POST /{version}/{phone_number_id}/messages).
-//     Contourne totalement WhatChimp et accepte l'envoi d'un template à N'IMPORTE QUEL
-//     numéro froid, sans subscriber ni fenêtre 24 h — c'est le mode à utiliser quand
-//     l'import de subscribers WhatChimp échoue (cf. MEMOIRE.md §3.6).
+//   whatchimp : (Legacy/Déprécié)
 //
 // Config (env) :
 //   communs            : TEMPLATE_NAME, COMMERCIAL, VIDEO_URL, LANGUAGE_CODE.
-//   --provider=whatchimp: WHATCHIMP_API_TOKEN (obligatoire), WHATCHIMP_PHONE_NUMBER_ID.
+//   --provider=ycloud  : YCLOUD_API_KEY (obligatoire), YCLOUD_PHONE_NUMBER (défaut +2250787119520),
+//                        YCLOUD_BASE_URL (défaut https://api.ycloud.com/v2/whatsapp/).
 //   --provider=meta    : META_API_TOKEN (obligatoire), META_PHONE_NUMBER_ID (obligatoire),
 //                        META_API_VERSION (défaut v21.0).
-// Options : <csv> [--provider=meta] [--zone=Marcory] [--limit=20] [--dry-run]
+// Options : <csv> [--provider=ycloud|meta] [--zone=Marcory] [--limit=20] [--dry-run]
 //           [--commercial=X] [--video-url=URL]
 using System.Text;
 using System.Text.Json;
@@ -28,7 +24,7 @@ var limit = 0;
 var dryRun = false;
 var preflightSubscribers = false;
 var force = false;
-var provider = "whatchimp";
+var provider = "ycloud";
 var commercialArg = "";
 var videoUrlArg = "";
 
@@ -46,12 +42,18 @@ foreach (var arg in args)
     else Console.Error.WriteLine($"Option inconnue ignorée : {arg}");
 }
 
-if (provider is not ("whatchimp" or "meta"))
+if (provider is not ("ycloud" or "meta" or "whatchimp"))
 {
-    Console.Error.WriteLine("--provider doit être 'whatchimp' (défaut) ou 'meta'.");
+    Console.Error.WriteLine("--provider doit être 'ycloud' (défaut), 'meta' ou 'whatchimp'.");
     return 2;
 }
 var metaProvider = provider == "meta";
+var ycloudProvider = provider == "ycloud";
+
+var ycloudApiKey = Environment.GetEnvironmentVariable("YCLOUD_API_KEY") ?? "";
+var ycloudPhoneNumber = Environment.GetEnvironmentVariable("YCLOUD_PHONE_NUMBER") ?? "+2250787119520";
+var ycloudBaseUrl = Environment.GetEnvironmentVariable("YCLOUD_BASE_URL") ?? "https://api.ycloud.com/v2/whatsapp/";
+var ycloudSendUrl = $"{ycloudBaseUrl.TrimEnd('/')}/messages/sendDirectly";
 
 var apiToken = Environment.GetEnvironmentVariable("WHATCHIMP_API_TOKEN");
 var phoneNumberId = Environment.GetEnvironmentVariable("WHATCHIMP_PHONE_NUMBER_ID") ?? "735886129615120";
@@ -291,7 +293,51 @@ for (var i = 0; i < valides.Count; i++)
         string statut = "";
         string content = "";
 
-        if (metaProvider)
+        if (ycloudProvider)
+        {
+            // --- Envoi via l'API officielle YCloud (POST /v2/whatsapp/messages/sendDirectly) ---
+            var parameters = new List<object?>();
+            for (var v = 0; v < variables.Length; v++)
+                parameters.Add(new Dictionary<string, object?> { ["type"] = "text", ["text"] = variables[v] });
+
+            var recipientDigits = new string(phone.Where(char.IsDigit).ToArray());
+            var recipient = recipientDigits.StartsWith("+") ? recipientDigits : $"+{recipientDigits}";
+            var senderDigits = new string(ycloudPhoneNumber.Where(char.IsDigit).ToArray());
+            var sender = senderDigits.StartsWith("+") ? senderDigits : $"+{senderDigits}";
+
+            var payload = new Dictionary<string, object?>
+            {
+                ["from"] = sender,
+                ["to"] = recipient,
+                ["type"] = "template",
+                ["template"] = new Dictionary<string, object?>
+                {
+                    ["name"] = template,
+                    ["language"] = new Dictionary<string, object?> { ["code"] = languageCode },
+                    ["components"] = new[] { new Dictionary<string, object?>
+                    {
+                        ["type"] = "body",
+                        ["parameters"] = parameters
+                    } }
+                }
+            };
+
+            var req = new HttpRequestMessage(HttpMethod.Post, ycloudSendUrl)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
+            };
+            req.Headers.Add("X-API-Key", ycloudApiKey);
+
+            using var ycloudRes = await http.SendAsync(req);
+            content = await ycloudRes.Content.ReadAsStringAsync();
+            refus = ycloudRes.IsSuccessStatusCode
+                ? null
+                : (YCloudGatewayRefusal(content) ?? $"HTTP {(int)ycloudRes.StatusCode}");
+            statut = !ycloudRes.IsSuccessStatusCode ? $"ECHEC_{ycloudRes.StatusCode}"
+                : refus is not null ? "REFUSE"
+                : "OK";
+        }
+        else if (metaProvider)
         {
             // --- Envoi direct via l'API Meta WhatsApp Cloud (POST JSON) ---
             var parameters = new List<object?>();
@@ -434,6 +480,30 @@ static string? MetaGatewayRefusal(string? content)
             ? (m.GetString() ?? "")
             : "";
         return message.Length == 0 ? $"erreur {code}" : $"{message} (code {code})";
+    }
+    catch (JsonException)
+    {
+        return null;
+    }
+}
+
+/// <summary>
+/// Motif de refus renvoyé par l'API YCloud en cas d'erreur.
+/// </summary>
+static string? YCloudGatewayRefusal(string? content)
+{
+    if (string.IsNullOrWhiteSpace(content)) return null;
+    try
+    {
+        using var doc = JsonDocument.Parse(content);
+        if (doc.RootElement.ValueKind != JsonValueKind.Object) return null;
+        if (doc.RootElement.TryGetProperty("error", out var err) && err.ValueKind == JsonValueKind.Object)
+        {
+            var msg = err.TryGetProperty("message", out var m) && m.ValueKind == JsonValueKind.String ? m.GetString() : "";
+            var code = err.TryGetProperty("code", out var c) ? c.ToString() : "";
+            return !string.IsNullOrWhiteSpace(msg) ? $"{msg} (code {code})" : $"erreur {code}";
+        }
+        return null;
     }
     catch (JsonException)
     {

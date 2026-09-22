@@ -701,6 +701,12 @@ app.MapGet("/", () => Results.Redirect("/app"));
 app.MapGet("/vente", () => Results.Redirect("/app/vente"));
 app.MapGet("/parrainage", () => Results.Redirect("/app/parrainage"));
 
+// Liens courts de conversion TikTok & Campagnes Réseaux Sociaux :
+// Redirige directement vers WhatsApp (+225 07 87 11 95 20) avec message pré-rempli
+const string tiktokWhatsAppUrl = "https://wa.me/2250787119520?text=Bonjour%20WAZAP%2C%20je%20suis%20commer%C3%A7ant%20%C3%A0%20Abidjan%20et%20je%20souhaite%20activer%20mes%2015%20livraisons%20offertes%20et%20mon%20Pack%20Digital%20Boutique%20!";
+app.MapGet("/tiktok", () => Results.Redirect(tiktokWhatsAppUrl));
+app.MapGet("/15", () => Results.Redirect(tiktokWhatsAppUrl));
+
 // Page publique dédiée au recrutement des livreurs (offre « Ambassadeur WAZAP »).
 // Servie depuis wwwroot (même mécanisme que suivi.html / demo.html), URL courte pour le QR.
 app.MapGet("/devenir-livreur", (IWebHostEnvironment env) =>

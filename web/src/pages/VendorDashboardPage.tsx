@@ -51,7 +51,7 @@ const waLink = (msg: string) =>
 
 function waTrackShare(code: string, orderId: string, clientName?: string | null) {
   const url = `${TRACKING_BASE}/${orderId}`
-  const msg = `Bonjour ${clientName ?? ''}👋 Votre commande #${code} est en cours. Suivez votre colis en temps réel ici :\n${url}\nPrésentez ce code au livreur à la livraison.`
+  const msg = `Bonjour ${clientName ?? ''}👋 Votre commande #${code} est en cours. Suivez votre colis en direct ici :\n${url}\n💳 À la livraison, privilégiez le scan QR Code (Wave/Orange/MTN) : activez votre Garantie Colis Sûr 2h et tentez de gagner 25 000 F !`
   return `https://wa.me/?text=${encodeURIComponent(msg)}`
 }
 

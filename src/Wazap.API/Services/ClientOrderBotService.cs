@@ -539,6 +539,8 @@ public sealed class ClientOrderBotService
             $"🛵 Frais de livraison (dus au livreur) : {order.DeliveryFee:N0} FCFA\n" +
             $"💰 Total à régler : {order.TotalAmount:N0} FCFA\n" +
             $"📍 {address}\n\n" +
+            "💳 Paiement sécurisé à la livraison : scannez le QR Code du coursier (Wave, Orange, MTN, Moov) pour activer votre Garantie Colis Sûr 2h et tenter de gagner 25 000 F !\n" +
+            "⚠️ Rappel : par sécurité, nos coursiers n'ont aucun fond de monnaie (appoint exact obligatoire si cash).\n" +
             "Dès que le commerce valide, votre livreur est recherché immédiatement. ⚡");
         await SendAsync(vendorPhone,
             $"🛎️ Nouvelle commande client #{code} :\n{description}\n" +

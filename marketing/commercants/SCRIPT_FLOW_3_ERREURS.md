@@ -22,11 +22,13 @@
 
 ---
 
-### SCÈNE 1 (00:00 - 00:08) : L'Accroche / L'Alerte de l'Expert
+### SCÈNE 1 (00:00 - 00:08) : L'Accroche / L'Alerte de la Commerçante
 
-* **Image de Référence** : `flow_3erreurs_scene1_hook.jpg`
-* **Prompt Animation Caméra (Google Flow)** :
-  > `Camera starts on medium shot of a stylish, authoritative African female e-commerce business coach speaking passionately to the camera in a modern Abidjan office, she holds up three fingers demonstrating three critical mistakes. Smooth forward dolly zoom, warm studio lighting, 9:16 vertical, 4k commercial quality.`
+* **Image de Référence** : `flow_3erreurs_scene1_hook.jpg` *(Commerçante fictive en boutique de prêt-à-porter, sans badge ni micro)*
+* **Prompt Animation Caméra (Google Flow — Garanti sans filtre personnalités)** :
+  > `A fictional local shopkeeper behind a wooden store counter. Slow smooth camera push-in, she smiles warmly and speaks while gesturing with her hand. Colorful dress shop interior, natural soft daylight, cinematic 4k.`
+* **Prompt Français (Alternative directe)** :
+  > `Lente avancée fluide de caméra vers la commerçante souriante derrière son comptoir en bois. Intérieur d'une boutique de vêtements, gestuelle naturelle, éclairage chaleureux, rendu cinématographique.`
 * **Dialogue / Voix-off (100% Français)** :
   > *« Si vous vendez sur les réseaux sociaux à Abidjan et que vous commettez ces trois erreurs, vous perdez plus de deux cent mille francs chaque mois sans même vous en rendre compte. Écoutez bien ! »*
 * **Texte incrusté à l'écran** :  

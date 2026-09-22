@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
-import type { ClientOrderStatus, ClientPaymentResponse } from '../api/types'
+import type { ClientOrderStatus } from '../api/types'
 import BrandLogo from '../components/BrandLogo'
 import '../styles/suivi.css'
 
@@ -761,6 +761,46 @@ export default function SuiviPage() {
 
             <div className="suivi-pin-note">
               <strong>Garantie Colis Sûr :</strong> Ne montrez ce QR Code ou ne communiquez ce code PIN à votre livreur qu’au moment précis où il vous remet le colis en main propre.
+            </div>
+
+            {/* BANNIÈRE SÉCURITÉ PAIEMENT QR CODE (LEVIERS 1, 3, 5) */}
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(6, 78, 59, 0.2) 100%)',
+              border: '1px solid rgba(16, 185, 129, 0.3)',
+              borderRadius: '14px',
+              padding: '14px',
+              marginTop: '14px',
+              textAlign: 'left',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                <span style={{ fontSize: '18px' }}>⚡</span>
+                <span style={{ fontSize: '14px', fontWeight: 800, color: '#fff' }}>
+                  Privilégiez le Paiement par QR Code à la Livraison
+                </span>
+              </div>
+
+              <div style={{ display: 'grid', gap: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', background: 'rgba(255,255,255,0.04)', padding: '8px 10px', borderRadius: '8px' }}>
+                  <span style={{ fontSize: '16px', lineHeight: 1 }}>🛡️</span>
+                  <div style={{ fontSize: '12px', color: '#e2e8f0', lineHeight: 1.4 }}>
+                    <strong style={{ color: 'var(--suivi-emerald)' }}>Protection Acheteur 2h Active :</strong> En payant par QR Code (Wave, Orange, MTN, Moov), vous bénéficiez de 2h d'assistance après livraison. En cas d'article non conforme, WAZAP bloque les fonds et organise un retour gratuit.
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', background: 'rgba(255,255,255,0.04)', padding: '8px 10px', borderRadius: '8px' }}>
+                  <span style={{ fontSize: '16px', lineHeight: 1 }}>🎁</span>
+                  <div style={{ fontSize: '12px', color: '#e2e8f0', lineHeight: 1.4 }}>
+                    <strong style={{ color: 'var(--suivi-gold)' }}>Le Scan Gagnant :</strong> Chaque paiement par QR Code vous inscrit automatiquement au tirage au sort de la semaine pour remporter <strong>25 000 FCFA d'achats</strong> chez nos boutiques partenaires !
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.25)', padding: '8px 10px', borderRadius: '8px' }}>
+                  <span style={{ fontSize: '16px', lineHeight: 1 }}>⚠️</span>
+                  <div style={{ fontSize: '12px', color: '#fca5a5', lineHeight: 1.4 }}>
+                    <strong>Règle Coursier Zéro Monnaie :</strong> Nos livreurs ne transportent aucun fond de caisse par mesure de sécurité. Si vous devez régler en espèces, préparez <strong>l'appoint exact</strong> (aucune monnaie ne pourra être rendue).
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
         )}
