@@ -3546,3 +3546,27 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
 ### 3. Tests & Validation
 - **777 tests xUnit réussis sur 777** (6 PG ignorés pour CI) · **45/45 tests front Vitest réussis (100%)** · Build Vite Release OK.
 - Commit Git : `c8a99d5`.
+
+---
+
+## 105. Étude Prospective & Cadrage Architectural : Intégration Jev AI (TypeSafe AI) — Moteur Décisionnel « Système 1 » (23/09/2026)
+
+### 1. Contexte & Définition Technologique
+- **Modèle :** Jev AI (développé par TypeSafe AI, fondé par d'anciens cadres OpenAI / RLHF / GPT-4, lancé en accès anticipé mi-septembre 2026).
+- **Paradigme « Système 1 » (Decision Layer) :** À l'opposé des LLM génératifs « Système 2 » (lents, verbeux, streaming mot à mot), Jev est un modèle de prise de décision pure ultra-rapide. Il reçoit un état brut (messages WhatsApp, objets JSON, contexte) et renvoie directement des structures de données fortement typées avec probabilités et indices de confiance.
+- **Performances clés :** Latence sub-30ms (jusqu'à 200× plus rapide qu'un LLM classique), zéro overhead de génération de tokens, coût marginal minime, et **zéro hallucination textuelle** (il ne génère pas de prose libre).
+
+### 2. Valeur Ajoutée & Transformation de l'Expérience Utilisateur pour WAZAP
+1. **Commerçant — Élimination totale de la syntaxe informatique rigide :**
+   - *Aujourd'hui :* Obligation de respecter un format strict (`LIVRAISON <zone> <numéro> <prix>`).
+   - *Avec Jev AI :* Le commerçant écrit en langage naturel spontané d'Abidjan (*« Bro envoie un motard chercher une robe pour la Riviera Palmeraie chez dame Koné 0708091011 prix 25000 »*). Jev extrait l'intention (`CREATE_ORDER`), la commune, le contact et le montant en < 20 ms. Le bot WhatsApp WAZAP génère instantanément le message interactif de confirmation 1-clic (`[🟢 Lancer la course]`).
+2. **Client Final — Support & Gestion des Litiges en Temps Réel :**
+   - Qualification instantanée des réclamations informelles (*« le motard n'est pas là »*, *« colis mouillé »*) avec déclenchement automatique du protocole d'**Assurance Colis Sûr** ou ping GPS sans délai d'attente d'un opérateur.
+3. **Plateforme & Sécurité — Anti-Fraude & Matching Prédictif :**
+   - Scoring en temps réel des validations de courses et scans QR Code pour détecter les comportements frauduleux sans pénaliser les flux légitimes.
+   - Pondération dynamique des livreurs lors du dispatch (météo, historique d'annulation, vitesse sur la commune).
+
+### 3. Feuille de Route d'Intégration (Moment Opportun)
+- **Phase Actuelle (Lancement Pilote & Amorçage) :** Maintenir le stack actuel stabilisé (commandes structurées, boutons interactifs WhatsApp Quick Reply YCloud, Gemini 1.5 Flash pour l'import de catalogue).
+- **Phase de Scalabilité (> 500 courses/jour) :** Positionner Jev AI en **intercepteur de premier niveau** sur le webhook YCloud (`WebhookWhatsAppController`) pour traduire les messages WhatsApp non conventionnels en actions C# typées sans jamais bloquer le débit de traitement.
+
