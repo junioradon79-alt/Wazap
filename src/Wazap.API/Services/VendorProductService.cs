@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Wazap.Application.Abstractions;
 using Wazap.Application.Dtos;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
@@ -69,6 +70,52 @@ public sealed class VendorProductService
         _logger.LogInformation("Catalogue : produit « {Name} » ajouté par le vendeur {VendorId}.",
             product.Name, vendorId);
         return ToDto(product);
+    }
+
+    /// <summary>
+    /// Ajoute une liste d'articles extraits par l'IA au catalogue du vendeur en une seule passe.
+    /// Évite les doublons exacts de nom déjà présents chez ce vendeur.
+    /// </summary>
+    public async Task<List<VendorProductDto>> CreateBatchAsync(Guid vendorId, IEnumerable<ExtractedProduct> extractedItems)
+    {
+        await EnsureVendorAsync(vendorId);
+
+        var existingNames = await _context.VendorProducts.AsNoTracking()
+            .Where(p => p.VendorId == vendorId)
+            .Select(p => p.Name.ToLower())
+            .ToListAsync();
+
+        var existingSet = new HashSet<string>(existingNames, StringComparer.OrdinalIgnoreCase);
+        var createdList = new List<VendorProduct>();
+
+        foreach (var item in extractedItems)
+        {
+            if (string.IsNullOrWhiteSpace(item.Name) || existingSet.Contains(item.Name.Trim()))
+                continue;
+
+            var description = string.IsNullOrWhiteSpace(item.Description) ? item.Name.Trim() : item.Description.Trim();
+            var product = new VendorProduct(
+                vendorId,
+                item.Name.Trim(),
+                description,
+                item.Price,
+                item.Emoji,
+                isAvailable: true,
+                imageUrl: null);
+
+            _context.VendorProducts.Add(product);
+            createdList.Add(product);
+            existingSet.Add(item.Name.Trim());
+        }
+
+        if (createdList.Count > 0)
+        {
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Catalogue : {Count} produits importés par IA pour le vendeur {VendorId}.",
+                createdList.Count, vendorId);
+        }
+
+        return createdList.Select(ToDto).ToList();
     }
 
     public async Task<bool> UpdateAsync(Guid vendorId, Guid productId, VendorProductRequest request)

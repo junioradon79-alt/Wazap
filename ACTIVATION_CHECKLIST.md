@@ -10,11 +10,11 @@
 
 | # | Chantier | Type | Impact | Statut |
 |---|---|---|---|---|
-| 1 | Templates Meta | Meta | Acquisition (Marketing) | ✅ **TOUS approuvés & activés (09/09)** : 9 Utility + 5 Marketing `*_v2` + rider_offer_v2 + onboarding `vendor_onboarding_day1/3/7` (worker ON) | 🔴 `delivery_code` bloqué création Meta (test discriminant ci-dessous) · 🟠 **vidéo démo : infra prête** (page `demo-video.html` + script `08`) |
+| 1 | Templates Meta (YCloud) | Meta | Acquisition (Marketing & Utility) | ✅ **Approuvés & activés** : Utility + Marketing `*_v2` + rider_offer_v2 + onboarding `vendor_onboarding_day1/3/7` (worker ON via YCloud) · validation livraison assurée via QR Code Universel |
 | 2 | Paiement client Mobile Money | Config prod | Encaissement en ligne | **ACTIVÉ** (08/09) ✓ |
 | 3 | Rétention/purge scans CNI | Config prod | RGPD | **DÉJÀ ACTIVÉ** ✓ |
-| 4 | Certification livreurs | Mixte | Confiance Colis Sûr | Code livré, à certifier |
-| 5 | Tests réels E2E | Validation | Tout le produit | Protocole prêt |
+| 4 | Certification livreurs | Mixte | Confiance Colis Sûr | Code livré, OCR Google Vision + validation admin |
+| 5 | Tests réels E2E | Validation | Tout le produit | Protocole QR Code prêt |
 | 6 | Catalogue produits + bot de commande client | Config prod | Conversion (commande directe) | **Code livré + testé** · migration 27 appliquée par la CI au push |
 
 ---
@@ -137,9 +137,6 @@ Une fois le pool de livreurs certifié suffisant :
 ### Options complémentaires (à activer quand décidé)
 
 ```xml
-<!-- Durcissement preuve de livraison (code client obligatoire) -->
-<environmentVariable name="DeliveryProof__RequireClientCode" value="true" />
-
 <!-- Pondération matching par réputation (défaut false) -->
 <environmentVariable name="RiderReputation__PreferHigherRatedRiders" value="true" />
 
@@ -159,17 +156,17 @@ Le protocole pas-à-pas est dans : `prospection/PROTOCOLE_TEST_REEL.md`
 
 | Scénario | Description | Dépendance |
 |---|---|---|
-| **S1** | Livraison à la demande (flux vendeur principal) | Webhook WhatChimp actif |
+| **S1** | Livraison à la demande (flux vendeur principal) | Webhook YCloud actif |
 | **S2** | Tournée multi-clients (1 livreur, plusieurs clients) | S1 OK |
-| **S3** | Parcours acheteur PWA (lien → coordonnées → auto-dispatch) | S1 OK |
-| **S4** | Cas négatifs (sans zone, 0 crédit, mauvais code) | S1 OK |
+| **S3** | Parcours acheteur PWA (lien → coordonnées → auto-dispatch → Scan QR Code Universel) | S1 OK |
+| **S4** | Cas négatifs (sans zone, 0 crédit, QR non valide) | S1 OK |
 
 ### Prérequis
 
-- [ ] **Webhook WhatChimp actif** : `https://junioradon79gm-001-site1.jtempurl.com/api/webhook/whatsapp`
-- [ ] **Fenêtre 24 h** : chaque numéro test doit d'abord écrire au numéro WAZAP
+- [ ] **Webhook YCloud actif** : `https://junioradon79gm-001-site1.jtempurl.com/api/webhook/whatsapp`
+- [ ] **Numéro officiel actif** : `+225 07 87 11 95 20`
 - [ ] **Comptes de test** : créer via `POST /api/auth/register` (rôle Vendor/Rider, numéros réels)
-- [ ] **Templates Meta** : en attente d'approbation (envois texte seulement hors fenêtre 24 h)
+- [ ] **Templates Meta** : approuvés et branchés via YCloud
 
 ### Nettoyage après test
 
@@ -190,10 +187,10 @@ dotnet run --project tools/CleanupTestVendors -- --confirm
 | S1 | `ACCEPTE` → crédits 15→14 + liens Maps | ✅ | ☐ |
 | S1 | `RECU` / `LIVRE` → statuts + notif client | ✅ | ☐ |
 | S2 | Lot groupé → liste multi-clients | ✅ | ☐ |
-| S2 | `LIVRE` sans code refusé (multi) | ✅ | ☐ |
+| S2 | Validation par QR Code Universel | ✅ | ☐ |
 | S3 | Lien reçu après confirmation vendeur | ✅ | ☐ |
 | S3 | Coordonnées → diffusion auto + notif vendeur | ✅ | ☐ |
-| S3 | Page suivi → « Livré ✓ » | ✅ | ☐ |
+| S3 | Page suivi → Scan QR Code Universel → « Livré ✓ » + Assurance Colis Sûr | ✅ | ☐ |
 | S4 | Cas négatifs → messages clairs | ✅ | ☐ |
 
 ---
@@ -282,10 +279,7 @@ supprimé (`409`), il faut le modifier — la ligne de commande garde une copie 
 
 - Clés LIVE : configurées (voir `DEPLOYMENT.md`)
 - URL webhook : `https://junioradon79gm-001-site1.jtempurl.com/api/webhook/geniuspay`
-> ✅ **Templates Meta (09/09)** : 9 Utility + 5 Marketing `*_v2` + `rider_offer_v2` **approuvés**
+> ✅ **Templates Meta via YCloud** : Utility + Marketing `*_v2` + `rider_offer_v2` **approuvés**
 > et branchés (défauts `WhatsAppOptions` + `appsettings.json`, déployé CI) · onboarding
 > `vendor_onboarding_day1/3/7` **ACTIVÉ** (worker ON).
-> 🔴 **`delivery_code` BLOQUÉ création Meta (09/09)** : « Ce compte WhatsApp Business n'a pas
-> l'autorisation de créer un modèle de message » — numéro sain (Connecté, qualité ÉLEVÉE) →
-> causes : permissions / limite quotidienne / restriction auth — **test discriminant à la reprise**.
-> Corps prêt : `prospection/TEMPLATE_DELIVERY_CODE.md` (auth, « Copier le code », 1 variable).
+> ✅ **Preuve de livraison** : validation par **Scan QR Code Universel** (Chantier T7) depuis `SuiviPage.tsx`, garantissant 0 cash, activant l'**Assurance Colis Sûr** et validant le ticket de tombola. Plus aucun code PIN requis.

@@ -68,6 +68,13 @@ internal sealed class WebhookHarness : IDisposable
             Scans, NullLogger<RiderService>.Instance);
         var recruitment = new RiderRecruitmentService(Context, new FakePasswordHasher(), riderService,
             Sender, downloader, config, NullLogger<RiderRecruitmentService>.Instance);
+        var products = new VendorProductService(Context, NullLogger<VendorProductService>.Instance);
+        var catalogAi = new GeminiCatalogAiExtractorService(new HttpClient(), config, NullLogger<GeminiCatalogAiExtractorService>.Instance);
+        var vendorCommands = new VendorTextCommands(Context, orders, products,
+            new ColisSurService(Context, Sender, config, new ColisSurOptions(),
+                new ManualPayoutService(NullLogger<ManualPayoutService>.Instance),
+                NullLogger<ColisSurService>.Instance),
+            catalogAi);
 
         Controller = new WebhookWhatsAppController(
             Context,
@@ -86,17 +93,16 @@ internal sealed class WebhookHarness : IDisposable
             new RiderDeliveryCommands(Context, proof, orchestrator,
                 new RiderProgramService(Context, new RiderProgramOptions(), Sender, NullLogger<RiderProgramService>.Instance),
                 NullLogger<RiderDeliveryCommands>.Instance),
-            new VendorTextCommands(Context, orders,
-                new VendorProductService(Context, NullLogger<VendorProductService>.Instance),
-                new ColisSurService(Context, Sender, config, new ColisSurOptions(),
-                    new ManualPayoutService(NullLogger<ManualPayoutService>.Instance),
-                    NullLogger<ColisSurService>.Instance)),
+            vendorCommands,
             new RiderTextCommands(riderService,
                 new RiderRatingService(Context, new RiderReputationOptions(), NullLogger<RiderRatingService>.Instance),
                 new RiderProgramService(Context, new RiderProgramOptions(), Sender, NullLogger<RiderProgramService>.Instance)),
             Scans,
             NullLogger<WebhookWhatsAppController>.Instance,
-            config);
+            config,
+            messageLogService: null,
+            catalogAi: catalogAi,
+            vendorProducts: products);
     }
 
     /// <summary>Simule un message texte entrant au format réel de WhatChimp.</summary>

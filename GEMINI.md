@@ -55,3 +55,11 @@
 * **Tunnel d'Acquisition (Objectif 1 000 commerçants en 4 semaines) :**
   * 3 vidéos épinglées : 1. L'Offre (15 courses + Kit offert) / 2. La Démo (Test du scan & paiement direct) / 3. L'Autorité (3 erreurs e-commerce).
   * Redesign approfondi en réserve pour revue détaillée avec le porteur de projet.
+
+---
+
+## 6. Routine d'Ouverture de Session (Règle Absolue)
+
+* **À chaque nouvelle session ou première interaction :**
+  * Consulter systématiquement `MEMOIRE.md` et faire automatiquement un récapitulatif synthétique et proactif des **chantiers prioritaires en cours et en suspens** (P0-P1, actions techniques, actions utilisateur, marketing/acquisition).
+

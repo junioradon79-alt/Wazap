@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -38,6 +39,8 @@ public class WebhookWhatsAppController : ControllerBase
     private readonly ILogger<WebhookWhatsAppController> _logger;
     private readonly IWhatsAppMessageLogService? _messageLogService;
     private readonly string? _teamPhone;
+    private readonly ICatalogAiExtractorService? _catalogAi;
+    private readonly VendorProductService? _vendorProducts;
 
     // Après les extractions (P2 / C-13), le contrôleur ne dépend PLUS des services qui ont suivi
     // leurs commandes : VendorProductService, ColisSurService, DeliveryProofOptions (commandes
@@ -63,7 +66,9 @@ public class WebhookWhatsAppController : ControllerBase
         RiderScansOptions scans,
         ILogger<WebhookWhatsAppController> logger,
         IConfiguration config,
-        IWhatsAppMessageLogService? messageLogService = null)
+        IWhatsAppMessageLogService? messageLogService = null,
+        ICatalogAiExtractorService? catalogAi = null,
+        VendorProductService? vendorProducts = null)
     {
         _riderRatings = riderRatings;
         _riderDeliveries = riderDeliveries;
@@ -83,6 +88,8 @@ public class WebhookWhatsAppController : ControllerBase
         _scans = scans;
         _logger = logger;
         _messageLogService = messageLogService;
+        _catalogAi = catalogAi;
+        _vendorProducts = vendorProducts;
         // AUCUNE valeur de repli : un token codé en dur dans un dépôt public n'authentifie
         // rien. Non configuré => la vérification du webhook échoue (fail closed).
         _metaVerifyToken = config["Meta:WebhookVerifyToken"];
@@ -407,7 +414,7 @@ public class WebhookWhatsAppController : ControllerBase
 
         if (mediaUrl is not null || mediaId is not null)
         {
-            await HandleRiderScanPhotoAsync(phone, mediaUrl, mediaId, mimeType);
+            await HandleInboundMediaAsync(phone, mediaUrl, mediaId, mimeType);
             return Ok();
         }
 
@@ -646,6 +653,80 @@ public class WebhookWhatsAppController : ControllerBase
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Routage des médias WhatsApp entrants (photos / images) :
+    /// - Si l'expéditeur est un commerçant (Vendor) : capture d'écran Marketplace / flyer / menu
+    ///   pour l'import magique de catalogue par IA (Gemini 1.5 Flash).
+    /// - Sinon : scan CNI ou preuve de livraison pour les livreurs / candidats livreurs.
+    /// </summary>
+    private async Task HandleInboundMediaAsync(string? phone, string? mediaUrl, string? mediaId, string? mimeType)
+    {
+        if (string.IsNullOrWhiteSpace(phone))
+        {
+            _logger.LogWarning("Média WhatsApp reçu sans numéro expéditeur — ignoré.");
+            return;
+        }
+
+        var vendor = await FindUserByPhoneAsync(phone, UserRole.Vendor);
+        if (vendor is not null)
+        {
+            await HandleVendorCatalogPhotoAsync(vendor, mediaUrl, mediaId, mimeType);
+            return;
+        }
+
+        await HandleRiderScanPhotoAsync(phone, mediaUrl, mediaId, mimeType);
+    }
+
+    private async Task HandleVendorCatalogPhotoAsync(User vendor, string? mediaUrl, string? mediaId, string? mimeType)
+    {
+        if (_catalogAi is null || _vendorProducts is null)
+        {
+            await ReplyAsync(vendor, "⚙️ L'import intelligent de catalogue par photo est temporairement indisponible.");
+            return;
+        }
+
+        var download = await _mediaDownloader.TryDownloadAsync(mediaUrl, mediaId, mimeType, RequestAborted);
+        if (download is null)
+        {
+            await ReplyAsync(vendor, "❌ Impossible de récupérer la photo. Réessayez d'envoyer votre image de catalogue.");
+            return;
+        }
+
+        await ReplyAsync(vendor, "⏳ Photo reçue ! Analyse de vos articles par l'IA WAZAP en cours... 🪄");
+
+        var extraction = await _catalogAi.ExtractFromImageAsync(download.Value.Content, mimeType, RequestAborted);
+        if (!extraction.Success || extraction.Products.Count == 0)
+        {
+            await ReplyAsync(vendor,
+                "⚠️ Aucun article ou prix n'a pu être identifié sur cette image.\n\n" +
+                "👉 Assurez-vous que les noms des articles et les prix en FCFA sont bien lisibles, ou envoyez votre liste en texte :\n" +
+                "_Robe soirée 15000, Sac noir 25000..._");
+            return;
+        }
+
+        var imported = await _vendorProducts.CreateBatchAsync(vendor.Id, extraction.Products);
+        if (imported.Count == 0)
+        {
+            await ReplyAsync(vendor,
+                $"ℹ️ {extraction.Products.Count} article(s) détecté(s), mais ils existent déjà dans votre catalogue WAZAP.\n" +
+                "Tapez PRODUITS pour afficher votre catalogue.");
+            return;
+        }
+
+        var sb = new StringBuilder();
+        sb.AppendLine($"✨ *Magie WAZAP ! {imported.Count} article(s) importé(s) sur votre Mini-Boutique :*\n");
+        for (var i = 0; i < imported.Count; i++)
+        {
+            var p = imported[i];
+            var emoji = string.IsNullOrWhiteSpace(p.Emoji) ? "📦" : p.Emoji;
+            sb.AppendLine($"{i + 1}. {emoji} *{p.Name}* — {p.Price:N0} FCFA");
+        }
+        sb.AppendLine("\n🟢 Vos clients peuvent commander dès maintenant en tapant simplement le numéro d'un article sur votre WhatsApp !");
+        sb.AppendLine("Tapez *PRODUITS* pour voir tout votre catalogue.");
+
+        await ReplyAsync(vendor, sb.ToString().TrimEnd());
     }
 
     /// <summary>

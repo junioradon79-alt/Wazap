@@ -1,4 +1,7 @@
+using System.Globalization;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Wazap.Application.Abstractions;
 using Wazap.Application.Dtos;
 using Wazap.Application.Exceptions;
 using Wazap.Application.Helpers;
@@ -15,11 +18,8 @@ namespace Wazap.API.Services;
 ///    un crédit</b> et diffuse immédiatement aux livreurs proches ;
 ///  - <c>SINISTRE &lt;code&gt;</c> : déclaration de colis perdu/volé (Garantie Colis Sûr) ;
 ///  - <c>PRODUITS</c> / <c>PRODUIT &lt;nom&gt; | &lt;prix&gt; [| &lt;emoji&gt;]</c> /
-///    <c>SUPPRIMER PRODUIT &lt;n°&gt;</c> : catalogue qui alimente le menu numéroté du bot client.
-///
-/// Aucune de ces commandes n'était couverte par un test : elles vivent pourtant sur le chemin de
-/// l'argent (débit d'un crédit à la demande de course) et de la garantie commerciale. Les sortir du
-/// contrôleur permet de les tester directement, sans payload ni signature.
+///    <c>SUPPRIMER PRODUIT &lt;n°&gt;</c> : catalogue qui alimente le menu numéroté du bot client ;
+///  - <c>IMPORT &lt;lien ou texte&gt;</c> : import magique de catalogue par IA (Gemini 1.5 Flash).
 /// </summary>
 public sealed class VendorTextCommands
 {
@@ -27,17 +27,20 @@ public sealed class VendorTextCommands
     private readonly OrderService _orderService;
     private readonly VendorProductService _products;
     private readonly ColisSurService _colisSur;
+    private readonly ICatalogAiExtractorService? _catalogAi;
 
     public VendorTextCommands(
         ApplicationDbContext context,
         OrderService orderService,
         VendorProductService products,
-        ColisSurService colisSur)
+        ColisSurService colisSur,
+        ICatalogAiExtractorService? catalogAi = null)
     {
         _context = context;
         _orderService = orderService;
         _products = products;
         _colisSur = colisSur;
+        _catalogAi = catalogAi;
     }
 
     /// <summary>
@@ -49,7 +52,10 @@ public sealed class VendorTextCommands
            || upperText == "SINISTRE" || upperText.StartsWith("SINISTRE ")
            || upperText == "PRODUITS" || upperText.StartsWith("PRODUITS ")
            || upperText == "PRODUIT" || upperText.StartsWith("PRODUIT ")
-           || upperText.StartsWith("SUPPRIMER PRODUIT");
+           || upperText.StartsWith("SUPPRIMER PRODUIT")
+           || upperText == "IMPORT" || upperText.StartsWith("IMPORT ")
+           || upperText.StartsWith("CATALOGUE ")
+           || upperText.StartsWith("HTTP://") || upperText.StartsWith("HTTPS://");
 
     /// <summary>Traite la commande. <paramref name="reply"/> envoie la réponse WhatsApp au vendeur.</summary>
     public async Task HandleAsync(User user, string command, Func<User, string, Task> reply)
@@ -59,6 +65,15 @@ public sealed class VendorTextCommands
         if (upper == "LIVRAISON" || upper.StartsWith("LIVRAISON "))
         {
             await HandleDispatchAsync(user, command, reply);
+            return;
+        }
+
+        // Import magique de catalogue par IA : « IMPORT <url ou texte> », « CATALOGUE <url ou texte> », ou lien web
+        if (upper == "IMPORT" || upper.StartsWith("IMPORT ")
+            || upper.StartsWith("CATALOGUE ")
+            || upper.StartsWith("HTTP://") || upper.StartsWith("HTTPS://"))
+        {
+            await HandleCatalogImportAsync(user, command, reply);
             return;
         }
 
@@ -183,6 +198,78 @@ public sealed class VendorTextCommands
         await reply(user,
             $"✅ Produit ajouté : {ProductDisplayText(created)}\n" +
             "Il apparaît maintenant dans le menu des clients qui commandent chez vous.");
+    }
+
+    private async Task HandleCatalogImportAsync(User user, string command, Func<User, string, Task> reply)
+    {
+        if (_catalogAi is null)
+        {
+            await reply(user, "⚙️ L'import intelligent de catalogue est temporairement indisponible.");
+            return;
+        }
+
+        var content = command.Trim();
+        if (content.StartsWith("IMPORT ", StringComparison.OrdinalIgnoreCase))
+            content = content["IMPORT ".Length..].Trim();
+        else if (content.StartsWith("IMPORT", StringComparison.OrdinalIgnoreCase))
+            content = content["IMPORT".Length..].Trim();
+        else if (content.StartsWith("CATALOGUE ", StringComparison.OrdinalIgnoreCase))
+            content = content["CATALOGUE ".Length..].Trim();
+
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            await reply(user,
+                "✨ *WAZAP Magic Importer (IA)* 🪄\n\n" +
+                "Importez tout votre catalogue en 1 seul clic sans rien saisir !\n" +
+                "• 🔗 Envoyez le lien de votre page/boutique (ex: `IMPORT https://...`)\n" +
+                "• 📝 Envoyez le copier-coller de votre publication Facebook/WhatsApp avec vos prix\n" +
+                "• 📸 Ou envoyez simplement une photo/capture d'écran de votre menu ou flyer !");
+            return;
+        }
+
+        await reply(user, "⏳ Analyse de votre catalogue en cours par l'IA WAZAP... 🪄");
+
+        CatalogExtractionResult extraction;
+        if (Uri.TryCreate(content, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+        {
+            extraction = await _catalogAi.ExtractFromUrlAsync(content);
+        }
+        else
+        {
+            extraction = await _catalogAi.ExtractFromTextAsync(content);
+        }
+
+        if (!extraction.Success || extraction.Products.Count == 0)
+        {
+            await reply(user,
+                "⚠️ Aucun article ou prix n'a pu être identifié avec certitude.\n\n" +
+                "👉 Astuce : envoyez une capture d'écran nette de votre menu/catalogue, ou collez votre liste au format :\n" +
+                "_Robe soirée 15000, Sac noir 25000..._");
+            return;
+        }
+
+        var imported = await _products.CreateBatchAsync(user.Id, extraction.Products);
+        if (imported.Count == 0)
+        {
+            await reply(user,
+                $"ℹ️ {extraction.Products.Count} article(s) détecté(s), mais ils existent déjà dans votre catalogue WAZAP.\n" +
+                "Tapez PRODUITS pour afficher votre catalogue.");
+            return;
+        }
+
+        var sb = new StringBuilder();
+        sb.AppendLine($"✨ *Magie WAZAP ! {imported.Count} article(s) importé(s) dans votre Mini-Boutique :*\n");
+        for (var i = 0; i < imported.Count; i++)
+        {
+            var p = imported[i];
+            var emoji = string.IsNullOrWhiteSpace(p.Emoji) ? "📦" : p.Emoji;
+            var priceFormatted = p.Price.ToString("#,##0", CultureInfo.InvariantCulture).Replace(',', ' ');
+            sb.AppendLine($"{i + 1}. {emoji} *{p.Name}* — {priceFormatted} FCFA");
+        }
+        sb.AppendLine("\n🟢 Vos clients peuvent commander dès maintenant en tapant simplement le numéro d'un article sur votre WhatsApp !");
+        sb.AppendLine("Tapez *PRODUITS* pour voir tout votre catalogue.");
+
+        await reply(user, sb.ToString().TrimEnd());
     }
 
     /// <summary>
