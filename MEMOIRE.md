@@ -1,7 +1,7 @@
 # 🧠 MÉMOIRE UNIQUE WAZAP — État d'avancement des chantiers
 
 > **Fichier maître du projet. Version Révisée, Épurée & Canonique : 23/09/2026**  
-> **Statut global :** Build 0 erreur / 0 warning · **781 tests .NET (775 réussis + 6 sur PostgreSQL réel en CI)** · **45/45 tests front Vitest (100%)** · TypeScript strict 0 erreur.  
+> **Statut global :** Build 0 erreur / 0 warning · **783 tests .NET (777 réussis + 6 sur PostgreSQL réel en CI)** · **45/45 tests front Vitest (100%)** · TypeScript strict 0 erreur.  
 > 🚀 **Architecture WhatsApp Active :** Connecteur officiel **YCloud** (`YCloudOptions`, `YCloudWhatsAppSender`, `YCloudMediaDownloader`) sur le numéro officiel unique **`+225 07 87 11 95 20`** (Meta Tier-1 BSP).  
 > 
 > ### ⚠️ RÈGLES CANONIQUES INVIOLABLES & ÉLIMINATION DES OBSOLESCENCES
@@ -3516,3 +3516,33 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
 ### 3. Validation & Qualité Logicielle
 - **775 tests réussis sur 775** (6 tests PostgreSQL ignorés en local pour la CI) — 100% au vert sur .NET 10.
 - Nouveaux tests ajoutés : `GeminiCatalogAiExtractorServiceTests.cs` (fallback heuristique, assignation des emojis, extraction texte) et `VendorCatalogImportTests.cs` (commandes WhatsApp IMPORT, upload de photos de menus, aide interactive).
+
+---
+
+## 104. Session 23/09/2026 (Après-midi) — Mini-Boutique WhatsApp Sublimée par IA & Script Vidéo Officiel
+
+### 1. Mini-Boutique WhatsApp Visuelle & Sublimée
+- **Génération & Intégration de Visuels Réels Sublimés :**
+  - Gastronomie ivoirienne : Poulet braisé pimenté bien doré avec alloco et attiéké (`/products/poulet-braise-alloco.jpg`).
+  - Haute Couture & Mode : Robe de soirée dorée en pagne Kita royal et satin (`/products/robe-soiree-doree.jpg`).
+  - Maroquinerie & Luxe : Sac à main en cuir vert émeraude et escarpins assortis (`/products/sac-cuir-luxe.jpg`).
+- **Support Multimédia WhatsApp (`IWhatsAppSender.SendImageMessageAsync`) :**
+  - Implémenté pour les passerelles officielles **YCloud** (`type: image` via API sendDirectly) et **Meta Cloud API**.
+  - Présentation automatique du menu client avec la photo vedette de la boutique en tête du message sur WhatsApp.
+  - Commande client interactive `PHOTO <n°>` ou `VOIR <n°>` : le client peut afficher instantanément la photo haute définition d'un produit avec sa description et son tarif en FCFA avant de commander.
+- **Interface Marchand Web (`CataloguePage.tsx`) :**
+  - Boutons de suggestion en 1 clic pour affecter les visuels sublimés.
+  - Badges visuels étincelants ✨ sur les vignettes produits pour distinguer les articles disposant d'un visuel HD.
+
+### 2. Pack de Production Vidéo Officiel (Google Flow / Veo)
+- **Script officiel complet 9:16 (55s)** : [`marketing/videos/magic_importer/SCRIPT_VIDEO_MAGIC_IMPORTER.md`](file:///c:/Dev/Wazap/WazapSln/marketing/videos/magic_importer/SCRIPT_VIDEO_MAGIC_IMPORTER.md).
+- **Dialogues et voix-off 100% en Français soigné, dynamique et chaleureux** (règle absolue `GEMINI.md`).
+- **Continuité visuelle garantie par 3 images de référence (Image-to-Video)** :
+  - Scène 1 (Hook) : Awa fatiguée de la saisie manuelle (`scene1_hook.jpg`).
+  - Scène 2 (Magie IA) : Prise de photo du menu avec ondes holographiques (`scene2_magic_scan.jpg`).
+  - Scène 4 (Livraison) : Remise du colis scellé au motard vert émeraude WAZAP avec scan QR Code (`scene4_delivery.jpg`).
+- **Alignement de l'offre** : 15 courses offertes (commission WAZAP à 0 FCFA) + Pack Digital Boutique offert + Assurance Colis Sûr.
+
+### 3. Tests & Validation
+- **777 tests xUnit réussis sur 777** (6 PG ignorés pour CI) · **45/45 tests front Vitest réussis (100%)** · Build Vite Release OK.
+- Commit Git : `c8a99d5`.
