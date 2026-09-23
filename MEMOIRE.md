@@ -3570,3 +3570,15 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
 - **Phase Actuelle (Lancement Pilote & Amorçage) :** Maintenir le stack actuel stabilisé (commandes structurées, boutons interactifs WhatsApp Quick Reply YCloud, Gemini 1.5 Flash pour l'import de catalogue).
 - **Phase de Scalabilité (> 500 courses/jour) :** Positionner Jev AI en **intercepteur de premier niveau** sur le webhook YCloud (`WebhookWhatsAppController`) pour traduire les messages WhatsApp non conventionnels en actions C# typées sans jamais bloquer le débit de traitement.
 
+---
+
+## 106. Point de Pause (23/09/2026 - Soir) — Cadrage Nom de Domaine & Registrars .CI
+- **Diagnostic :** La production tourne sur l'URL temporaire SmarterASP (`https://junioradon79gm-001-site1.jtempurl.com`), référencée dans `SalesPage:PublicBaseUrl` et les webhooks GeniusPay.
+- **Recommandation officielle :** Acquisition prioritaire de **`wazap.ci`** auprès des registrars locaux avec paiement Mobile Money (Wave, Orange Money) : `nomdedomaine.ci` (recommandé), `nindohost.ci` ou `safaricloud.net` (~9 500 à 10 000 FCFA/an).
+- **Plan de reprise à la réouverture de session :**
+  1. Vérifier la réservation du nom de domaine `wazap.ci`.
+  2. Configurer le pointage DNS (CNAME `www` vers `WIN6054.site4now.net` ou A record).
+  3. Lier le domaine dans SmarterASP.NET et activer le certificat SSL Let's Encrypt gratuit.
+  4. Mettre à jour `SalesPage:PublicBaseUrl` vers `https://wazap.ci` dans `appsettings.json` et `web.config` pour basculer instantanément tous les QR codes, liens de suivi et webhooks.
+
+
