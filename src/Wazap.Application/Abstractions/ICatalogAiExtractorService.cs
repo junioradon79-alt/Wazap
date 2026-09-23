@@ -7,7 +7,8 @@ public sealed record ExtractedProduct(
     string Name,
     decimal Price,
     string? Emoji = null,
-    string? Description = null);
+    string? Description = null,
+    string? ImageUrl = null);
 
 /// <summary>
 /// Résultat de l'extraction de catalogue par IA.

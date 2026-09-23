@@ -275,6 +275,52 @@ public class ClientOrderBotTests
         Assert.Empty(sender.TextMessages);
     }
 
+    [Fact]
+    public async Task Client_SelectsVendorWithVisualProducts_ReceivesImageMiniBoutiqueCard()
+    {
+        using var context = TestInfra.NewContext("bot-visual-boutique");
+        var vendor = new User("Chez Awa Traiteur", "hash", UserRole.Vendor, "+2250700112233");
+        var product = new VendorProduct(vendor.Id, "Poulet braisé croustillant", "Avec alloco et attiéké", 6000m, "🍗", true, "https://wazap.ci/products/poulet-braise-alloco.jpg");
+        context.Users.Add(vendor);
+        context.VendorProducts.Add(product);
+        await context.SaveChangesAsync();
+
+        var sender = new RecordingWhatsAppSender();
+        var bot = NewBot(context, sender);
+
+        await bot.TryHandleAsync(ClientPhone, "MENU Chez Awa");
+
+        Assert.NotEmpty(sender.ImageMessages);
+        var lastImg = sender.ImageMessages.Last();
+        Assert.Equal(ClientPhone, lastImg.Phone);
+        Assert.Equal("https://wazap.ci/products/poulet-braise-alloco.jpg", lastImg.ImageUrl);
+        Assert.Contains("Mini-Boutique WhatsApp", lastImg.Caption);
+        Assert.Contains("Poulet braisé", lastImg.Caption);
+    }
+
+    [Fact]
+    public async Task Client_AsksForPhoto_ReceivesSublimatedProductPhoto()
+    {
+        using var context = TestInfra.NewContext("bot-photo-request");
+        var vendor = new User("Maison Kita Chic", "hash", UserRole.Vendor, "+2250700112244");
+        var product = new VendorProduct(vendor.Id, "Robe de soirée dorée", "En pagne Kita royal", 25000m, "👗", true, "https://wazap.ci/products/robe-soiree-doree.jpg");
+        context.Users.Add(vendor);
+        context.VendorProducts.Add(product);
+        await context.SaveChangesAsync();
+
+        var sender = new RecordingWhatsAppSender();
+        var bot = NewBot(context, sender);
+
+        await bot.TryHandleAsync(ClientPhone, "MENU Maison Kita");
+        await bot.TryHandleAsync(ClientPhone, "PHOTO 1");
+
+        Assert.True(sender.ImageMessages.Count >= 2);
+        var photoMsg = sender.ImageMessages.Last();
+        Assert.Equal("https://wazap.ci/products/robe-soiree-doree.jpg", photoMsg.ImageUrl);
+        Assert.Contains("Robe de soirée dorée", photoMsg.Caption);
+        Assert.Contains("25 000 FCFA", photoMsg.Caption);
+    }
+
     private static ClientOrderBotService NewBot(ApplicationDbContext context, RecordingWhatsAppSender sender,
         params (string Key, string? Value)[] config)
         => new(context, sender, new ConfigStub(config), NullLogger<ClientOrderBotService>.Instance);

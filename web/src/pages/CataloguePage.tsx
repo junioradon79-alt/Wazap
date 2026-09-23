@@ -262,6 +262,32 @@ export default function CataloguePage() {
                   placeholder="ex : https://mon-site.ci/photos/poulet.jpg"
                   maxLength={500}
                 />
+                <div style={{ marginTop: 6, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    className="btn btn--ghost"
+                    style={{ fontSize: 11, padding: '2px 8px', borderRadius: 12 }}
+                    onClick={() => setForm({ ...form, imageUrl: '/products/poulet-braise-alloco.jpg', emoji: '🍗' })}
+                  >
+                    🍗 Poulet Alloco Sublimé
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn--ghost"
+                    style={{ fontSize: 11, padding: '2px 8px', borderRadius: 12 }}
+                    onClick={() => setForm({ ...form, imageUrl: '/products/robe-soiree-doree.jpg', emoji: '👗' })}
+                  >
+                    👗 Robe Soirée Kita Sublimée
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn--ghost"
+                    style={{ fontSize: 11, padding: '2px 8px', borderRadius: 12 }}
+                    onClick={() => setForm({ ...form, imageUrl: '/products/sac-cuir-luxe.jpg', emoji: '👜' })}
+                  >
+                    👜 Sac Cuir Émeraude Sublimé
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -342,12 +368,15 @@ export default function CataloguePage() {
                     <td>{index + 1}</td>
                     <td>
                       {p.imageUrl ? (
-                        <img
-                          src={p.imageUrl}
-                          alt={p.name}
-                          style={{ width: 38, height: 38, objectFit: 'cover', borderRadius: 6, border: '1px solid #30363d' }}
-                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
-                        />
+                        <div style={{ position: 'relative', display: 'inline-block' }}>
+                          <img
+                            src={p.imageUrl}
+                            alt={p.name}
+                            style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 8, border: '1px solid #30363d', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}
+                            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+                          />
+                          <span style={{ position: 'absolute', bottom: -2, right: -2, fontSize: 10, background: '#00d66c', borderRadius: '50%', padding: '1px 3px', color: '#000', fontWeight: 'bold' }} title="Visuel HD actif">✨</span>
+                        </div>
                       ) : (
                         <span style={{ fontSize: 24 }}>{p.emoji ?? '📦'}</span>
                       )}

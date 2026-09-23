@@ -37,4 +37,17 @@ public interface IWhatsAppSender
             sb.AppendLine().AppendLine($"_{footerText}_");
         return SendTextMessageAsync(toPhoneNumber, sb.ToString().TrimEnd(), ct);
     }
+
+    /// <summary>
+    /// Envoi d'une image avec légende sur WhatsApp (visuels produits, cartes vitrines sublimées).
+    /// </summary>
+    Task SendImageMessageAsync(
+        string toPhoneNumber,
+        string imageUrl,
+        string? caption = null,
+        CancellationToken ct = default)
+    {
+        var msg = string.IsNullOrWhiteSpace(caption) ? imageUrl : $"{caption}\n\n📸 {imageUrl}";
+        return SendTextMessageAsync(toPhoneNumber, msg, ct);
+    }
 }

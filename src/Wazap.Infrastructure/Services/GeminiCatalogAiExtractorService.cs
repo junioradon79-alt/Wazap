@@ -240,11 +240,16 @@ public sealed class GeminiCatalogAiExtractorService : ICatalogAiExtractorService
                     emoji = InferEmoji(name);
 
                 var description = item.TryGetProperty("description", out var d) ? d.GetString()?.Trim() : null;
+                var imageUrl = item.TryGetProperty("image_url", out var img) || item.TryGetProperty("imageUrl", out img)
+                    ? img.GetString()?.Trim()
+                    : null;
+                if (string.IsNullOrWhiteSpace(imageUrl))
+                    imageUrl = InferSublimatedImageUrl(name);
 
                 if (name.Length > 80)
                     name = name[..80].Trim();
 
-                results.Add(new ExtractedProduct(name, price, emoji, description));
+                results.Add(new ExtractedProduct(name, price, emoji, description, imageUrl));
             }
         }
         catch (Exception ex)
@@ -359,7 +364,7 @@ public sealed class GeminiCatalogAiExtractorService : ICatalogAiExtractorService
                         if (name.Length > 80)
                             name = name[..80].Trim();
 
-                        products.Add(new ExtractedProduct(name, price, InferEmoji(name)));
+                        products.Add(new ExtractedProduct(name, price, InferEmoji(name), null, InferSublimatedImageUrl(name)));
                     }
                 }
             }
@@ -401,6 +406,48 @@ public sealed class GeminiCatalogAiExtractorService : ICatalogAiExtractorService
             return "🕶️";
 
         return "📦";
+    }
+
+    /// <summary>
+    /// Attribue une image réelle sublimée par IA pour sublimer les fiches produits de la Mini-Boutique WhatsApp.
+    /// </summary>
+    public static string? InferSublimatedImageUrl(string productName)
+    {
+        if (string.IsNullOrWhiteSpace(productName))
+            return null;
+
+        var lower = productName.ToLowerInvariant();
+
+        // 1. Gastronomie & Restauration (Poulet braisé, Alloco, Attiéké, Choukouya, Grillades...)
+        if (lower.Contains("poulet") || lower.Contains("braisé") || lower.Contains("braise") ||
+            lower.Contains("alloco") || lower.Contains("aloco") || lower.Contains("attiéké") ||
+            lower.Contains("attieke") || lower.Contains("poisson") || lower.Contains("choukouya") ||
+            lower.Contains("garba") || lower.Contains("nourriture") || lower.Contains("repas") ||
+            lower.Contains("plat") || lower.Contains("burger") || lower.Contains("pizza") ||
+            lower.Contains("grillade"))
+        {
+            return "https://wazap.ci/products/poulet-braise-alloco.jpg";
+        }
+
+        // 2. Mode & Haute Couture (Robe, Pagne, Kita, Wax, Chemise, Tenue...)
+        if (lower.Contains("robe") || lower.Contains("pagne") || lower.Contains("kita") ||
+            lower.Contains("wax") || lower.Contains("soiree") || lower.Contains("soirée") ||
+            lower.Contains("tenue") || lower.Contains("chemise") || lower.Contains("ensemble") ||
+            lower.Contains("couture") || lower.Contains("costume") || lower.Contains("boubou"))
+        {
+            return "https://wazap.ci/products/robe-soiree-doree.jpg";
+        }
+
+        // 3. Maroquinerie, Chaussures, Sacs, Escarpins, Cuir
+        if (lower.Contains("sac") || lower.Contains("escarpin") || lower.Contains("escarpins") ||
+            lower.Contains("cuir") || lower.Contains("chaussure") || lower.Contains("chaussures") ||
+            lower.Contains("talon") || lower.Contains("talons") || lower.Contains("sacoche") ||
+            lower.Contains("pochette") || lower.Contains("croco"))
+        {
+            return "https://wazap.ci/products/sac-cuir-luxe.jpg";
+        }
+
+        return null;
     }
 
     private static List<ExtractedProduct> DeduplicateProducts(List<ExtractedProduct> items)

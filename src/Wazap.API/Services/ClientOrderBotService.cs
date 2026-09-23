@@ -351,10 +351,26 @@ public sealed class ClientOrderBotService
 
         if (products.Count > 0)
         {
+            var featured = products.FirstOrDefault(p => !string.IsNullOrEmpty(p.ImageUrl));
+            var menuText = BuildProductMenuText(products);
+
+            if (featured != null && !string.IsNullOrEmpty(featured.ImageUrl))
+            {
+                var caption = $"🏪 *{vendor.Username}*\n" +
+                              "✨ *Mini-Boutique WhatsApp*\n\n" +
+                              menuText +
+                              "\n\n👉 Répondez avec le(s) NUMÉRO(S) des articles (ex. « 1 » ou « 1 2 »).\n" +
+                              "📸 Tapez « PHOTO <n°> » pour voir la photo d'un article.\n" +
+                              "Écrivez ANNULER pour arrêter.";
+
+                await _whatsApp.SendImageMessageAsync(draft.ClientWhatsAppNumber, featured.ImageUrl, caption);
+                return;
+            }
+
             await SendAsync(draft.ClientWhatsAppNumber,
                 $"🏪 {vendor.Username}\n" +
                 "📜 Catalogue des produits disponibles :\n\n" +
-                BuildProductMenuText(products) +
+                menuText +
                 "\n\n👉 Répondez avec le(s) NUMÉRO(S) des articles (ex. « 1 » ou « 1 2 »).\n" +
                 "Écrivez ANNULER pour arrêter.");
             return;
@@ -367,11 +383,43 @@ public sealed class ClientOrderBotService
     private async Task HandleProductChoiceAsync(ClientOrderDraft draft, string text)
     {
         var catalog = draft.GetProductCatalog();
+        var trimmed = text.Trim();
+
+        // 1. Demande de visuel d'un article (ex: « PHOTO 1 », « VOIR 2 »)
+        if (trimmed.StartsWith("PHOTO", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.StartsWith("VOIR", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.StartsWith("IMAGE", StringComparison.OrdinalIgnoreCase))
+        {
+            var numMatch = Regex.Match(trimmed, @"\d+");
+            if (numMatch.Success && int.TryParse(numMatch.Value, out var idx) && idx >= 1 && idx <= catalog.Count)
+            {
+                var prodId = catalog[idx - 1];
+                var product = await _context.VendorProducts.AsNoTracking().FirstOrDefaultAsync(p => p.Id == prodId);
+                if (product != null)
+                {
+                    var imgUrl = !string.IsNullOrEmpty(product.ImageUrl)
+                        ? product.ImageUrl
+                        : Wazap.Infrastructure.Services.GeminiCatalogAiExtractorService.InferSublimatedImageUrl(product.Name)
+                          ?? "https://wazap.ci/logo-officiel-2026.jpg";
+
+                    var desc = string.IsNullOrWhiteSpace(product.Description) ? "" : $"\n_{product.Description}_\n";
+                    var priceStr = product.Price.ToString("#,##0", System.Globalization.CultureInfo.InvariantCulture).Replace(',', ' ');
+                    var caption = $"{product.Emoji} *{product.Name}*\n" +
+                                  $"💰 {priceStr} FCFA{desc}\n" +
+                                  $"👉 Pour commander cet article, répondez simplement : *{idx}*";
+
+                    await _whatsApp.SendImageMessageAsync(draft.ClientWhatsAppNumber, imgUrl, caption);
+                    return;
+                }
+            }
+        }
+
         var indexes = ParseMenuIndexes(text, catalog.Count);
         if (indexes.Count == 0)
         {
             await RejectStepAsync(draft,
-                "❓ Répondez avec le(s) NUMÉRO(S) des articles du menu (ex. « 1 » ou « 1 2 »).");
+                "❓ Répondez avec le(s) NUMÉRO(S) des articles du menu (ex. « 1 » ou « 1 2 »).\n" +
+                "📸 Tapez « PHOTO <n°> » pour voir la photo d'un article.");
             return;
         }
 

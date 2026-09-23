@@ -92,6 +92,25 @@ public sealed class YCloudWhatsAppSender : IWhatsAppSender
         await SendAsync(payload, $"message texte vers {recipient}", recipient, null, message, ct);
     }
 
+    public async Task SendImageMessageAsync(string toPhoneNumber, string imageUrl, string? caption = null, CancellationToken ct = default)
+    {
+        var recipient = PrepareRecipient(toPhoneNumber);
+
+        var payload = new
+        {
+            from = PrepareSender(),
+            to = recipient,
+            type = "image",
+            image = new
+            {
+                link = imageUrl,
+                caption = caption
+            }
+        };
+
+        await SendAsync(payload, $"image vers {recipient}", recipient, null, caption ?? imageUrl, ct);
+    }
+
     public async Task SendInteractiveButtonsAsync(
         string toPhoneNumber,
         string bodyText,

@@ -80,6 +80,20 @@ internal sealed class RecordingWhatsAppSender : IWhatsAppSender
         TextMessages.Add((toPhoneNumber, bodyText));
         return Task.CompletedTask;
     }
+
+    public List<(string Phone, string ImageUrl, string? Caption)> ImageMessages { get; } = new();
+
+    public Task SendImageMessageAsync(
+        string toPhoneNumber,
+        string imageUrl,
+        string? caption = null,
+        CancellationToken ct = default)
+    {
+        LastToken = ct;
+        ImageMessages.Add((toPhoneNumber, imageUrl, caption));
+        TextMessages.Add((toPhoneNumber, caption != null ? $"{caption}\n{imageUrl}" : imageUrl));
+        return Task.CompletedTask;
+    }
 }
 
 /// <summary>

@@ -94,6 +94,10 @@ public sealed class VendorProductService
                 continue;
 
             var description = string.IsNullOrWhiteSpace(item.Description) ? item.Name.Trim() : item.Description.Trim();
+            var imageUrl = !string.IsNullOrWhiteSpace(item.ImageUrl)
+                ? item.ImageUrl.Trim()
+                : Wazap.Infrastructure.Services.GeminiCatalogAiExtractorService.InferSublimatedImageUrl(item.Name);
+
             var product = new VendorProduct(
                 vendorId,
                 item.Name.Trim(),
@@ -101,7 +105,7 @@ public sealed class VendorProductService
                 item.Price,
                 item.Emoji,
                 isAvailable: true,
-                imageUrl: null);
+                imageUrl: imageUrl);
 
             _context.VendorProducts.Add(product);
             createdList.Add(product);
