@@ -49,6 +49,7 @@
 
 ### SCÈNE 3 : La Mini-Boutique Sublimée — Vos articles en haute définition (25s - 38s)
 * **Cadrage :** Zoom fluide sur l'interface WhatsApp du client.
+* **Image de référence (Image-to-Video) :** `marketing/videos/magic_importer/scene3_showcase.jpg`
 * **Visuels Produits Sublimés :**
   - Assiette gastronomique : Poulet braisé doré avec alloco croustillant et attiéké (`poulet-braise-alloco.jpg`).
   - Robe haute couture : Robe de soirée dorée en pagne Kita royal (`robe-soiree-doree.jpg`).
@@ -58,6 +59,8 @@
 * **Voix-Off (enthousiaste) :**  
   *« Vos produits sont automatiquement sublimés avec des visuels professionnels haute définition, des prix clairs en FCFA et un menu interactif. Vos clients voient vos créations en grand et commandent en répondant simplement par un chiffre ! »*
 * **SFX :** Pop de message WhatsApp, son de notification de validation d'achat satisfaisant.
+* **Prompt Veo / Google Flow (Image-to-Video) :**  
+  `slow cinematic zoom into modern smartphone screen held by African woman in boutique displaying interactive WhatsApp store with beautiful roasted chicken and royal Kita fashion dress, 8k commercial photography, smooth motion`
 
 ---
 
@@ -77,7 +80,8 @@
 ---
 
 ### SCÈNE 5 : L'Appel à l'Action — L'Offre Imbattable (48s - 55s)
-* **Cadrage :** Plan final percutant avec Awa qui montre l'écran WhatsApp avec le logo officiel WAZAP 3D en relief et le numéro officiel.
+* **Cadrage :** Plan final percutant avec carte d'offre et contact WhatsApp officiel.
+* **Image de référence (Image-to-Video) :** `marketing/videos/magic_importer/scene5_cta.jpg`
 * **Visuel :** Animation graphique moderne du pack :
   - Badge vert émeraude vibrant WAZAP 3D.
   - « 🎁 15 COURSES OFFERTES (Commission 0 FCFA) ».
@@ -91,6 +95,8 @@
 * **Voix-Off (puissante et incitative) :**  
   *« Testez la magie WAZAP dès aujourd'hui ! Vos quinze premières livraisons et votre Mini-Boutique IA sont totalement offertes. Envoyez le mot IMPORT sur WhatsApp au 07 87 11 95 20 et vendez plus vite dès ce soir ! »*
 * **SFX :** Corde finale entraînante avec accord signature sonore WAZAP « Swoosh + Chime ».
+* **Prompt Veo / Google Flow (Image-to-Video) :**  
+  `dynamic motion graphic zoom onto 3D emerald green WAZAP logo with lightning bolt, glowing gift card displaying 15 COURSES OFFERTES, and official WhatsApp number +225 07 87 11 95 20, high-end fintech advertising, smooth glow pulse`
 
 ---
 
@@ -100,9 +106,24 @@
 |---|---|---|---|---|
 | **1. Hook** | 10s | Capter l'attention / Problème | `scene1_hook.jpg` | Push-in sur Awa épuisée devant son comptoir de boutique |
 | **2. Magie IA** | 15s | Effet « Whaou » Démo Scan | `scene2_magic_scan.jpg` | Photo du menu smartphone avec ondes holographiques vertes |
-| **3. Boutique HD** | 13s | Désirabilité / Visuels Sublimés | `poulet-braise-alloco.jpg` / `robe-soiree-doree.jpg` | Menu WhatsApp avec photos gastronomie & mode en grand |
+| **3. Boutique HD** | 13s | Désirabilité / Visuels Sublimés | `scene3_showcase.jpg` | Zoom sur smartphone avec poulet braisé, alloco et robe Kita royale |
 | **4. Livraison** | 10s | Réassurance / QR Code Universel | `scene4_delivery.jpg` | Remise du colis au motard vert émeraude avec scan QR Code |
-| **5. CTA Final** | 7s | Conversion / No-Brainer Offer | Logo officiel WAZAP 3D | Pack 15 courses offertes + numéro WhatsApp officiel |
+| **5. CTA Final** | 7s | Conversion / No-Brainer Offer | `scene5_cta.jpg` | Pack 15 courses offertes + numéro WhatsApp officiel + logo 3D |
+
+---
+
+## 🎥 Vidéo Officielle Déjà Assemblée (Validation Immédiate)
+
+* **Fichier vidéo Master MP4 (1080×1920) :**  
+  [`marketing/videos/magic_importer/wazap_magic_importer_officiel.mp4`](file:///c:/Dev/Wazap/WazapSln/marketing/videos/magic_importer/wazap_magic_importer_officiel.mp4)
+* **Copie Web (`wwwroot`) :**  
+  [`src/Wazap.API/wwwroot/magic-importer.mp4`](file:///c:/Dev/Wazap/WazapSln/src/Wazap.API/wwwroot/magic-importer.mp4)
+* **Caractéristiques :**
+  - Durée : 76 secondes
+  - Format : MP4 H.264 / AAC, 1080×1920 portrait (9:16)
+  - Voix studio Edge-TTS bilingue (Awa : `fr-FR-DeniseNeural` / Narrateur : `fr-FR-HenriNeural`)
+  - Musique de fond Afrobeat rythmée (`music_dialogue.wav`) avec ducking automatique sous les voix
+  - Mouvements de caméra cinématographiques Ken Burns progressifs sur les 5 images de référence haute définition
 
 ---
 

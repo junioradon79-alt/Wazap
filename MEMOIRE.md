@@ -3581,4 +3581,29 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
   3. Lier le domaine dans SmarterASP.NET et activer le certificat SSL Let's Encrypt gratuit.
   4. Mettre à jour `SalesPage:PublicBaseUrl` vers `https://wazap.ci` dans `appsettings.json` et `web.config` pour basculer instantanément tous les QR codes, liens de suivi et webhooks.
 
+---
+
+## 107. Session 24/09/2026 — Production Vidéo Officielle Magic Importer (Google Flow / Veo & Master MP4 Prêt)
+
+### 1. Kit Complet de Production Google Flow / Veo (Image-to-Video)
+- **5 Scènes Clés 9:16 Ultra-Réalistes Générées :**
+  1. `scene1_hook.jpg` : Awa fatiguée de la saisie manuelle devant son comptoir de boutique à Cocody.
+  2. `scene2_magic_scan.jpg` : Scan photo du flyer/menu avec onde holographique IA verte émeraude jaillissant du smartphone.
+  3. `scene3_showcase.jpg` : Mini-Boutique WhatsApp haute définition avec photos réelles appétissantes de poulet braisé/alloco et robe Kita dorée, prix en FCFA et bouton de commande 1-tap.
+  4. `scene4_delivery.jpg` : Remise du colis scellé au motard WAZAP vert émeraude avec scan du QR Code Universel.
+  5. `scene5_cta.jpg` : Carte finale avec logo 3D officiel WAZAP, pack 15 courses offertes, Assurance Colis Sûr et numéro officiel `+225 07 87 11 95 20`.
+- **Prompts Cinématiques Veo Calibrés :** Définis pour chaque scène dans [`marketing/videos/magic_importer/SCRIPT_VIDEO_MAGIC_IMPORTER.md`](file:///c:/Dev/Wazap/WazapSln/marketing/videos/magic_importer/SCRIPT_VIDEO_MAGIC_IMPORTER.md).
+- **Règle absolue GEMINI.md respectée :** Voix-off et dialogues 100% en Français soigné, dynamique et chaleureux.
+
+### 2. Vidéo Master MP4 Immédiate (76s · 1080×1920 Portrait)
+- **Doublage Studio Multilocuteur (Edge-TTS) :** Awa incarnée par `fr-FR-DeniseNeural` (voix féminine enjouée et expressive) et le narrateur par `fr-FR-HenriNeural` (voix masculine dynamique et chaleureuse).
+- **Montage & Mastering Audio-Vidéo FFmpeg :**
+  - Mouvements de caméra cinématographiques progressifs Ken Burns (zoom et pan lents) sur les 5 images de référence 8k.
+  - Mixage de la bande-son Afrobeat officielle WAZAP (`music_dialogue.wav`) avec ducking automatique sous la voix (-16 dB sous les dialogues, -8 dB lors des respirations).
+  - Bruitages synchronisés (SFX).
+- **Livrables :**
+  - Vidéo principale : `marketing/videos/magic_importer/wazap_magic_importer_officiel.mp4`.
+  - Accessible directement sur le serveur web local : `src/Wazap.API/wwwroot/magic-importer.mp4`.
+
+
 
