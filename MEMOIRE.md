@@ -13,6 +13,8 @@
 > 4. **Terminologie Colis Sûr :** Terme officiel unique = **« Assurance Colis Sûr »** *(abandon des termes « Garantie » ou « Couverture »)*.
 > 5. **Offre Commerçants & Supports :** Le chevalet physique de comptoir est abandonné au profit du **« Pack Digital Boutique »** (Chantier T9 — zéro sortie de trésorerie). Formulation obligatoire : **« 15 courses offertes (commission WAZAP à 0 FCFA) »** ou **« 15 recherches de livreurs offertes »**. Les frais habituels du coursier (1 000 à 2 000 FCFA) restent réglés à 100% au livreur.
 > 6. **Enrôlement Motards Sans Friction :** Parcours **Chantier T10** (Scan QR $\rightarrow$ choix commune par chiffre 1 à 6 $\rightarrow$ photo CNI analysée par **OCR Google Cloud Vision** `GoogleVisionOcrService.cs` $\rightarrow$ création automatique du compte $\rightarrow$ bouton interactif WhatsApp Quick Reply **`🟢 DISPO`** pour passer en ligne en 1 clic). Affiche officielle 9:16 livrée : `marketing/visuels/affiche_recrutement_motards_officielle.jpg`.
+> 7. **Logo Officiel Canonique Unique (Règle Inviolable) :** Toute illustration, affiche, vidéo, mockup, document ou interface nécessitant le logo doit **OBLIGATOIREMENT ET STRICTEMENT pointer sur les fichiers sources officiels** : `marketing/visuels/logo_officiel_wazap.jpg` / `web/public/logo-officiel-2026.jpg` ou sa version transparente détourée `marketing/visuels/logo_officiel_transparent.png`. Interdiction formelle et absolue de laisser une IA générative réinventer, réinterpréter ou déformer le logo (interdiction formelle de logos métalliques fantaisistes ou polices alternatives).
+
 
 ---
 
