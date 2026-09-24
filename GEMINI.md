@@ -1,15 +1,20 @@
 # Directives Projet WAZAP & Charte Permanente
 
-## 1. Charte Graphique & Logo Officiel WAZAP (Référence Canonique)
+## 1. Charte Graphique & Logo Officiel WAZAP (Règle Canonique Inviolable)
 
-* **Logo Officiel & Avatar Réseaux :**
-  * Fichiers sources canoniques : `marketing/visuels/logo_officiel_wazap.jpg` et `web/public/logo-officiel-2026.jpg`
-  * **Spécifications visuelles :** Badge circulaire fond vert émeraude vibrant (#00A86B à #075E54), lettrage WAZAP blanc 3D moderne en relief, icône stylisée d'un éclair de vitesse et d'un motard coursier.
-  * **Application obligatoire :** Ce logo doit être systématiquement utilisé pour toutes les productions ultérieures :
-    * Avatars des réseaux sociaux (TikTok `@wazap_ci`, Facebook, Instagram, WhatsApp Business).
-    * Supports physiques & goodies (Chevalets de comptoir acryliques, QR Codes Universels, flyers A5, scellés Colis Sûr).
-    * Interfaces Web et dashboards.
-    * Incrustations de fin et filigranes dans les vidéos promotionnelles.
+* **Fichiers Sources Canoniques Uniques :**
+  * Fichier raster haute définition : `marketing/visuels/logo_officiel_wazap.jpg` et `web/public/logo-officiel-2026.jpg`
+  * Version transparente détourée officielle : `marketing/visuels/logo_officiel_transparent.png`
+* **Spécifications Visuelles Exactes :** Badge circulaire fond vert émeraude vibrant (#00A86B à #075E54) avec liseré blanc, lettrage WAZAP blanc 3D moderne en relief, icône stylisée d'un éclair de vitesse et d'un motard coursier en blanc au-dessus du lettrage.
+* **OBLIGATION ABSOLUE & EXCLUSIVE :**
+  * **Toute référence, composition, illustration, mockup, affiche, support publicitaire, interface web, document ou vidéo nécessitant le logo doit OBLIGATOIREMENT ET STRICTEMENT pointer sur ces fichiers sources officiels.**
+  * **INTERDICTION FORMELLE ET DÉFINITIVE de laisser une IA générative redessiner, réinterpréter, halluciner ou déformer le logo WAZAP (interdiction de logos métalliques génériques, logos verts fluo fantaisistes ou typographies alternatives).**
+  * Toute image, affiche ou vidéo produite doit obligatoirement incruster ou référencer le véritable logo canonique issu de ces fichiers.
+  * **Champs d'application obligatoires :**
+    * Avatars et bannières des réseaux sociaux (TikTok `@wazap_ci`, Facebook, Instagram, WhatsApp Business).
+    * Affiches de recrutement, flyers A5, chevalets, scellés Colis Sûr et QR Codes Universels.
+    * Cartes de fin (outros), animations et filigranes de toutes les vidéos (Veo, TikTok, Reels, YouTube).
+    * Interfaces Web, PWA, applications et tableaux de bord.
 
 ---
 
