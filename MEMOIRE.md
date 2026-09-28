@@ -3749,6 +3749,10 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
   - **1 vidéo / jour = COMMERÇANTS (15 vidéos au total) :** Diversité des angles métier d'Abidjan (mode, restauration, cosmétiques, high-tech, pâtisserie, bijouterie, rentabilité), élimination des pertes et des annulations, 15 courses offertes (Pack Digital Boutique).
 - **Livrable Clé en Main Produit :** [`marketing/tiktok/PROGRAMME_TIKTOK_15JOURS_LIVREURS_COMMERCANTS.md`](file:///c:/Dev/Wazap/WazapSln/marketing/tiktok/PROGRAMME_TIKTOK_15JOURS_LIVREURS_COMMERCANTS.md) — 45 scénarios détaillés avec titres miniatures, hooks d'arrêt de scroll (0-3s), dialogues/voix-off 100% en français soigné, CTAs et légendes prêtes à copier-coller avec hashtags géolocalisés.
 - **Canaux d'Action Confirmés :** Numéro WhatsApp unique **`+225 05 44 05 19 72`**, liens courts actifs `tinyurl.com/wazap-livreurs` (`/app/livreurs`) et `tinyurl.com/wazap-commercants` (`/app/vente`).
+- **Bible Officielle des Personnages Créée :** [`marketing/tiktok/BIBLE_PERSONNAGES_TIKTOK.md`](file:///c:/Dev/Wazap/WazapSln/marketing/tiktok/BIBLE_PERSONNAGES_TIKTOK.md) avec 7 portraits de référence photoréalistes unifiés dans `marketing/tiktok/personnages/` :
+  - **Trio Livreurs :** **Koffi** (26 ans, Yopougon, l'As du guidon, 0% commission), **Bakary** (29 ans, Marcory, leader du classement 50 smartphones, 0 cash marchandise), **Ibrahim** (22 ans, Abobo, le nouveau venu inscrit en 2 min sur WhatsApp).
+  - **Quatuor Commerçants :** **Tantie Aïcha** (Cocody Angré, mode & prêt-à-porter, livreur en 3 min), **Chef Amara** (Marcory Zone 4, braisés & plats chauds express), **Salimata** (Plateau, high-tech & beauté, zéro faux billet via QR Code Universel), **Fatou** (Yopougon Maroc, gâteaux & pâtisseries fragiles, assurance Colis Sûr).
+
 
 
 
