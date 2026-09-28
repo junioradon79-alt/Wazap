@@ -3752,6 +3752,8 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
 - **Bible Officielle des Personnages Créée :** [`marketing/tiktok/BIBLE_PERSONNAGES_TIKTOK.md`](file:///c:/Dev/Wazap/WazapSln/marketing/tiktok/BIBLE_PERSONNAGES_TIKTOK.md) avec 7 portraits de référence photoréalistes unifiés dans `marketing/tiktok/personnages/` :
   - **Trio Livreurs :** **Koffi** (26 ans, Yopougon, l'As du guidon, 0% commission), **Bakary** (29 ans, Marcory, leader du classement 50 smartphones, 0 cash marchandise), **Ibrahim** (22 ans, Abobo, le nouveau venu inscrit en 2 min sur WhatsApp).
   - **Quatuor Commerçants :** **Tantie Aïcha** (Cocody Angré, mode & prêt-à-porter, livreur en 3 min), **Chef Amara** (Marcory Zone 4, braisés & plats chauds express), **Salimata** (Plateau, high-tech & beauté, zéro faux billet via QR Code Universel), **Fatou** (Yopougon Maroc, gâteaux & pâtisseries fragiles, assurance Colis Sûr).
+- **Scripts Détaillés Google Flow Jour 1 Rédigés :** [`marketing/tiktok/SCRIPTS_GOOGLE_FLOW_J01_3_VIDEOS.md`](file:///c:/Dev/Wazap/WazapSln/marketing/tiktok/SCRIPTS_GOOGLE_FLOW_J01_3_VIDEOS.md) avec 12 scènes complètes (3 vidéos × 4 scènes), prompts caméra en anglais et français, dialogues 100% en français accessible et populaire, incrustations d'écran et sound design.
+
 
 
 
