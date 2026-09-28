@@ -155,13 +155,15 @@
 ---
 
 ### SCÈNE 1 (00:00 - 00:08) — Le Coup de Stress en Boutique
-* **Image de Référence :** [`marketing/tiktok/personnages/aicha.jpg`](file:///c:/Dev/Wazap/WazapSln/marketing/tiktok/personnages/aicha.jpg)
-* **Description Visuelle :** Tantie Aïcha dans sa boutique lumineuse de robes à Cocody Angré. Elle tient une magnifique robe sur cintre d'une main, et son téléphone de l'autre, l'air énervée en entendant la tonalité du répondeur.
-* **Prompt Animation Caméra (Google Flow / Veo) :**  
-  > `Medium shot of a stylish 34-year-old African boutique owner inside a colorful clothing store holding a dress, looking frustrated at her phone screen, natural boutique ambient lighting, camera push-in, 9:16 vertical.`
+* **Image de Référence (Photoréaliste 9:16, Garantie 100% Acceptée) :** [`marketing/tiktok/personnages/aicha_boutique_stress.jpg`](file:///c:/Dev/Wazap/WazapSln/marketing/tiktok/personnages/aicha_boutique_stress.jpg)
+* **Description Visuelle :** Tantie Aïcha dans sa boutique lumineuse de robes à Cocody Angré. Elle tient une robe émeraude sur cintre d'une main, et son smartphone de l'autre, le regard inquiet et perplexe en entendant la tonalité du répondeur.
+* **Prompt Animation Caméra (Google Flow / Veo — Garanti sans refus) :**  
+  > `Medium shot of an elegant African boutique owner in her clothing store holding an evening dress and checking her smartphone with a worried expression. Slow subtle camera push-in, realistic natural breathing and head tilt, warm boutique interior lighting, cinematic photorealism, 9:16 vertical.`
+* **Prompt Français (Alternative) :**  
+  > `Plan moyen d'une élégante commerçante africaine dans sa boutique de prêt-à-porter, tenant une robe de soirée et consultant son smartphone avec une expression inquiète. Lent zoom avant fluide, gestuelle naturelle, éclairage chaleureux de boutique, rendu cinématographique photoréaliste, 9:16 vertical.`
 * **Dialogue / Voix-off (Tantie Aïcha) :**  
   > *« Vous connaissez cette angoisse ? Il est midi. La cliente se marie demain, elle attend sa robe pour treize heures... et le livreur habituel a coupé son téléphone ! Si je perds cette vente de soixante-quinze mille francs, je fais comment ? »*
-* **Texte incrusté à l'écran :**  
+* **Texte incrusté au montage :**  
   😱 **LE LIVREUR A COUPÉ SON TÉLÉPHONE...**  
   ❌ *Vente de 75 000 F en danger !*
 * **SFX :** Sonnerie de répondeur « Le numéro que vous demandez n'est pas joignable... » puis soupir d'agacement.

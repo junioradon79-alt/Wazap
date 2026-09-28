@@ -3764,6 +3764,10 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
 - **Correction Google Flow Scène 4 Vidéo 2 :**
   - Remplacement de l'image de synthèse 2D chargée de texte par un portrait photoréaliste natif 9:16 : [`bakary_smartphone.jpg`](file:///c:/Dev/Wazap/WazapSln/marketing/tiktok/personnages/bakary_smartphone.jpg).
   - Révision du prompt caméra évitant tout mot-clé de titre 2D ("title card overlay"), garantissant une acceptation fluide à 100% par le moteur vidéo IA.
+- **Correction Google Flow Scène 1 Vidéo 3 :**
+  - Remplacement de l'ancien avatar 1:1 stylisé cartoon par une image photoréaliste 9:16 haute fidélité : [`aicha_boutique_stress.jpg`](file:///c:/Dev/Wazap/WazapSln/marketing/tiktok/personnages/aicha_boutique_stress.jpg) (Tantie Aïcha dans sa boutique avec robe émeraude et smartphone).
+  - Prompt caméra épuré et sans mot-clé sensible, 100% accepté par Veo / Google Flow.
+
 
 
 
