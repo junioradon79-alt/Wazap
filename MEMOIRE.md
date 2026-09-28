@@ -3758,6 +3758,10 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
   - **Animation HTML5/CSS3 60fps :** [`marketing/visuels/outro/outro_wazap_9_16.html`](file:///c:/Dev/Wazap/WazapSln/marketing/visuels/outro/outro_wazap_9_16.html).
   - **Script de Rendu FFmpeg :** `marketing/visuels/outro/render_outro.ps1`.
   - **Fichier MP4 Produit & Disponible :** `marketing/visuels/outro/outro_officielle_wazap_9_16.mp4` (1080×1920 HD, 4 secondes, H.264/AAC, 118 Ko) prêt à être collé à la fin de tous les montages vidéo.
+- **Routine Obligatoire de Description & Hashtags Gravée :**
+  - Directive gravée dans `GEMINI.md` (Règle 4.3) : TOUTE vidéo produite doit impérativement comporter sa légende complète (Hook, bénéfices, CTA direct WhatsApp `05 44 05 19 72`, hashtags Abidjan et 1er commentaire épinglé).
+  - Recueil opérationnel Jour 1 & Gabarit standardisé créés : [`marketing/tiktok/DESCRIPTIONS_POSTS_TIKTOK_SERIE.md`](file:///c:/Dev/Wazap/WazapSln/marketing/tiktok/DESCRIPTIONS_POSTS_TIKTOK_SERIE.md).
+
 
 
 

@@ -51,7 +51,16 @@
 2. **Cohérence Visuelle & Production Google Flow :**
    * Chaque script vidéo doit être accompagné de ses images de référence visuelle (Image-to-Video) scène par scène pour garantir la continuité des personnages, des décors et des supports physiques WAZAP (Chevalet de comptoir avec logo officiel, QR Code Universel, Scellés Colis Sûr, tenue verte des livreurs).
 
+3. **Routine Obligatoire de Publication (Textes de Description & Hashtags Clé en Main) :**
+   * **Pour TOUTE vidéo produite ou scénario rédigé, il est STRICTEMENT OBLIGATOIRE de fournir systématiquement le texte de description (caption) prêt à poster** :
+     - **Accroche (Hook) :** Question ou constat percutant dès la première ligne.
+     - **Corps du texte :** Court, dynamique, axé sur les bénéfices concrets (0% commission, sécurité QR code, livreur en 3 min, 50 smartphones neufs tous les 3 mois).
+     - **Call To Action (CTA) direct :** Raccourcis officiels WhatsApp **`05 44 05 19 72`** (Livreurs ➔ tape **DISPO** / Commerçants ➔ tape **COLIS**) ou liens courts `tinyurl.com/wazap-livreurs` / `tinyurl.com/wazap-commercants`.
+     - **Grappe de Hashtags ciblés Abidjan :** Hashtags géolocalisés et sectoriels systématiques (#Wazap, #LivreurAbidjan, #CommerceAbidjan, #Team225, communes d'Abidjan).
+     - **1er commentaire épinglé suggéré :** Question d'engagement pour stimuler l'algorithme TikTok.
+
 ---
+
 
 ## 5. Stratégie TikTok (@wazap_ci) & Réseaux Sociaux
 
