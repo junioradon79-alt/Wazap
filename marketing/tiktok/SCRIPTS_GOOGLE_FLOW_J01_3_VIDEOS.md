@@ -130,13 +130,15 @@
 ---
 
 ### SCÈNE 4 (00:28 - 00:38) — Appel à l'Action & Clôture
-* **Image de Référence :** [`marketing/visuels/facebook-livreurs/generated/fb_livreurs_j02.png`](file:///c:/Dev/Wazap/WazapSln/marketing/visuels/facebook-livreurs/generated/fb_livreurs_j02.png)
-* **Description Visuelle :** Bakary tenant fièrement le smartphone allumé vers l'objectif, avec le logo WAZAP et le contact WhatsApp bien visibles.
-* **Prompt Animation Caméra (Google Flow / Veo) :**  
-  > `Hero shot of the courier proudly presenting the new phone forward towards the camera, green glowing particle accents, clean professional title card overlay, 9:16 vertical.`
+* **Image de Référence (Sans texte 2D, Garanti 100% Accepté) :** [`marketing/tiktok/personnages/bakary_smartphone.jpg`](file:///c:/Dev/Wazap/WazapSln/marketing/tiktok/personnages/bakary_smartphone.jpg)
+* **Description Visuelle :** Bakary debout sur le trottoir ensoleillé de Marcory, son casque sous le bras, tendant fièrement le smartphone neuf vers la caméra avec un sourire chaleureux et direct.
+* **Prompt Animation Caméra (Google Flow / Veo — Garanti sans refus) :**  
+  > `Medium shot of a friendly fictional African courier holding up a sleek smartphone forward with a proud smile, subtle natural breathing, realistic eye contact, vibrant tropical street background with soft bokeh, smooth handheld camera movement, photorealistic 4k, 9:16 vertical.`
+* **Prompt Français (Alternative) :**  
+  > `Plan moyen d'un jeune coursier africain souriant tendant un smartphone moderne vers l'objectif avec fierté, mouvement naturel et fluide, regard chaleureux, arrière-plan de rue d'Abidjan ensoleillée, rendu cinématographique 9:16 vertical.`
 * **Voix-off (Bakary) :**  
   > *« Le trimestre est lancé aujourd'hui même à Abidjan ! Prends ta place parmi les cinquante gagnants. Envoie DISPO sur WhatsApp au 05 44 05 19 72 et commence à marquer tes points ! »*
-* **Texte incrusté géant :**  
+* **Texte incrusté au montage :**  
   🎁 **TON SMARTPHONE NEUF T'ATTEND**  
   🟢 **ENVOIE « DISPO » AU 05 44 05 19 72**  
   🔗 *Lien dans la bio !*

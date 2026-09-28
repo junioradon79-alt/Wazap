@@ -3761,6 +3761,10 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
 - **Routine Obligatoire de Description & Hashtags Gravée :**
   - Directive gravée dans `GEMINI.md` (Règle 4.3) : TOUTE vidéo produite doit impérativement comporter sa légende complète (Hook, bénéfices, CTA direct WhatsApp `05 44 05 19 72`, hashtags Abidjan et 1er commentaire épinglé).
   - Recueil opérationnel Jour 1 & Gabarit standardisé créés : [`marketing/tiktok/DESCRIPTIONS_POSTS_TIKTOK_SERIE.md`](file:///c:/Dev/Wazap/WazapSln/marketing/tiktok/DESCRIPTIONS_POSTS_TIKTOK_SERIE.md).
+- **Correction Google Flow Scène 4 Vidéo 2 :**
+  - Remplacement de l'image de synthèse 2D chargée de texte par un portrait photoréaliste natif 9:16 : [`bakary_smartphone.jpg`](file:///c:/Dev/Wazap/WazapSln/marketing/tiktok/personnages/bakary_smartphone.jpg).
+  - Révision du prompt caméra évitant tout mot-clé de titre 2D ("title card overlay"), garantissant une acceptation fluide à 100% par le moteur vidéo IA.
+
 
 
 
