@@ -3743,6 +3743,14 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
   - Implémentation de `YCloudWebhookParser.cs` (`whatsapp.inbound_message.received`) et intégration dans `WebhookWhatsAppController.cs`.
   - Couverture complète : **822 tests .NET réussis sur 822 (100% au vert)** incluant les tests E2E `YCloud_InboundDISPO_TriggersRiderOnboarding`.
 
+#### J. Session 28/09/2026 (Nuit) — Réorientation Stratégique TikTok 15 Jours (45 Vidéos : 30 Livreurs & 15 Commerçants)
+- **Nouvelle Directive Éditoriale :** 3 vidéos par jour pendant 15 jours (45 vidéos au total), découpées selon le ratio 2:1 :
+  - **2 vidéos / jour = LIVREURS (30 vidéos au total) :** Focus absolu sur le recrutement immédiat, la réelle valeur ajoutée financière (0% de commission, 1 000 F à 2 000 F net, 0 manipulation d'espèces sur marchandise grâce au QR Code Universel, liberté d'horaires et communes proches), et le **Grand Défi Trimestriel : 50 smartphones neufs 4G haute autonomie (Redmi 15C) offerts tous les 3 mois** aux livreurs les plus actifs et réguliers.
+  - **1 vidéo / jour = COMMERÇANTS (15 vidéos au total) :** Diversité des angles métier d'Abidjan (mode, restauration, cosmétiques, high-tech, pâtisserie, bijouterie, rentabilité), élimination des pertes et des annulations, 15 courses offertes (Pack Digital Boutique).
+- **Livrable Clé en Main Produit :** [`marketing/tiktok/PROGRAMME_TIKTOK_15JOURS_LIVREURS_COMMERCANTS.md`](file:///c:/Dev/Wazap/WazapSln/marketing/tiktok/PROGRAMME_TIKTOK_15JOURS_LIVREURS_COMMERCANTS.md) — 45 scénarios détaillés avec titres miniatures, hooks d'arrêt de scroll (0-3s), dialogues/voix-off 100% en français soigné, CTAs et légendes prêtes à copier-coller avec hashtags géolocalisés.
+- **Canaux d'Action Confirmés :** Numéro WhatsApp unique **`+225 05 44 05 19 72`**, liens courts actifs `tinyurl.com/wazap-livreurs` (`/app/livreurs`) et `tinyurl.com/wazap-commercants` (`/app/vente`).
+
+
 
 
 
