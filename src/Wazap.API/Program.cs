@@ -698,10 +698,24 @@ app.MapFallbackToFile("app/{*path:nonfile}", "app/index.html");
 
 // Liens courts marketing (évitent le long préfixe /app) :
 //   /            → redirection vers la vitrine /app
-//   /vente       → page de vente          ·   /parrainage → page parrainage
+// Redirections d'URLs courtes avec tolérance aux paramètres et alias de réducteurs d'URLs
+app.Use(async (context, next) =>
+{
+    var path = context.Request.Path.Value ?? string.Empty;
+    if (path.StartsWith("/livreurs", StringComparison.OrdinalIgnoreCase))
+    {
+        context.Response.Redirect("/app/livreurs");
+        return;
+    }
+    if (path.StartsWith("/vente", StringComparison.OrdinalIgnoreCase))
+    {
+        context.Response.Redirect("/app/vente");
+        return;
+    }
+    await next();
+});
+
 app.MapGet("/", () => Results.Redirect("/app"));
-app.MapGet("/vente", () => Results.Redirect("/app/vente"));
-app.MapGet("/livreurs", () => Results.Redirect("/app/livreurs"));
 app.MapGet("/parrainage", () => Results.Redirect("/app/parrainage"));
 
 // Liens courts de conversion TikTok & Campagnes Réseaux Sociaux :
