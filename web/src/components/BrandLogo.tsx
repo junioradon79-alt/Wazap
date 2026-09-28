@@ -20,7 +20,7 @@ export default function BrandLogo({
 }: BrandLogoProps) {
   const dim = SIZES[size]
   const base = import.meta.env.BASE_URL || '/app/'
-  const badgeUrl = `${base}logo-badge.png`
+  const badgeUrl = `${base}logo-officiel-2026.jpg`
 
   if (variant === 'badge') {
     return (
@@ -39,8 +39,9 @@ export default function BrandLogo({
             width: dim.img * 1.6,
             height: dim.img * 1.6,
             borderRadius: '50%',
-            objectFit: 'contain',
-            filter: 'drop-shadow(0 4px 14px rgba(0, 214, 108, 0.25))',
+            border: '2px solid rgba(255, 255, 255, 0.95)',
+            objectFit: 'cover',
+            filter: 'drop-shadow(0 4px 16px rgba(0, 214, 108, 0.35))',
           }}
         />
       </div>
@@ -64,11 +65,12 @@ export default function BrandLogo({
           width: dim.img,
           height: dim.img,
           borderRadius: '50%',
-          objectFit: 'contain',
+          border: '1.5px solid rgba(255, 255, 255, 0.95)',
+          objectFit: 'cover',
           flexShrink: 0,
           background: 'rgba(255, 255, 255, 0.05)',
-          padding: 2,
-          boxShadow: '0 2px 10px rgba(0, 214, 108, 0.2)',
+          padding: 1,
+          boxShadow: '0 2px 10px rgba(0, 214, 108, 0.25)',
         }}
       />
       <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>

@@ -1,0 +1,5 @@
+file 'c:/Dev/Wazap/WazapSln/marketing/videos/magic_importer/scene1_clip.mp4'
+file 'c:/Dev/Wazap/WazapSln/marketing/videos/magic_importer/scene2_clip.mp4'
+file 'c:/Dev/Wazap/WazapSln/marketing/videos/magic_importer/scene3_clip.mp4'
+file 'c:/Dev/Wazap/WazapSln/marketing/videos/magic_importer/scene4_clip.mp4'
+file 'c:/Dev/Wazap/WazapSln/marketing/videos/magic_importer/scene5_clip.mp4'

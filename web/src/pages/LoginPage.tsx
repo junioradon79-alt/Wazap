@@ -27,7 +27,12 @@ export default function LoginPage() {
   return (
     <div className="login-wrap">
       <div className="panel login-card">
-        <img src={`${import.meta.env.BASE_URL}logo.png`} alt="WAZAP" className="login-logo" />
+        <img
+          src={`${import.meta.env.BASE_URL}logo-officiel-2026.jpg`}
+          alt="WAZAP"
+          className="login-logo"
+          style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255, 255, 255, 0.9)' }}
+        />
         <h1>Connexion</h1>
         <p>Espace Marchand & Administration</p>
 

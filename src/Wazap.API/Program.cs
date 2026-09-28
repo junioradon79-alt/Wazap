@@ -701,6 +701,7 @@ app.MapFallbackToFile("app/{*path:nonfile}", "app/index.html");
 //   /vente       → page de vente          ·   /parrainage → page parrainage
 app.MapGet("/", () => Results.Redirect("/app"));
 app.MapGet("/vente", () => Results.Redirect("/app/vente"));
+app.MapGet("/livreurs", () => Results.Redirect("/app/livreurs"));
 app.MapGet("/parrainage", () => Results.Redirect("/app/parrainage"));
 
 // Liens courts de conversion TikTok & Campagnes Réseaux Sociaux :
@@ -709,10 +710,8 @@ const string tiktokWhatsAppUrl = "https://wa.me/2250787119520?text=Bonjour%20WAZ
 app.MapGet("/tiktok", () => Results.Redirect(tiktokWhatsAppUrl));
 app.MapGet("/15", () => Results.Redirect(tiktokWhatsAppUrl));
 
-// Page publique dédiée au recrutement des livreurs (offre « Ambassadeur WAZAP »).
-// Servie depuis wwwroot (même mécanisme que suivi.html / demo.html), URL courte pour le QR.
-app.MapGet("/devenir-livreur", (IWebHostEnvironment env) =>
-    Results.File(Path.Combine(env.WebRootPath, "devenir-livreur.html"), "text/html; charset=utf-8"));
+// Page publique dédiée au recrutement et à l'orientation des livreurs
+app.MapGet("/devenir-livreur", () => Results.Redirect("/app/livreurs"));
 app.MapGet("/demo-video", (IWebHostEnvironment env) =>
     Results.File(Path.Combine(env.WebRootPath, "demo-video.html"), "text/html; charset=utf-8"));
 app.MapGet("/demo", (IWebHostEnvironment env) =>

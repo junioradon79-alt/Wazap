@@ -36,16 +36,16 @@ const FAQ_ITEMS = [
     a: 'Absolument aucune ! C’est la force de WAZAP : vos clients continuent de commander naturellement par message WhatsApp comme ils le font déjà. Ils reçoivent automatiquement un lien de suivi en direct et un code PIN sécurisé pour la réception du colis.',
   },
   {
-    q: 'Comment fonctionne la Garantie Colis Sûr ?',
-    a: 'Chaque livreur WAZAP est identifié et sa pièce d’identité est vérifiée avant toute attribution. La remise du colis exige la transmission d’un code secret à 4 chiffres. En cas d’avarie ou de perte confirmée, vous déclarez le sinistre directement par WhatsApp (« SINISTRE + code ») : le livreur est suspendu le temps de l’enquête et vous êtes indemnisé par Mobile Money sous 48h.',
+    q: 'Comment fonctionne l’Assurance Colis Sûr ?',
+    a: 'Chaque livreur WAZAP est certifié avec CNI vérifiée. La validation de la livraison et l’activation de l’Assurance Colis Sûr se font par le scan du QR Code Universel du livreur. En cas d’avarie ou de perte confirmée, vous déclarez le sinistre directement par WhatsApp (« SINISTRE + code ») : vous êtes indemnisé par Mobile Money sous 48h jusqu’à 50 000 FCFA.',
   },
   {
     q: 'Qu’est-ce qui est offert au démarrage ?',
-    a: 'Pour vous permettre de tester sans aucun risque, vos 15 premières livraisons sont 100% offertes (crédits gratuits offerts à l’activation). Aucun abonnement, aucun frais caché, aucun engagement.',
+    a: 'Pour vous permettre de tester sans aucun risque, les frais de service WAZAP sont offerts sur vos 15 premières livraisons (crédits gratuits offerts à l’activation). Aucun abonnement, aucun frais caché, aucun engagement.',
   },
   {
     q: 'Comment sont encaissés les paiements des clients ?',
-    a: 'Vous gardez vos habitudes : le client paie en espèces à la livraison ou par Mobile Money (Wave, Orange, MTN). WAZAP ne prend aucune commission sur le montant de vos articles.',
+    a: 'Règlement à la livraison exclusivement par Scan du QR Code Universel WAZAP (compatible Wave, Orange Money, MTN, Moov, Carte bancaire). Aucun argent liquide accepté sur la marchandise, ce qui garantit 0 risque de vol ou de fuite.',
   },
 ]
 
@@ -60,7 +60,7 @@ const COMPARISON_BAD = [
 const COMPARISON_GOOD = [
   'Assignation automatique en moins de 3 minutes sur WhatsApp',
   'Lien de suivi GPS en direct envoyé automatiquement au client',
-  'Garantie Colis Sûr avec code PIN secret et remboursement sous 48h',
+  'Assurance Colis Sûr avec Scan QR Code Universel et indemnisation sous 48h',
   'Flotte active de livreurs certifiés avec CNI vérifiée sur 10 communes',
   '0% de commission sur vos articles et 15 courses offertes au départ',
 ]
@@ -189,6 +189,20 @@ export default function VentePage() {
           </Link>
 
           <div className="landing-topbar__actions">
+            <Link
+              to="/livreurs"
+              className="landing-btn"
+              style={{
+                background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(0, 214, 108, 0.2))',
+                border: '1px solid rgba(245, 158, 11, 0.4)',
+                color: '#fbbf24',
+                padding: '8px 14px',
+                fontSize: 13,
+                fontWeight: 700,
+              }}
+            >
+              🛵 Espace Livreurs (1 000 F net)
+            </Link>
             {user ? (
               <Link
                 to="/"
@@ -227,6 +241,38 @@ export default function VentePage() {
       {/* Hero Section */}
       <section className="landing-container landing-hero">
         <div>
+          {/* Bannière d'orientation Livreurs */}
+          <div style={{
+            background: 'linear-gradient(90deg, rgba(245, 158, 11, 0.15), rgba(0, 214, 108, 0.15))',
+            border: '1px solid rgba(245, 158, 11, 0.35)',
+            borderRadius: 12,
+            padding: '10px 16px',
+            marginBottom: 20,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            flexWrap: 'wrap',
+          }}>
+            <div style={{ fontSize: 13, color: '#f8fafc' }}>
+              🛵 <strong style={{ color: '#fbbf24' }}>Vous êtes livreur à moto ?</strong> Rejoignez le réseau à 1 000 FCFA net garanti par course (0% commission).
+            </div>
+            <Link
+              to="/livreurs"
+              style={{
+                color: '#00d66c',
+                fontWeight: 800,
+                fontSize: 13,
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              Accéder à l'Espace Livreurs ➔
+            </Link>
+          </div>
+
           <div className="landing-pill">
             <span className="landing-pill__dot" />
             <span>LE YANGO DE LA MARCHANDISE À ABIDJAN</span>
@@ -293,8 +339,12 @@ export default function VentePage() {
           <div className="mockup-phone">
             <div className="mockup-phone__notch" />
             <div className="mockup-wa-header">
-              <div className="mockup-wa-avatar" style={{ padding: 2, background: '#fff', overflow: 'hidden' }}>
-                <img src="/app/logo-badge.png" alt="WAZAP" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '50%' }} />
+              <div className="mockup-wa-avatar" style={{ padding: 1, background: '#fff', overflow: 'hidden', borderRadius: '50%' }}>
+                <img
+                  src={`${import.meta.env.BASE_URL}logo-officiel-2026.jpg`}
+                  alt="WAZAP"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                />
               </div>
               <div>
                 <div style={{ fontWeight: 800, fontSize: 13, color: '#fff' }}>WAZAP Livraison</div>
@@ -316,7 +366,7 @@ export default function VentePage() {
                   <div style={{ fontWeight: 700, color: '#34d399' }}>🛵 Ibrahim K. (Yamaha YBR)</div>
                   <div style={{ fontSize: 11, color: '#cbd5e1' }}>À 1,2 km de votre boutique · Arrivée estimée : 14 min</div>
                   <div style={{ marginTop: 4, color: '#fcd34d', fontSize: 11, fontWeight: 700 }}>
-                    🛡️ Code de sécurité client : 8492
+                    🛡️ Scan QR Code Universel · 0 Cash Marchandise
                   </div>
                 </div>
                 <div className="mockup-msg__time">12:35 · Reçu ✓✓</div>

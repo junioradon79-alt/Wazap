@@ -1,7 +1,7 @@
 # 🧠 MÉMOIRE UNIQUE WAZAP — État d'avancement des chantiers
 
-> **Fichier maître du projet. Version Révisée, Épurée & Canonique : 23/09/2026**  
-> **Statut global :** Build 0 erreur / 0 warning · **783 tests .NET (777 réussis + 6 sur PostgreSQL réel en CI)** · **45/45 tests front Vitest (100%)** · TypeScript strict 0 erreur.  
+> **Fichier maître du projet. Version Révisée, Épurée & Canonique : 28/09/2026**  
+> **Statut global :** Build 0 erreur / 0 warning · **821 tests .NET (815 réussis + 6 sur PostgreSQL réel en CI)** · **45/45 tests front Vitest (100%)** · TypeScript strict 0 erreur.  
 > 🚀 **Architecture WhatsApp Active :** Connecteur officiel **YCloud** (`YCloudOptions`, `YCloudWhatsAppSender`, `YCloudMediaDownloader`) sur le numéro officiel unique **`+225 07 87 11 95 20`** (Meta Tier-1 BSP).  
 > 
 > ### ⚠️ RÈGLES CANONIQUES INVIOLABLES & ÉLIMINATION DES OBSOLESCENCES
@@ -12,7 +12,10 @@
 > 3. **Validation de Livraison :** Le « code PIN » à 4 chiffres est **DÉFINITIVEMENT RADIÉ**. Il est remplacé par le **Scan du QR Code Universel** (Chantier T7). Le client scanne le QR code du livreur depuis sa PWA de suivi (`SuiviPage.tsx`), ce qui valide instantanément la livraison, garantit le 0 cash, active l'Assurance Colis Sûr et valide le ticket tombola hebdomadaire de 25 000 FCFA.
 > 4. **Terminologie Colis Sûr :** Terme officiel unique = **« Assurance Colis Sûr »** *(abandon des termes « Garantie » ou « Couverture »)*.
 > 5. **Offre Commerçants & Supports :** Le chevalet physique de comptoir est abandonné au profit du **« Pack Digital Boutique »** (Chantier T9 — zéro sortie de trésorerie). Formulation obligatoire : **« 15 courses offertes (commission WAZAP à 0 FCFA) »** ou **« 15 recherches de livreurs offertes »**. Les frais habituels du coursier (1 000 à 2 000 FCFA) restent réglés à 100% au livreur.
-> 6. **Enrôlement Motards Sans Friction :** Parcours **Chantier T10** (Scan QR $\rightarrow$ choix commune par chiffre 1 à 6 $\rightarrow$ photo CNI analysée par **OCR Google Cloud Vision** `GoogleVisionOcrService.cs` $\rightarrow$ création automatique du compte $\rightarrow$ bouton interactif WhatsApp Quick Reply **`🟢 DISPO`** pour passer en ligne en 1 clic). Affiche officielle 9:16 livrée : `marketing/visuels/affiche_recrutement_motards_officielle.jpg`.
+> 6. **Enrôlement Livreurs Sans Friction (Règle Canonique) :** 
+>    - Terme officiel unique : **« LIVREUR »** (remplace définitivement « Motard » sur tous les supports marketing, affiches et messages).
+>    - Visuels ultra-percutants adaptés à la cible terrain (éducation scolaire limitée) : vrais personnages photoréalistes (60% de l'image), numéro WhatsApp Business géant **`05 44 05 19 72`**, bannière géante **`ENVOIE « DISPO » SUR WHATSAPP`**, et **QR Code Universel WAZAP géant (x2.5 minimum)** avec mention « SCANNE ICI ».
+>    - Parcours d'enrôlement 1-clic : Scan QR ou envoi `DISPO` $\rightarrow$ choix commune par chiffre 1 à 6 $\rightarrow$ photo CNI analysée par **OCR Google Cloud Vision** `GoogleVisionOcrService.cs` $\rightarrow$ création automatique du compte $\rightarrow$ Quick Reply **`🟢 DISPO`** pour passer en ligne instantanément.
 > 7. **Logo Officiel Canonique Unique (Règle Inviolable) :** Toute illustration, affiche, vidéo, mockup, document ou interface nécessitant le logo doit **OBLIGATOIREMENT ET STRICTEMENT pointer sur les fichiers sources officiels** : `marketing/visuels/logo_officiel_wazap.jpg` / `web/public/logo-officiel-2026.jpg` ou sa version transparente détourée `marketing/visuels/logo_officiel_transparent.png`. Interdiction formelle et absolue de laisser une IA générative réinventer, réinterpréter ou déformer le logo (interdiction formelle de logos métalliques fantaisistes ou polices alternatives).
 
 
@@ -3606,6 +3609,146 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
 - **Livrables :**
   - Vidéo principale : `marketing/videos/magic_importer/wazap_magic_importer_officiel.mp4`.
   - Accessible directement sur le serveur web local : `src/Wazap.API/wwwroot/magic-importer.mp4`.
+
+---
+
+## 108. Session 28/09/2026 — 🛵⚡ Stratégie Conquête Livreurs Yango & Grille Tarifaire Plancher (1 000 FCFA Net Garanti)
+
+### 1. Contexte Stratégique & Opportunité de Marché
+- **Diagnostic Terrain :** Grogne massive des motards abidjanais sur les groupes Facebook et WhatsApp face au barème Yango Livraison (320 F de base + 50 F/km) aboutissant à des courses nettes à 350-500 FCFA après commissions des flottes partenaires, sous-payant l'effort et le carburant (super à 875 F).
+- **Contre-Modèle WAZAP :** « Opération Dignité Motard » formalisée dans [`strategie/CONQUETE_LIVREURS_YANGO.md`](file:///c:/Dev/Wazap/WazapSln/strategie/CONQUETE_LIVREURS_YANGO.md).
+  - **Plancher inviolable :** 1 000 FCFA net garanti dès le 1er mètre (même pour 300 m).
+  - **0% de commission sur le livreur :** 100% du prix de la course va au motard en direct (Cash ou Wave / Orange Money).
+  - **Business Model WAZAP :** Pure mise en relation B2B financée par le commerçant via les packs de crédits (100 à 166 FCFA par course acceptée, 15 offertes), le commerçant économisant 25-30% de commission sur ses articles par rapport aux agrégateurs classiques (Glovo / Yango Food).
+
+### 2. Implémentations Techniques Réalisées
+
+#### A. Backend .NET 10 (Domain & Application)
+- **`AbidjanDeliveryPricing.cs` (`Wazap.Domain.Services`) :**
+  - Moteur officiel de calcul tarifaire pour le Grand Abidjan :
+    - *Palier 1 (Intra-commune, 0 à 4 km) :* **1 000 FCFA** (Plancher garanti).
+    - *Palier 2 (Communes limitrophes, 4 à 8 km) :* **1 500 FCFA** (ex : Cocody $\leftrightarrow$ Plateau, Marcory $\leftrightarrow$ Koumassi).
+    - *Palier 3 (Traversée express / inter-rives, 8 à 16 km) :* **2 000 FCFA** (ex : Yopougon $\leftrightarrow$ Cocody/Marcory, Abobo $\leftrightarrow$ Sud).
+    - *Palier 4 (Périphérie, > 16 km) :* **2 500 FCFA** (Bingerville, Songon, Grand-Bassam).
+  - Méthodes `CalculateFee(originZone, destZone)`, `CalculateFeeByDistance(km)` et garde-fou universel `EnforceFloor(decimal)`.
+- **`Order.cs` (`Wazap.Domain.Entities`) :**
+  - Constante publique `MinimumDeliveryFee = 1000m;`.
+  - Application systématique du plancher dans les constructeurs (mode texte et catalogue).
+  - Méthode `SetDeliveryFee(decimal)` : levée stricte de `ArgumentOutOfRangeException` en cas de tentative de paramétrage `< 1 000 FCFA`.
+- **`VendorCommandParser.cs` (`Wazap.Application.Helpers`) :**
+  - Ajout de la méthode statique publique `DetectCommune(string text)` pour identifier la commune parmi les 12 communes et quartiers clés.
+  - Surcharge de `ParseFreeTextOrder(text, vendorZone)` intégrant le calcul dynamique de la grille tarifaire.
+- **`OrderService.cs` (`Wazap.Application.Services`) :**
+  - Sécurisation du plancher via `AbidjanDeliveryPricing.EnforceFloor` lors de la création d'ordre.
+  - Détection automatique de la zone de destination dans `CreateDispatchRequestAsync` pour affecter le tarif juste dès la commande texte WhatsApp.
+- **`ClientOrderBotService.cs` (`Wazap.API.Services`) :**
+  - Calcul dynamique de `deliveryFee` basé sur `vendor.Zone` et la commune de livraison renseignée par le client.
+- **`VendorsController.cs` (`Wazap.API.Controllers`) :**
+  - Transmission de la zone du vendeur connecté à `VendorCommandParser.ParseFreeTextOrder`.
+
+#### B. Frontend React 19 / TypeScript / PWA
+- **`VendorDashboardPage.tsx` :**
+  - Contrôle de validation strict : affichage d'une erreur bloquante si `deliveryFee < 1000`.
+  - Attribut HTML `min={1000}` sur le champ de saisie des frais de course.
+  - Badge de réassurance vert émeraude : *« 🛡️ Plancher garanti : 1 000 FCFA net (100% au livreur) »*.
+  - Sélecteur de boutons rapides enrichi avec libellés explicites des paliers :
+    - `1 000 F (Intra-commune)`
+    - `1 500 F (Voisine)`
+    - `2 000 F (Traversée)`
+
+#### C. Qualité Logicielle & Tests
+- **Nouveaux tests unitaires (.NET) :** Création de `AbidjanDeliveryPricingTests.cs` (13 tests complets vérifiant les 4 paliers, le calcul kilométrique, la détection des communes et la protection anti-régression du plancher 1 000 F).
+- **Résultat global .NET :** **821 tests** (**815 réussis** + 6 PostgreSQL réels pour la CI) — 100% au vert.
+- **Résultat global Frontend :** **45/45 tests Vitest réussis (100%)** · TypeScript strict 0 erreur · Build Vite synchronisé dans `Wazap.API/wwwroot/app`.
+
+#### D. Kit Média & Guérilla Marketing « Opération Dignité Motard »
+- **Kit de Publications Facebook & Scripts WhatsApp :** [`marketing/facebook/OPERATION_DIGNITE_MOTARD_POSTS.md`](file:///c:/Dev/Wazap/WazapSln/marketing/facebook/OPERATION_DIGNITE_MOTARD_POSTS.md) avec 4 posts haute conversion, répliques chirurgicales de commentaires sous les plaintes de livreurs et script vocal 40s pour boucles WhatsApp.
+- **Visuel Comparatif Choc 2160×2160 HD :**
+  - Image de référence : [`marketing/visuels/visuel_dignite_motard_comparatif.png`](file:///c:/Dev/Wazap/marketing/visuels/visuel_dignite_motard_comparatif.png) (export 2160×2160 via Edge headless).
+  - Gabarit HTML5/CSS3 dédié : [`marketing/visuels/facebook-livreurs/render_dignite_motard.html`](file:///c:/Dev/Wazap/marketing/visuels/facebook-livreurs/render_dignite_motard.html).
+  - Script de compilation graphique : [`marketing/visuels/facebook-livreurs/build_dignite_visuel.ps1`](file:///c:/Dev/Wazap/marketing/visuels/facebook-livreurs/build_dignite_visuel.ps1).
+  - Intégration du logo canonique officiel, QR code officiel WhatsApp encodant `https://wa.me/2250544051972?text=DISPO`, numéro d'acquisition mobile `+225 05 44 05 19 72`, et comparatif direct 30 courses (~6 500 F vs 24 000 F nets).
+
+#### E. Campagne Commando Facebook : Série Complète de 45 Visuels & Calendrier 15 Jours Livrés
+- **Production de 45 Visuels Photoréalistes 2160×2160 HD (100% Réalisés) :**
+  - Emplacement : `marketing/visuels/conquete-motards/generated/` (`visuel_j01_matin.png` à `visuel_j15_soir.png`).
+  - Personnages réels incarnés pour humaniser le message :
+    - *Bakary S.* (Motard Marcory, blouson émeraude) : Choc de réalité carburant, 0% commission, liberté.
+    - *Amara T.* (Motard Cocody) : Bilan comptable du soir, encaissement Wave/Cash direct.
+    - *Koffi M.* (Motard Koumassi) : Défi Smartphone Redmi 15C neuf, légèreté WhatsApp (pas d'appli lourde).
+    - *Momo* (Traiteur Yopougon) : Témoignage commerçant, motards motivés livrant en < 25 min.
+    - *Aïcha B.* (Boutique Chic Cocody), *Fatou K.* (Pâtissière Yopougon), *Salimata C.* (Styliste) et *Awa D.* (Joaillière Deux-Plateaux).
+  - Moteur de génération automatique batch : [`build_45_visuels.mjs`](file:///c:/Dev/Wazap/marketing/visuels/conquete-motards/build_45_visuels.mjs) (Edge headless 2160×2160, scaling retina, 45/45 générés sans accroc).
+- **Grand Calendrier Éditorial 15 Jours (45 Posts Prêts à l'Emploi) :**
+  - Fichier maître : [`marketing/facebook/CALENDRIER_45_POSTS_FACEBOOK.md`](file:///c:/Dev/Wazap/marketing/facebook/CALENDRIER_45_POSTS_FACEBOOK.md).
+  - Structure opérationnelle : 3 publications quotidiennes calées sur les rythmes de vie des coursiers d'Abidjan (08h00 matin / 12h30 midi / 19h00 soir).
+  - Inclus pour chaque post : nom de l'image HD, persona, hook d'arrêt de scroll, argumentation chiffrée, CTA vers WhatsApp direct (`https://wa.me/2250544051972?text=DISPO`), et hashtags locaux ciblés.
+
+#### F. Décision Stratégique Fondatrice : 100% QR Code Universel (Zéro Exception Cash)
+- **Arbitrage Fondateur :** WAZAP se focalise exclusivement sur les **95% de clients modernes prêts au paiement digitalisé** à la livraison.
+- **Règle absolue :** Aucune exception de gestion d'espèces sur la marchandise n'est admise. Le coursier WAZAP ne manipule aucun billet de banque pour le commerçant.
+- **Universalité Totale :** Le QR Code Universel WAZAP prend en charge équitablement Wave, Orange Money, MTN MoMo, Moov Money et Cartes Bancaires.
+- **Frais de Sécurité GeniusPay :** Formule officielle CI intégrée (`100 FCFA fixe + 1%`), 3 modes configurables (`SplitFeePayer` : Client, Vendeur, Partagé), 6 tests unitaires validés à 100%.
+
+#### G. Feuille de Route pour la Prochaine Session (Reprise Programmée)
+- **Objectif Central :** Production industrielle et programmation de l'ensemble des kits visuels et contenus pour conquérir simultanément les deux faces du marché à Abidjan :
+  1. **Axe Commerçants (Boutiques de mode, traiteurs, pâtisseries, créateurs) :**
+     - Zéro commission sur les articles (vs 20-30% Glovo/Yango).
+     - 15 courses offertes (recherches de livreurs sans frais de service).
+     - Sécurité absolue : Zéro manipulation de cash par le motard, encaissement direct par Scan du QR Code Universel WAZAP (Wave, OM, MTN, Moov, Carte).
+     - Assurance Colis Sûr et validation sans contestation.
+  2. **Axe Livreurs (Motards Yango/Glovo/Indépendants) :**
+     - Plancher garanti 1 000 FCFA net dès le 1er mètre (même pour 300 m).
+     - 0% de commission prélevée sur le coursier (100% net pour le motard).
+     - Encaissement immédiat à la livraison via le QR Code Universel.
+     - Défi mensuel : Smartphone Xiaomi Redmi 15C neuf à gagner.
+     - **Nouveau Levier Monétisation & Adhésion : Packs d'Alertes Prioritaires Livreurs :**
+       - Formule Flash : **1 000 FCFA = 20 alertes prioritaires** (50 F / alerte prioritaire en Vague 1).
+       - Formule Pro : **5 000 FCFA = 100 alertes prioritaires** (50 F / alerte prioritaire en Vague 1).
+       - Proposition de valeur motard : pour 50 F investis, priorité sur les courses à 1 500 - 2 500 F (ROI 30x à 50x pour le coursier).
+       - Préparation d'une puissante communication d'adhésion massive à moyen terme (bénéfice motard, transparence, sans abonnement forcé).
+  3. **Industrialisation & Programmation :**
+     - Visuels 2160×2160 photoréalistes (formats feed Facebook, formats verticaux TikTok/Reels 9:16).
+     - Calendriers de diffusion croisés et scripts de conversion WhatsApp (`+225 05 44 05 19 72`).
+
+#### H. Session 28/09/2026 (Après-Midi) — Kit d'Affiches Chocs Recrutement Livreurs (Refonte Complète Livreur, DISPO & QR x2.5)
+- **Constat & Direction Artistique :** Pour toucher une cible de livreurs d'Abidjan à niveau scolaire limité, élimination des textes longs et chiffres abstraits au profit d'une communication visuelle ultra-percutante et sans friction :
+  - **Remplacement de « Motard » par « LIVREUR » partout :** Terme plus fédérateur, valorisant et direct pour la cible locale.
+  - **Photos réelles en grand plan (60% du visuel) :** Vrais livreurs ivoiriens charismatiques, fiers, souriants, avec casques, motos et boîte scellée de smartphone.
+  - **Numéro WhatsApp Business GÉANT :** `05 44 05 19 72` dans un bloc blanc ultra-contrasté, visible au premier coup d'œil.
+  - **Bannière CTA « ENVOIE DISPO » GÉANTE :** Jaune vif contrasté, occupant une place de choix au-dessus du numéro.
+  - **QR Code Universel WAZAP GÉANT (x2.5 minimum) :** Agrandi de 76px à 195px (carré) et 215px (story), avec badge « 📷 SCANNE ICI » et « Rejoins en 1 seconde ».
+- **8 Affiches Haute Définition Générées :**
+  - Emplacement : `marketing/visuels/recrutement-motards/generated/`.
+  - **4 Affiches Carrées Feed Facebook / Instagram (2160×2160 HD, ~2.3 Mo) :**
+    1. `affiche_01_plancher_1000f.png` : Livreur pouce levé 👍 • *« 1 000 F MINIMUM PAR COURSE • 0% COMMISSION LIVREUR »*.
+    2. `affiche_02_smartphone_redmi.png` : Livreur avec boîte Xiaomi Redmi 15C • *« SMARTPHONE REDMI 15C NEUF OFFERT »*.
+    3. `affiche_03_zero_appli_whatsapp.png` : Livreur montrant son écran • *« TOUT SE PASSE SUR WHATSAPP »*.
+    4. `affiche_04_bilan_journee.png` : Duel comparatif • *« 8 COURSES = 8 000 F NETS DANS TA POCHE »*.
+  - **4 Affiches Verticales 9:16 pour Statuts WhatsApp, Stories & TikTok (1080×1920 HD, ~1.4 Mo) :**
+    `story_01_plancher_1000f.png`, `story_02_smartphone_redmi.png`, `story_03_zero_appli_whatsapp.png`, `story_04_bilan_journee.png`.
+- **Kit d'Accompagnement Facebook & WhatsApp Mis à Jour :** [`marketing/visuels/recrutement-motards/GUIDE_DIFFUSION_RECRUTEMENT.md`](file:///c:/Dev/Wazap/marketing/visuels/recrutement-motards/GUIDE_DIFFUSION_RECRUTEMENT.md) avec textes prêts à copier-coller (terminologie Livreur, CTA WhatsApp, hashtags ciblés).
+
+#### I. Session 28/09/2026 (Fin d'Après-Midi) — Cockpit WhatsApp Business Semi-Automatique & Parser Webhook YCloud Inbound
+- **Principe Opérationnel Terrain (Règle Canonique Inviolable) :**
+  - Le numéro officiel terrain **`+225 05 44 05 19 72`** est opéré via l'application mobile **WhatsApp Business** configurée en cockpit semi-automatique.
+  - **Message d'accueil :** STRICTEMENT ACTIVÉ (ON 🟢) pour souhaiter la bienvenue à tout nouveau contact (Livreur / Vendeur).
+  - **Message d'absence :** STRICTEMENT DÉSACTIVÉ (OFF ⚪) pour éliminer les doublons parasites.
+  - **Réponses Rapides 1-clic (Raccourcis `/`) :**
+    - **`/dispo`** : Envoie instantanément le parcours d'inscription livreur avec les 4 liens cliquables par zone (Zone Sud, Cocody, Yopougon, Abobo) et la demande de photo CNI.
+    - **`/tarifs`** : Grille officielle Grand Abidjan (1 000 F même commune, 1 500 F voisine, 2 000 F pont/longue distance).
+    - **`/course`** : Alerte de course avec bouton d'acceptation 1-clic.
+    - **`/vendeur`** : Proposition de valeur marchand avec 15 courses offertes (Pack Digital Boutique).
+- **Consolidation Technique Backend (YCloud Inbound) :**
+  - Implémentation de `YCloudWebhookParser.cs` (`whatsapp.inbound_message.received`) et intégration dans `WebhookWhatsAppController.cs`.
+  - Couverture complète : **822 tests .NET réussis sur 822 (100% au vert)** incluant les tests E2E `YCloud_InboundDISPO_TriggersRiderOnboarding`.
+
+
+
+
+
+
+
 
 
 
