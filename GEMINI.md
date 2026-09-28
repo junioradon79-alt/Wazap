@@ -20,9 +20,9 @@
 
 ## 2. Coordonnées & Passerelles Officielles WAZAP
 
-* **Numéro WhatsApp Business Officiel :** **`+225 07 87 11 95 20`**
-  *(Attention : ne jamais réutiliser l'ancien numéro 05 75 80 38 01).*
-* **Format des liens d'action :** `https://wa.me/2250787119520?text=...` avec message pré-rempli adapté au persona (Commerçant ou Livreur).
+* **Numéro WhatsApp Business Officiel Actif :** **`+225 05 44 05 19 72`**
+  *(Ligne mobile WhatsApp Business active sur le terrain / acquisition directe).*
+* **Format des liens d'action :** `https://wa.me/2250544051972?text=...` avec message pré-rempli adapté au persona (Commerçant ou Livreur).
 
 ---
 
@@ -67,4 +67,62 @@
 
 * **À chaque nouvelle session ou première interaction :**
   * Consulter systématiquement `MEMOIRE.md` et faire automatiquement un récapitulatif synthétique et proactif des **chantiers prioritaires en cours et en suspens** (P0-P1, actions techniques, actions utilisateur, marketing/acquisition).
+
+---
+
+## 7. QR Code Universel WAZAP & Paiement Multi-Opérateurs (Règle Canonique Inviolable)
+
+* **Universalité Totale :**
+  * Le QR code officiel WAZAP est **STRICTEMENT UNIVERSEL**.
+  * **INTERDICTION FORMELLE ET DÉFINITIVE de le qualifier de « QR Wave » ou de réduire le mode de règlement à Wave seul.**
+  * Le QR Code Universel WAZAP est scannable par tout smartphone (appareil photo natif, scanner universel ou application Mobile Money) et redirige vers l'interface de paiement fractionné GeniusPay/WAZAP.
+  * Il prend en charge équitablement **TOUS les opérateurs de Côte d'Ivoire** :
+    1. **Wave**
+    2. **Orange Money**
+    3. **MTN MoMo**
+    4. **Moov Money**
+    5. **Cartes Bancaires (Visa / Mastercard)**
+* **Décision Stratégique Fondatrice (Zéro Exception Cash) :**
+  * **WAZAP se concentre à 100% sur les 95% de clients qui acceptent le règlement exclusivement digital à la livraison.**
+  * **AUCUNE exception de gestion d'espèces sur la marchandise n'est admise.**
+  * Le livreur ne transporte ni n'encaisse d'espèces pour le commerçant.
+  * Si un client refuse catégoriquement le scan du QR Code Universel, la course n'est pas éligible au réseau WAZAP. Cette fermeté absolue est le bouclier n°1 garantissant la confiance aveugle des commerçants.
+* **Formulation Canonique Obligatoire (Clients, Vendeurs, Marketing) :**
+  * *« Règlement à la livraison exclusivement par Scan du QR Code Universel WAZAP (compatible Wave, Orange Money, MTN, Moov, Carte bancaire). Aucun argent liquide accepté sur la marchandise. »*
+* **Bénéfice Fondateur :** Le commerçant est crédité en temps réel sur son propre compte, le livreur perçoit ses frais de course sans délai, zéro manipulation d'espèces sur les produits, élimination intégrale du risque de vol ou de fuite de livreur.
+
+---
+
+## 8. Mode Opérationnel d'Acquisition Terrain & Cockpit WhatsApp Business (Règle Canonique)
+
+* **Cockpit Semi-Automatique Actif sur le Smartphone (`+225 05 44 05 19 72`) :**
+  * L'acquisition terrain et l'accueil en direct des livreurs et commerçants s'opèrent sur l'application mobile **WhatsApp Business** du smartphone officiel.
+  * **Message d'accueil (STRICTEMENT ACTIVÉ - ON 🟢) :** Accueille instantanément tout nouvel arrivant (Livreur ➔ tape DISPO / Commerçant ➔ tape COLIS).
+  * **Message d'absence (STRICTEMENT DÉSACTIVÉ - OFF ⚪) :** Interdiction d'activer le message d'absence qui parasite les échanges et fait fuir les candidats en pleine journée.
+  * **Réponses Rapides 1-Clic (`/` dans la barre de saisie) :** Traitement immédiat des prospects :
+    * **`/dispo`** : Envoie instantanément le parcours d'inscription livreur avec les 4 liens cliquables `wa.me` par commune (Zone Sud, Cocody, Yopougon, Abobo) + demande de photo CNI.
+    * **`/tarifs`** : Grille officielle Grand Abidjan (1 000 F net même commune, 1 500 F voisine, 2 000 F pont/longue distance, 0% commission).
+    * **`/course`** : Alerte de course prête à être acceptée par un livreur en 1 tap.
+    * **`/vendeur`** : Accueil commerçant avec les 15 courses offertes (Pack Digital Boutique).
+  * **Étiquettes de suivi couleur :** `🟢 Livreur DISPO`, `🟡 Enrôlement Livreur`, `🔵 Commerçant Partenaire`, `🟠 Course en cours`.
+* **Terminologie Officielle Coursiers :** Terme officiel unique **« LIVREUR »** (remplace définitivement « Motard » sur tous les visuels, affiches, textes et communications).
+* **Alignement Technique Backend :** Le serveur intègre `YCloudWebhookParser.cs` et `RiderRecruitmentService.cs` pour assurer la bascule et le relais API automatisé en production.
+
+---
+
+## 9. Déploiement Continu Systématique en Production (Règle Canonique Inviolable)
+
+* **Principe Absolu :**
+  * À chaque tâche, correction, ajout de fonctionnalité, page web, visuel ou texte de marketing, **les modifications DOIVENT ÊTRE SYSTÉMATIQUEMENT testées, committées et poussées en production via `git push origin main`**.
+  * **INTERDICTION FORMELLE de laisser des modifications ou des commits accumulés uniquement en local sans les pousser en production.** Tout travail validé doit être immédiatement disponible en ligne pour l'utilisateur et les utilisateurs terrain.
+* **Workflow d'Exécution Obligatoire à Chaque Mise à Jour :**
+  1. **Validation Qualité :** Tests .NET (`dotnet test`) et tests Vitest (`npm test`) validés à 100% (0 échec).
+  2. **Build de Production :** `npm run build` exécuté et bundle synchronisé dans `src/Wazap.API/wwwroot/app`.
+  3. **Documentation :** Mise à jour synthétique de `MEMOIRE.md`.
+  4. **Publication & Déploiement :** `git add -A`, `git commit` avec message clair et `git push origin main`.
+  5. **Vérification en Ligne :** Vérification de l'aboutissement du pipeline GitHub Actions (`Deploy prod`) et du statut HTTP 200 sur le serveur de production.
+
+
+
+
 
