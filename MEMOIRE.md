@@ -3753,6 +3753,12 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
   - **Trio Livreurs :** **Koffi** (26 ans, Yopougon, l'As du guidon, 0% commission), **Bakary** (29 ans, Marcory, leader du classement 50 smartphones, 0 cash marchandise), **Ibrahim** (22 ans, Abobo, le nouveau venu inscrit en 2 min sur WhatsApp).
   - **Quatuor Commerçants :** **Tantie Aïcha** (Cocody Angré, mode & prêt-à-porter, livreur en 3 min), **Chef Amara** (Marcory Zone 4, braisés & plats chauds express), **Salimata** (Plateau, high-tech & beauté, zéro faux billet via QR Code Universel), **Fatou** (Yopougon Maroc, gâteaux & pâtisseries fragiles, assurance Colis Sûr).
 - **Scripts Détaillés Google Flow Jour 1 Rédigés :** [`marketing/tiktok/SCRIPTS_GOOGLE_FLOW_J01_3_VIDEOS.md`](file:///c:/Dev/Wazap/WazapSln/marketing/tiktok/SCRIPTS_GOOGLE_FLOW_J01_3_VIDEOS.md) avec 12 scènes complètes (3 vidéos × 4 scènes), prompts caméra en anglais et français, dialogues 100% en français accessible et populaire, incrustations d'écran et sound design.
+- **Outro Vidéo Officielle WAZAP (Animation Universelle 4s - 9:16) :**
+  - **Script de Conception :** [`marketing/tiktok/SCRIPT_ANIMATION_OUTRO_LOGO_OFFICIEL.md`](file:///c:/Dev/Wazap/WazapSln/marketing/tiktok/SCRIPT_ANIMATION_OUTRO_LOGO_OFFICIEL.md) — Découpage plan par plan (00:00 à 00:04), onde de choc électrique, zoom élastique du logo canonique, balayage shimmer, cartouches d'action 1-clic (`DISPO` / `COLIS`) et numéro officiel `05 44 05 19 72`.
+  - **Animation HTML5/CSS3 60fps :** [`marketing/visuels/outro/outro_wazap_9_16.html`](file:///c:/Dev/Wazap/WazapSln/marketing/visuels/outro/outro_wazap_9_16.html).
+  - **Script de Rendu FFmpeg :** `marketing/visuels/outro/render_outro.ps1`.
+  - **Fichier MP4 Produit & Disponible :** `marketing/visuels/outro/outro_officielle_wazap_9_16.mp4` (1080×1920 HD, 4 secondes, H.264/AAC, 118 Ko) prêt à être collé à la fin de tous les montages vidéo.
+
 
 
 
