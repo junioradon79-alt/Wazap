@@ -24,8 +24,11 @@ public class Order
     /// <summary>Prix de la marchandise livrée (FCFA), revenant au vendeur.</summary>
     public decimal Amount { get; private set; }
 
-    /// <summary>Frais de livraison (FCFA) dus au livreur pour sa course (1 000 à 2 000 FCFA).</summary>
-    public decimal DeliveryFee { get; private set; } = 1000m;
+    /// <summary>Plancher tarifaire minimum inviolable garanti au livreur (1 000 FCFA net dès le premier mètre).</summary>
+    public const decimal MinimumDeliveryFee = 1000m;
+
+    /// <summary>Frais de livraison (FCFA) dus au livreur pour sa course (minimum garanti 1 000 FCFA, 1 500 à 2 000 FCFA selon distance).</summary>
+    public decimal DeliveryFee { get; private set; } = MinimumDeliveryFee;
 
     /// <summary>Montant total (marchandise + livraison) dû par le client final (FCFA).</summary>
     public decimal TotalAmount => Amount + DeliveryFee;
@@ -73,7 +76,7 @@ public class Order
     public List<OrderLine> OrderLines { get; private set; } = new();
 
     // Constructeur public pour la création (mode texte libre)
-    public Order(string clientName, string clientWhatsAppNumber, string vendorWhatsAppNumber, string description, decimal amount, decimal deliveryFee = 1000m)
+    public Order(string clientName, string clientWhatsAppNumber, string vendorWhatsAppNumber, string description, decimal amount, decimal deliveryFee = MinimumDeliveryFee)
     {
         Id = Guid.NewGuid();
         ClientName = clientName;
@@ -81,13 +84,13 @@ public class Order
         VendorWhatsAppNumber = vendorWhatsAppNumber;
         Description = description;
         Amount = amount;
-        DeliveryFee = deliveryFee >= 0 ? deliveryFee : 1000m;
+        DeliveryFee = deliveryFee >= MinimumDeliveryFee ? deliveryFee : MinimumDeliveryFee;
         CreatedAt = DateTime.UtcNow;
         _status = OrderStatus.PendingVendorConfirmation;
     }
 
     // Constructeur public pour la création (mode catalogue produit)
-    public Order(string clientName, string clientWhatsAppNumber, string vendorWhatsAppNumber, Guid vendorUserId, List<OrderLine> lines, string description, decimal deliveryFee = 1000m)
+    public Order(string clientName, string clientWhatsAppNumber, string vendorWhatsAppNumber, Guid vendorUserId, List<OrderLine> lines, string description, decimal deliveryFee = MinimumDeliveryFee)
     {
         Id = Guid.NewGuid();
         ClientName = clientName;
@@ -95,7 +98,7 @@ public class Order
         VendorWhatsAppNumber = vendorWhatsAppNumber;
         VendorUserId = vendorUserId;
         Description = description;
-        DeliveryFee = deliveryFee >= 0 ? deliveryFee : 1000m;
+        DeliveryFee = deliveryFee >= MinimumDeliveryFee ? deliveryFee : MinimumDeliveryFee;
         foreach (var line in lines)
             AddLine(line);
         CreatedAt = DateTime.UtcNow;
@@ -104,8 +107,8 @@ public class Order
 
     public void SetDeliveryFee(decimal deliveryFee)
     {
-        if (deliveryFee < 0)
-            throw new ArgumentOutOfRangeException(nameof(deliveryFee), "Les frais de livraison ne peuvent pas être négatifs.");
+        if (deliveryFee < MinimumDeliveryFee)
+            throw new ArgumentOutOfRangeException(nameof(deliveryFee), $"Les frais de livraison ne peuvent pas être inférieurs au plancher garanti de {MinimumDeliveryFee:N0} FCFA pour le livreur partenaire.");
         DeliveryFee = deliveryFee;
     }
 

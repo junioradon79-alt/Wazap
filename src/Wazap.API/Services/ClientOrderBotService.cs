@@ -6,6 +6,7 @@ using Wazap.Application.Abstractions;
 using Wazap.Application.Helpers;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
+using Wazap.Domain.Services;
 using Wazap.Infrastructure.Data;
 
 namespace Wazap.API.Services;
@@ -559,7 +560,8 @@ public sealed class ClientOrderBotService
         var description = BuildOrderDescription(draft.Description, lines, address);
         var vendorPhone = vendor.PhoneNumber ?? string.Empty;
 
-        var deliveryFee = 1000m;
+        var clientZone = VendorCommandParser.DetectCommune(address);
+        var deliveryFee = AbidjanDeliveryPricing.CalculateFee(vendor.Zone, clientZone);
 
         // Catalogue → commande enrichie de lignes (montant calculé) ; sinon mode texte libre.
         var order = lines.Count > 0

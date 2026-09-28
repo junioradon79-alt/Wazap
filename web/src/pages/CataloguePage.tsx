@@ -13,7 +13,7 @@ const EMPTY_FORM: VendorProductRequest = {
   imageUrl: ''
 }
 
-const WHATSAPP_BOT = '2250787119520'
+const WHATSAPP_BOT = '2250544051972'
 
 /**
  * Catalogue produits du vendeur (admin) / de son propre commerce (vendeur).

@@ -6,7 +6,7 @@ import { ErrorAlert, formatDateTime, shortId } from '../components/ui'
 import '../styles/vendor-dashboard.css'
 
 /* ─── Constants ─────────────────────────────────────────── */
-const WHATSAPP_BOT = '2250787119520'
+const WHATSAPP_BOT = '2250544051972'
 const TRACKING_BASE = typeof window !== 'undefined' ? `${window.location.origin}/app/suivi` : 'https://wazap-api.onrender.com/app/suivi'
 
 const STATUS_FR: Record<string, string> = {
@@ -161,6 +161,11 @@ export default function VendorDashboardPage() {
       setOrderError('Nom, téléphone et description sont obligatoires.')
       return
     }
+    const fee = parseFloat(orderForm.deliveryFee) || 1000
+    if (fee < 1000) {
+      setOrderError('Le tarif de livraison ne peut pas être inférieur au plancher garanti de 1 000 FCFA pour le livreur.')
+      return
+    }
     setOrderBusy(true)
     try {
       const body = {
@@ -169,7 +174,7 @@ export default function VendorDashboardPage() {
         vendorWhatsAppNumber: dash?.phoneNumber ?? '',
         description: orderForm.description.trim(),
         amount: parseFloat(orderForm.amount) || 0,
-        deliveryFee: parseFloat(orderForm.deliveryFee) || 1000,
+        deliveryFee: fee,
       }
       const res = await api.post<{ id: string; code?: string }>('/orders', body)
       const code = res.code ?? shortId(res.id)
@@ -809,30 +814,37 @@ export default function VendorDashboardPage() {
                       <input
                         id="order-delivery-fee"
                         type="number"
-                        min={500}
+                        min={1000}
                         step={500}
                         value={orderForm.deliveryFee}
                         onChange={(e) => setOrderForm((f) => ({ ...f, deliveryFee: e.target.value }))}
                         placeholder="Ex. 1000"
                       />
-                      <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
-                        {['1000', '1500', '2000'].map((fee) => (
+                      <span style={{ fontSize: 11, color: 'var(--vd-emerald)', marginTop: 3, display: 'block', fontWeight: 600 }}>
+                        🛡️ Plancher garanti : 1 000 FCFA net (100% au livreur)
+                      </span>
+                      <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+                        {[
+                          { fee: '1000', label: '1 000 F (Intra-commune)' },
+                          { fee: '1500', label: '1 500 F (Voisine)' },
+                          { fee: '2000', label: '2 000 F (Traversée)' },
+                        ].map((item) => (
                           <button
-                            key={fee}
+                            key={item.fee}
                             type="button"
                             style={{
                               fontSize: 11,
-                              padding: '2px 8px',
+                              padding: '3px 8px',
                               borderRadius: 4,
-                              background: orderForm.deliveryFee === fee ? 'var(--vd-amber)' : 'rgba(255,255,255,0.06)',
-                              color: orderForm.deliveryFee === fee ? '#000' : 'var(--vd-text-muted)',
-                              fontWeight: orderForm.deliveryFee === fee ? 800 : 500,
+                              background: orderForm.deliveryFee === item.fee ? 'var(--vd-amber)' : 'rgba(255,255,255,0.06)',
+                              color: orderForm.deliveryFee === item.fee ? '#000' : 'var(--vd-text-muted)',
+                              fontWeight: orderForm.deliveryFee === item.fee ? 800 : 500,
                               border: 'none',
                               cursor: 'pointer',
                             }}
-                            onClick={() => setOrderForm((f) => ({ ...f, deliveryFee: fee }))}
+                            onClick={() => setOrderForm((f) => ({ ...f, deliveryFee: item.fee }))}
                           >
-                            {fee} F
+                            {item.label}
                           </button>
                         ))}
                       </div>

@@ -298,12 +298,16 @@ public class VendorsController : ControllerBase
 
     // POST: api/vendors/orders/parse — analyse automatique intelligente du message WhatsApp client
     [HttpPost("orders/parse")]
-    public IActionResult ParseOrderText([FromBody] ParseOrderTextRequest request)
+    public async Task<IActionResult> ParseOrderText([FromBody] ParseOrderTextRequest request)
     {
         if (string.IsNullOrWhiteSpace(request?.RawText))
             return BadRequest("Le texte est requis pour l'analyse.");
 
-        var parsed = VendorCommandParser.ParseFreeTextOrder(request.RawText);
+        var vendor = _currentUser.Id.HasValue
+            ? await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == _currentUser.Id)
+            : null;
+
+        var parsed = VendorCommandParser.ParseFreeTextOrder(request.RawText, vendor?.Zone);
         return Ok(parsed);
     }
 

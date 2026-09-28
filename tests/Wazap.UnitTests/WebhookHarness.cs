@@ -172,6 +172,37 @@ internal sealed class WebhookHarness : IDisposable
         return Controller.Handle(payload);
     }
 
+    /// <summary>
+    /// Simule un message texte entrant reçu via le webhook officiel YCloud.
+    /// </summary>
+    public Task SendYCloudInboundAsync(string phone, string text)
+    {
+        var payload = JsonSerializer.SerializeToElement(new
+        {
+            id = "evt_" + Guid.NewGuid().ToString("N"),
+            type = "whatsapp.inbound_message.received",
+            apiVersion = "v2",
+            whatsappInboundMessage = new
+            {
+                messaging_product = "whatsapp",
+                messages = new[]
+                {
+                    new
+                    {
+                        id = "wamid." + Guid.NewGuid().ToString("N"),
+                        from = phone.TrimStart('+'),
+                        type = "text",
+                        text = new
+                        {
+                            body = text
+                        }
+                    }
+                }
+            }
+        });
+        return Controller.Handle(payload);
+    }
+
     /// <summary>Dernier message envoyé au numéro indiqué (null si aucun).</summary>
     public string? LastMessageTo(string phone)
         => Sender.TextMessages.LastOrDefault(m => m.Phone == phone).Message;

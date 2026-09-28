@@ -284,6 +284,57 @@ public class WebhookWhatsAppController : ControllerBase
             return last ?? Ok();
         }
 
+        // Passerelle YCloud (Tier-1 Meta Business Solution Provider)
+        if (YCloudWebhookParser.IsYCloudPayload(raw))
+        {
+            var events = YCloudWebhookParser.ParseAll(raw);
+            if (events.Count == 0)
+                return Ok(); // accusés de réception / statuts de livraison YCloud
+
+            IActionResult? last = null;
+            foreach (var ycloudEvent in events)
+            {
+                var messageId = ycloudEvent.MessageId;
+                if (!string.IsNullOrWhiteSpace(messageId) && !await TryClaimMessageAsync(messageId))
+                {
+                    _logger.LogInformation(
+                        "Webhook YCloud {MessageId} déjà traité : ignoré (reprise de la passerelle).", messageId);
+                    continue;
+                }
+
+                try
+                {
+                    if (_messageLogService != null && !string.IsNullOrWhiteSpace(ycloudEvent.From))
+                    {
+                        var msgType = !string.IsNullOrWhiteSpace(ycloudEvent.MediaId) ? "Media" :
+                                      !string.IsNullOrWhiteSpace(ycloudEvent.ButtonId) ? "Interactive" : "Text";
+                        await _messageLogService.LogInboundAsync(
+                            ycloudEvent.From,
+                            ycloudEvent.Text ?? ycloudEvent.ButtonTitle,
+                            msgType,
+                            provider: "YCloud",
+                            providerMessageId: messageId,
+                            ct: RequestAborted);
+                    }
+
+                    last = await RouteMessageAsync(
+                        ycloudEvent.From, ycloudEvent.Text, ycloudEvent.Latitude, ycloudEvent.Longitude,
+                        ycloudEvent.ButtonId, ycloudEvent.ButtonTitle,
+                        ycloudEvent.MediaUrl, ycloudEvent.MediaId, ycloudEvent.MimeType,
+                        message: null);
+                }
+                catch
+                {
+                    if (!string.IsNullOrWhiteSpace(messageId))
+                        await ReleaseClaimAsync(messageId);
+
+                    throw;
+                }
+            }
+
+            return last ?? Ok();
+        }
+
         // Format historique (WhatChimp) : lecture tolérante du payload (camelCase ET snake_case)
         var data = JsonPayloadReader.Find(raw, "data");
         var subscriber = JsonPayloadReader.Find(data, "subscriber");

@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Wazap.Domain.Services;
 
 namespace Wazap.Application.Helpers;
 
@@ -86,13 +87,33 @@ public static class VendorCommandParser
     };
 
     /// <summary>
-    /// Extraction intelligente des données de commande depuis un texte libre (ex: message WhatsApp du client).
-    /// Détecte automatiquement : nom, téléphone ivoirien, article, prix en FCFA, commune et adresse.
+    /// Détecte une commune d'Abidjan ou un quartier connu dans un texte libre.
     /// </summary>
-    public static ParsedOrderInfo ParseFreeTextOrder(string text)
+    public static string? DetectCommune(string? text)
     {
         if (string.IsNullOrWhiteSpace(text))
-            return new ParsedOrderInfo(null, null, null, 0m, 1500m, null, null);
+            return null;
+
+        foreach (var (zone, aliases) in CommunesAbidjan)
+        {
+            foreach (var alias in aliases)
+            {
+                if (Regex.IsMatch(text, $@"(?i)\b{Regex.Escape(alias)}\b"))
+                    return zone;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Extraction intelligente des données de commande depuis un texte libre (ex: message WhatsApp du client).
+    /// Détecte automatiquement : nom, téléphone ivoirien, article, prix en FCFA, commune et adresse.
+    /// Calcule le tarif de livraison recommandé selon la grille Abidjan (plancher garanti de 1 000 FCFA).
+    /// </summary>
+    public static ParsedOrderInfo ParseFreeTextOrder(string text, string? vendorZone = null)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return new ParsedOrderInfo(null, null, null, 0m, AbidjanDeliveryPricing.MinimumFee, null, null);
 
         var lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries)
             .Select(l => l.Trim())
@@ -205,12 +226,14 @@ public static class VendorCommandParser
                 description = unused[0].Trim();
         }
 
+        var fee = AbidjanDeliveryPricing.CalculateFee(vendorZone, detectedZone);
+
         return new ParsedOrderInfo(
             ClientName: clientName,
             ClientPhone: clientPhone,
             Description: description,
             Amount: amount,
-            DeliveryFee: 1500m,
+            DeliveryFee: fee,
             Address: address,
             Zone: detectedZone);
     }

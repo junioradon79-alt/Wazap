@@ -9,6 +9,7 @@ using Wazap.Application.Helpers;
 using Wazap.Application.Services;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
+using Wazap.Domain.Services;
 
 namespace Wazap.Application.Services;
 
@@ -75,9 +76,10 @@ public sealed class OrderService
             }
         }
 
-        var deliveryFee = request.DeliveryFee.HasValue && request.DeliveryFee.Value > 0
+        var rawDeliveryFee = request.DeliveryFee.HasValue && request.DeliveryFee.Value > 0
             ? request.DeliveryFee.Value
-            : 1000m;
+            : AbidjanDeliveryPricing.MinimumFee;
+        var deliveryFee = AbidjanDeliveryPricing.EnforceFloor(rawDeliveryFee);
 
         var order = lines is not null
             ? new Order(
@@ -175,12 +177,16 @@ public sealed class OrderService
         // NOTE : le crédit n'est PAS débité ici. Il ne l'est qu'à l'acceptation de la
         // course par un livreur (DeliveryOfferService.AcceptOfferAsync / AcceptBatchAsync).
 
+        var destCommune = VendorCommandParser.DetectCommune(instruction);
+        var recommendedFee = AbidjanDeliveryPricing.CalculateFee(vendor.Zone, destCommune);
+
         var order = new Order(
             "Client",
             string.IsNullOrWhiteSpace(clientPhone) ? string.Empty : clientPhone.Trim(),
             vendor.PhoneNumber ?? string.Empty,
             instruction,
-            0m);
+            0m,
+            recommendedFee);
 
         order.LinkVendor(vendor.Id);
         order.ConfirmByVendor();

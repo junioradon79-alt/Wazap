@@ -99,7 +99,7 @@ public static class MetaWebhookParser
         return events;
     }
 
-    private static MetaWebhookEvent? ParseMessage(JsonElement messageObj)
+    public static MetaWebhookEvent? ParseMessage(JsonElement messageObj)
     {
         var from = JsonPayloadReader.Str(messageObj, "from");
         var type = JsonPayloadReader.Str(messageObj, "type");
