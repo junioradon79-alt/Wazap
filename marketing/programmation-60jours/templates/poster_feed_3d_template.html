@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Affiche Publicitaire 3D WAZAP - Feed Carré 1:1</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,700;0,800;0,900;1,900&family=Plus+Jakarta+Sans:wght@700;800;900&family=Space+Grotesk:wght@700;800;900&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 1080px;
+      height: 1080px;
+      background: #030704;
+      color: #FFFFFF;
+      font-family: 'Montserrat', sans-serif;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 26px 30px 28px;
+    }
+
+    /* Arrière-plan cinématique avec texture, halos et grille 3D */
+    .bg-canvas {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 45% 40%, #0d2818 0%, #05140b 55%, #020603 100%);
+      z-index: 1;
+    }
+
+    .bg-radial-gold {
+      position: absolute;
+      top: 150px;
+      left: 180px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(250, 204, 21, 0.32) 0%, rgba(0, 214, 108, 0.2) 45%, transparent 70%);
+      filter: blur(55px);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .particles-overlay {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(250, 204, 21, 0.6) 1.5px, transparent 1.5px),
+                        radial-gradient(rgba(0, 214, 108, 0.6) 1.5px, transparent 1.5px);
+      background-size: 70px 70px, 110px 110px;
+      background-position: 0 0, 35px 35px;
+      opacity: 0.15;
+      z-index: 2;
+    }
+
+    /* SVG FLÈCHE MONTANTE 3D */
+    .growth-arrow-svg {
+      position: absolute;
+      top: 140px;
+      right: 25px;
+      width: 320px;
+      height: 340px;
+      z-index: 2;
+      opacity: 0.38;
+      filter: drop-shadow(0 0 20px rgba(250, 204, 21, 0.7));
+    }
+
+    /* ========================================================
+       1. EN-TÊTE DE MARQUE CANONIQUE
+       ======================================================== */
+    .header-block {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo-3d {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      border: 3.5px solid #FACC15;
+      box-shadow: 0 0 25px rgba(250, 204, 21, 0.6), 0 8px 20px rgba(0, 0, 0, 0.8);
+      object-fit: cover;
+      background: #000;
+    }
+
+    .brand-text-col {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      line-height: 1;
+      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+    }
+
+    .brand-name span {
+      color: #00D66C;
+      text-shadow: 0 0 18px rgba(0, 214, 108, 0.8);
+    }
+
+    .brand-tagline {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: #CBD5E1;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .badge-top-3d {
+      background: {{BADGE_TOP_BG}};
+      color: #FFFFFF;
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 9px 20px;
+      border-radius: 9999px;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 6px 20px rgba(250, 204, 21, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ========================================================
+       2. TITRE GÉANT 3D RELIEF
+       ======================================================== */
+    .title-block-3d {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      margin-top: 8px;
+      margin-bottom: 6px;
+    }
+
+    .kicker-brush {
+      display: inline-block;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 16px;
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #FACC15;
+      text-shadow: 0 2px 0 #000, 0 0 15px rgba(250, 204, 21, 0.8);
+      margin-bottom: 4px;
+      background: rgba(250, 204, 21, 0.12);
+      border: 1.5px solid rgba(250, 204, 21, 0.5);
+      padding: 4px 16px;
+      border-radius: 6px;
+    }
+
+    .headline-3d-gold {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 42px;
+      font-weight: 900;
+      line-height: 1.05;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+      background: linear-gradient(180deg, #FFFBEB 0%, #FDE047 35%, #EAB308 70%, #854D0E 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 3px 0 #000000)
+              drop-shadow(0 6px 0 #1e1300)
+              drop-shadow(0 10px 12px rgba(0, 0, 0, 0.95))
+              drop-shadow(0 0 25px rgba(250, 204, 21, 0.6));
+      margin-bottom: 4px;
+    }
+
+    .sub-headline-pill {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 900;
+      font-style: italic;
+      color: #FFFFFF;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-shadow: 0 3px 8px rgba(0, 0, 0, 0.9), 0 0 20px rgba(0, 214, 108, 0.8);
+    }
+
+    .sub-headline-pill span {
+      color: #00D66C;
+    }
+
+    /* ========================================================
+       3. GRILLE CENTRALE DU FEED CARRÉ
+       ======================================================== */
+    .center-stage-grid {
+      position: relative;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 20px;
+      align-items: stretch;
+      margin: 6px 0;
+      flex: 1;
+    }
+
+    .hero-photo-wrap {
+      position: relative;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 3.5px solid #00D66C;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 214, 108, 0.45);
+      background: #0B1910;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .hero-photo-wrap img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      filter: contrast(1.08) brightness(1.04);
+    }
+
+    .hero-gradient-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 40%, rgba(3, 7, 4, 0.85) 85%, #030704 100%);
+    }
+
+    .hero-identity-tag {
+      position: relative;
+      z-index: 5;
+      background: linear-gradient(90deg, #FACC15 0%, #EAB308 100%);
+      color: #040C07;
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 8px 18px;
+      border-radius: 9999px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
+      margin: 14px auto;
+      border: 1.5px solid #FEF08A;
+      text-align: center;
+      width: fit-content;
+    }
+
+    /* Colonne de droite : Arguments 3D & Stepper */
+    .right-arguments-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .floating-payout-box {
+      background: rgba(4, 12, 7, 0.92);
+      border: 2px solid #00D66C;
+      border-radius: 16px;
+      padding: 12px 18px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 214, 108, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .payout-title {
+      font-size: 12px;
+      font-weight: 900;
+      color: #CBD5E1;
+      text-transform: uppercase;
+    }
+
+    .payout-val {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 24px;
+      font-weight: 900;
+      color: #00D66C;
+      line-height: 1;
+    }
+
+    /* Stepper 5 Étapes Dorées dans le Feed */
+    .stepper-bar-feed {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      background: rgba(7, 20, 12, 0.85);
+      border: 1.5px solid rgba(250, 204, 21, 0.4);
+      border-radius: 16px;
+      padding: 10px 8px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+    }
+
+    .step-item-feed {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+    }
+
+    .step-icon-circle-feed {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #FDE047 0%, #CA8A04 60%, #713F12 100%);
+      border: 1.5px solid #FEF08A;
+      box-shadow: 0 4px 12px rgba(250, 204, 21, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      margin-bottom: 4px;
+      color: #040C07;
+    }
+
+    .step-number-tag-feed {
+      position: absolute;
+      top: -3px;
+      right: 10px;
+      background: #040C07;
+      color: #FACC15;
+      font-size: 9px;
+      font-weight: 900;
+      border: 1px solid #FACC15;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .step-label-feed {
+      font-size: 10px;
+      font-weight: 800;
+      color: #E2E8F0;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    /* Cartes de bénéfices 3D */
+    .benefit-row-card {
+      background: rgba(11, 25, 16, 0.8);
+      border: 1px solid rgba(0, 214, 108, 0.3);
+      border-radius: 14px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .benefit-icon-feed {
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .benefit-text-feed {
+      font-size: 12px;
+      color: #CBD5E1;
+      line-height: 1.3;
+      font-weight: 700;
+    }
+
+    .benefit-text-feed strong {
+      color: #FFFFFF;
+      font-weight: 900;
+    }
+
+    /* ========================================================
+       4. BANNIÈRE BRUSH STROKE DORÉE
+       ======================================================== */
+    .brush-banner-ribbon {
+      position: relative;
+      z-index: 10;
+      background: linear-gradient(90deg, #B45309 0%, #F59E0B 20%, #FDE047 50%, #F59E0B 80%, #B45309 100%);
+      color: #040C07;
+      text-align: center;
+      padding: 8px 16px;
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
+      margin: 6px 0;
+      border: 1.5px solid #FEF08A;
+    }
+
+    .brush-banner-text {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.4);
+    }
+
+    /* ========================================================
+       5. FOOTER ACTION 3D & QR CODE GÉANT
+       ======================================================== */
+    .footer-action-block {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: stretch;
+      gap: 16px;
+    }
+
+    .cta-card-left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      justify-content: space-between;
+    }
+
+    .btn-cta-3d {
+      background: linear-gradient(180deg, #FDE047 0%, #EAB308 60%, #CA8A04 100%);
+      color: #040C07;
+      border-radius: 14px;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border: 2px solid #FEF08A;
+      box-shadow: 0 6px 0 #854D0E, 0 10px 20px rgba(0, 0, 0, 0.8), 0 0 25px rgba(250, 204, 21, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .btn-cta-text {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      text-align: center;
+      line-height: 1.15;
+    }
+
+    .whatsapp-number-badge {
+      background: #FFFFFF;
+      color: #040C07;
+      border-radius: 14px;
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 2.5px solid #00D66C;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 214, 108, 0.4);
+    }
+
+    .wa-icon-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .wa-text-group {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .wa-label {
+      font-size: 11px;
+      font-weight: 900;
+      color: #075E54;
+      text-transform: uppercase;
+    }
+
+    .wa-digits {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      line-height: 1;
+      color: #040C07;
+    }
+
+    .qr-card-3d {
+      width: 190px;
+      background: #FFFFFF;
+      border-radius: 18px;
+      padding: 10px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      border: 3.5px solid #00D66C;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 214, 108, 0.6);
+      flex-shrink: 0;
+    }
+
+    .qr-badge-scanner {
+      background: #040C07;
+      color: #00D66C;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid #00D66C;
+    }
+
+    .qr-image-frame {
+      width: 135px;
+      height: 135px;
+      background: #FFFFFF;
+      margin: 4px 0;
+    }
+
+    .qr-image-frame img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      image-rendering: pixelated;
+    }
+
+    .qr-tagline-bottom {
+      font-size: 10px;
+      font-weight: 900;
+      color: #075E54;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-align: center;
+      line-height: 1.1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ARRIÈRE-PLAN CINÉMATIQUE 3D -->
+  <div class="bg-canvas"></div>
+  <div class="bg-radial-gold"></div>
+  <div class="particles-overlay"></div>
+
+  <!-- SVG FLÈCHE MONTANTE DE CROISSANCE 3D -->
+  <svg class="growth-arrow-svg" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 180 Q 90 140 130 70 L 170 30" stroke="url(#goldGradient)" stroke-width="12" stroke-linecap="round"/>
+    <polygon points="175,15 185,45 155,35" fill="#FACC15"/>
+    <rect x="70" y="140" width="16" height="40" rx="4" fill="#EAB308" opacity="0.6"/>
+    <rect x="95" y="115" width="16" height="65" rx="4" fill="#FACC15" opacity="0.75"/>
+    <rect x="120" y="90" width="16" height="90" rx="4" fill="#FDE047" opacity="0.85"/>
+    <rect x="145" y="60" width="16" height="120" rx="4" fill="#FEF08A" opacity="0.95"/>
+    <defs>
+      <linearGradient id="goldGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#EAB308"/>
+        <stop offset="100%" stop-color="#FEF08A"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <!-- 1. EN-TÊTE DE MARQUE CANONIQUE -->
+  <header class="header-block">
+    <div class="brand-group">
+      <img src="../assets/logo_officiel_wazap.jpg" alt="Logo Officiel WAZAP" class="brand-logo-3d">
+      <div class="brand-text-col">
+        <div class="brand-name">WAZAP<span>.CI</span></div>
+        <div class="brand-tagline">1er Réseau Sécurisé du Grand Abidjan</div>
+      </div>
+    </div>
+    <div class="badge-top-3d">
+      {{BADGE_TOP}}
+    </div>
+  </header>
+
+  <!-- 2. TITRE GÉANT 3D RELIEF -->
+  <section class="title-block-3d">
+    <div class="kicker-brush">{{KICKER_TEXT}}</div>
+    <h1 class="headline-3d-gold">
+      {{TITLE_LINE_1}} {{TITLE_LINE_2}}
+    </h1>
+    <div class="sub-headline-pill">
+      {{SUBTITLE_TEXT}}
+    </div>
+  </section>
+
+  <!-- 3. GRILLE CENTRALE DU FEED CARRÉ -->
+  <main class="center-stage-grid">
+    <!-- Photo Héroïque -->
+    <div class="hero-photo-wrap">
+      <img src="{{HERO_IMG}}" alt="{{HERO_ALT}}">
+      <div class="hero-gradient-overlay"></div>
+      <div class="hero-identity-tag">{{HERO_TAG}}</div>
+    </div>
+
+    <!-- Colonne Droite : Payout + Stepper + Arguments -->
+    <div class="right-arguments-col">
+      <div class="floating-payout-box">
+        <div>
+          <div class="payout-title">{{BADGE_RIGHT_TITLE}}</div>
+          <div style="font-size: 10px; font-weight: 800; color: #94A3B8; text-transform: uppercase;">{{BADGE_RIGHT_SUB}}</div>
+        </div>
+        <div class="payout-val">{{BADGE_RIGHT_VAL}}</div>
+      </div>
+
+      <!-- Stepper 5 Étapes -->
+      <div class="stepper-bar-feed">
+        <div class="step-item-feed">
+          <div class="step-number-tag-feed">1</div>
+          <div class="step-icon-circle-feed">💬</div>
+          <div class="step-label-feed">WHATSAPP</div>
+        </div>
+        <div class="step-item-feed">
+          <div class="step-number-tag-feed">2</div>
+          <div class="step-icon-circle-feed">⚡</div>
+          <div class="step-label-feed">3 MIN</div>
+        </div>
+        <div class="step-item-feed">
+          <div class="step-number-tag-feed">3</div>
+          <div class="step-icon-circle-feed">📍</div>
+          <div class="step-label-feed">GPS LIVE</div>
+        </div>
+        <div class="step-item-feed">
+          <div class="step-number-tag-feed">4</div>
+          <div class="step-icon-circle-feed">📷</div>
+          <div class="step-label-feed">QR CODE</div>
+        </div>
+        <div class="step-item-feed">
+          <div class="step-number-tag-feed">5</div>
+          <div class="step-icon-circle-feed">💰</div>
+          <div class="step-label-feed">0 CASH</div>
+        </div>
+      </div>
+
+      <!-- Arguments Chocs -->
+      <div class="benefit-row-card">
+        <span class="benefit-icon-feed">🛡️</span>
+        <div class="benefit-text-feed"><strong>0% Cash Encaissé par le Livreur :</strong> Le client scanne le QR Code Universel, vos fonds arrivent direct sur votre Mobile Money.</div>
+      </div>
+
+      <div class="benefit-row-card">
+        <span class="benefit-icon-feed">🪪</span>
+        <div class="benefit-text-feed"><strong>Livreurs 100% Identifiés CNI :</strong> Pièces vérifiées par IA. Zéro livreur anonyme, zéro mauvaise surprise.</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 4. BANNIÈRE BRUSH STROKE DORÉE -->
+  <div class="brush-banner-ribbon">
+    <div class="brush-banner-text">{{RIBBON_TEXT}}</div>
+  </div>
+
+  <!-- 5. FOOTER ACTION 3D & QR CODE GÉANT -->
+  <footer class="footer-action-block">
+    <div class="cta-card-left">
+      <div class="btn-cta-3d">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="#040C07"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        <span class="btn-cta-text">{{CTA_TEXT}}</span>
+      </div>
+
+      <div class="whatsapp-number-badge">
+        <div class="wa-icon-group">
+          <svg viewBox="0 0 32 32" width="40" height="40" fill="none">
+            <circle cx="16" cy="16" r="16" fill="#25D366"/>
+            <path d="M23.5 8.5C21.5 6.5 18.8 5.4 16 5.4C10.2 5.4 5.4 10.2 5.4 16C5.4 17.9 5.9 19.7 6.8 21.3L5.4 26.6L10.8 25.2C12.3 26 14.1 26.5 16 26.5C21.8 26.5 26.6 21.7 26.6 15.9C26.6 13.1 25.5 10.5 23.5 8.5ZM16 24.7C14.4 24.7 12.8 24.3 11.5 23.5L11.2 23.3L8 24.1L8.9 21L8.6 20.6C7.7 19.2 7.2 17.6 7.2 16C7.2 11.1 11.1 7.2 16 7.2C18.4 7.2 20.6 8.1 22.3 9.8C24 11.5 24.9 13.7 24.9 16.1C24.8 20.8 20.9 24.7 16 24.7ZM20.8 18.3C20.5 18.1 19.3 17.5 19.1 17.4C18.8 17.3 18.7 17.3 18.5 17.5C18.3 17.8 17.8 18.3 17.7 18.5C17.5 18.7 17.4 18.7 17.1 18.5C16.8 18.4 15.9 18.1 14.8 17.1C13.9 16.3 13.4 15.4 13.2 15.1C13 14.8 13.2 14.7 13.3 14.5C13.5 14.4 13.6 14.2 13.8 14C13.9 13.8 14 13.7 14.1 13.5C14.2 13.3 14.1 13.2 14.1 13C14 12.9 13.5 11.7 13.3 11.2C13.1 10.7 12.9 10.8 12.7 10.8H12.2C12 10.8 11.7 10.9 11.5 11.1C11.2 11.4 10.6 12 10.6 13.2C10.6 14.4 11.5 15.6 11.6 15.7C11.7 15.9 13.3 18.4 15.8 19.4C16.4 19.7 16.9 19.8 17.2 20C17.9 20.2 18.6 20.2 19.1 20.1C19.6 20 20.8 19.4 21 18.7C21.3 18 21.3 17.4 21.2 17.3C21.1 17.2 21 17.1 20.8 18.3Z" fill="white"/>
+          </svg>
+          <span style="font-size: 13px; font-weight: 800; color: #075E54;">WhatsApp</span>
+        </div>
+        <div class="wa-text-group">
+          <span class="wa-label">Ligne WAZAP</span>
+          <span class="wa-digits">05 44 05 19 72</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="qr-card-3d">
+      <div class="qr-badge-scanner">📷 SCANNEZ ICI</div>
+      <div class="qr-image-frame">
+        <img src="{{QR_SRC}}" alt="QR Code WhatsApp WAZAP">
+      </div>
+      <div class="qr-tagline-bottom">{{QR_BOTTOM_TEXT}}</div>
+    </div>
+  </footer>
+
+</body>
+</html>

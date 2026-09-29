@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Affiche Publicitaire 3D WAZAP - Story 9:16</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,700;0,800;0,900;1,900&family=Plus+Jakarta+Sans:wght@700;800;900&family=Space+Grotesk:wght@700;800;900&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 1080px;
+      height: 1920px;
+      background: #030704;
+      color: #FFFFFF;
+      font-family: 'Montserrat', sans-serif;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 60px 45px 70px;
+    }
+
+    /* Arrière-plan cinématique avec texture, halos et grille 3D */
+    .bg-canvas {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 45%, #0d2818 0%, #05140b 50%, #020603 100%);
+      z-index: 1;
+    }
+
+    .bg-radial-gold {
+      position: absolute;
+      top: 360px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 820px;
+      height: 820px;
+      background: radial-gradient(circle, rgba(250, 204, 21, 0.3) 0%, rgba(0, 214, 108, 0.22) 45%, transparent 70%);
+      filter: blur(60px);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .bg-city-skyline {
+      position: absolute;
+      top: 250px;
+      left: 0;
+      width: 100%;
+      height: 700px;
+      background: linear-gradient(180deg, transparent 0%, rgba(4, 12, 7, 0.7) 100%),
+                  radial-gradient(ellipse at bottom, rgba(0, 214, 108, 0.15) 0%, transparent 70%);
+      z-index: 2;
+      opacity: 0.8;
+    }
+
+    /* Traînées lumineuses 3D et flèche montante de croissance */
+    .growth-arrow-svg {
+      position: absolute;
+      top: 320px;
+      right: 20px;
+      width: 480px;
+      height: 520px;
+      z-index: 2;
+      opacity: 0.45;
+      filter: drop-shadow(0 0 25px rgba(250, 204, 21, 0.8));
+    }
+
+    /* Lignes d'étincelles & particules */
+    .particles-overlay {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(250, 204, 21, 0.6) 1.5px, transparent 1.5px),
+                        radial-gradient(rgba(0, 214, 108, 0.6) 1.5px, transparent 1.5px);
+      background-size: 80px 80px, 120px 120px;
+      background-position: 0 0, 40px 40px;
+      opacity: 0.15;
+      z-index: 2;
+    }
+
+    /* ========================================================
+       1. EN-TÊTE DE MARQUE CANONIQUE
+       ======================================================== */
+    .header-block {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .brand-logo-3d {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      border: 4px solid #FACC15;
+      box-shadow: 0 0 35px rgba(250, 204, 21, 0.6), 0 10px 25px rgba(0, 0, 0, 0.8);
+      object-fit: cover;
+      background: #000;
+    }
+
+    .brand-text-col {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      line-height: 1;
+      text-shadow: 0 4px 15px rgba(0, 0, 0, 0.8);
+    }
+
+    .brand-name span {
+      color: #00D66C;
+      text-shadow: 0 0 20px rgba(0, 214, 108, 0.8);
+    }
+
+    .brand-tagline {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: #CBD5E1;
+      text-transform: uppercase;
+      margin-top: 5px;
+    }
+
+    .badge-top-3d {
+      background: {{BADGE_TOP_BG}};
+      color: #FFFFFF;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 12px 26px;
+      border-radius: 9999px;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 8px 25px rgba(250, 204, 21, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* ========================================================
+       2. TYPOGRAPHIE 3D RELIEF & TITRE CHOC
+       ======================================================== */
+    .title-block-3d {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      margin-top: 15px;
+      margin-bottom: 5px;
+    }
+
+    .kicker-brush {
+      display: inline-block;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 24px;
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #FACC15;
+      text-shadow: 0 2px 0 #000, 0 0 20px rgba(250, 204, 21, 0.8);
+      margin-bottom: 6px;
+      background: rgba(250, 204, 21, 0.12);
+      border: 1.5px solid rgba(250, 204, 21, 0.5);
+      padding: 6px 22px;
+      border-radius: 8px;
+    }
+
+    .headline-3d-gold {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 58px;
+      font-weight: 900;
+      line-height: 1.05;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+      background: linear-gradient(180deg, #FFFBEB 0%, #FDE047 35%, #EAB308 70%, #854D0E 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 4px 0 #000000)
+              drop-shadow(0 8px 0 #1e1300)
+              drop-shadow(0 14px 15px rgba(0, 0, 0, 0.95))
+              drop-shadow(0 0 30px rgba(250, 204, 21, 0.6));
+      transform: perspective(600px) rotateX(4deg);
+      margin-bottom: 6px;
+    }
+
+    .sub-headline-pill {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 26px;
+      font-weight: 900;
+      font-style: italic;
+      color: #FFFFFF;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: 0 4px 10px rgba(0, 0, 0, 0.9), 0 0 25px rgba(0, 214, 108, 0.8);
+    }
+
+    .sub-headline-pill span {
+      color: #00D66C;
+    }
+
+    /* ========================================================
+       3. HERO CHARACTER 3D COMPOSITION
+       ======================================================== */
+    .hero-stage {
+      position: relative;
+      z-index: 5;
+      height: 600px;
+      margin: 10px 0 15px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .hero-photo-wrap {
+      position: relative;
+      width: 480px;
+      height: 560px;
+      border-radius: 30px;
+      overflow: hidden;
+      border: 4px solid #00D66C;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(0, 214, 108, 0.5);
+      background: #0B1910;
+    }
+
+    .hero-photo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      filter: contrast(1.08) brightness(1.04);
+    }
+
+    .hero-gradient-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 45%, rgba(3, 7, 4, 0.85) 90%, #030704 100%);
+    }
+
+    /* Badges flottants 3D autour du personnage */
+    .floating-card-left {
+      position: absolute;
+      top: 40px;
+      left: 10px;
+      background: rgba(4, 12, 7, 0.92);
+      border: 2px solid #FACC15;
+      border-radius: 16px;
+      padding: 14px 20px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(250, 204, 21, 0.4);
+      z-index: 6;
+      max-width: 250px;
+      backdrop-filter: blur(10px);
+      transform: rotate(-3deg);
+    }
+
+    .floating-card-title {
+      font-size: 13px;
+      font-weight: 900;
+      color: #FACC15;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .floating-card-val {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      font-weight: 900;
+      color: #FFFFFF;
+      margin-top: 3px;
+    }
+
+    .floating-card-right {
+      position: absolute;
+      bottom: 60px;
+      right: 10px;
+      background: rgba(4, 12, 7, 0.92);
+      border: 2px solid #00D66C;
+      border-radius: 16px;
+      padding: 14px 20px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 214, 108, 0.4);
+      z-index: 6;
+      max-width: 260px;
+      backdrop-filter: blur(10px);
+      transform: rotate(3deg);
+    }
+
+    .floating-card-val-green {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 22px;
+      font-weight: 900;
+      color: #00D66C;
+      line-height: 1.1;
+    }
+
+    .hero-identity-tag {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(90deg, #FACC15 0%, #EAB308 100%);
+      color: #040C07;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 10px 28px;
+      border-radius: 9999px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7);
+      white-space: nowrap;
+      z-index: 7;
+      border: 2px solid #FEF08A;
+    }
+
+    /* ========================================================
+       4. LES 5 ÉTAPES EN ICÔNES 3D DORÉES (STYLE INSPIRATION 1)
+       ======================================================== */
+    .stepper-bar-3d {
+      position: relative;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      background: rgba(7, 20, 12, 0.85);
+      border: 2px solid rgba(250, 204, 21, 0.4);
+      border-radius: 20px;
+      padding: 16px 14px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+      margin-bottom: 20px;
+      backdrop-filter: blur(10px);
+    }
+
+    .step-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+    }
+
+    .step-icon-circle {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #FDE047 0%, #CA8A04 60%, #713F12 100%);
+      border: 2px solid #FEF08A;
+      box-shadow: 0 6px 18px rgba(250, 204, 21, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 8px;
+      color: #040C07;
+    }
+
+    .step-number-tag {
+      position: absolute;
+      top: -4px;
+      right: 18px;
+      background: #040C07;
+      color: #FACC15;
+      font-size: 11px;
+      font-weight: 900;
+      border: 1.5px solid #FACC15;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .step-label {
+      font-size: 12px;
+      font-weight: 800;
+      color: #E2E8F0;
+      line-height: 1.25;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    /* ========================================================
+       5. BANNIÈRE BRUSH STROKE DORÉE (INSPIRATION 1)
+       ======================================================== */
+    .brush-banner-ribbon {
+      position: relative;
+      z-index: 10;
+      background: linear-gradient(90deg, #B45309 0%, #F59E0B 20%, #FDE047 50%, #F59E0B 80%, #B45309 100%);
+      color: #040C07;
+      text-align: center;
+      padding: 12px 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(245, 158, 11, 0.5);
+      margin-bottom: 20px;
+      border: 2px solid #FEF08A;
+    }
+
+    .brush-banner-text {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.4);
+    }
+
+    /* ========================================================
+       6. BLOC CTA GÉANT & QR CODE GÉANT (X2.5) ULTRA VISIBLES
+       ======================================================== */
+    .footer-action-block {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: stretch;
+      gap: 20px;
+    }
+
+    .cta-card-left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      justify-content: space-between;
+    }
+
+    .btn-cta-3d {
+      background: linear-gradient(180deg, #FDE047 0%, #EAB308 60%, #CA8A04 100%);
+      color: #040C07;
+      border-radius: 18px;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      border: 3px solid #FEF08A;
+      box-shadow: 0 8px 0 #854D0E, 0 15px 30px rgba(0, 0, 0, 0.8), 0 0 30px rgba(250, 204, 21, 0.4);
+      transform: translateY(-4px);
+    }
+
+    .btn-cta-text {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-align: center;
+      line-height: 1.15;
+    }
+
+    .whatsapp-number-badge {
+      background: #FFFFFF;
+      color: #040C07;
+      border-radius: 18px;
+      padding: 14px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 3px solid #00D66C;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 214, 108, 0.4);
+    }
+
+    .wa-icon-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .wa-text-group {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .wa-label {
+      font-size: 13px;
+      font-weight: 900;
+      color: #075E54;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .wa-digits {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 40px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      line-height: 1;
+      color: #040C07;
+    }
+
+    .qr-card-3d {
+      width: 240px;
+      background: #FFFFFF;
+      border-radius: 22px;
+      padding: 14px 16px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      border: 4.5px solid #00D66C;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.9), 0 0 40px rgba(0, 214, 108, 0.6);
+      flex-shrink: 0;
+    }
+
+    .qr-badge-scanner {
+      background: #040C07;
+      color: #00D66C;
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1.5px solid #00D66C;
+    }
+
+    .qr-image-frame {
+      width: 180px;
+      height: 180px;
+      background: #FFFFFF;
+      margin: 8px 0;
+    }
+
+    .qr-image-frame img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      image-rendering: pixelated;
+    }
+
+    .qr-tagline-bottom {
+      font-size: 12px;
+      font-weight: 900;
+      color: #075E54;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-align: center;
+      line-height: 1.15;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ARRIÈRE-PLAN CINÉMATIQUE 3D -->
+  <div class="bg-canvas"></div>
+  <div class="bg-radial-gold"></div>
+  <div class="bg-city-skyline"></div>
+  <div class="particles-overlay"></div>
+
+  <!-- SVG FLÈCHE MONTANTE DE CROISSANCE 3D (STYLE POSTER INSPIRATION 1) -->
+  <svg class="growth-arrow-svg" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 180 Q 90 140 130 70 L 170 30" stroke="url(#goldGradient)" stroke-width="12" stroke-linecap="round"/>
+    <polygon points="175,15 185,45 155,35" fill="#FACC15"/>
+    <rect x="70" y="140" width="16" height="40" rx="4" fill="#EAB308" opacity="0.6"/>
+    <rect x="95" y="115" width="16" height="65" rx="4" fill="#FACC15" opacity="0.75"/>
+    <rect x="120" y="90" width="16" height="90" rx="4" fill="#FDE047" opacity="0.85"/>
+    <rect x="145" y="60" width="16" height="120" rx="4" fill="#FEF08A" opacity="0.95"/>
+    <defs>
+      <linearGradient id="goldGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#EAB308"/>
+        <stop offset="100%" stop-color="#FEF08A"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <!-- 1. EN-TÊTE DE MARQUE CANONIQUE -->
+  <header class="header-block">
+    <div class="brand-group">
+      <img src="../assets/logo_officiel_wazap.jpg" alt="Logo Officiel WAZAP" class="brand-logo-3d">
+      <div class="brand-text-col">
+        <div class="brand-name">WAZAP<span>.CI</span></div>
+        <div class="brand-tagline">1er Réseau Sécurisé du Grand Abidjan</div>
+      </div>
+    </div>
+    <div class="badge-top-3d">
+      {{BADGE_TOP}}
+    </div>
+  </header>
+
+  <!-- 2. TITRE GÉANT 3D RELIEF & PUNCHLINE -->
+  <section class="title-block-3d">
+    <div class="kicker-brush">{{KICKER_TEXT}}</div>
+    <h1 class="headline-3d-gold">
+      {{TITLE_LINE_1}}<br>{{TITLE_LINE_2}}
+    </h1>
+    <div class="sub-headline-pill">
+      {{SUBTITLE_TEXT}}
+    </div>
+  </section>
+
+  <!-- 3. COMPOSITION CENTRALE AVEC LE HERO DU JOUR -->
+  <section class="hero-stage">
+    <div class="floating-card-left">
+      <div class="floating-card-title">{{BADGE_LEFT_TITLE}}</div>
+      <div class="floating-card-val">{{BADGE_LEFT_VAL}}</div>
+    </div>
+
+    <div class="hero-photo-wrap">
+      <img src="{{HERO_IMG}}" alt="{{HERO_ALT}}">
+      <div class="hero-gradient-overlay"></div>
+      <div class="hero-identity-tag">{{HERO_TAG}}</div>
+    </div>
+
+    <div class="floating-card-right">
+      <div class="floating-card-title">{{BADGE_RIGHT_TITLE}}</div>
+      <div class="floating-card-val-green">{{BADGE_RIGHT_VAL}}</div>
+      <div style="font-size: 11px; font-weight: 800; color: #94A3B8; text-transform: uppercase;">{{BADGE_RIGHT_SUB}}</div>
+    </div>
+  </section>
+
+  <!-- 4. LES 5 ÉTAPES DU PROTOCOLE WAZAP EN ICÔNES 3D DORÉES -->
+  <section class="stepper-bar-3d">
+    {{STEPS_HTML}}
+  </section>
+
+  <!-- 5. BANNIÈRE BRUSH STROKE DORÉE 3D -->
+  <div class="brush-banner-ribbon">
+    <div class="brush-banner-text">{{RIBBON_TEXT}}</div>
+  </div>
+
+  <!-- 6. BLOC ACTION GÉANT & QR CODE GÉANT ULTRA VISIBLES -->
+  <footer class="footer-action-block">
+    <div class="cta-card-left">
+      <div class="btn-cta-3d">
+        <svg viewBox="0 0 24 24" width="34" height="34" fill="#040C07"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        <span class="btn-cta-text">{{CTA_TEXT}}</span>
+      </div>
+
+      <div class="whatsapp-number-badge">
+        <div class="wa-icon-group">
+          <svg viewBox="0 0 32 32" width="48" height="48" fill="none">
+            <circle cx="16" cy="16" r="16" fill="#25D366"/>
+            <path d="M23.5 8.5C21.5 6.5 18.8 5.4 16 5.4C10.2 5.4 5.4 10.2 5.4 16C5.4 17.9 5.9 19.7 6.8 21.3L5.4 26.6L10.8 25.2C12.3 26 14.1 26.5 16 26.5C21.8 26.5 26.6 21.7 26.6 15.9C26.6 13.1 25.5 10.5 23.5 8.5ZM16 24.7C14.4 24.7 12.8 24.3 11.5 23.5L11.2 23.3L8 24.1L8.9 21L8.6 20.6C7.7 19.2 7.2 17.6 7.2 16C7.2 11.1 11.1 7.2 16 7.2C18.4 7.2 20.6 8.1 22.3 9.8C24 11.5 24.9 13.7 24.9 16.1C24.8 20.8 20.9 24.7 16 24.7ZM20.8 18.3C20.5 18.1 19.3 17.5 19.1 17.4C18.8 17.3 18.7 17.3 18.5 17.5C18.3 17.8 17.8 18.3 17.7 18.5C17.5 18.7 17.4 18.7 17.1 18.5C16.8 18.4 15.9 18.1 14.8 17.1C13.9 16.3 13.4 15.4 13.2 15.1C13 14.8 13.2 14.7 13.3 14.5C13.5 14.4 13.6 14.2 13.8 14C13.9 13.8 14 13.7 14.1 13.5C14.2 13.3 14.1 13.2 14.1 13C14 12.9 13.5 11.7 13.3 11.2C13.1 10.7 12.9 10.8 12.7 10.8H12.2C12 10.8 11.7 10.9 11.5 11.1C11.2 11.4 10.6 12 10.6 13.2C10.6 14.4 11.5 15.6 11.6 15.7C11.7 15.9 13.3 18.4 15.8 19.4C16.4 19.7 16.9 19.8 17.2 20C17.9 20.2 18.6 20.2 19.1 20.1C19.6 20 20.8 19.4 21 18.7C21.3 18 21.3 17.4 21.2 17.3C21.1 17.2 21 17.1 20.8 18.3Z" fill="white"/>
+          </svg>
+          <span style="font-size: 15px; font-weight: 800; color: #075E54;">WhatsApp</span>
+        </div>
+        <div class="wa-text-group">
+          <span class="wa-label">Ligne Officielle WAZAP</span>
+          <span class="wa-digits">05 44 05 19 72</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="qr-card-3d">
+      <div class="qr-badge-scanner">📷 SCANNEZ ICI</div>
+      <div class="qr-image-frame">
+        <img src="{{QR_SRC}}" alt="QR Code WhatsApp WAZAP">
+      </div>
+      <div class="qr-tagline-bottom">{{QR_BOTTOM_TEXT}}</div>
+    </div>
+  </footer>
+
+</body>
+</html>

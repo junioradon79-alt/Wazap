@@ -3848,3 +3848,36 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
   - **Manifeste JSON Structuré :** [`marketing/programmation-60jours/manifest_60jours.json`](file:///c:/Dev/Wazap/marketing/programmation-60jours/manifest_60jours.json).
   - **Galerie & Simulateur Interactif :** [`marketing/programmation-60jours/galerie_preview_60jours.html`](file:///c:/Dev/Wazap/marketing/programmation-60jours/galerie_preview_60jours.html).
 
+---
+
+## 111. Session 29/09/2026 (Nuit) — Révolution 3D Explosive des Affiches Publicitaires Feed & Story (Campagne 60 Jours)
+
+### 1. Refonte Totale des Visuels : Typographie 3D Sculptée & Direction Artistique Premium
+- **Contexte & Exigences Utilisateur :** Rejet catégorique des « textes plats » au profit d'affiches publicitaires haut de gamme calquées sur les références visuelles fournies : typographie 3D extrudée dorée et émeraude en relief profond, flèche de croissance montante 3D avec étincelles de particules, halo d'éclairage dramatique (*rim lighting* émeraude), ruban brush doré texturé, stepper de confiance en 5 pastilles circulaires 3D dorées avec icônes grand format.
+- **CTA & QR Code Universel GÉANTS & Hyper-Visibles :**
+  - **QR Code Universel GÉANT (x2.5) :** Conteneur 3D biseauté à bordure émeraude néon (#00D66C), drop shadow puissante, étiquette haute « 📷 SCANNEZ ICI » et cartouche basse « COMPATIBLE WAVE • OM • MTN • MOOV • CARTE ».
+  - **Bouton CTA 3D Extrudé :** Bouton relief bicolore or (#FACC15) et vert vibrant avec effet de pression et typo Space Grotesk ultra-contrastée (« POUR EXPÉDIER VOS COLIS : ENVOYEZ « COLIS » » ou « POUR REJOINDRE L'ÉQUIPE : ENVOYEZ « DISPO » »).
+  - **Pavé WhatsApp Officiel :** Logo WhatsApp 3D et numéro unique **`05 44 05 19 72`** en typographie bold lisible dès le scroll rapide.
+
+### 2. Deux Gabarits Publicitaires 3D Révolutionnés (`templates/`)
+- `poster_feed_3d_template.html` : Format Feed Carré 1:1 (1080×1080 @ 2x = **2160×2160 3D HD**).
+- `poster_story_3d_template.html` : Format Story Vertical 9:16 (1080×1920 @ 2x = **2160×3840 4K Vertical**).
+- Fond cinématique avec motif de skyline urbaine d'Abidjan en filigrane sombre, cercles lumineux concentriques émeraude (#00D66C), et intégration des vraies photos photoréalistes des personnages sans retouche ni hallucination IA.
+
+### 3. Production Intégrale des 20 Affiches Publicitaires 3D (100% Succès)
+- **10 Affiches Feed Carré 1:1 (2160×2160) & 10 Affiches Story 9:16 (2160×3840) :**
+  1. `visuel_01_securite_awa` : Awa • Joaillerie Deux-Plateaux (Sécurité 0 Cash, anti-fuite).
+  2. `visuel_02_securite_fatou` : Fatou • Pâtissière Yopougon (Sécurité colis fragiles & Assurance Colis Sûr).
+  3. `visuel_03_securite_clarisse` : Clarisse • Cosmétiques Koumassi (Livreurs vérifiés CNI par IA OCR).
+  4. `visuel_04_rapidite_salimata` : Salimata • Styliste Angré (Livreur en < 3 min chrono).
+  5. `visuel_05_rapidite_momo` : Chef Momo • Grillades Abidjan (Plats livrés chauds en 20 min).
+  6. `visuel_06_rapidite_amara` : Amara • Streetwear Marcory (0 souci monnaie sur 10.000 F).
+  7. `visuel_07_valeur_aicha` : Tantie Aïcha • Wax & Mode (15 courses offertes, 0 F commission).
+  8. `visuel_08_valeur_bakary` : Bakary • Livreur Leader Marcory (0% commission, 50 smartphones Redmi 15C).
+  9. `visuel_09_valeur_koffi` : Koffi • Livreur Certifié Riviera (1 000 F net dès le 1er mètre).
+  10. `visuel_10_duel_comparatif` : Le Duel Choc à Abidjan (Ancienne Méthode vs WAZAP).
+- **Moteur de Rendu Optimisé :** `generate_visuals_60jours.mjs` durci avec isolation `--user-data-dir` par rendu et suppression préalable des fichiers de sortie, garantissant une exécution 100% fluide et déterministe.
+- **Galerie & Simulateur :** `galerie_preview_60jours.html` synchronisé avec bascule Feed 1:1 / Story 9:16 et copie 1-clic des légendes.
+- **Validation Complète :** 822/822 tests .NET et 51/51 tests Vitest au vert, build front Vite OK, synchronisation wwwroot/app validée.
+
+
