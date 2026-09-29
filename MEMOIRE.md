@@ -3880,4 +3880,22 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
 - **Galerie & Simulateur :** `galerie_preview_60jours.html` synchronisé avec bascule Feed 1:1 / Story 9:16 et copie 1-clic des légendes.
 - **Validation Complète :** 822/822 tests .NET et 51/51 tests Vitest au vert, build front Vite OK, synchronisation wwwroot/app validée.
 
+### 4. Clôture de Session & Ordre du Jour Prioritaire de Reprise (Matin du 30/09/2026)
+- **État des lieux au coucher (29/09/2026 22:08 UTC) :**
+  - Code et assets synchronisés et déployés en production (commit `5f49bc5` sur `origin main`).
+  - Production opérationnelle HTTP 200 `Healthy` sur SmarterASP (`https://junioradon79gm-001-site1.jtempurl.com/health`).
+  - Suite des 20 affiches publicitaires 3D validée (Feed 1:1 2160×2160 + Story 9:16 2160×3840).
+  - Calendrier complet 60 jours (180 publications rédigées in extenso) et CSV d'automatisation prêts.
+- **Ordre du Jour Immédiat pour la Reprise Demain Matin :**
+  1. **Phase 1 — Importation & Planification Sociale :**
+     - Importer le fichier [`marketing/programmation-60jours/CALENDRIER_60JOURS.csv`](file:///c:/Dev/Wazap/marketing/programmation-60jours/CALENDRIER_60JOURS.csv) dans Meta Business Suite (ou Buffer/Metricool) pour programmer les 180 posts sur 60 jours.
+     - Associer les affiches Feed carrées 1:1 aux publications de feed et les affiches Story 9:16 aux stories/statuts quotidiens.
+  2. **Phase 2 — Cockpit WhatsApp Business Terrain (`05 44 05 19 72`) :**
+     - Vérifier que le smartphone officiel est prêt avec ses 4 réponses rapides opérationnelles (`/dispo`, `/tarifs`, `/course`, `/vendeur`).
+     - Message d'accueil actif (ON 🟢), message d'absence inactif (OFF ⚪).
+  3. **Phase 3 — Déclenchement de l'Acquisition Terrain :**
+     - Prospection active des 1 000 premiers commerçants avec l'offre d'appel des 15 courses offertes (Pack Digital Boutique à 0 F de commission).
+     - Relais communautaire des livreurs avec le défi des 50 smartphones Redmi 15C et 0% de commission.
+
+
 
