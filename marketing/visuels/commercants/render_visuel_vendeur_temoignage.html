@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Témoignage Vendeuse Sécurité - WAZAP</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800;900&family=Space+Grotesk:wght@700;800;900&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 1080px;
+      height: 1080px;
+      background: #040c07;
+      color: #ffffff;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 30px 34px 32px;
+    }
+
+    .bg-glow-tr {
+      position: absolute;
+      top: -120px;
+      right: -100px;
+      width: 550px;
+      height: 550px;
+      background: radial-gradient(circle, rgba(0, 214, 108, 0.28) 0%, transparent 70%);
+      pointer-events: none;
+      filter: blur(50px);
+    }
+
+    .bg-glow-bl {
+      position: absolute;
+      bottom: -100px;
+      left: -80px;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(14, 122, 62, 0.25) 0%, transparent 70%);
+      pointer-events: none;
+      filter: blur(50px);
+    }
+
+    /* HEADER */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      width: 66px;
+      height: 66px;
+      border-radius: 50%;
+      border: 3px solid #00D66C;
+      box-shadow: 0 0 25px rgba(0, 214, 108, 0.5);
+      object-fit: cover;
+    }
+
+    .brand-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 30px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      line-height: 1;
+    }
+
+    .brand-title span {
+      color: #00D66C;
+    }
+
+    .brand-sub {
+      font-size: 13px;
+      color: #94A3B8;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .badge-top-alert {
+      background: linear-gradient(135deg, #00D66C 0%, #059669 100%);
+      color: #040c07;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 900;
+      font-size: 16px;
+      padding: 10px 22px;
+      border-radius: 999px;
+      letter-spacing: 0.8px;
+      box-shadow: 0 6px 20px rgba(0, 214, 108, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+    }
+
+    /* HEADLINE HERO BOX */
+    .headline-wrap {
+      z-index: 10;
+      margin-top: 10px;
+      background: linear-gradient(135deg, rgba(0, 214, 108, 0.16) 0%, rgba(15, 23, 42, 0.85) 100%);
+      border: 2px solid #00D66C;
+      border-radius: 20px;
+      padding: 16px 22px;
+      box-shadow: 0 10px 30px rgba(0, 214, 108, 0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .headline-tag {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #FFD233;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+
+    .headline-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 34px;
+      font-weight: 900;
+      line-height: 1.1;
+      color: #FFFFFF;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+    }
+
+    .headline-title .glow-green {
+      color: #00D66C;
+      text-shadow: 0 0 20px rgba(0, 214, 108, 0.6);
+    }
+
+    .headline-sub {
+      font-size: 15px;
+      font-weight: 700;
+      color: #E2E8F0;
+      line-height: 1.35;
+    }
+
+    .headline-sub strong {
+      color: #00D66C;
+    }
+
+    /* MAIN CONTENT DUAL GRID */
+    .main-body {
+      display: flex;
+      gap: 20px;
+      align-items: stretch;
+      z-index: 10;
+      flex: 1;
+      margin: 12px 0 14px;
+    }
+
+    /* LEFT PHOTO VENDEUSE */
+    .photo-card {
+      width: 420px;
+      border-radius: 22px;
+      position: relative;
+      overflow: hidden;
+      border: 3px solid rgba(0, 214, 108, 0.6);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 214, 108, 0.3);
+      flex-shrink: 0;
+      background: #0F172A;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .photo-card img.bg-photo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+    }
+
+    .photo-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 35%, rgba(4, 12, 7, 0.95) 88%);
+    }
+
+    .photo-badge-top {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: rgba(4, 12, 7, 0.90);
+      backdrop-filter: blur(10px);
+      border: 1px solid #00D66C;
+      border-radius: 10px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #00D66C;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    }
+
+    .photo-bottom-card {
+      position: relative;
+      z-index: 2;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .proof-banner {
+      background: rgba(0, 214, 108, 0.20);
+      border: 1px solid #00D66C;
+      backdrop-filter: blur(12px);
+      border-radius: 12px;
+      padding: 10px 14px;
+    }
+
+    .proof-banner-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px;
+      font-weight: 900;
+      color: #00D66C;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+
+    .proof-banner-desc {
+      font-size: 12px;
+      color: #FFFFFF;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .proof-payout-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 8px 12px;
+      color: #040c07;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    }
+
+    .payout-left {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .payout-label {
+      font-size: 10px;
+      font-weight: 800;
+      color: #075E54;
+      text-transform: uppercase;
+    }
+
+    .payout-val {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 900;
+      color: #040c07;
+    }
+
+    .payout-tag {
+      background: #00D66C;
+      color: #040c07;
+      font-size: 11px;
+      font-weight: 900;
+      padding: 5px 10px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    /* RIGHT BULLETS */
+    .shield-list {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      justify-content: space-between;
+    }
+
+    .shield-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      padding: 12px 16px;
+      backdrop-filter: blur(8px);
+    }
+
+    .shield-item.highlight {
+      background: linear-gradient(135deg, rgba(0, 214, 108, 0.16) 0%, rgba(255, 255, 255, 0.05) 100%);
+      border: 1.5px solid #00D66C;
+      box-shadow: 0 4px 20px rgba(0, 214, 108, 0.15);
+    }
+
+    .shield-icon {
+      font-size: 26px;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .shield-content {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .shield-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px;
+      font-weight: 900;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .shield-item.highlight .shield-title {
+      color: #00D66C;
+    }
+
+    .shield-desc {
+      font-size: 13px;
+      color: #CBD5E1;
+      line-height: 1.35;
+      font-weight: 600;
+    }
+
+    .shield-desc strong {
+      color: #FFFFFF;
+    }
+
+    /* PROMO BANNER 15 COURSES OFFERTES */
+    .offer-strip {
+      z-index: 10;
+      background: linear-gradient(90deg, #FFB800 0%, #FF8A00 100%);
+      color: #040c07;
+      border-radius: 14px;
+      padding: 8px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 15px rgba(255, 138, 0, 0.35);
+      margin-bottom: 12px;
+    }
+
+    .offer-strip-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .offer-strip-icon {
+      font-size: 22px;
+    }
+
+    .offer-strip-text {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 17px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .offer-strip-pill {
+      background: #040c07;
+      color: #FFD233;
+      font-size: 12px;
+      font-weight: 900;
+      padding: 5px 12px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* FOOTER CALL-TO-ACTION */
+    .footer-action {
+      background: linear-gradient(90deg, #053b23 0%, #075E54 50%, #128C7E 100%);
+      border-radius: 24px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      border: 3px solid #25D366;
+      box-shadow: 0 15px 40px rgba(37, 211, 102, 0.4);
+      z-index: 10;
+    }
+
+    .cta-main-block {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .cta-big-banner {
+      background: #FFD233;
+      color: #040c07;
+      padding: 8px 16px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(255, 210, 51, 0.35);
+    }
+
+    .cta-big-banner .icon {
+      font-size: 24px;
+      color: #040c07;
+    }
+
+    .cta-big-banner .banner-text {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      line-height: 1.1;
+    }
+
+    .cta-number-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: #FFFFFF;
+      border-radius: 14px;
+      padding: 6px 18px;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .wa-svg-badge {
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .number-details {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .number-label {
+      font-size: 11px;
+      font-weight: 900;
+      color: #075E54;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .number-digits {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #040c07;
+      line-height: 1;
+    }
+
+    .qr-large-card {
+      width: 175px;
+      height: 175px;
+      background: #FFFFFF;
+      border-radius: 18px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 0 0 20px rgba(37, 211, 102, 0.5);
+      border: 3px solid #25D366;
+      flex-shrink: 0;
+    }
+
+    .qr-label-top {
+      font-size: 11px;
+      font-weight: 900;
+      color: #040c07;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .qr-img-box {
+      width: 120px;
+      height: 120px;
+      background: #FFFFFF;
+    }
+
+    .qr-img-box img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      image-rendering: pixelated;
+    }
+
+    .qr-label-bottom {
+      font-size: 10px;
+      font-weight: 800;
+      color: #075E54;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-glow-tr"></div>
+  <div class="bg-glow-bl"></div>
+
+  <!-- HEADER OFFICIEL -->
+  <header class="header">
+    <div class="brand-wrap">
+      <img src="assets/logo_wazap.jpg" alt="Logo Officiel WAZAP" class="brand-logo">
+      <div class="brand-text">
+        <div class="brand-title">WAZAP<span>.CI</span></div>
+        <div class="brand-sub">Témoignage Vendeurs d'Abidjan</div>
+      </div>
+    </div>
+    <div class="badge-top-alert">
+      <span>💎</span> ZÉRO RISQUE SUR VOS COLIS
+    </div>
+  </header>
+
+  <!-- HEADLINE ACCROCHE CHOC -->
+  <section class="headline-wrap">
+    <div class="headline-tag">
+      <span>✨</span> CAS CONCRET : BOUTIQUES & CYBERVENDEUSES D'ABIDJAN
+    </div>
+    <h1 class="headline-title">
+      « J'EXPÉDIE MES COLIS DE 50 000 F <span class="glow-green">SANS PEUR DU VOL</span> ! »
+    </h1>
+    <p class="headline-sub">
+      <em>« Avant, je vivais dans la peur des livreurs inconnus. Avec WAZAP, <strong>le client scanne le QR code et mon argent arrive direct sur mon compte</strong>. Le coursier ne touche rien ! »</em>
+    </p>
+  </section>
+
+  <!-- CORPS PRINCIPAL DUAL GRID -->
+  <main class="main-body">
+
+    <!-- PHOTO VENDEUSE -->
+    <div class="photo-card">
+      <img src="assets/awa_vendeuse.jpg" alt="Awa - Joaillerie & Chic Cocody" class="bg-photo">
+      <div class="photo-overlay"></div>
+      <div class="photo-badge-top">⭐ Awa K. • Joaillerie Cocody</div>
+
+      <div class="photo-bottom-card">
+        <div class="proof-banner">
+          <div class="proof-banner-title">
+            <span>🛡️</span> EXPÉDITIONS 100% SÉCURISÉES
+          </div>
+          <div class="proof-banner-desc">
+            Vêtements, mèches, bijoux, téléphones : zéro manipulation d'espèces sur vos produits !
+          </div>
+        </div>
+
+        <div class="proof-payout-row">
+          <div class="payout-left">
+            <span class="payout-label">Règlement Wave Reçu</span>
+            <span class="payout-val">+58 000 FCFA</span>
+          </div>
+          <span class="payout-tag">PAIEMENT DIRECT MARCHAND</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LES 4 BOUCLIERS INVIOLABLES -->
+    <div class="shield-list">
+
+      <div class="shield-item highlight">
+        <span class="shield-icon">🛡️</span>
+        <div class="shield-content">
+          <div class="shield-title">Zéro Cash Encaissé par le Livreur</div>
+          <div class="shield-desc">
+            Le client scanne le <strong>QR Code Universel WAZAP</strong> (Wave, Orange, MTN, Moov, Carte). <strong>L'argent arrive instantanément sur votre téléphone</strong>. Le livreur ne touche aucun billet.
+          </div>
+        </div>
+      </div>
+
+      <div class="shield-item">
+        <span class="shield-icon">🪪</span>
+        <div class="shield-content">
+          <div class="shield-title">Livreurs Contrôlés par CNI Officielle</div>
+          <div class="shield-desc">
+            Chaque coursier partenaire est <strong>enregistré avec sa pièce d'identité officielle vérifiée par IA</strong>. Son identité complète et son historique sont tracés.
+          </div>
+        </div>
+      </div>
+
+      <div class="shield-item">
+        <span class="shield-icon">📍</span>
+        <div class="shield-content">
+          <div class="shield-title">Suivi GPS Transparent en Direct</div>
+          <div class="shield-desc">
+            Votre cliente voit la moto approcher sur la carte en temps réel. <strong>Plus aucun malentendu ni appel stressant</strong> !
+          </div>
+        </div>
+      </div>
+
+      <div class="shield-item">
+        <span class="shield-icon">🔒</span>
+        <div class="shield-content">
+          <div class="shield-title">Assurance Colis Sûr Incluse</div>
+          <div class="shield-desc">
+            Chaque colis scellé est protégé. En cas d'incident, <strong>WAZAP s'engage à vos côtés</strong> pour une sérénité totale.
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- BANDEAU OFFRE 15 COURSES OFFERTES -->
+  <div class="offer-strip">
+    <div class="offer-strip-left">
+      <span class="offer-strip-icon">🎁</span>
+      <span class="offer-strip-text">Offre Bienvenue : 15 premières livraisons avec frais WAZAP offerts !</span>
+    </div>
+    <span class="offer-strip-pill">0 F DE COMMISSION</span>
+  </div>
+
+  <!-- FOOTER GÉANT WHATSAPP & QR CODE -->
+  <footer class="footer-action">
+    <div class="cta-main-block">
+      <div class="cta-big-banner">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="#040c07" style="flex-shrink:0;"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        <span class="banner-text">POUR EXPÉDIER VOS COLIS : ENVOYEZ « COLIS »</span>
+      </div>
+
+      <div class="cta-number-row">
+        <div class="wa-svg-badge">
+          <svg viewBox="0 0 32 32" width="38" height="38" fill="none">
+            <circle cx="16" cy="16" r="16" fill="#25D366"/>
+            <path d="M23.5 8.5C21.5 6.5 18.8 5.4 16 5.4C10.2 5.4 5.4 10.2 5.4 16C5.4 17.9 5.9 19.7 6.8 21.3L5.4 26.6L10.8 25.2C12.3 26 14.1 26.5 16 26.5C21.8 26.5 26.6 21.7 26.6 15.9C26.6 13.1 25.5 10.5 23.5 8.5ZM16 24.7C14.4 24.7 12.8 24.3 11.5 23.5L11.2 23.3L8 24.1L8.9 21L8.6 20.6C7.7 19.2 7.2 17.6 7.2 16C7.2 11.1 11.1 7.2 16 7.2C18.4 7.2 20.6 8.1 22.3 9.8C24 11.5 24.9 13.7 24.9 16.1C24.8 20.8 20.9 24.7 16 24.7ZM20.8 18.3C20.5 18.1 19.3 17.5 19.1 17.4C18.8 17.3 18.7 17.3 18.5 17.5C18.3 17.8 17.8 18.3 17.7 18.5C17.5 18.7 17.4 18.7 17.1 18.5C16.8 18.4 15.9 18.1 14.8 17.1C13.9 16.3 13.4 15.4 13.2 15.1C13 14.8 13.2 14.7 13.3 14.5C13.5 14.4 13.6 14.2 13.8 14C13.9 13.8 14 13.7 14.1 13.5C14.2 13.3 14.1 13.2 14.1 13C14 12.9 13.5 11.7 13.3 11.2C13.1 10.7 12.9 10.8 12.7 10.8H12.2C12 10.8 11.7 10.9 11.5 11.1C11.2 11.4 10.6 12 10.6 13.2C10.6 14.4 11.5 15.6 11.6 15.7C11.7 15.9 13.3 18.4 15.8 19.4C16.4 19.7 16.9 19.8 17.2 20C17.9 20.2 18.6 20.2 19.1 20.1C19.6 20 20.8 19.4 21 18.7C21.3 18 21.3 17.4 21.2 17.3C21.1 17.2 21 17.1 20.8 18.3Z" fill="white"/>
+          </svg>
+        </div>
+        <div class="number-details">
+          <span class="number-label">WhatsApp Business Officiel WAZAP</span>
+          <span class="number-digits">05 44 05 19 72</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR CODE GÉANT OFFICIEL -->
+    <div class="qr-large-card">
+      <div class="qr-label-top">📷 SCANNEZ ICI</div>
+      <div class="qr-img-box">
+        <img src="assets/qr_colis_whatsapp.png" alt="QR Code WhatsApp WAZAP">
+      </div>
+      <div class="qr-label-bottom">EXPÉDIEZ EN 1 CLIC</div>
+    </div>
+  </footer>
+
+</body>
+</html>
