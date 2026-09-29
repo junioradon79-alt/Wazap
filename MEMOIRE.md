@@ -3794,6 +3794,14 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
 - **Couverture des 5 axes stratégiques :** Anti-fuite/0% cash, paiement instantané Wave/OM, fin des appels et GPS en direct, Assurance Colis Sûr, et offre des 15 livraisons gratuites (0 F commission).
 - **Captions prêtes à poster :** Chaque script est accompagné de son texte de publication Facebook complet (Hook, corps, CTA direct WhatsApp `05 44 05 19 72` et premier commentaire épinglé pour stimuler l'algorithme).
 
+### 3. Répertoire Unique & Centralisé des Personnages (`marketing/personnages/`)
+- **Regroupement exhaustif :** Tous les visuels, portraits et scènes réelles des personnages de l'univers WAZAP sont désormais unifiés dans un seul et unique dossier : [`marketing/personnages/`](file:///c:/Dev/Wazap/WazapSln/marketing/personnages/).
+- **25 fichiers canoniques organisés :**
+  - **Commerçants & Cybervendeuses :** `awa.jpg` (bijoutière Cocody), `salimata.jpg` (styliste Angré), `fatou.jpg` (pâtissière Yopougon), `amara.jpg` (streetwear Marcory), `momo.jpg` (traiteur/grillades), `aicha.jpg` (vendeuse mode), `aicha_boutique_colis_stress.jpg`, `commercante_boutique_wax.jpg`.
+  - **Livreurs Professionnels Certifiés :** `bakary.jpg` (moto, smartphone), `koffi.jpg` (Cocody, attente colis, tenue verte), `livreur_scan_porte_cliente.jpg` (preuve terrain scan QR Code), `livreur_pouce_leve.jpg`, `livreur_ecran_whatsapp.jpg`, `livreur_cadeau_redmi15c.jpg`.
+- **Catalogue & Guide Visuel :** Fichier maître [`marketing/personnages/README.md`](file:///c:/Dev/Wazap/WazapSln/marketing/personnages/README.md) documentant chaque protagoniste, sa commune, son secteur d'activité et sa description visuelle exacte pour faciliter la réutilisation immédiate dans les campagnes publicitaires, affiches, carousels et scripts vidéo.
+
+
 
 
 
