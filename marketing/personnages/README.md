@@ -17,6 +17,8 @@
 | [`aicha.jpg`](aicha.jpg) / [`aicha_vendeuse_mode.jpg`](aicha_vendeuse_mode.jpg) | **Aïcha** | Cosmétiques & Mode • Grand Abidjan | Cybervendeuse souriante et active sur WhatsApp et Facebook. |
 | [`aicha_boutique_colis_stress.jpg`](aicha_boutique_colis_stress.jpg) | **Aïcha (scène stress)** | E-commerce • Gestion des colis | Dans sa réserve entourée de cartons de commandes avec appels manqués (situation avant WAZAP). |
 | [`commercante_boutique_wax.jpg`](commercante_boutique_wax.jpg) | **Commerçante Wax** | Mode Africaine • Cocody | Dans sa boutique avec notifications WhatsApp de commandes en direct. |
+| [`clarisse.jpg`](clarisse.jpg) / [`clarisse_cosmetiques_koumassi.jpg`](clarisse_cosmetiques_koumassi.jpg) | **Clarisse** | Cosmétiques & Parfumerie • Koumassi | Élégante cybervendeuse souriante avec tresses soignées dans sa boutique, smartphone en main avec notifications WAZAP. |
+| [`clarisse_boutique_pluie_appel.jpg`](clarisse_boutique_pluie_appel.jpg) | **Clarisse (scène pluie/urgence)** | Gestion des livraisons par mauvais temps | Au téléphone dans sa boutique, inquiète pour ses colis sous la pluie (scène Épisode 10 Facebook). |
 
 ---
 
