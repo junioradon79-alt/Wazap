@@ -3804,7 +3804,7 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
 ### 4. Médiathèque Centrale & Regroupement Exhaustif des Vidéos WAZAP (`videos/`)
 - **Parcours complet de l'ordinateur & consolidation :** Scan de l'ensemble des disques et dossiers utilisateurs (`Downloads`, `Documents/Codex`, `Dev/Wazap`, etc.) pour identifier et rapatrier toutes les vidéos de l'écosystème WAZAP.
 - **Répertoire unique centralisé :** [`c:\Dev\Wazap\videos\`](file:///c:/Dev/Wazap/videos/) regroupant **143 vidéos classées** (**~799 Mo**) selon 7 rubriques claires :
-  1. `01_pilotes_finaux/` (10 vidéos montées complètes : Pilote 1 Livreur 0% commission, Pilote 2 Livreur 50 smartphones, Pilote 3 Vendeur Commande urgente Cocody, Magic Importer, Présentation complète, etc.).
+  1. `01_pilotes_finaux/` (11 vidéos montées complètes : Pilote Awa 15 livraisons offertes, Pilote 1 Livreur 0% commission, Pilote 2 Livreur 50 smartphones, Pilote 3 Vendeur Commande urgente Cocody, Magic Importer, Présentation complète, etc.).
   2. `02_series_tiktok_dialogues/` (17 épisodes de sketchs & dialogues en studio automatisé).
   3. `03_tiktok_batch_concepts/` (42 vidéos batch 15 jours, concepts et angles marketing).
   4. `04_demos_produit_pwa/` (4 démonstrations logicielles PWA suivi client & landing page).
