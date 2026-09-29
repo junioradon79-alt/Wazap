@@ -25,48 +25,45 @@ WAZAP — Livraison Abidjan 🛵
 
 ### 📝 Bio TikTok Optimisée (Strictement ≤ 80 caractères)
 
-#### Option 1 : Coup de poing (56 caractères) — ⭐ Recommandée
+#### Option A : Conquête Mixte Livreurs & Commerçants (74 caractères) — ⭐ Recommandée
 ```text
-🛵 Le Yango du colis à Abidjan
-🎁 15 Livraisons offertes 👇
+🛵 Livreurs : 0% commission
+🏪 Commerces : 15 courses offertes
+👇 Clique ici
 ```
 
-#### Option 2 : Vitesse + Assurance (61 caractères)
+#### Option B : Focus Choc Recrutement & 50 Smartphones (67 caractères)
 ```text
-⚡ Coursier chez toi en 3 min
-🛡️ 15 Livraisons + Assurance Colis Sûr 👇
+🛵 0% commission · 50 smartphones
+🎁 15 courses offertes boutiques
+👇
 ```
 
-#### Option 3 : Format 3 Lignes Complet (75 caractères)
+#### Option C : Vitesse & Proximité (71 caractères)
 ```text
-📦 Colis Abidjan en 3 min
-🛡️ Assurance Colis Sûr 50 000 F
-🎁 15 Livraisons offertes 👇
+⚡ Colis Abidjan en 3 min
+🛵 0% commission livreurs
+🎁 15 courses offertes 👇
 ```
 
 ---
 
 ## 3. Lien en Bio (Call-To-Action à Haute Conversion)
 
-Ne mettez plus de lien raccourci générique sans tracking. Utilisez l'un des deux liens ci-dessous :
+Remplacer le lien générique opaque par un lien officiel traçable :
 
-### Option 1 : Lien Court Interne WAZAP (⭐ Solution Recommandée)
-Redirection interne gérée directement par notre backend vers le WhatsApp officiel avec message pré-rempli :
-
-🔗 **URL courte à coller dans le champ "Site Web" de TikTok :**
+### Option 1 : Lien Court Vers La Vitrine WAZAP (⭐ Solution Recommandée)
 ```text
-https://wazap.ci/tiktok
+https://tinyurl.com/wazap-ci
 ```
-*(ou en alternative ultra-courte : `https://wazap.ci/15`)*
+*(Redirige vers la plateforme WAZAP avec accès instantané Commerçants et Livreurs).*
 
-*Dès que le commerçant clique dessus, il est instantanément redirigé vers l'application WhatsApp avec le message pré-rempli sur le `+225 07 87 11 95 20`. Aucun service tiers, 100% marque WAZAP, et modifiable à distance sans toucher à la bio TikTok.*
-
----
-
-### Option 2 : Lien Direct WhatsApp (Alternative sans domaine)
+### Option 2 : Lien Direct WhatsApp Business Actif
 ```text
-https://wa.me/2250787119520?text=Bonjour%20WAZAP%2C%20je%20suis%20commer%C3%A7ant%20%C3%A0%20Abidjan%20et%20je%20souhaite%20activer%20mes%2015%20livraisons%20offertes%20et%20mon%20Pack%20Digital%20Boutique%20!
+https://wa.me/2250544051972?text=Bonjour%20WAZAP
 ```
+*(Ouvre immédiatement la conversation WhatsApp sur le smartphone officiel `05 44 05 19 72`).*
+
 
 ---
 

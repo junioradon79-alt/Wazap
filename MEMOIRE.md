@@ -3765,8 +3765,13 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
   - Remplacement de l'image de synthèse 2D chargée de texte par un portrait photoréaliste natif 9:16 : [`bakary_smartphone.jpg`](file:///c:/Dev/Wazap/WazapSln/marketing/tiktok/personnages/bakary_smartphone.jpg).
   - Révision du prompt caméra évitant tout mot-clé de titre 2D ("title card overlay"), garantissant une acceptation fluide à 100% par le moteur vidéo IA.
 - **Correction Google Flow Scène 1 Vidéo 3 :**
-  - Remplacement de l'ancien avatar 1:1 stylisé cartoon par une image photoréaliste 9:16 haute fidélité : [`aicha_boutique_stress.jpg`](file:///c:/Dev/Wazap/WazapSln/marketing/tiktok/personnages/aicha_boutique_stress.jpg) (Tantie Aïcha dans sa boutique avec robe émeraude et smartphone).
   - Prompt caméra épuré et sans mot-clé sensible, 100% accepté par Veo / Google Flow.
+- **Rafraîchissement Officiel du Profil TikTok (`@wazap_ci`) :**
+  - **Nom d'affichage SEO :** `WAZAP — Livraison Abidjan 🛵` (28 car. optimisé recherche locale).
+  - **Avatar Officiel :** [`tiktok_avatar_officiel.jpg`](file:///c:/Dev/Wazap/WazapSln/marketing/visuels/tiktok_avatar_officiel.jpg) (Badge émeraude 3D 2026, contraste et cadrage parfait).
+  - **Bio TikTok calibrée (≤ 80 car.) :** Formule mixte `🛵 Livreurs : 0% commission \n 🏪 Commerces : 15 courses offertes \n 👇 Clique ici` (74 car.).
+  - **Lien Bio Direct :** Redirection vers `https://tinyurl.com/wazap-ci` ou lien WhatsApp direct `https://wa.me/2250544051972?text=Bonjour%20WAZAP`.
+
 
 
 
