@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Visuel WAZAP Story Vertical 9:16</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800;900&family=Space+Grotesk:wght@700;800;900&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 1080px;
+      height: 1920px;
+      background: #040c07;
+      color: #ffffff;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 70px 45px 80px; /* Safe zone WhatsApp/Instagram */
+    }
+
+    /* Glows ambiants */
+    .bg-glow-tr {
+      position: absolute;
+      top: -150px;
+      right: -100px;
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(0, 214, 108, 0.3) 0%, transparent 70%);
+      pointer-events: none;
+      filter: blur(70px);
+    }
+
+    .bg-glow-bl {
+      position: absolute;
+      bottom: -150px;
+      left: -100px;
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(14, 122, 62, 0.3) 0%, transparent 70%);
+      pointer-events: none;
+      filter: blur(70px);
+    }
+
+    /* HEADER */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .brand-logo {
+      width: 82px;
+      height: 82px;
+      border-radius: 50%;
+      border: 3.5px solid #00D66C;
+      box-shadow: 0 0 30px rgba(0, 214, 108, 0.6);
+      object-fit: cover;
+    }
+
+    .brand-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      line-height: 1;
+    }
+
+    .brand-title span {
+      color: #00D66C;
+    }
+
+    .brand-sub {
+      font-size: 15px;
+      color: #94A3B8;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 5px;
+    }
+
+    .badge-top-alert {
+      background: {{BADGE_TOP_BG}};
+      color: #FFFFFF;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 900;
+      font-size: 18px;
+      letter-spacing: 0.5px;
+      padding: 12px 26px;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 0 30px {{BADGE_TOP_SHADOW}};
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* HEADLINE */
+    .headline-wrap {
+      margin-top: 25px;
+      margin-bottom: 20px;
+      z-index: 10;
+    }
+
+    .headline-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(0, 214, 108, 0.14);
+      border: 1.5px solid rgba(0, 214, 108, 0.5);
+      color: #00D66C;
+      font-size: 15px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 8px 18px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+
+    .headline-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 44px;
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: -0.5px;
+      text-transform: uppercase;
+    }
+
+    .glow-green {
+      color: #00D66C;
+      text-shadow: 0 0 25px rgba(0, 214, 108, 0.6);
+    }
+
+    .glow-gold {
+      color: #FACC15;
+      text-shadow: 0 0 25px rgba(250, 204, 21, 0.6);
+    }
+
+    .headline-sub {
+      font-size: 18px;
+      color: #CBD5E1;
+      line-height: 1.4;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+
+    .headline-sub strong {
+      color: #FFFFFF;
+      font-weight: 800;
+    }
+
+    /* CARTE PHOTO DU PERSONNAGE (GRANDE EN STORY) */
+    .photo-card {
+      position: relative;
+      height: 520px;
+      border-radius: 26px;
+      overflow: hidden;
+      border: 2.5px solid rgba(0, 214, 108, 0.4);
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7);
+      background: #0B1910;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      z-index: 10;
+      margin-bottom: 20px;
+    }
+
+    .bg-photo {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+    }
+
+    .photo-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(4, 12, 7, 0.1) 0%, rgba(4, 12, 7, 0.3) 45%, rgba(4, 12, 7, 0.95) 90%);
+      pointer-events: none;
+    }
+
+    .photo-badge-top {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      background: rgba(4, 12, 7, 0.85);
+      border: 1.5px solid rgba(0, 214, 108, 0.5);
+      backdrop-filter: blur(10px);
+      color: #00D66C;
+      font-weight: 900;
+      font-size: 15px;
+      padding: 8px 18px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      z-index: 5;
+    }
+
+    .photo-bottom-card {
+      position: relative;
+      z-index: 5;
+      padding: 20px 22px;
+    }
+
+    .proof-banner {
+      background: rgba(11, 25, 16, 0.92);
+      border: 1.5px solid rgba(0, 214, 108, 0.5);
+      backdrop-filter: blur(10px);
+      border-radius: 14px;
+      padding: 12px 18px;
+      margin-bottom: 12px;
+    }
+
+    .proof-banner-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 17px;
+      font-weight: 900;
+      color: #FACC15;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .proof-banner-desc {
+      font-size: 14px;
+      color: #E2E8F0;
+      font-weight: 600;
+      line-height: 1.35;
+      margin-top: 4px;
+    }
+
+    .proof-payout-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #00D66C;
+      color: #040c07;
+      padding: 12px 18px;
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(0, 214, 108, 0.4);
+    }
+
+    .payout-left {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .payout-label {
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .payout-val {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 26px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .payout-tag {
+      background: #040c07;
+      color: #FFFFFF;
+      font-size: 13px;
+      font-weight: 900;
+      padding: 6px 14px;
+      border-radius: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* LISTE DES BOUCLIERS EN CARTES VERTICALES */
+    .shield-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      z-index: 10;
+      margin-bottom: 20px;
+    }
+
+    .shield-item {
+      background: rgba(11, 25, 16, 0.75);
+      border: 1.5px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 18px;
+    }
+
+    .shield-item.highlight {
+      background: rgba(0, 214, 108, 0.14);
+      border: 2px solid #00D66C;
+      box-shadow: 0 0 25px rgba(0, 214, 108, 0.2);
+    }
+
+    .shield-icon {
+      font-size: 28px;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .shield-content {
+      flex: 1;
+    }
+
+    .shield-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin-bottom: 4px;
+    }
+
+    .shield-item.highlight .shield-title {
+      color: #00D66C;
+    }
+
+    .shield-desc {
+      font-size: 15px;
+      color: #94A3B8;
+      line-height: 1.4;
+      font-weight: 600;
+    }
+
+    .shield-desc strong {
+      color: #FFFFFF;
+      font-weight: 800;
+    }
+
+    /* BANDEAU OFFRE */
+    .offer-strip {
+      background: linear-gradient(90deg, rgba(250, 204, 21, 0.18) 0%, rgba(0, 214, 108, 0.18) 100%);
+      border: 2px solid rgba(250, 204, 21, 0.6);
+      border-radius: 16px;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 22px;
+      z-index: 10;
+    }
+
+    .offer-strip-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .offer-strip-icon {
+      font-size: 24px;
+    }
+
+    .offer-strip-text {
+      font-size: 16px;
+      font-weight: 800;
+      color: #FACC15;
+    }
+
+    .offer-strip-pill {
+      background: #FACC15;
+      color: #040c07;
+      font-weight: 900;
+      font-size: 14px;
+      padding: 6px 16px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* FOOTER ACTION GÉANT & QR CODE EN STORY */
+    .footer-action {
+      display: flex;
+      align-items: stretch;
+      gap: 20px;
+      z-index: 10;
+    }
+
+    .cta-main-block {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .cta-big-banner {
+      background: #FACC15;
+      color: #040c07;
+      padding: 18px 24px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      box-shadow: 0 8px 25px rgba(250, 204, 21, 0.4);
+      border: 2.5px solid #FEF08A;
+    }
+
+    .banner-text {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .cta-number-row {
+      background: #FFFFFF;
+      color: #040c07;
+      border-radius: 18px;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      border: 2.5px solid #E2E8F0;
+    }
+
+    .wa-svg-badge {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .number-details {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .number-label {
+      font-size: 13px;
+      font-weight: 900;
+      color: #075E54;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .number-digits {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 40px;
+      font-weight: 900;
+      color: #040c07;
+      letter-spacing: 1.5px;
+      line-height: 1;
+    }
+
+    /* CARTE QR CODE GÉANTE EN STORY */
+    .qr-large-card {
+      background: #FFFFFF;
+      border-radius: 22px;
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7), 0 0 35px rgba(0, 214, 108, 0.6);
+      border: 4px solid #00D66C;
+      flex-shrink: 0;
+      width: 220px;
+    }
+
+    .qr-label-top {
+      font-size: 14px;
+      font-weight: 900;
+      color: #040c07;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .qr-img-box {
+      width: 170px;
+      height: 170px;
+      background: #FFFFFF;
+      margin: 6px 0;
+    }
+
+    .qr-img-box img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      image-rendering: pixelated;
+    }
+
+    .qr-label-bottom {
+      font-size: 13px;
+      font-weight: 900;
+      color: #075E54;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-align: center;
+      line-height: 1.15;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-glow-tr"></div>
+  <div class="bg-glow-bl"></div>
+
+  <!-- HEADER OFFICIEL -->
+  <header class="header">
+    <div class="brand-wrap">
+      <img src="assets/logo_officiel_wazap.jpg" alt="Logo Officiel WAZAP" class="brand-logo">
+      <div class="brand-text">
+        <div class="brand-title">WAZAP<span>.CI</span></div>
+        <div class="brand-sub">Réseau Intelligent du Grand Abidjan</div>
+      </div>
+    </div>
+    <div class="badge-top-alert">
+      {{BADGE_TOP}}
+    </div>
+  </header>
+
+  <!-- HEADLINE ACCROCHE CHOC -->
+  <section class="headline-wrap">
+    <div class="headline-tag">
+      {{HEADLINE_TAG}}
+    </div>
+    <h1 class="headline-title">
+      {{HEADLINE_TITLE}}
+    </h1>
+    <p class="headline-sub">
+      {{HEADLINE_SUB}}
+    </p>
+  </section>
+
+  <!-- PHOTO PREUVE TERRAIN & PERSONNAGE (PLEINE LARGEUR STORY) -->
+  <div class="photo-card">
+    <img src="assets/{{PERSONNAGE_IMG}}" alt="{{PERSONNAGE_NAME}}" class="bg-photo">
+    <div class="photo-overlay"></div>
+    <div class="photo-badge-top">{{PERSONNAGE_BADGE}}</div>
+
+    <div class="photo-bottom-card">
+      <div class="proof-banner">
+        <div class="proof-banner-title">
+          <span>⚡</span> {{CARD_TITLE}}
+        </div>
+        <div class="proof-banner-desc">
+          {{CARD_DESC}}
+        </div>
+      </div>
+
+      <div class="proof-payout-row">
+        <div class="payout-left">
+          <span class="payout-label">{{PAYOUT_LABEL}}</span>
+          <span class="payout-val">{{PAYOUT_VAL}}</span>
+        </div>
+        <span class="payout-tag">{{PAYOUT_TAG}}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARGUMENTS & VALEUR AJOUTÉE -->
+  <div class="shield-list">
+    {{POINTS_HTML}}
+  </div>
+
+  <!-- BANDEAU OFFRE -->
+  <div class="offer-strip">
+    <div class="offer-strip-left">
+      <span class="offer-strip-icon">🎁</span>
+      <span class="offer-strip-text">{{OFFER_STRIP_TEXT}}</span>
+    </div>
+    <span class="offer-strip-pill">{{OFFER_STRIP_PILL}}</span>
+  </div>
+
+  <!-- FOOTER GÉANT WHATSAPP & QR CODE ULTRA VISIBLE -->
+  <footer class="footer-action">
+    <div class="cta-main-block">
+      <div class="cta-big-banner">
+        <svg viewBox="0 0 24 24" width="32" height="32" fill="#040c07" style="flex-shrink:0;"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        <span class="banner-text">{{CTA_BANNER_TEXT}}</span>
+      </div>
+
+      <div class="cta-number-row">
+        <div class="wa-svg-badge">
+          <svg viewBox="0 0 32 32" width="46" height="46" fill="none">
+            <circle cx="16" cy="16" r="16" fill="#25D366"/>
+            <path d="M23.5 8.5C21.5 6.5 18.8 5.4 16 5.4C10.2 5.4 5.4 10.2 5.4 16C5.4 17.9 5.9 19.7 6.8 21.3L5.4 26.6L10.8 25.2C12.3 26 14.1 26.5 16 26.5C21.8 26.5 26.6 21.7 26.6 15.9C26.6 13.1 25.5 10.5 23.5 8.5ZM16 24.7C14.4 24.7 12.8 24.3 11.5 23.5L11.2 23.3L8 24.1L8.9 21L8.6 20.6C7.7 19.2 7.2 17.6 7.2 16C7.2 11.1 11.1 7.2 16 7.2C18.4 7.2 20.6 8.1 22.3 9.8C24 11.5 24.9 13.7 24.9 16.1C24.8 20.8 20.9 24.7 16 24.7ZM20.8 18.3C20.5 18.1 19.3 17.5 19.1 17.4C18.8 17.3 18.7 17.3 18.5 17.5C18.3 17.8 17.8 18.3 17.7 18.5C17.5 18.7 17.4 18.7 17.1 18.5C16.8 18.4 15.9 18.1 14.8 17.1C13.9 16.3 13.4 15.4 13.2 15.1C13 14.8 13.2 14.7 13.3 14.5C13.5 14.4 13.6 14.2 13.8 14C13.9 13.8 14 13.7 14.1 13.5C14.2 13.3 14.1 13.2 14.1 13C14 12.9 13.5 11.7 13.3 11.2C13.1 10.7 12.9 10.8 12.7 10.8H12.2C12 10.8 11.7 10.9 11.5 11.1C11.2 11.4 10.6 12 10.6 13.2C10.6 14.4 11.5 15.6 11.6 15.7C11.7 15.9 13.3 18.4 15.8 19.4C16.4 19.7 16.9 19.8 17.2 20C17.9 20.2 18.6 20.2 19.1 20.1C19.6 20 20.8 19.4 21 18.7C21.3 18 21.3 17.4 21.2 17.3C21.1 17.2 21 17.1 20.8 18.3Z" fill="white"/>
+          </svg>
+          <span style="font-size: 16px; font-weight: 800; color: #075E54;">WhatsApp Business</span>
+        </div>
+        <div class="number-details">
+          <span class="number-label">Ligne Officielle Grand Abidjan</span>
+          <span class="number-digits">05 44 05 19 72</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR CODE GÉANT EN STORY ULTRA VISIBLE -->
+    <div class="qr-large-card">
+      <div class="qr-label-top">📷 SCANNEZ ICI</div>
+      <div class="qr-img-box">
+        <img src="assets/{{QR_SRC}}" alt="QR Code WhatsApp WAZAP">
+      </div>
+      <div class="qr-label-bottom">{{QR_BOTTOM_LABEL}}</div>
+    </div>
+  </footer>
+
+</body>
+</html>

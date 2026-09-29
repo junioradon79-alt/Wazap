@@ -3823,3 +3823,28 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
   - **15 Scripts Facebook Commerçants Révisés :** [`marketing/facebook/SCRIPTS_VIDEOS_FACEBOOK_COMMERCANTS_15_EPISODES.md`](file:///c:/Dev/Wazap/WazapSln/marketing/facebook/SCRIPTS_VIDEOS_FACEBOOK_COMMERCANTS_15_EPISODES.md) avec prompts Flow 1-clic pour chaque épisode (Format Snack 15s & Format Storytelling 45s).
   - **30 Scripts TikTok Haute-Réalité Révisés :** [`marketing/tiktok/SCRIPTS_TIKTOK_30_EPISODES.md`](file:///c:/Dev/Wazap/WazapSln/marketing/tiktok/SCRIPTS_TIKTOK_30_EPISODES.md) et [`videos/SCRIPTS_TIKTOK_30_EPISODES.md`](file:///c:/Dev/Wazap/videos/SCRIPTS_TIKTOK_30_EPISODES.md) (élimination complète de l'ancien code PIN, intégration du QR Code Universel WAZAP et prompts Flow 100% sûrs).
 - **Guide Méthodologique Maître :** [`marketing/GUIDE_PROMPTS_GOOGLE_FLOW_VEO_SANS_REJET.md`](file:///c:/Dev/Wazap/WazapSln/marketing/GUIDE_PROMPTS_GOOGLE_FLOW_VEO_SANS_REJET.md) documentant la blacklist complète, la table des équivalences visuelles et la formule de prompt sans échec.
+
+### 6. Automatisation Campagne Marketing 60 Jours — 180 Publications Programmées (29/09/2026 Soir)
+- **Objectif & Cadrage :** Industrialisation complète de la présence WAZAP sur les réseaux sociaux pendant 60 jours consécutifs (01/10/2026 au 29/11/2026), à raison de 3 publications synchronisées par jour (Matin 08h00 · Midi 12h30 · Soir 18h30) sur **Facebook** (Feed & Story), **Instagram** (Feed & Story) et **WhatsApp Business** (Statut / Story).
+- **Direction Artistique & Visibilité Maximale des CTA & QR Codes :**
+  - **QR Code Universel GÉANT (x2.5) :** Conteneur blanc pur à bordure émeraude néon (#00D66C), drop shadow puissante, étiquette haute « 📷 SCANNEZ ICI » et mention basse « COMPATIBLE WAVE • OM • MTN • MOOV • CARTE ».
+  - **Bannière CTA GÉANTE & Contrastée :** Pavé jaune or (#FACC15) / vert vif avec instructions percutantes (« POUR EXPÉDIER VOS COLIS : ENVOYEZ COLIS » ou « POUR REJOINDRE L'ÉQUIPE : ENVOYEZ DISPO »).
+  - **Numéro Officiel GÉANT :** Pavé blanc avec logo officiel WhatsApp et typographie 34-40px pour le numéro unique `05 44 05 19 72`.
+  - **Double Format Ultra-HD :** Format Feed Carré 1:1 (2160×2160 HD) et Format Story 9:16 (2160×3840 HD) générés sans hallucination IA via Edge Headless (`marketing/programmation-60jours/visuels/`).
+- **Incarnation par le Répertoire des Personnages d'Abidjan :**
+  - Awa (Bijoutière Deux-Plateaux - Sécurité 0 cash marchandise & anti-fuite).
+  - Fatou (Pâtissière Yopougon - Sécurité colis fragiles & Assurance Colis Sûr).
+  - Clarisse (Cosmétiques Koumassi - Sérénité sous la pluie & livreurs vérifiés CNI par IA).
+  - Salimata (Styliste Angré - Gain de temps, livreur en 3 min chrono).
+  - Momo (Maître restaurateur Treichville - Rush de midi, plats livrés chauds en 20 min).
+  - Amara (Streetwear Marcory - Vitesse, zéro problème de monnaie sur billet de 10 000 F).
+  - Tantie Aïcha (Boutique Wax Adjamé - 15 courses offertes, 0 F commission).
+  - Bakary (Livreur Leader Marcory - 0% commission livreur, 50 smartphones Redmi 15C).
+  - Koffi (Livreur Certifié Riviera - 1 000 F net minimum dès le 1er mètre).
+  - Le Duel Choc (Comparatif sans filtre Ancienne Méthode vs Révolution WAZAP).
+- **Livrables Clé en Main Déployés :**
+  - **Calendrier Complet 180 Publications :** [`marketing/programmation-60jours/CALENDRIER_PROGRAMMATION_60JOURS.md`](file:///c:/Dev/Wazap/marketing/programmation-60jours/CALENDRIER_PROGRAMMATION_60JOURS.md) avec hook, corps, CTA direct WhatsApp et premier commentaire épinglé pour chaque créneau.
+  - **Fichier CSV d'Automatisation :** [`marketing/programmation-60jours/CALENDRIER_60JOURS.csv`](file:///c:/Dev/Wazap/marketing/programmation-60jours/CALENDRIER_60JOURS.csv) prêt pour import direct dans Meta Business Suite bulk scheduler, Metricool, Buffer.
+  - **Manifeste JSON Structuré :** [`marketing/programmation-60jours/manifest_60jours.json`](file:///c:/Dev/Wazap/marketing/programmation-60jours/manifest_60jours.json).
+  - **Galerie & Simulateur Interactif :** [`marketing/programmation-60jours/galerie_preview_60jours.html`](file:///c:/Dev/Wazap/marketing/programmation-60jours/galerie_preview_60jours.html).
+

@@ -1,0 +1,502 @@
+[
+  {
+    "id": "visuel_01_securite_awa",
+    "theme": "securite",
+    "personnage": "Awa",
+    "personnage_name": "Awa • Joaillerie & Luxe",
+    "personnage_badge": "💎 Awa • Cocody Deux-Plateaux",
+    "personnage_img": "awa.jpg",
+    "badge_top": "🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE",
+    "badge_top_bg": "linear-gradient(135deg, #FF2B45 0%, #B91C1C 100%)",
+    "badge_top_shadow": "rgba(255, 43, 69, 0.4)",
+    "headline_tag": "🔒 BIJOUX & MARCHANDISES DE VALEUR",
+    "headline_title": "EXPÉDIEZ VOS COLIS SANS <span class=\"glow-green\">RISQUE DE FUITE</span> !",
+    "headline_sub": "Avec WAZAP, <strong>le coursier n'encaisse JAMAIS vos fonds</strong>. Le client scanne le QR Code Universel, le virement arrive instantanément sur votre Wave ou Orange Money.",
+    "card_title": "ZÉRO CASH SUR LA MARCHANDISE",
+    "card_desc": "Le client scanne le QR Code à la porte. 0 billet confié au coursier !",
+    "payout_label": "Règlement Marchandise",
+    "payout_val": "+45 000 FCFA",
+    "payout_tag": "CRÉDITÉ SUR WAVE / OM",
+    "points": [
+      {
+        "icon": "🛡️",
+        "title": "0 FCFA Encaissé par le Livreur",
+        "desc": "Paiement 100% digital direct marchandise. Le livreur ne touche pas un seul franc de votre vente.",
+        "highlight": true
+      },
+      {
+        "icon": "🪪",
+        "title": "Livreurs Certifiés CNI par IA",
+        "desc": "Pièce d'identité analysée et validée par Google Cloud Vision. Zéro profil anonyme dans le réseau.",
+        "highlight": false
+      },
+      {
+        "icon": "📍",
+        "title": "Traçabilité GPS en Direct",
+        "desc": "Vous et votre client suivez la course en temps réel sur la carte. Finis les « je suis au carrefour ».",
+        "highlight": false
+      },
+      {
+        "icon": "🔒",
+        "title": "Assurance Colis Sûr Incluse",
+        "desc": "Vos articles de valeur sont scellés et garantis jusqu'à la remise en main propre.",
+        "highlight": false
+      }
+    ],
+    "offer_strip_text": "Boutiques d'Abidjan : Vos 15 premières livraisons offertes !",
+    "offer_strip_pill": "0 F DE COMMISSION",
+    "cta_banner_text": "POUR EXPÉDIER VOS COLIS : ENVOYEZ « COLIS »",
+    "qr_src": "qr_colis_whatsapp.png",
+    "qr_bottom_label": "EXPÉDIEZ EN 1 CLIC"
+  },
+  {
+    "id": "visuel_02_securite_fatou",
+    "theme": "securite",
+    "personnage": "Fatou",
+    "personnage_name": "Fatou • Pâtissière & Traiteur",
+    "personnage_badge": "🎂 Fatou • Yopougon Maroc",
+    "personnage_img": "fatou.jpg",
+    "badge_top": "🛡️ COLIS FRAGILES & DÉLICATS",
+    "badge_top_bg": "linear-gradient(135deg, #0284C7 0%, #0369A1 100%)",
+    "badge_top_shadow": "rgba(2, 132, 199, 0.4)",
+    "headline_tag": "🧁 PÂTISSERIES, GÂTEAUX & ARTICLES DÉLICATS",
+    "headline_title": "GÂTEAUX LIVRÉS <span class=\"glow-green\">INTACTS OU REMBOURSÉS</span> !",
+    "headline_sub": "Finie la hantise du gâteau écrasé dans le sac de livraison. Nos coursiers sont formés au transport d'objets sensibles avec <strong>Assurance Colis Sûr</strong>.",
+    "card_title": "LIVREURS FORMÉS & PRÉCAUTIONNEUX",
+    "card_desc": "Maintien horizontal et conduite souple garantis. Votre réputation est protégée.",
+    "payout_label": "Commande Traiteur Anniversaire",
+    "payout_val": "+25 000 FCFA",
+    "payout_tag": "LIVRÉ SANS BAVURE",
+    "points": [
+      {
+        "icon": "🔒",
+        "title": "Assurance Colis Sûr Automatique",
+        "desc": "En cas de dommage avéré lors du transport, notre service indemnise votre atelier sans délai.",
+        "highlight": true
+      },
+      {
+        "icon": "🛵",
+        "title": "Livreurs Précautionneux Sélectionnés",
+        "desc": "Coursiers notés 5 étoiles spécialement assignés aux livraisons alimentaires et fragiles.",
+        "highlight": false
+      },
+      {
+        "icon": "📲",
+        "title": "Lien PWA Suivi en Direct",
+        "desc": "La cliente voit le motard approcher minute par minute et l'attend en bas sans retard.",
+        "highlight": false
+      },
+      {
+        "icon": "💳",
+        "title": "Scan QR Code Universel",
+        "desc": "La cliente paie par Wave, Orange Money ou MTN à la remise. Zéro monnaie à chercher.",
+        "highlight": false
+      }
+    ],
+    "offer_strip_text": "Traiteurs & Pâtisseries : 15 courses offertes sans commission !",
+    "offer_strip_pill": "PACK DÉCOUVERTE",
+    "cta_banner_text": "POUR EXPÉDIER VOS GÂTEAUX : TAPEZ « COLIS »",
+    "qr_src": "qr_colis_whatsapp.png",
+    "qr_bottom_label": "COMMANDEZ EN 30S"
+  },
+  {
+    "id": "visuel_03_securite_clarisse",
+    "theme": "securite",
+    "personnage": "Clarisse",
+    "personnage_name": "Clarisse • Cosmétiques & Beauté",
+    "personnage_badge": "💄 Clarisse • Koumassi Remblais",
+    "personnage_img": "clarisse.jpg",
+    "badge_top": "🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE",
+    "badge_top_bg": "linear-gradient(135deg, #10B981 0%, #047857 100%)",
+    "badge_top_shadow": "rgba(16, 185, 129, 0.4)",
+    "headline_tag": "🌧️ MÊME SOUS LES ORAGES D'ABIDJAN",
+    "headline_title": "FINI L'ANGOISSE DU <span class=\"glow-gold\">LIVREUR INJOIGNABLE</span> !",
+    "headline_sub": "Il pleut à torrents et votre livreur a éteint son téléphone avec vos colis ? <strong>Sur WAZAP, la géolocalisation live ne coupe jamais</strong>.",
+    "card_title": "RADAR GPS CONTINU SUR LA CARTE",
+    "card_desc": "La position exacte du coursier s'affiche en direct sans devoir l'appeler 10 fois.",
+    "payout_label": "Lot Parfums & Soins",
+    "payout_val": "+38 500 FCFA",
+    "payout_tag": "ENCAISSÉ SANS STRESS",
+    "points": [
+      {
+        "icon": "📱",
+        "title": "Zéro Appel Téléphonique Requis",
+        "desc": "Vous et votre acheteuse regardez l'avancée du livreur sur une carte interactive fluide.",
+        "highlight": true
+      },
+      {
+        "icon": "🛡️",
+        "title": "Sac Étanche & Colis Scellé",
+        "desc": "Vos packagings cosmétiques arrivent secs et impeccables chez vos clientes.",
+        "highlight": false
+      },
+      {
+        "icon": "⚡",
+        "title": "Règlement 100% Garanti",
+        "desc": "Le scan du QR Code déclenche immédiatement la notification d'encaissement sur votre compte.",
+        "highlight": false
+      },
+      {
+        "icon": "🎁",
+        "title": "Vos 15 Premières Courses à 0 F",
+        "desc": "Zéro frais d'adhésion, zéro commission prélevée sur le prix de vos produits.",
+        "highlight": false
+      }
+    ],
+    "offer_strip_text": "Boutiques Beauté : Testez WAZAP avec 15 courses offertes !",
+    "offer_strip_pill": "SANS ENGAGEMENT",
+    "cta_banner_text": "POUR EXPÉDIER VOS COLIS : ENVOYEZ « COLIS »",
+    "qr_src": "qr_colis_whatsapp.png",
+    "qr_bottom_label": "EXPÉDIEZ EN DIRECT"
+  },
+  {
+    "id": "visuel_04_rapidite_salimata",
+    "theme": "rapidite",
+    "personnage": "Salimata",
+    "personnage_name": "Salimata • Styliste de Mode",
+    "personnage_badge": "✂️ Salimata • Cocody Angré",
+    "personnage_img": "salimata.jpg",
+    "badge_top": "⚡ GAIN DE TEMPS ULTRA-RAPIDE",
+    "badge_top_bg": "linear-gradient(135deg, #00D66C 0%, #075E54 100%)",
+    "badge_top_shadow": "rgba(0, 214, 108, 0.4)",
+    "headline_tag": "⏱️ CLIENTE PRESSÉE POUR UN ÉVÉNEMENT",
+    "headline_title": "UN LIVREUR EN BAS DE L'ATELIER EN <span class=\"glow-green\">3 MINUTES</span> !",
+    "headline_sub": "Ne perdez plus 45 minutes à supplier des coursiers occupés. WAZAP alerte automatiquement les <strong>5 livreurs les plus proches de votre position</strong>.",
+    "card_title": "ASSIGNATION INTELLIGENTE HAVERSINE",
+    "card_desc": "Dès que vous validez la commande, le livreur le plus proche accepte en 1 tap !",
+    "payout_label": "Robe Cérémonie Sur-Mesure",
+    "payout_val": "+50 000 FCFA",
+    "payout_tag": "LIVRÉE EN 35 MIN",
+    "points": [
+      {
+        "icon": "⚡",
+        "title": "Assignation en Moins de 3 Minutes",
+        "desc": "Algorithme radar analysant les livreurs disponibles dans un rayon de 5 km autour de vous.",
+        "highlight": true
+      },
+      {
+        "icon": "💬",
+        "title": "Tout se Passe sur WhatsApp",
+        "desc": "Pas d'application lourde qui sature la mémoire. 3 messages suffisent pour lancer la course.",
+        "highlight": false
+      },
+      {
+        "icon": "👗",
+        "title": "Respect Absolu du Vêtement",
+        "desc": "Vos tenues en wax et soie voyagent soigneusement emballées sans être froissées.",
+        "highlight": false
+      },
+      {
+        "icon": "💰",
+        "title": "Règlement Sécurisé sans Monnaie",
+        "desc": "La cliente scanne le QR Universel : Wave, Orange, MTN ou Moov en 3 secondes chrono.",
+        "highlight": false
+      }
+    ],
+    "offer_strip_text": "Ateliers de Couture & Mode : 15 courses sans commission !",
+    "offer_strip_pill": "15 COURSES OFFERTES",
+    "cta_banner_text": "BESOIN D'UN LIVREUR ? ENVOYEZ « COLIS »",
+    "qr_src": "qr_colis_whatsapp.png",
+    "qr_bottom_label": "COMMANDE EN 1 TAP"
+  },
+  {
+    "id": "visuel_05_rapidite_momo",
+    "theme": "rapidite",
+    "personnage": "Momo",
+    "personnage_name": "Momo • Grillades & Braisés",
+    "personnage_badge": "🍗 Chef Momo • Yopougon / Treichville",
+    "personnage_img": "momo.jpg",
+    "badge_top": "⚡ LE RUSH DE MIDI MAÎTRISÉ",
+    "badge_top_bg": "linear-gradient(135deg, #EA580C 0%, #C2410C 100%)",
+    "badge_top_shadow": "rgba(234, 88, 12, 0.4)",
+    "headline_tag": "🔥 RESTAURATION, CHOUKOUYA & PLATS CHAUDS",
+    "headline_title": "VOS PLATS LIVRÉS <span class=\"glow-gold\">CHAUDS ET FUMANTS</span> EN 20 MIN !",
+    "headline_sub": "Pendant la pause de midi, chaque minute compte. Avec WAZAP, <strong>vos clients de bureau mangent à l'heure</strong> sans annuler leur commande.",
+    "card_title": "VITESSE EXPRESS INTERCOMMUNES",
+    "card_desc": "Le livreur récupère le plat encore chaud et file directement chez le client.",
+    "payout_label": "Commandes Déjeuner Entreprise",
+    "payout_val": "+32 000 FCFA",
+    "payout_tag": "CLIENTS 100% RAVIS",
+    "points": [
+      {
+        "icon": "⏱️",
+        "title": "Livreur Déjà sur Place",
+        "desc": "Assignation instantanée d'un livreur situé à moins de 500 mètres de vos fourneaux.",
+        "highlight": true
+      },
+      {
+        "icon": "📍",
+        "title": "Suivi d'Approche en Direct",
+        "desc": "Le client suit la moto sur la carte et descend dès qu'elle arrive en bas de l'immeuble.",
+        "highlight": false
+      },
+      {
+        "icon": "📱",
+        "title": "Zéro Prise de Tête de Monnaie",
+        "desc": "Paiement direct Wave/OM au franc près. Finis les allers-retours pour chercher la monnaie.",
+        "highlight": false
+      },
+      {
+        "icon": "🎁",
+        "title": "15 Livraisons Offertes pour Démarrer",
+        "desc": "Boostez vos ventes de midi sans payer un seul franc de commission WAZAP.",
+        "highlight": false
+      }
+    ],
+    "offer_strip_text": "Restaurateurs d'Abidjan : Testez vos 15 courses offertes !",
+    "offer_strip_pill": "0 F COMMISSION",
+    "cta_banner_text": "POUR EXPÉDIER VOS PLATS : TAPEZ « COLIS »",
+    "qr_src": "qr_colis_whatsapp.png",
+    "qr_bottom_label": "LIVRAISON EXPRESS"
+  },
+  {
+    "id": "visuel_06_rapidite_amara",
+    "theme": "rapidite",
+    "personnage": "Amara",
+    "personnage_name": "Amara • Sneakers & Streetwear",
+    "personnage_badge": "👟 Amara • Marcory Zone 4",
+    "personnage_img": "amara.jpg",
+    "badge_top": "⚡ FINIE LA GALÈRE DE MONNAIE",
+    "badge_top_bg": "linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)",
+    "badge_top_shadow": "rgba(139, 92, 246, 0.4)",
+    "headline_tag": "💵 BILLET DE 10 000 F À LA LIVRAISON",
+    "headline_title": "LE CLIENT N'A PAS LA MONNAIE ? <span class=\"glow-green\">PROBLÈME RÉSOLU</span> !",
+    "headline_sub": "Le livreur tourne 20 minutes dans le quartier pour chercher la monnaie ? Avec WAZAP, <strong>le client scanne et paie le montant exact au franc près</strong>.",
+    "card_title": "PAIEMENT DIGITAL AU FRANC PRÈS",
+    "card_desc": "Scan immédiat Wave, OM, MTN ou Moov. Zéro faux billet, zéro contestation.",
+    "payout_label": "Paire de Baskets Édition Limitée",
+    "payout_val": "+28 000 FCFA",
+    "payout_tag": "PAIEMENT EXACT 0 CASH",
+    "points": [
+      {
+        "icon": "💳",
+        "title": "QR Code Universel Multi-Réseaux",
+        "desc": "Compatible Wave, Orange Money, MTN MoMo, Moov Money et Cartes Bancaires.",
+        "highlight": true
+      },
+      {
+        "icon": "🚫",
+        "title": "Élimination des Faux Billets",
+        "desc": "Tous les règlements sont digitaux et infalsifiables. Votre caisse est 100% saine.",
+        "highlight": false
+      },
+      {
+        "icon": "⏱️",
+        "title": "Gain de 15 Minutes par Course",
+        "desc": "Le livreur repart aussitôt pour sa course suivante sans bloquer devant la porte.",
+        "highlight": false
+      },
+      {
+        "icon": "🏪",
+        "title": "Encaissement Instantané Vendeur",
+        "desc": "Dès le scan, vos 28 000 FCFA sont disponibles sur votre solde Mobile Money.",
+        "highlight": false
+      }
+    ],
+    "offer_strip_text": "Boutiques Sneakers & Prêt-à-porter : 15 courses offertes !",
+    "offer_strip_pill": "PACK BOUTIQUE",
+    "cta_banner_text": "POUR EXPÉDIER VOS COLIS : ENVOYEZ « COLIS »",
+    "qr_src": "qr_colis_whatsapp.png",
+    "qr_bottom_label": "SCANNEZ & ENVOYEZ"
+  },
+  {
+    "id": "visuel_07_valeur_aicha",
+    "theme": "valeur",
+    "personnage": "Tantie Aïcha",
+    "personnage_name": "Tantie Aïcha • Wax & Mode",
+    "personnage_badge": "🏪 Tantie Aïcha • Adjamé / Cocody",
+    "personnage_img": "aicha.jpg",
+    "badge_top": "💎 OFFRE EXCLUSIVE COMMERÇANTS",
+    "badge_top_bg": "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)",
+    "badge_top_shadow": "rgba(245, 158, 11, 0.4)",
+    "headline_tag": "🎁 PACK DIGITAL BOUTIQUE WAZAP",
+    "headline_title": "VOS 15 PREMIÈRES LIVRAISONS <span class=\"glow-gold\">OFFERTES À 0 FCFA</span> !",
+    "headline_sub": "Arrêtez de payer 20% à 30% de commissions aux plateformes gourmandes. <strong>WAZAP vous offre 15 courses à 0 FCFA de frais de service</strong>.",
+    "card_title": "ZÉRO SORTIE DE TRÉSORERIE",
+    "card_desc": "Testez la puissance de notre réseau de livreurs pros sans débourser un centime.",
+    "payout_label": "Économie Réalisée sur 15 Livraisons",
+    "payout_val": "+15 000 FCFA",
+    "payout_tag": "100% DANS VOTRE POCHE",
+    "points": [
+      {
+        "icon": "🎁",
+        "title": "15 Courses de Mise en Relation Offertes",
+        "desc": "Zéro frais WAZAP sur vos 15 premiers colis. Les frais du livreur (1000 à 2000 F) lui reviennent à 100%.",
+        "highlight": true
+      },
+      {
+        "icon": "📊",
+        "title": "Tableau de Bord Vendeur Inclus",
+        "desc": "Suivez vos ventes, vos courses livrées et vos clients fidèles en un coup d'œil.",
+        "highlight": false
+      },
+      {
+        "icon": "🛡️",
+        "title": "Protection Anti-Fuite & QR Universel",
+        "desc": "Vos recettes sont sécurisées dès la première minute. Zéro risque d'impayé.",
+        "highlight": false
+      },
+      {
+        "icon": "⚡",
+        "title": "Activation en 60 Secondes sur WhatsApp",
+        "desc": "Envoyez simplement le mot « COLIS » et expédiez votre premier paquet immédiatement.",
+        "highlight": false
+      }
+    ],
+    "offer_strip_text": "Offre limitée aux 500 premiers commerçants inscrits !",
+    "offer_strip_pill": "VITE RÉSERVEZ !",
+    "cta_banner_text": "POUR ACTIVER VOS 15 COURSES : TAPEZ « COLIS »",
+    "qr_src": "qr_colis_whatsapp.png",
+    "qr_bottom_label": "ACTIVEZ EN 1 MIN"
+  },
+  {
+    "id": "visuel_08_valeur_bakary",
+    "theme": "valeur",
+    "personnage": "Bakary",
+    "personnage_name": "Bakary • Livreur Professionnel",
+    "personnage_badge": "🛵 Bakary • Marcory / Koumassi",
+    "personnage_img": "bakary.jpg",
+    "badge_top": "🛵 LIVREURS INDÉPENDANTS DU 225",
+    "badge_top_bg": "linear-gradient(135deg, #00D66C 0%, #075E54 100%)",
+    "badge_top_shadow": "rgba(0, 214, 108, 0.4)",
+    "headline_tag": "🏆 0% COMMISSION + 50 SMARTPHONES NEUFS",
+    "headline_title": "100% DU PRIX DE LA COURSE <span class=\"glow-green\">DANS TA POCHE</span> !",
+    "headline_sub": "Marre des plateformes qui te prennent 20% à 25% de ta sueur ? Sur WAZAP, <strong>la course de 1 000 à 2 000 FCFA t'appartient à 100% net</strong>.",
+    "card_title": "SÉCURITÉ LIVREUR & 0 CASH SUR MARCHANDE",
+    "card_desc": "Tu ne transportes pas l'argent du vendeur. Aucun risque d'agression ou de vol !",
+    "payout_label": "Bilan 8 Courses dans la Journée",
+    "payout_val": "+11 500 FCFA",
+    "payout_tag": "100% NET POUR TOI",
+    "points": [
+      {
+        "icon": "💰",
+        "title": "0% de Commission sur tes Courses",
+        "desc": "1 000 F même commune, 1 500 F voisine, 2 000 F grand trajet. Tout est pour toi.",
+        "highlight": true
+      },
+      {
+        "icon": "📱",
+        "title": "50 Smartphones Redmi 15C Neufs à Gagner",
+        "desc": "Grand challenge trimestriel récompensant les livreurs les plus réguliers du réseau.",
+        "highlight": false
+      },
+      {
+        "icon": "🛡️",
+        "title": "Zéro Manipulation de Grosses Sommes",
+        "desc": "Le client paie le marchand par QR Code. Tu n'as que ta course en poche.",
+        "highlight": false
+      },
+      {
+        "icon": "⚡",
+        "title": "Inscription en 2 Minutes sur WhatsApp",
+        "desc": "Envoie « DISPO », sélectionne ta commune, envoie ta CNI et commence à rouler !",
+        "highlight": false
+      }
+    ],
+    "offer_strip_text": "Défi du Trimestre : 50 Smartphones Xiaomi Redmi 15C neufs !",
+    "offer_strip_pill": "REJOINS L'ÉQUIPE",
+    "cta_banner_text": "POUR COMMENCER À LIVRER : ENVOYEZ « DISPO »",
+    "qr_src": "qr_dispo_whatsapp.png",
+    "qr_bottom_label": "REJOINS EN 2 MIN"
+  },
+  {
+    "id": "visuel_09_valeur_koffi",
+    "theme": "valeur",
+    "personnage": "Koffi",
+    "personnage_name": "Koffi • Livreur Certifié",
+    "personnage_badge": "🛵 Koffi • Cocody Riviera",
+    "personnage_img": "koffi.jpg",
+    "badge_top": "🛵 RESPECT & DIGNITÉ DES COURSIERS",
+    "badge_top_bg": "linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)",
+    "badge_top_shadow": "rgba(59, 130, 246, 0.4)",
+    "headline_tag": "📍 TRAVAILLE DANS TA PROPRE COMMUNE",
+    "headline_title": "1 000 F MINIMUM PAR COURSE <span class=\"glow-gold\">DÈS LE 1ER MÈTRE</span> !",
+    "headline_sub": "Même pour un trajet de 400 mètres dans le quartier, <strong>ta course est payée au minimum 1 000 FCFA net</strong>. Fini d'être exploité à 500 F.",
+    "card_title": "LIBERTÉ TOTALE SUR TES HORAIRES",
+    "card_desc": "Passe en ligne quand tu veux avec le mot « DISPO » et arrête quand tu veux avec « INDISPO ».",
+    "payout_label": "Revenu Hebdomadaire Régulier",
+    "payout_val": "+65 000 FCFA",
+    "payout_tag": "0 FCFA RETENU",
+    "points": [
+      {
+        "icon": "🎯",
+        "title": "Plancher Garanti à 1 000 FCFA Net",
+        "desc": "Zéro course bradée. Vos efforts et votre carburant sont respectés à chaque livraison.",
+        "highlight": true
+      },
+      {
+        "icon": "📲",
+        "title": "Tout sur WhatsApp sans Appli Gourmande",
+        "desc": "Pas d'application qui vide la batterie ou gaspille vos gigas Internet.",
+        "highlight": false
+      },
+      {
+        "icon": "🤝",
+        "title": "Relation Directe avec de Vrais Commerçants",
+        "desc": "Fidélisez les boutiques de votre secteur qui vous solliciteront en priorité.",
+        "highlight": false
+      },
+      {
+        "icon": "⚡",
+        "title": "Alertes de Courses en Direct",
+        "desc": "Recevez l'alerte sur WhatsApp et acceptez d'un simple tap en 3 secondes.",
+        "highlight": false
+      }
+    ],
+    "offer_strip_text": "Livreurs motivés : Inscription 100% gratuite sur WhatsApp !",
+    "offer_strip_pill": "RECRUTEMENT OUVERT",
+    "cta_banner_text": "POUR ROULER AVEC NOUS : ENVOYEZ « DISPO »",
+    "qr_src": "qr_dispo_whatsapp.png",
+    "qr_bottom_label": "INSCRIPTION 2 MIN"
+  },
+  {
+    "id": "visuel_10_duel_comparatif",
+    "theme": "valeur",
+    "personnage": "Duel Comparatif",
+    "personnage_name": "L'Ancienne Méthode vs WAZAP",
+    "personnage_badge": "⚖️ Le Duel Choc à Abidjan",
+    "personnage_img": "livreur_scan_porte_cliente.jpg",
+    "badge_top": "⚖️ COMPARATIF SANS FILTRE",
+    "badge_top_bg": "linear-gradient(135deg, #EF4444 0%, #B91C1C 100%)",
+    "badge_top_shadow": "rgba(239, 68, 68, 0.4)",
+    "headline_tag": "🥊 POURQUOI ABIDJAN CHOISIT WAZAP",
+    "headline_title": "MÉTHODE TRADITIONNELLE <span class=\"glow-gold\">VS RÉVOLUTION WAZAP</span> !",
+    "headline_sub": "Comparez objectivement vos galères quotidiennes d'expédition face à la simplicité sécurisée de la plateforme numéro 1 du Grand Abidjan.",
+    "card_title": "SCAN DU QR CODE À LA PORTE",
+    "card_desc": "La cliente scanne son QR Code Universel, le vendeur est payé, le livreur est payé. Instantané.",
+    "payout_label": "Gain Moyen par Mois",
+    "payout_val": "+45 000 FCFA",
+    "payout_tag": "ZÉRO PERTE SÉCURISÉ",
+    "points": [
+      {
+        "icon": "❌",
+        "title": "Ancienne Méthode : Risque de Fuite & Retard",
+        "desc": "Livreur inconnu, manipulation de cash, 45 min d'attente, litiges sans recours.",
+        "highlight": false
+      },
+      {
+        "icon": "✅",
+        "title": "Avec WAZAP : Sécurité 100% & Livreur en 3 Min",
+        "desc": "0% cash marchandise, paiement direct Wave/OM, livreurs vérifiés CNI, GPS live.",
+        "highlight": true
+      },
+      {
+        "icon": "❌",
+        "title": "Ancienne Méthode : Commissions & Frais Cachés",
+        "desc": "Plateformes prélevant 20% à 25% sur la marchandise ou abonnements obligatoires.",
+        "highlight": false
+      },
+      {
+        "icon": "✅",
+        "title": "Avec WAZAP : 0% Commission & 15 Courses Offertes",
+        "desc": "100% transparent. Zéro commission sur vos ventes. Pack boutique offert.",
+        "highlight": true
+      }
+    ],
+    "offer_strip_text": "Faites le bon choix : Rejoignez plus de 1 000 commerces actifs !",
+    "offer_strip_pill": "WAZAP GAGNE",
+    "cta_banner_text": "PASSEZ À LA VITESSE SUPÉRIEURE : ENVOYEZ « COLIS »",
+    "qr_src": "qr_colis_whatsapp.png",
+    "qr_bottom_label": "DÉMARREZ AUJOURD'HUI"
+  }
+]

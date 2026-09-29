@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galerie & Simulateur WAZAP — Campagne 60 Jours</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=Space+Grotesk:wght@700;800;900&display=swap');
+
+    :root {
+      --bg: #040C07;
+      --card-bg: #0B1910;
+      --border: rgba(0, 214, 108, 0.25);
+      --green: #00D66C;
+      --gold: #FACC15;
+      --text: #F8FAFC;
+      --text-muted: #94A3B8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      padding: 40px 24px 80px;
+      line-height: 1.5;
+    }
+
+    header {
+      max-width: 1280px;
+      margin: 0 auto 40px;
+      text-align: center;
+      position: relative;
+    }
+
+    .badge-header {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 214, 108, 0.15);
+      border: 1px solid var(--green);
+      color: var(--green);
+      padding: 8px 18px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+
+    h1 span { color: var(--green); }
+
+    p.sub {
+      color: var(--text-muted);
+      font-size: 18px;
+      max-width: 820px;
+      margin: 0 auto 28px;
+    }
+
+    /* FILTRES & FORMAT SWITCH */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 40px;
+    }
+
+    .btn-toggle {
+      background: #0B1910;
+      border: 1.5px solid var(--border);
+      color: var(--text);
+      padding: 10px 22px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-toggle:hover {
+      border-color: var(--green);
+      background: rgba(0, 214, 108, 0.1);
+    }
+
+    .btn-toggle.active {
+      background: var(--green);
+      color: #040c07;
+      border-color: var(--green);
+      box-shadow: 0 0 20px rgba(0, 214, 108, 0.4);
+    }
+
+    /* GRILLE DES VISUELS */
+    .grid {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 32px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+      transition: transform 0.25s ease, border-color 0.25s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: var(--green);
+    }
+
+    .media-wrap {
+      position: relative;
+      background: #000;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .media-wrap.format-feed {
+      aspect-ratio: 1 / 1;
+    }
+
+    .media-wrap.format-story {
+      aspect-ratio: 9 / 16;
+      max-height: 580px;
+    }
+
+    .media-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .card-content {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .card-header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: #FFF;
+      margin-bottom: 12px;
+      line-height: 1.25;
+    }
+
+    .card-desc-box {
+      background: rgba(4, 12, 7, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 13px;
+      color: #CBD5E1;
+      margin-bottom: 16px;
+      max-height: 160px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      font-family: inherit;
+    }
+
+    .btn-copy {
+      background: rgba(0, 214, 108, 0.15);
+      border: 1px solid var(--green);
+      color: var(--green);
+      font-weight: 800;
+      font-size: 13px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      margin-top: auto;
+    }
+
+    .btn-copy:hover {
+      background: var(--green);
+      color: #040C07;
+    }
+
+    .download-links {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .link-download {
+      flex: 1;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.2s;
+    }
+
+    .link-download:hover {
+      color: #FFF;
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge-header">🚀 Suite Marketing Automatisée 60 Jours</div>
+    <h1>Catalogue des Visuels <span>WAZAP</span></h1>
+    <p class="sub">
+      60 jours de publications planifiées • 3 posts / canal / jour • Formats Feed Carré 1:1 (2160×2160) & Story Verticale 9:16 (2160×3840) • QR Codes Géants et Call-to-Action Ultra-Visibles
+    </p>
+
+    <div class="controls">
+      <button class="btn-toggle active" onclick="setFormat('feed')">🖼️ Format Feed Carré (1:1)</button>
+      <button class="btn-toggle" onclick="setFormat('story')">📱 Format Story Vertical (9:16)</button>
+      <span style="border-right: 1px solid var(--border); margin: 0 4px;"></span>
+      <button class="btn-toggle active" onclick="filterTheme('all')">Tous les Thèmes</button>
+      <button class="btn-toggle" onclick="filterTheme('securite')">🛡️ Sécurité (3)</button>
+      <button class="btn-toggle" onclick="filterTheme('rapidite')">⚡ Rapidité & Gain de Temps (3)</button>
+      <button class="btn-toggle" onclick="filterTheme('valeur')">💎 Valeur Ajoutée (4)</button>
+    </div>
+  </header>
+
+  <main class="grid" id="gridContainer">
+    <!-- Rendu dynamique via JavaScript -->
+  </main>
+
+  <script>
+    const items = [
+      {
+        id: "visuel_01_securite_awa",
+        theme: "securite",
+        title: "Awa • Bijoux & Marchandises de Valeur",
+        badge: "🛡️ SÉCURITÉ VENDEURS",
+        feedImg: "visuels/feed/visuel_01_securite_awa_feed_square.png",
+        storyImg: "visuels/story/visuel_01_securite_awa_story_vertical.png",
+        caption: `🚨 Commerçants d'Abidjan : commencez votre journée sans la peur au ventre de confier vos colis !\n\nChaque matin, c'est le même dilemme : confier vos commandes à un coursier inconnu et prier pour qu'il ne disparaisse pas avec votre recette ?\n\nSur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.\nÀ la remise, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.\n\n🛡️ Livreurs vérifiés CNI par IA Google Cloud Vision\n📍 Géolocalisation live sur la carte\n🎁 15 premières livraisons offertes sans commission WAZAP !\n\n👉 Prêt à expédier en toute sérénité ? Envoyez « COLIS » sur WhatsApp au 05 44 05 19 72 ou scannez le QR code.\n\n#Wazap #LivraisonAbidjan #EcommerceCIV #Team225 #Cocody`
+      },
+      {
+        id: "visuel_02_securite_fatou",
+        theme: "securite",
+        title: "Fatou • Pâtisseries & Colis Fragiles",
+        badge: "🎂 COLIS FRAGILES & ASSURANCE",
+        feedImg: "visuels/feed/visuel_02_securite_fatou_feed_square.png",
+        storyImg: "visuels/story/visuel_02_securite_fatou_story_vertical.png",
+        caption: `🧁 Pâtisseries, gâteaux d'anniversaire, articles délicats : vos livraisons arrivent intactes ou vous êtes indemnisé !\n\nFinie la hantise du gâteau écrasé dans le sac de livraison. Nos coursiers certifiés sont formés au maintien horizontal avec l'Assurance Colis Sûr.\n\nÀ la livraison : scan du QR Code Universel sans contact, Wave/OM direct.\n\n👉 Envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.\n\n#Wazap #PatisserieAbidjan #LivraisonYopougon #Team225`
+      },
+      {
+        id: "visuel_03_securite_clarisse",
+        theme: "securite",
+        title: "Clarisse • Cosmétiques & Sérénité Sous la Pluie",
+        badge: "🌧️ MÊME SOUS LA PLUIE",
+        feedImg: "visuels/feed/visuel_03_securite_clarisse_feed_square.png",
+        storyImg: "visuels/story/visuel_03_securite_clarisse_story_vertical.png",
+        caption: `🌧️ Il pleut à verse à Abidjan et votre livreur est injoignable avec vos colis ?\n\nSur WAZAP, la géolocalisation live ne coupe jamais. Vous et votre cliente suivez la moto en direct sur la carte.\nVos colis sont dans des sacs étanches scellés.\n\n🎁 Vos 15 premières courses offertes à 0 F de commission WAZAP.\n\n👉 Envoyez « COLIS » au 05 44 05 19 72 sur WhatsApp.\n\n#Wazap #CosmetiquesAbidjan #Koumassi #Team225`
+      },
+      {
+        id: "visuel_04_rapidite_salimata",
+        theme: "rapidite",
+        title: "Salimata • Styliste de Mode & Urgences",
+        badge: "⚡ LIVREUR EN 3 MINUTES",
+        feedImg: "visuels/feed/visuel_04_rapidite_salimata_feed_square.png",
+        storyImg: "visuels/story/visuel_04_rapidite_salimata_story_vertical.png",
+        caption: `⏱️ Une cliente pressée pour un événement ce soir ? Ne perdez plus 45 minutes à chercher un livreur.\n\nWAZAP alerte automatiquement les 5 livreurs les plus proches de votre atelier. En moins de 3 minutes, l'un d'eux accepte et démarre sa moto !\n\n👗 Vos vêtements voyagent avec soin.\n💳 Paiement direct par QR Code Universel.\n\n👉 Envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.\n\n#Wazap #ModeAbidjan #Couture225 #Angre #Cocody`
+      },
+      {
+        id: "visuel_05_rapidite_momo",
+        theme: "rapidite",
+        title: "Chef Momo • Plats Chauds & Rush de Midi",
+        badge: "🔥 RUSH DE MIDI EN 20 MIN",
+        feedImg: "visuels/feed/visuel_05_rapidite_momo_feed_square.png",
+        storyImg: "visuels/story/visuel_05_rapidite_momo_story_vertical.png",
+        caption: `🔥 Pause de midi à Abidjan : vos grillades et plats braisés livrés chauds et fumants en 20 minutes chrono !\n\nLivreur assigné à proximité immédiate de vos fourneaux. Le client suit le trajet en direct sur son téléphone et descend dès l'arrivée du motard.\n\n0 contestation de monnaie grâce au paiement exact par QR Code.\n\n👉 Envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.\n\n#Wazap #ChoukouyaAbidjan #Resto225 #Yopougon #Treichville`
+      },
+      {
+        id: "visuel_06_rapidite_amara",
+        theme: "rapidite",
+        title: "Amara • Sneakers & Fin de la Monnaie de 10.000 F",
+        badge: "💵 MONNAIE RÉSOLUE 0 CASH",
+        feedImg: "visuels/feed/visuel_06_rapidite_amara_feed_square.png",
+        storyImg: "visuels/story/visuel_06_rapidite_amara_story_vertical.png",
+        caption: `💵 Le client n'a qu'un billet de 10 000 F et le livreur n'a pas de monnaie ? Plus jamais !\n\nAvec le QR Code Universel WAZAP, le client scanne et règle le montant exact par Wave, Orange Money, MTN ou Moov.\n\nZéro perte de temps, zéro faux billet, virement direct dans la caisse de votre boutique.\n\n👉 Envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.\n\n#Wazap #SneakersAbidjan #StreetwearCIV #Marcory`
+      },
+      {
+        id: "visuel_07_valeur_aicha",
+        theme: "valeur",
+        title: "Tantie Aïcha • 15 Livraisons Offertes Boutiques",
+        badge: "💎 15 COURSES OFFERTES",
+        feedImg: "visuels/feed/visuel_07_valeur_aicha_feed_square.png",
+        storyImg: "visuels/story/visuel_07_valeur_aicha_story_vertical.png",
+        caption: `🎁 Pourquoi payer 20% à 25% de commission quand WAZAP vous offre 15 courses sans commission ?\n\nActivez votre Pack Digital Boutique en 60 secondes sur WhatsApp : zéro abonnement, zéro sortie de caisse.\nVous ne payez que le coursier à son tarif juste (1 000 à 2 000 F net), et WAZAP prend 0 FCFA de frais de service.\n\n👉 Envoyez « COLIS » sur WhatsApp au 05 44 05 19 72 pour réserver votre pack.\n\n#Wazap #CommerceAbidjan #Adjame #Cocody #Team225`
+      },
+      {
+        id: "visuel_08_valeur_bakary",
+        theme: "valeur",
+        title: "Bakary • Livreur 0% Commission & 50 Smartphones",
+        badge: "🛵 LIVREURS INDÉPENDANTS",
+        feedImg: "visuels/feed/visuel_08_valeur_bakary_feed_square.png",
+        storyImg: "visuels/story/visuel_08_valeur_bakary_story_vertical.png",
+        caption: `🛵 Motards et Livreurs d'Abidjan : gardez 100% de vos gains dans votre poche !\n\nSur WAZAP :\n💰 0% commission prélevée sur vos courses\n🛡️ 0 cash marchandise à transporter (sécurité maximale contre les vols)\n📱 50 smartphones Xiaomi Redmi 15C neufs offerts tous les 3 mois !\n\nInscrivez-vous en 2 minutes sur WhatsApp sans installer d'application lourde.\n\n👉 Envoyez « DISPO » sur WhatsApp au 05 44 05 19 72.\n\n#Wazap #LivreurAbidjan #Motard225 #Marcory #Koumassi`
+      },
+      {
+        id: "visuel_09_valeur_koffi",
+        theme: "valeur",
+        title: "Koffi • 1 000 F Minimum dès le 1er Mètre",
+        badge: "🎯 DIGNITÉ & RESPECT LIVREURS",
+        feedImg: "visuels/feed/visuel_09_valeur_koffi_feed_square.png",
+        storyImg: "visuels/story/visuel_09_valeur_koffi_story_vertical.png",
+        caption: `🛵 Même pour 400 mètres dans le même quartier, ta course est payée au minimum 1 000 FCFA net !\n\nFini d'être exploité à 500 F. Travaille dans ta propre commune, fidélise tes commerçants et roule selon tes propres horaires.\n\n👉 Envoie « DISPO » sur WhatsApp au 05 44 05 19 72 et commence aujourd'hui.\n\n#Wazap #LivreurPro #Riviera #Cocody #Team225`
+      },
+      {
+        id: "visuel_10_duel_comparatif",
+        theme: "valeur",
+        title: "Le Duel Choc • Ancienne Méthode vs WAZAP",
+        badge: "🥊 COMPARATIF SANS FILTRE",
+        feedImg: "visuels/feed/visuel_10_duel_comparatif_feed_square.png",
+        storyImg: "visuels/story/visuel_10_duel_comparatif_story_vertical.png",
+        caption: `⚖️ Le grand comparatif de la livraison à Abidjan :\n\nAncienne méthode :\n❌ Livreur qui disparaît avec votre argent\n❌ 45 min d'attente au téléphone\n❌ Pas d'assurance en cas de casse\n\nRévolution WAZAP :\n✅ Virement direct par QR Code Universel (0 cash)\n✅ Livreur en 3 min par radar GPS\n✅ Assurance Colis Sûr incluse\n✅ 15 courses offertes sans commission !\n\n👉 Envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.\n\n#Wazap #AbidjanBusiness #VenteEnLigne225 #Team225`
+      }
+    ];
+
+    let currentFormat = 'feed';
+    let currentTheme = 'all';
+
+    function setFormat(fmt) {
+      currentFormat = fmt;
+      document.querySelectorAll('.controls .btn-toggle').forEach(btn => {
+        if (btn.innerText.includes('Feed') && fmt === 'feed') btn.classList.add('active');
+        else if (btn.innerText.includes('Story') && fmt === 'story') btn.classList.add('active');
+        else if (btn.innerText.includes('Feed') || btn.innerText.includes('Story')) btn.classList.remove('active');
+      });
+      renderGrid();
+    }
+
+    function filterTheme(th) {
+      currentTheme = th;
+      document.querySelectorAll('.controls .btn-toggle').forEach(btn => {
+        if (btn.innerText.includes('Tous') && th === 'all') btn.classList.add('active');
+        else if (btn.innerText.includes('Sécurité') && th === 'securite') btn.classList.add('active');
+        else if (btn.innerText.includes('Rapidité') && th === 'rapidite') btn.classList.add('active');
+        else if (btn.innerText.includes('Valeur') && th === 'valeur') btn.classList.add('active');
+        else if (!btn.innerText.includes('Feed') && !btn.innerText.includes('Story')) btn.classList.remove('active');
+      });
+      renderGrid();
+    }
+
+    function renderGrid() {
+      const container = document.getElementById('gridContainer');
+      const filtered = items.filter(it => currentTheme === 'all' || it.theme === currentTheme);
+
+      container.innerHTML = filtered.map(it => {
+        const imgSrc = currentFormat === 'feed' ? it.feedImg : it.storyImg;
+        const formatClass = currentFormat === 'feed' ? 'format-feed' : 'format-story';
+        return `
+          <div class="card">
+            <div class="media-wrap ${formatClass}">
+              <img src="${imgSrc}" alt="${it.title}" loading="lazy">
+            </div>
+            <div class="card-content">
+              <div class="card-header-badge">${it.badge}</div>
+              <h2 class="card-title">${it.title}</h2>
+              <div class="card-desc-box">${it.caption}</div>
+              <button class="btn-copy" onclick="copyCaption(\`${encodeURIComponent(it.caption)}\`)">
+                📋 Copier la Description Prête à Poster
+              </button>
+              <div class="download-links">
+                <a href="${it.feedImg}" download class="link-download">💾 Télécharger Feed 1:1</a>
+                <a href="${it.storyImg}" download class="link-download">💾 Télécharger Story 9:16</a>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function copyCaption(encoded) {
+      const text = decodeURIComponent(encoded);
+      navigator.clipboard.writeText(text).then(() => {
+        alert("✅ Texte de description copié dans le presse-papiers avec succès !");
+      });
+    }
+
+    renderGrid();
+  </script>
+</body>
+</html>
