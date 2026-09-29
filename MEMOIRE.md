@@ -3772,6 +3772,29 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
   - **Bio TikTok calibrée (≤ 80 car.) :** Formule mixte `🛵 Livreurs : 0% commission \n 🏪 Commerces : 15 courses offertes \n 👇 Clique ici` (74 car.).
   - **Lien Bio Direct :** Redirection vers `https://tinyurl.com/wazap-ci` ou lien WhatsApp direct `https://wa.me/2250544051972?text=Bonjour%20WAZAP`.
 
+---
+
+## 110. Session 29/09/2026 (Matin) — Riposte Sécurité Vendeurs Facebook & Recueil de 15 Scripts Vidéos Commerçants
+
+### 1. Kit de Riposte Facebook Anti-Fuite & Sécurité Vendeurs
+- **Contexte :** Réponse stratégique immédiate aux publications virales anxiogènes des cybervendeuses d'Abidjan : *« Cherchez toujours à connaître chez le livreur avant de lui remettre tout colis »*.
+- **Direction Artistique & Rendu Headless 2160×2160 HD :**
+  - Respect absolu de la charte canonique (Logo officiel 2026 `logo-officiel-2026.jpg` sans hallucination IA, QR Code Universel officiel généré via `QRCoder.dll`, numéro officiel `05 44 05 19 72` avec logo vectoriel officiel WhatsApp).
+  - Génération de 3 visuels haute définition carrés 1:1 (`marketing/visuels/commercants/generated/`) :
+    1. `visuel_facebook_securite_vendeur_01.png` : Preuve terrain du scan à la porte + virement direct Wave/OM (+35 000 F) + 4 boucliers sécurité.
+    2. `visuel_facebook_securite_vendeur_02_comparatif.png` : Duel choc sans filtre (« Ancienne méthode calvaire » vs « Révolution WAZAP »).
+    3. `visuel_facebook_securite_vendeur_03_temoignage.png` : Témoignage d'Awa (Joaillerie chic Cocody) expédiant des colis de valeur l'esprit 100% serein.
+  - Guide complet avec 3 textes de commentaires Facebook prêts à coller ([`GUIDE_REPONSE_FACEBOOK_VENDEURS.md`](file:///c:/Dev/Wazap/WazapSln/marketing/visuels/commercants/GUIDE_REPONSE_FACEBOOK_VENDEURS.md)).
+
+### 2. Recueil de 15 Scripts Vidéos Facebook pour Commerçants & Groupes Spécialisés
+- **Fichier de référence :** [`marketing/facebook/SCRIPTS_VIDEOS_FACEBOOK_COMMERCANTS_15_EPISODES.md`](file:///c:/Dev/Wazap/WazapSln/marketing/facebook/SCRIPTS_VIDEOS_FACEBOOK_COMMERCANTS_15_EPISODES.md).
+- **Format :** 40 à 60s, calibré pour Facebook Reels, Facebook Watch et publications dans les groupes de vente et cybermarchandes d'Abidjan.
+- **Règle linguistique respectée à 100% :** Dialogues exclusivement en français facile, naturel, soigné et direct (zéro nouchi informel).
+- **Personnages récurrents ancrés dans la réalité abidjanaise :** Awa (bijoutière), Salimata (mode), Fatou (pâtissière/traiteur), Amara (streetwear), Clarisse (cosmétiques), Jean-Luc (high-tech), Bakary & Koffi (livreurs professionnels WAZAP).
+- **Couverture des 5 axes stratégiques :** Anti-fuite/0% cash, paiement instantané Wave/OM, fin des appels et GPS en direct, Assurance Colis Sûr, et offre des 15 livraisons gratuites (0 F commission).
+- **Captions prêtes à poster :** Chaque script est accompagné de son texte de publication Facebook complet (Hook, corps, CTA direct WhatsApp `05 44 05 19 72` et premier commentaire épinglé pour stimuler l'algorithme).
+
+
 
 
 
