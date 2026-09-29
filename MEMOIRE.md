@@ -3813,23 +3813,13 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
   7. `07_whatsapp_status/` (5 vidéos verticales calibrées pour les statuts WhatsApp 10 jours).
 - **Documentation et guides associés :** [`videos/README.md`](file:///c:/Dev/Wazap/videos/README.md) et passerelle [`WazapSln/marketing/videos/README.md`](file:///c:/Dev/Wazap/WazapSln/marketing/videos/README.md).
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+### 5. Optimisation Intégrale des Prompts Google Flow / Veo & Règle Anti-Rejet (29/09/2026)
+- **Contexte & Résolution d'Incidents Flow :** Les filtres de sécurité Google Flow (anti-fraude financière, protection PII, anti-spam) rejetaient systématiquement les prompts contenant des devises/espèces (`billets de 10 000 F`, `25 000 Francs`, `cash`, `monnaie`), des numéros de téléphone (`05 44 05 19 72`) ou des dialogues bruts en guillemets (qui provoquaient en outre des hallucinations vocales en anglais).
+- **Architecture de Génération en 3 Temps :**
+  1. **Google Flow (Veo) :** Prompt 100% VISUEL et CINÉMATOGRAPHIQUE sans aucun mot interdit (descriptions de scènes, gestes, tenues vertes émeraude, boîtes scellées, smartphones avec interfaces lumineuses, cadrage 9:16 vertical 1080×1920). Zéro dialogue dans le champ Flow.
+  2. **Voix-Off Française Découplée (Edge-TTS) :** Audio multilocuteur naturel et fluide (`fr-FR-DeniseNeural` et `fr-FR-HenriNeural`), calé sur la durée exacte de la scène.
+  3. **Outro Officielle Canonique 3D :** Utilisation systématique de `videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4` prolongée à 6,5s avec le logo 3D, le QR Code Universel et le contact WhatsApp `05 44 05 19 72`.
+- **Refonte Complète des Recueils de Scripts :**
+  - **15 Scripts Facebook Commerçants Révisés :** [`marketing/facebook/SCRIPTS_VIDEOS_FACEBOOK_COMMERCANTS_15_EPISODES.md`](file:///c:/Dev/Wazap/WazapSln/marketing/facebook/SCRIPTS_VIDEOS_FACEBOOK_COMMERCANTS_15_EPISODES.md) avec prompts Flow 1-clic pour chaque épisode (Format Snack 15s & Format Storytelling 45s).
+  - **30 Scripts TikTok Haute-Réalité Révisés :** [`marketing/tiktok/SCRIPTS_TIKTOK_30_EPISODES.md`](file:///c:/Dev/Wazap/WazapSln/marketing/tiktok/SCRIPTS_TIKTOK_30_EPISODES.md) et [`videos/SCRIPTS_TIKTOK_30_EPISODES.md`](file:///c:/Dev/Wazap/videos/SCRIPTS_TIKTOK_30_EPISODES.md) (élimination complète de l'ancien code PIN, intégration du QR Code Universel WAZAP et prompts Flow 100% sûrs).
+- **Guide Méthodologique Maître :** [`marketing/GUIDE_PROMPTS_GOOGLE_FLOW_VEO_SANS_REJET.md`](file:///c:/Dev/Wazap/WazapSln/marketing/GUIDE_PROMPTS_GOOGLE_FLOW_VEO_SANS_REJET.md) documentant la blacklist complète, la table des équivalences visuelles et la formule de prompt sans échec.

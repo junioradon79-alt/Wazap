@@ -1,90 +1,9 @@
-# 🎬 15 Scripts Vidéos Facebook & Groupes Spécialisés — WAZAP Côte d'Ivoire
-
-> **Format :** Vidéos courtes et dynamiques (40 à 60 secondes), optimisées pour **Facebook Reels, Facebook Watch, flux d'actualité et partages dans les groupes de vente** (Groupes de cybervendeuses, marchands d'Abidjan, e-commerce CI).  
-> **Langue des dialogues :** 100% Français soigné, facile, naturel et accessible (sans argot nouchi, conformément aux directives projet).  
-> **Personnages récurrents :**
-> * 🏪 **Awa** : Créatrice de bijoux et accessoires de luxe à Cocody (Deux-Plateaux).
-> * 👗 **Salimata** : Styliste et vendeuse de prêt-à-porter chic à Angré.
-> * 🍰 **Fatou** : Traiteur et cheffe pâtissière à Yopougon.
-> * 👟 **Amara** : Gérant de boutique streetwear et sneakers à Marcory.
-> * 💄 **Clarisse** : Vendeuse de produits cosmétiques et capillaires à Koumassi.
-> * 📱 **Jean-Luc** : Vendeur de smartphones et accessoires high-tech à Adjamé.
-> * 🛵 **Bakary** & **Koffi** : Livreurs professionnels WAZAP, sérieux, casqués, blousons verts avec logo officiel.
-
----
-
-## 📋 Sommaire des 15 Épisodes
-
-| N° | Titre de l'Épisode | Thématique Clé | Personnages | Cible Groupes Facebook |
-|---|---|---|---|---|
-| **01** | *Plus besoin de chercher la cour du livreur !* | Sécurité & Anti-fuite | Awa & Clarisse | Vendeuses en ligne d'Abidjan |
-| **02** | *Le livreur qui refuse les espèces !* | 0% Cash sur la marchandise | Fatou & Bakary | Restauration & Traiteurs |
-| **03** | *La cliente qui avait peur d'acheter à distance* | QR Code Universel | Salimata & Cliente | Prêt-à-porter & Mode |
-| **04** | *Fini les puces jetées dans la lagune* | CNI vérifiée & Fichage IA | Jean-Luc & Koffi | High-Tech & Téléphonie |
-| **05** | *L'argent est déjà sur mon compte Wave !* | Règlement instantané | Awa & Bakary | Bijouterie & Luxe |
-| **06** | *Où est passée ma monnaie de 10 000 Francs ?* | Zéro problème de monnaie | Amara & Cliente | Baskets & Streetwear |
-| **07** | *0 Franc de commission sur vos produits* | Pure mise en relation | Fatou & Salimata | Femmes entrepreneures 225 |
-| **08** | *Arrêtez de crier : Allô tu es où ?* | Suivi GPS sur carte en direct | Salimata au téléphone | Commerçantes pressées |
-| **09** | *La cliente qui voulait annuler sa robe* | Assignation rapide en 3 min | Awa & Koffi | Mariages & Événements |
-| **10** | *Livrer en sécurité sous la pluie d'Abidjan* | Fiabilité par tous les temps | Clarisse & Bakary | E-commerce tous secteurs |
-| **11** | *Le flacon de parfum à 65 000 Francs* | Assurance Colis Sûr | Clarisse & Cliente | Parfumerie & Beauté |
-| **12** | *Pourquoi nos livreurs montrent fièrement leur CNI* | Professionnalisme & Confiance | Koffi le livreur | Coursiers & Partenaires |
-| **13** | *15 livraisons offertes pour démarrer sans risque* | Offre Pack Bienvenue | Salimata & Amara | Nouveaux commerçants |
-| **14** | *Expédier un colis en 30 secondes chrono* | Simplicité 100% WhatsApp | Jean-Luc & Fatou | Commerces physiques & digitaux |
-| **15** | *Le secret des commerçantes qui dorment tranquilles* | Sérénité & Croissance | Awa, Salimata & Bakary | Grand public & Business 225 |
-
----
-
-# 🎥 LES 15 SCRIPTS DÉTAILLÉS & CAPTIONS CLÉ EN MAIN
-
----
-
-## 🎬 ÉPISODE 01 : « Plus besoin de chercher la cour du livreur ! »
-
-* **Angle :** Réponse directe à la publication virale « Cherchez toujours à connaître chez le livreur ».
-* **Décor :** Boutique chic de prêt-à-porter d'Awa à Cocody. Deux amies entrepreneures discutent autour d'un carton d'expédition.
-* **Durée :** 50 secondes.
-
-### 🎭 Scénario & Dialogues
-
-**[00:00 - 00:06] ACCROCHE (HOOK CHOC)**  
-*Plan serré sur Clarisse, l'air affolée, montrant son smartphone à Awa.*  
-**Clarisse :** « Awa ! Tu as vu le post sur Facebook ? On dit que pour ne pas se faire voler nos colis, il faut d'abord aller visiter la maison du livreur avant de lui confier une marchandise ! »
-
-**[00:06 - 00:18] LE DILEMME DU TERRAIN**  
-*Awa rigole doucement en continuant de sceller son paquet avec un ruban soigné.*  
-**Awa :** « Clarisse, réfléchis un peu. J'ai quinze livraisons aujourd'hui entre Yopougon, Marcory et Angré. Tu me vois monter sur une moto pour aller visiter le salon de quinze livreurs différents ? Qui a le temps pour ça ? »  
-**Clarisse :** « Mais alors, comment tu fais pour ne pas avoir peur qu'un coursier disparaisse avec tes 80 000 Francs ? »
-
-**[00:18 - 00:36] LA RÉVÉLATION WAZAP**  
-*Awa prend son téléphone et montre son écran à Clarisse. On voit la feuille de route WAZAP et le badge de sécurité.*  
-**Awa :** « C'est très simple : avec WAZAP, le livreur n'a aucun moyen de fuir avec mon argent, parce qu'il n'encaisse AUCUN argent liquide sur mes produits ! »  
-**Clarisse (étonnée) :** « Comment ça ? Et le client, il paye comment à la livraison ? »  
-**Awa :** « Quand le coursier arrive chez la cliente, elle scanne le QR Code Universel WAZAP avec son téléphone. Elle paye par Wave ou Orange Money, et l'argent atterrit directement sur mon propre compte en deux secondes ! Le coursier ne touche pas à mes sous. En plus, chaque livreur est fiché avec sa pièce d'identité officielle vérifiée. »
-
-**[00:36 - 00:44] L'ACTION EN DIRECT**  
-*Un coup de klaxon discret. Bakary, livreur WAZAP en blouson vert émeraude officiel et casque homologué, entre poliment.*  
-**Bakary :** « Bonjour madame Awa ! Course numéro 28 pour Cocody Riviera ? »  
-**Awa :** « Bonjour Bakary ! Oui, le colis est prêt et scellé. Bonne route ! »  
-*Bakary prend le colis, sourit et repart immédiatement.*
-
-**[00:44 - 00:50] APPEL À L'ACTION (CTA)**  
-*Awa regarde la caméra avec un sourire chaleureux et complice.*  
-**Awa :** « Chères cybervendeuses, arrêtez de stresser. Vos 15 premières livraisons sont avec commission offerte. Envoyez simplement **COLIS** sur WhatsApp au **05 44 05 19 72** ! »  
-*Écran de fin officiel avec logo WAZAP 2026, QR Code et numéro géant.*
-
----
-
-### 📝 Publication Facebook Prête à Poster (Épisode 01)
-
-**Texte de la publication :**
-```text
-Chercher la maison du livreur avant de lui confier un colis ? Soyons sérieuses deux minutes ! 🤦‍♀️
+# 🎬 15 Scripts Vidéos Facebook & Groupes Spécialisés — WAZAP Côte d'Ivoire\n### *Version Optimisée Google Flow / Veo : 100% Zéro Rejet, Prompts Épurés & Voix-Off Découplée*\n\n> **Format technique :** Vertical 9:16 (1080 × 1920), optimisé pour **Facebook Reels, Facebook Watch, TikTok et flux de vente**.\n> **Règle absolue Google Flow / Veo :** Tous les prompts vidéo ci-dessous sont **STRICTEMENT DÉPOURVUS DE MOTS INTERDITS** (zéro devise, zéro mot 'billet/espèces/cash', zéro numéro de téléphone, zéro dialogue direct dans le prompt visual).\n> **Règle linguistique Voix-Off :** 100% Français soigné, dynamique, naturel et chaleureux (sans argot nouchi, conformément à la Charte Projet).\n\n---\n\n## 📋 Sommaire des 15 Épisodes\n\n| N° | Titre de l'Épisode | Thématique Clé | Personnages |\n|---|---|---|---|\n| **01** | *Plus besoin de chercher la cour du livreur !* | Sécurité & Anti-fuite • Zéro cash sur la marchandise | Awa (Bijoutière Cocody) & Clarisse (Cosmétiques Koumassi) |\n| **02** | *Le livreur qui refuse les espèces !* | 0% Cash sur la marchandise • Zéro litige de monnaie | Fatou (Pâtissière Yopougon) & Bakary (Livreur professionnel) |\n| **03** | *La cliente qui avait peur d'acheter à distance* | QR Code Universel • Débloquer les ventes hésitantes | Salimata (Styliste Angré) & Voix cliente |\n| **04** | *Fini les puces jetées dans la lagune !* | Authentification CNI & Sécurité High-Tech | Jean-Luc (High-Tech Adjamé) & Koffi (Livreur certifié) |\n| **05** | *L'argent est déjà sur mon compte Wave !* | Encaissement instantané & Trésorerie en temps réel | Awa (Bijoutière Cocody) & Bakary (Livreur) |\n| **06** | *Où est passée ma monnaie de 10 000 Francs ?* | Élimination des litiges de monnaie • Encaissement digital précis | Amara (Streetwear Marcory) & Fatou (Commerçante) |\n| **07** | *0 Franc de commission sur vos produits* | Modèle économique équitable • 100% du prix marchandise pour vous | Salimata & Fatou |\n| **08** | *Arrêtez de crier : Allô tu es où ?* | Suivi GPS en temps réel sur carte • Zéro appel stressant | Salimata (Styliste) |\n| **09** | *La cliente qui voulait annuler sa robe* | Assignation éclair en 3 min • Sauvetage des urgences | Awa & Koffi |\n| **10** | *Livrer en sécurité sous la pluie d'Abidjan* | Protection intempéries • Sacs étanches hermétiques | Clarisse (Koumassi) & Bakary (Livreur équipé pluie) |\n| **11** | *Le flacon de parfum précieux* | Assurance Colis Sûr • Indemnisation garantie | Clarisse & Koffi |\n| **12** | *Pourquoi nos livreurs montrent fièrement leur badge* | Dignité & Professionnalisme • Livreurs certifiés | Bakary & Koffi (Livreurs professionnels WAZAP) |\n| **13** | *15 livraisons offertes pour démarrer sans risque* | Pack Découverte Bienvenue • Zéro risque financier | Salimata & Amara |\n| **14** | *Expédier un colis en 30 secondes chrono* | 100% sur WhatsApp • Zéro application lourde à télécharger | Jean-Luc & Fatou |\n| **15** | *Le secret des commerçantes qui dorment tranquilles* | Sérénité entrepreneuriale & Bilan choral WAZAP | Awa, Salimata & Bakary |\n\n---\n\n## 🎬 ÉPISODE 01 : « Plus besoin de chercher la cour du livreur ! »\n\n* **Thématique :** Sécurité & Anti-fuite • Zéro cash sur la marchandise\n* **Protagonistes :** Awa (Bijoutière Cocody) & Clarisse (Cosmétiques Koumassi)\n* **Durée totale cible :** ~15s (Format Snack) ou ~45s (Format Storytelling)\n\n### 🎥 1. Prompts Google Flow / Veo (100% Sûrs, 0 Rejet, Copier-Coller 1-Clic)\n\n#### ⚡ Option A : Format Snack Rapide 15s (Recommandé — 1 seul prompt Flow)\n> Copiez ce texte directement dans la boîte de génération Google Flow :\n```text\nPlan moyen cinématique vertical 9:16. Dans une élégante boutique chic à Abidjan au décor épuré marbre et bois, une commerçante africaine élégante en robe vert émeraude discute chaleureusement avec son amie commerçante devant un colis soigné scellé d'un ruban. Elles sourient avec soulagement et confiance en regardant l'écran lumineux d'un smartphone. Éclairage doux et chaleureux, rendu photoréaliste 8k, mouvements lents et naturels de caméra.\n```\n\n#### 🎞️ Option B : Format Storytelling Multi-Plans (4 plans de 6 à 8s)\n* **Plan 1 (Accroche) :** `Plan serré sur une jeune commerçante élégante montrant son smartphone à son amie avec une expression interrogative puis rassurée, intérieur boutique chic, format vertical 9:16.`\n* **Plan 2 (Action) :** `Plan moyen d'une commerçante scellant avec soin un paquet cadeau avec un adhésif de protection, sourire serein, éclairage boutique chaleureux, format vertical 9:16.`\n* **Plan 3 (Démonstration) :** `Un coursier professionnel avec casque et polo vert émeraude entre poliment dans la boutique et prend délicatement le paquet scellé avec un hochement de tête respectueux.`\n* **Plan 4 (Clôture) :** `Plan américain de la commerçante regardant l'objectif avec un sourire complice et bienveillant, geste de réassurance de la main.`\n\n### 🎙️ 2. Piste Audio & Voix-Off (À Enregistrer Hors Flow)\n> ⚠️ **Ne collez PAS ce texte dans Google Flow !** Générez l'audio avec Edge-TTS ou enregistrez-le au micro :\n* **Modèle de voix recommandé :** `fr-FR-DeniseNeural`\n* **Voix-Off Scène (0s - 10s) :**\n  > *« Visiter la maison de chaque coursier avant de lui confier un colis ? Qui a le temps pour ça ? Avec WAZAP, le livreur n'encaisse aucun argent liquide sur vos produits : votre cliente scanne le QR Code Universel à l'arrivée et vos fonds tombent directement sur votre propre compte ! »*\n* **Voix-Off Outro WAZAP (10s - 16s) :**\n  > *« Chères commerçantes, dites adieu au stress : envoyez COLIS sur WhatsApp au 05 44 05 19 72 ! »*\n\n### 🏁 3. Écran de Fin & Outro Officielle\n* **Fichier Outro HD :** [`videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4`](file:///c:/Dev/Wazap/videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4)\n* **Éléments affichés :** Logo officiel WAZAP 3D 2026, Cartouche WhatsApp `05 44 05 19 72`, QR Code Universel, site `www.wazap.ci`.\n\n### 📝 4. Publication Clé en Main (Facebook Reels / TikTok)\n\n```text\nChercher la maison du livreur avant de lui confier un colis ? Soyons sérieuses deux minutes ! 🤦‍♀️
 
 Quand vous avez 10 ou 20 commandes à expédier par jour à Abidjan, qui a le temps d'aller visiter la cour commune de chaque coursier ?
 
 C'est pour cela que WAZAP a créé le système anti-vol N°1 en Côte d'Ivoire :
-🛡️ 0% CASH ENCAISSÉ : Le livreur ne touche jamais à l'argent de votre marchandise. Le client scanne le QR Code Universel à la livraison (Wave, Orange, MTN, Moov) et l'argent arrive directement sur votre téléphone !
+🛡️ 0% CASH ENCAISSÉ SUR VOS ARTICLES : Le livreur ne touche jamais à l'argent de votre marchandise. Le client scanne le QR Code Universel à la livraison (Wave, Orange, MTN, Moov) et l'argent arrive directement sur votre téléphone !
 🪪 LIVREURS 100% VÉRIFIÉS : Tous nos livreurs sont enregistrés avec leur CNI officielle vérifiée par IA.
 📍 SUIVI GPS EN DIRECT : Vous et votre client suivez la course sur la carte en temps réel.
 🔒 ASSURANCE COLIS SÛR : Votre marchandise est scellée et couverte.
@@ -92,50 +11,9 @@ C'est pour cela que WAZAP a créé le système anti-vol N°1 en Côte d'Ivoire :
 🎁 Testez dès aujourd'hui : Vos 15 premières livraisons sont avec frais WAZAP offerts (0 FCFA de commission) !
 
 👉 Envoyez « COLIS » par WhatsApp au 05 44 05 19 72
-Ou cliquez directement ici : https://wa.me/2250544051972?text=COLIS
+Ou cliquez ici : https://wa.me/2250544051972?text=COLIS
 
-#Wazap #VendeusesAbidjan #CommerceCI #LivraisonSecurisee #AbidjanBusiness #Cocody #Yopougon #Team225
-```
-**1er commentaire épinglé :**  
-*« Vous avez déjà été victime d'un livreur qui a fui avec l'argent de votre commande ? Racontez-nous en commentaire et découvrez comment WAZAP vous protège à 100% ! 👇 »*
-
----
-
-## 🎬 ÉPISODE 02 : « Le livreur qui refuse les espèces ! »
-
-* **Angle :** La fin des contestations sur l'argent liquide et la protection mutuelle vendeur-livreur.
-* **Décor :** Le laboratoire pâtisserie de Fatou à Yopougon. Des gâteaux d'anniversaire magnifiques sur le comptoir.
-* **Durée :** 45 secondes.
-
-### 🎭 Scénario & Dialogues
-
-**[00:00 - 00:07] ACCROCHE**  
-*Plan sur Fatou qui tend un magnifique gâteau et des billets de 10 000 F au livreur pour faire de la monnaie.*  
-**Fatou :** « Tiens Bakary, prends le gâteau de 25 000 Francs pour la cliente de Marcory. Prends aussi 5 000 Francs pour lui faire sa monnaie si elle paye en liquide ! »
-
-**[00:07 - 00:18] LE REFUS BIENVEILLANT DU LIVREUR**  
-*Bakary lève les mains avec le sourire et refuse gentiment les billets.*  
-**Bakary :** « Non tantie Fatou, gardez vos billets ! Chez WAZAP, la règle d'or est claire : nous les livreurs, nous ne touchons à aucun argent liquide sur la marchandise. »  
-**Fatou (surprise) :** « Mais Bakary, comment la cliente va régler ses 25 000 Francs alors ? »
-
-**[00:18 - 00:33] L'EXPLICATION DU SYSTÈME**  
-*Bakary montre son smartphone avec le badge QR Code Universel WAZAP.*  
-**Bakary :** « Quand j'arrive chez elle, je lui présente ce QR Code. Elle prend son téléphone, elle le scanne avec Wave, Orange Money ou MTN. Les 25 000 Francs tombent instantanément sur VOTRE compte à vous. Et moi, je reçois uniquement mes frais de course de 1 500 Francs. Zéro dispute de monnaie, zéro risque de vol, et votre argent est en sécurité. »
-
-**[00:33 - 00:40] LA RÉACTION DU MARCHAND**  
-*Fatou soupire de soulagement avec un grand sourire vers la caméra.*  
-**Fatou :** « C'est une vraie bénédiction ! Fini les coursiers qui disent : tantie, j'ai perdu les billets en route ou le client n'avait pas la monnaie ! »
-
-**[00:40 - 00:45] APPEL À L'ACTION (CTA)**  
-**Bakary & Fatou ensemble :** « Pour livrer vos commandes en toute sécurité, rejoignez WAZAP ! Envoyez **COLIS** au **05 44 05 19 72** ! »
-
----
-
-### 📝 Publication Facebook Prête à Poster (Épisode 02)
-
-**Texte de la publication :**
-```text
-Un livreur qui refuse qu'on lui donne de l'argent liquide ? Oui, ça existe enfin à Abidjan ! 🙌🎂
+#Wazap #VendeusesAbidjan #CommerceCI #LivraisonSecurisee #AbidjanBusiness #Cocody #Yopougon #Team225\n```\n\n📌 **1ᵉʳ commentaire à épingler :**\n« Vous avez déjà été victime d'un livreur qui a fui avec l'argent de votre commande ? Racontez-nous en commentaire et découvrez comment WAZAP vous protège à 100% ! 👇 »\n\n---\n\n## 🎬 ÉPISODE 02 : « Le livreur qui refuse les espèces ! »\n\n* **Thématique :** 0% Cash sur la marchandise • Zéro litige de monnaie\n* **Protagonistes :** Fatou (Pâtissière Yopougon) & Bakary (Livreur professionnel)\n* **Durée totale cible :** ~15s (Format Snack) ou ~45s (Format Storytelling)\n\n### 🎥 1. Prompts Google Flow / Veo (100% Sûrs, 0 Rejet, Copier-Coller 1-Clic)\n\n#### ⚡ Option A : Format Snack Rapide 15s (Recommandé — 1 seul prompt Flow)\n> Copiez ce texte directement dans la boîte de génération Google Flow :\n```text\nPlan moyen cinématique vertical 9:16. Dans une pâtisserie moderne et lumineuse à Abidjan, une cheffe pâtissière ivoirienne souriante en veste de cuisine blanche impeccable remet une somptueuse boîte de gâteau blanche scellée à un coursier courtois en polo vert émeraude. Le coursier hoche la tête avec respect et présente poliment son smartphone affichant un code digital. Échange chaleureux et professionnel, arrière-plan de pâtisserie haut de gamme, éclairage doux, photoréalisme.\n```\n\n#### 🎞️ Option B : Format Storytelling Multi-Plans (4 plans de 6 à 8s)\n* **Plan 1 (Accroche) :** `Plan moyen sur une cheffe pâtissière souriante tenant une luxueuse boîte à gâteau blanche scellée, prête pour expédition.`\n* **Plan 2 (Action) :** `Un coursier en polo vert WAZAP lève doucement la main avec bienveillance et montre son écran de smartphone avec le QR Code digital.`\n* **Plan 3 (Démonstration) :** `La cheffe pâtissière hoche la tête avec soulagement et confiance, admirative de la procédure digitale.`\n* **Plan 4 (Clôture) :** `Le coursier prend précautionneusement la boîte et salue respectueusement en partant vers sa moto.`\n\n### 🎙️ 2. Piste Audio & Voix-Off (À Enregistrer Hors Flow)\n> ⚠️ **Ne collez PAS ce texte dans Google Flow !** Générez l'audio avec Edge-TTS ou enregistrez-le au micro :\n* **Modèle de voix recommandé :** `fr-FR-DeniseNeural`\n* **Voix-Off Scène (0s - 10s) :**\n  > *« Tiens Bakary, prends le gâteau de vingt-cinq mille pour Marcory ! Avec WAZAP, fini le stress de la monnaie : la cliente scanne le QR Code à l'arrivée et mon argent arrive instantanément sur mon compte ! »*\n* **Voix-Off Outro WAZAP (10s - 16s) :**\n  > *« Pour sécuriser vos ventes sans argent liquide, envoyez COLIS sur WhatsApp au 05 44 05 19 72 ! »*\n\n### 🏁 3. Écran de Fin & Outro Officielle\n* **Fichier Outro HD :** [`videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4`](file:///c:/Dev/Wazap/videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4)\n* **Éléments affichés :** Logo officiel WAZAP 3D 2026, Cartouche WhatsApp `05 44 05 19 72`, QR Code Universel, site `www.wazap.ci`.\n\n### 📝 4. Publication Clé en Main (Facebook Reels / TikTok)\n\n```text\nUn livreur qui refuse qu'on lui donne de l'argent liquide ? Oui, ça existe enfin à Abidjan ! 🙌🎂
 
 Combien de fois un coursier vous a dit :
 ❌ « Tantie, la cliente m'a donné un faux billet »
@@ -151,46 +29,7 @@ Avec WAZAP, tout cela est terminé à tout jamais !
 
 Tapez simplement « COLIS » sur WhatsApp au 05 44 05 19 72 🚀
 
-#Wazap #RestaurationAbidjan #GateauxAbidjan #TraiteurCI #Yopougon #Marcory #ZeroCash #PaiementSecurise
-```
-
----
-
-## 🎬 ÉPISODE 03 : « La cliente qui avait peur d'acheter à distance »
-
-* **Angle :** Rassurer le client final réticent et débloquer les ventes en ligne.
-* **Décor :** Atelier boutique de Salimata à Angré. Salimata est au téléphone avec une cliente hésitante.
-* **Durée :** 50 secondes.
-
-### 🎭 Scénario & Dialogues
-
-**[00:00 - 00:08] ACCROCHE**  
-*Salimata est au téléphone, une belle robe wax entre les mains.*  
-**Salimata :** « Oui madame Kouassi, la robe est disponible en taille 40... Comment ? Vous refusez d'envoyer l'argent avant la livraison parce que vous avez déjà été arnaquée sur internet ? »
-
-**[00:08 - 00:22] LA SOLUTION DE CONFIANCE**  
-*Salimata sourit avec assurance au téléphone.*  
-**Salimata :** « Je vous comprends parfaitement madame ! Ne vous inquiétez pas : vous ne payez rien du tout à l'avance. Et vous n'avez même pas besoin d'avoir de l'argent liquide sur vous ! »  
-**Voix cliente au téléphone :** « Ah bon ? Mais je paye comment quand le monsieur arrive ? »
-
-**[00:22 - 00:36] LA DÉMONSTRATION DU SCAN UNIVERSEL**  
-*Incrustation d'une animation montrant la cliente scannant le QR Code avec Wave et Orange Money.*  
-**Salimata :** « Notre livreur officiel WAZAP vous apporte votre colis scellé. Vous prenez votre smartphone, vous scannez son QR Code Universel avec votre compte Wave, Orange Money ou MTN. Vous vérifiez votre commande et vous validez le paiement d'un simple clic. C'est sécurisé, garanti par WAZAP, et vous recevez votre reçu immédiat ! »
-
-**[00:36 - 00:44] CONCLUSION CLIENTE CONQUISE**  
-**Voix cliente :** « C'est formidable ! Envoyez-moi le livreur tout de suite à la Riviera Palmeraie ! »  
-*Salimata raccroche, prend son WhatsApp et tape « COLIS » sur le numéro WAZAP en 5 secondes.*
-
-**[00:44 - 00:50] APPEL À L'ACTION (CTA)**  
-**Salimata :** « Débloquez toutes vos ventes en ligne grâce à la confiance WAZAP. Envoyez **COLIS** sur WhatsApp au **05 44 05 19 72** ! »
-
----
-
-### 📝 Publication Facebook Prête à Poster (Épisode 03)
-
-**Texte de la publication :**
-```text
-« Madame, je ne paye pas avant de voir mon colis ! » Combien de ventes perdez-vous chaque jour à cause de cette phrase ? 👗📱
+#Wazap #RestaurationAbidjan #GateauxAbidjan #TraiteurCI #Yopougon #Marcory #ZeroCash #PaiementSecurise\n```\n\n📌 **1ᵉʳ commentaire à épingler :**\n« Pâtissières et traiteurs d'Abidjan : combien de fois avez-vous perdu du temps à cause de la monnaie à la porte du client ? Partagez vos anecdotes en commentaire ! 👇 »\n\n---\n\n## 🎬 ÉPISODE 03 : « La cliente qui avait peur d'acheter à distance »\n\n* **Thématique :** QR Code Universel • Débloquer les ventes hésitantes\n* **Protagonistes :** Salimata (Styliste Angré) & Voix cliente\n* **Durée totale cible :** ~15s (Format Snack) ou ~45s (Format Storytelling)\n\n### 🎥 1. Prompts Google Flow / Veo (100% Sûrs, 0 Rejet, Copier-Coller 1-Clic)\n\n#### ⚡ Option A : Format Snack Rapide 15s (Recommandé — 1 seul prompt Flow)\n> Copiez ce texte directement dans la boîte de génération Google Flow :\n```text\nPlan moyen cinématique vertical 9:16. Dans un atelier de couture raffiné orné de magnifiques rouleaux de tissus wax et soie colorés, une jeune créatrice de mode africaine souriante et rassurante parle au téléphone avec un grand sourire d'assurance, tenant une robe élégante sur cintre. Ambiance lumineuse d'atelier de mode, textures réalistes, mouvements de caméra fluides.\n```\n\n#### 🎞️ Option B : Format Storytelling Multi-Plans (4 plans de 6 à 8s)\n* **Plan 1 (Accroche) :** `Plan serré sur la créatrice de mode au téléphone, d'abord attentive et à l'écoute des doutes de son interlocutrice.`\n* **Plan 2 (Action) :** `La créatrice sourit chaleureusement en expliquant la solution en montrant un aperçu de colis prêt à partir.`\n* **Plan 3 (Démonstration) :** `Plan de coupe cinématique : une cliente à sa porte scanne avec aisance l'écran d'un coursier souriant avec son smartphone.`\n* **Plan 4 (Clôture) :** `Retour sur la créatrice qui valide la commande sur son smartphone avec satisfaction et sérénité.`\n\n### 🎙️ 2. Piste Audio & Voix-Off (À Enregistrer Hors Flow)\n> ⚠️ **Ne collez PAS ce texte dans Google Flow !** Générez l'audio avec Edge-TTS ou enregistrez-le au micro :\n* **Modèle de voix recommandé :** `fr-FR-DeniseNeural`\n* **Voix-Off Scène (0s - 10s) :**\n  > *« Vous refusez de payer avant la livraison par peur des arnaques ? Je vous comprends parfaitement ! Avec WAZAP, zéro avance : vous vérifiez votre colis à la porte et vous scannez simplement le QR Code Universel avec Wave ou Orange Money ! »*\n* **Voix-Off Outro WAZAP (10s - 16s) :**\n  > *« Débloquez toutes vos ventes hésitantes : tapez COLIS sur WhatsApp au 05 44 05 19 72 ! »*\n\n### 🏁 3. Écran de Fin & Outro Officielle\n* **Fichier Outro HD :** [`videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4`](file:///c:/Dev/Wazap/videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4)\n* **Éléments affichés :** Logo officiel WAZAP 3D 2026, Cartouche WhatsApp `05 44 05 19 72`, QR Code Universel, site `www.wazap.ci`.\n\n### 📝 4. Publication Clé en Main (Facebook Reels / TikTok)\n\n```text\n« Madame, je ne paye pas avant de voir mon colis ! » Combien de ventes perdez-vous chaque jour à cause de cette phrase ? 👗📱
 
 Les clients d'Abidjan ont peur des arnaques en ligne, et les vendeurs ont peur des faux clients ou des livreurs indélicats.
 
@@ -204,46 +43,7 @@ La solution universelle qui réconcilie tout le monde, c'est WAZAP :
 
 👉 Tapez « COLIS » sur WhatsApp au 05 44 05 19 72 ou contactez-nous en 1 clic : https://wa.me/2250544051972?text=COLIS
 
-#Wazap #VenteEnLigneCI #ModeAbidjan #BoutiqueAbidjan #ConfianceClient #Angre #Riviera #Team225
-```
-
----
-
-## 🎬 ÉPISODE 04 : « Fini les puces jetées dans la lagune ! »
-
-* **Angle :** L'authentification biométrique et le contrôle CNI strict des coursiers WAZAP.
-* **Décor :** Magasin d'accessoires et téléphones de Jean-Luc au Black Market d'Adjamé.
-* **Durée :** 45 secondes.
-
-### 🎭 Scénario & Dialogues
-
-**[00:00 - 00:07] ACCROCHE**  
-*Jean-Luc inspecte une boîte de smartphone neuf d'une valeur de 120 000 Francs, l'air méfiant.*  
-**Jean-Luc :** « Confier un téléphone de 120 000 Francs à un coursier pris au hasard dans la rue ? Jamais de la vie ! S'il jette sa puce Orange dans la lagune, je fais comment ? »
-
-**[00:07 - 00:20] L'ARRIVÉE DU LIVREUR CERTIFIÉ**  
-*Koffi, livreur WAZAP avec son badge officiel et son casque, s'approche avec respect.*  
-**Koffi :** « Bonjour patron Jean-Luc ! Vous avez commandé une livraison sécurisée WAZAP ? »  
-**Jean-Luc :** « Oui jeune homme. Mais comment je sais que je peux te faire confiance avec un tel appareil ? »
-
-**[00:20 - 00:35] LA PREUVE DE LA CNI OFFICIELLE**  
-*Koffi sort fièrement son badge avec QR code et son profil vérifié sur son application.*  
-**Koffi :** « Regardez ici patron : pour devenir livreur WAZAP, ma Carte Nationale d'Identité a été scannée et authentifiée par intelligence artificielle. Mon adresse, ma photo et mes antécédents sont enregistrés sur la plateforme. De plus, votre colis est tracé par GPS du départ jusqu'à l'arrivée. »
-
-**[00:35 - 00:41] LA SÉRÉNITÉ RETROUVÉE**  
-*Jean-Luc hoche la tête, impressionné.*  
-**Jean-Luc :** « Ça, c'est du travail de professionnels. Prends le colis, le client t'attend à Koumassi Remblais ! »
-
-**[00:41 - 00:45] APPEL À L'ACTION (CTA)**  
-**Jean-Luc :** « Marchands d'Abidjan, sécurisez vos articles de valeur avec WAZAP. Envoyez **COLIS** au **05 44 05 19 72** ! »
-
----
-
-### 📝 Publication Facebook Prête à Poster (Épisode 04)
-
-**Texte de la publication :**
-```text
-Un smartphone de 100 000 F confié à un coursier « papillon » non identifié ? C'est jouer à la roulette russe avec votre argent ! 🛑📱
+#Wazap #VenteEnLigneCI #ModeAbidjan #BoutiqueAbidjan #ConfianceClient #Angre #Riviera #Team225\n```\n\n📌 **1ᵉʳ commentaire à épingler :**\n« Combien de clientes refusent de commander chez vous si vous demandez un paiement à l'avance ? Dites-le nous en commentaire ! 👇 »\n\n---\n\n## 🎬 ÉPISODE 04 : « Fini les puces jetées dans la lagune ! »\n\n* **Thématique :** Authentification CNI & Sécurité High-Tech\n* **Protagonistes :** Jean-Luc (High-Tech Adjamé) & Koffi (Livreur certifié)\n* **Durée totale cible :** ~15s (Format Snack) ou ~45s (Format Storytelling)\n\n### 🎥 1. Prompts Google Flow / Veo (100% Sûrs, 0 Rejet, Copier-Coller 1-Clic)\n\n#### ⚡ Option A : Format Snack Rapide 15s (Recommandé — 1 seul prompt Flow)\n> Copiez ce texte directement dans la boîte de génération Google Flow :\n```text\nPlan moyen cinématique vertical 9:16. Dans un magasin moderne de téléphonie et d'accessoires high-tech, un commerçant dynamique confie une boîte de smartphone neuve et scellée à un livreur professionnel en veste verte portant fièrement un badge d'identification officiel avec photo. Poignée de main chaleureuse et complice entre les deux hommes, éclairage néon technologique moderne, rendu réaliste 8k.\n```\n\n#### 🎞️ Option B : Format Storytelling Multi-Plans (4 plans de 6 à 8s)\n* **Plan 1 (Accroche) :** `Plan serré sur le commerçant observant une boîte de smartphone scellée avec une expression d'exigence et de prudence.`\n* **Plan 2 (Action) :** `Arrivée d'un coursier professionnel WAZAP en tenue verte impeccable, saluant avec respect.`\n* **Plan 3 (Démonstration) :** `Gros plan sur le badge d'identification officiel du coursier avec photo et QR code d'authentification.`\n* **Plan 4 (Clôture) :** `Le commerçant sourit, rassuré, et confie l'appareil en toute confiance au livreur.`\n\n### 🎙️ 2. Piste Audio & Voix-Off (À Enregistrer Hors Flow)\n> ⚠️ **Ne collez PAS ce texte dans Google Flow !** Générez l'audio avec Edge-TTS ou enregistrez-le au micro :\n* **Modèle de voix recommandé :** `fr-FR-HenriNeural`\n* **Voix-Off Scène (0s - 10s) :**\n  > *« Confier un smartphone haut de gamme à un coursier inconnu dans la rue ? Jamais de la vie ! Sur WAZAP, chaque livreur est authentifié avec sa pièce d'identité officielle et la course est tracée par GPS du départ jusqu'à l'arrivée ! »*\n* **Voix-Off Outro WAZAP (10s - 16s) :**\n  > *« Sécurisez vos expéditions d'appareils de valeur : envoyez COLIS sur WhatsApp au 05 44 05 19 72 ! »*\n\n### 🏁 3. Écran de Fin & Outro Officielle\n* **Fichier Outro HD :** [`videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4`](file:///c:/Dev/Wazap/videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4)\n* **Éléments affichés :** Logo officiel WAZAP 3D 2026, Cartouche WhatsApp `05 44 05 19 72`, QR Code Universel, site `www.wazap.ci`.\n\n### 📝 4. Publication Clé en Main (Facebook Reels / TikTok)\n\n```text\nUn smartphone de valeur confié à un coursier « papillon » non identifié ? C'est jouer à la roulette russe avec votre business ! 🛑📱
 
 À Abidjan, tout le monde connaît cette histoire : le livreur prend le colis, éteint son téléphone, jette la puce et change de quartier.
 
@@ -257,46 +57,7 @@ Ne risquez plus vos marchandises. Passez au standard officiel WAZAP.
 
 📲 Tapez « COLIS » sur WhatsApp : 05 44 05 19 72
 
-#Wazap #HighTechAbidjan #TelephoneAbidjan #Adjame #SecuriteColis #AntiFraude #LivraisonPro
-```
-
----
-
-## 🎬 ÉPISODE 05 : « L'argent est déjà sur mon compte Wave ! »
-
-* **Angle :** La rapidité d'encaissement et le versement instantané direct.
-* **Décor :** Bijouterie d'Awa à Cocody. Awa et son livreur Bakary en pleine action.
-* **Durée :** 45 secondes.
-
-### 🎭 Scénario & Dialogues
-
-**[00:00 - 00:06] ACCROCHE**  
-*Plan sur le smartphone d'Awa posé sur le comptoir. Tout à coup : Bip sonore de notification Mobile Money !*  
-*Awa sursaute de joie en regardant son écran.*  
-**Awa :** « Quoi ? Déjà ? 58 000 Francs reçus sur mon Wave ! »
-
-**[00:06 - 00:18] LE RETOUR DU COURSIER**  
-*Bakary entre dans la boutique avec son casque à la main.*  
-**Awa :** « Bakary ! Tu viens à peine de partir il y a 25 minutes ! La cliente a déjà reçu sa parure ? »  
-**Bakary :** « Oui madame Awa ! Elle a adoré les bijoux. Elle a sorti son téléphone, elle a scanné mon QR Code WAZAP, et le paiement est parti directement chez vous ! »
-
-**[00:18 - 00:32] LE CONTRASTE AVEC LES AUTRES SERVICES**  
-**Awa :** « Avec les autres plateformes, je devais attendre le mardi suivant ou faire des réclamations pour récupérer l'argent de mes ventes. Avec WAZAP, le client scanne et mon argent est dans ma poche la seconde même ! »  
-**Bakary :** « Et moi j'ai mes frais de course payés immédiatement. Tout le monde est content et respecté. »
-
-**[00:32 - 00:40] LE MOT DE LA FIN**  
-**Awa :** « Zéro retard de trésorerie, zéro dette de livreur. C'est ça le vrai commerce moderne ! »
-
-**[00:40 - 00:45] APPEL À L'ACTION (CTA)**  
-**Awa :** « Rejoignez les commerçants qui sont payés à la seconde près. Tapez **COLIS** au **05 44 05 19 72** sur WhatsApp ! »
-
----
-
-### 📝 Publication Facebook Prête à Poster (Épisode 05)
-
-**Texte de la publication :**
-```text
-Attendre 7 jours pour que votre argent de livraison vous soit reversé ? C'est inacceptable en 2026 ! ⏳❌
+#Wazap #HighTechAbidjan #TelephoneAbidjan #Adjame #SecuriteColis #AntiFraude #LivraisonPro\n```\n\n📌 **1ᵉʳ commentaire à épingler :**\n« Avez-vous déjà eu un livreur qui s'est évaporé dans la nature avec un colis de valeur ? Partagez vos expériences en commentaire ! 👇 »\n\n---\n\n## 🎬 ÉPISODE 05 : « L'argent est déjà sur mon compte Wave ! »\n\n* **Thématique :** Encaissement instantané & Trésorerie en temps réel\n* **Protagonistes :** Awa (Bijoutière Cocody) & Bakary (Livreur)\n* **Durée totale cible :** ~15s (Format Snack) ou ~45s (Format Storytelling)\n\n### 🎥 1. Prompts Google Flow / Veo (100% Sûrs, 0 Rejet, Copier-Coller 1-Clic)\n\n#### ⚡ Option A : Format Snack Rapide 15s (Recommandé — 1 seul prompt Flow)\n> Copiez ce texte directement dans la boîte de génération Google Flow :\n```text\nPlan moyen cinématique vertical 9:16. Dans sa bijouterie luxueuse à Abidjan, une femme d'affaires ivoirienne rayonnante regarde son smartphone qui s'illumine. Elle affiche une expression de joie et de soulagement intense, applaudit doucement puis salue chaleureusement le coursier en polo vert qui revient avec un sac de transport. Éclairage doré chic, reflets de vitrines soignés, grand dynamisme.\n```\n\n#### 🎞️ Option B : Format Storytelling Multi-Plans (4 plans de 6 à 8s)\n* **Plan 1 (Accroche) :** `Plan serré sur le smartphone sur le comptoir marbré s'illuminant avec une pastille verte de confirmation.`\n* **Plan 2 (Action) :** `La bijoutière regarde l'écran, les yeux écarquillés de bonheur et un sourire radieux.`\n* **Plan 3 (Démonstration) :** `Le coursier WAZAP entre avec le sac de livraison vide, mission accomplie avec ponctualité.`\n* **Plan 4 (Clôture) :** `Échange chaleureux entre la bijoutière et le coursier, symbole d'un partenariat commercial réussi.`\n\n### 🎙️ 2. Piste Audio & Voix-Off (À Enregistrer Hors Flow)\n> ⚠️ **Ne collez PAS ce texte dans Google Flow !** Générez l'audio avec Edge-TTS ou enregistrez-le au micro :\n* **Modèle de voix recommandé :** `fr-FR-DeniseNeural`\n* **Voix-Off Scène (0s - 10s) :**\n  > *« Quoi ? Déjà reçu sur mon compte ? Vingt-cinq minutes à peine après le départ du coursier ! Avec WAZAP, le client scanne le QR Code à sa porte et vos fonds sont virés immédiatement sur votre compte sans intermédiaire ! »*\n* **Voix-Off Outro WAZAP (10s - 16s) :**\n  > *« Gardez le contrôle absolu de votre trésorerie : écrivez COLIS sur WhatsApp au 05 44 05 19 72 ! »*\n\n### 🏁 3. Écran de Fin & Outro Officielle\n* **Fichier Outro HD :** [`videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4`](file:///c:/Dev/Wazap/videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4)\n* **Éléments affichés :** Logo officiel WAZAP 3D 2026, Cartouche WhatsApp `05 44 05 19 72`, QR Code Universel, site `www.wazap.ci`.\n\n### 📝 4. Publication Clé en Main (Facebook Reels / TikTok)\n\n```text\nAttendre 7 jours pour que votre argent de livraison vous soit reversé ? C'est inacceptable en 2026 ! ⏳❌
 
 Votre trésorerie, c'est le cœur de votre boutique. Vous ne devez pas attendre pour racheter du stock ou payer vos charges.
 
@@ -311,44 +72,7 @@ Découvrez la puissance du paiement direct à la livraison.
 👉 Envoyez « COLIS » par WhatsApp au 05 44 05 19 72
 Lien direct : https://wa.me/2250544051972?text=COLIS
 
-#Wazap #PaiementMobile #WaveCI #OrangeMoneyCI #Tresorerie #CommerceAbidjan #Cocody #Team225
-```
-
----
-
-## 🎬 ÉPISODE 06 : « Où est passée ma monnaie de 10 000 Francs ? »
-
-* **Angle :** L'élimination radicale des problèmes de monnaie et de billets déchirés.
-* **Décor :** Boutique streetwear d'Amara à Marcory.
-* **Durée :** 45 secondes.
-
-### 🎭 Scénario & Dialogues
-
-**[00:00 - 00:08] ACCROCHE**  
-*Amara se prend la tête à deux mains devant sa caisse enregistreuse.*  
-**Amara :** « Encore un client qui refuse le colis parce que le livreur n'avait pas la monnaie sur un billet de 10 000 Francs ! Trois courses perdues cette semaine pour une simple histoire de pièces ! »
-
-**[00:08 - 00:20] L'INTERVENTION DU COLLÈGUE**  
-*Fatou passe devant la boutique avec ses emballages et s'arrête.*  
-**Fatou :** « Mais Amara, pourquoi tu laisses tes clients payer le livreur en espèces ? Tu ne connais pas WAZAP ? »  
-**Amara :** « Mais comment tu veux qu'ils fassent s'ils n'ont pas la monnaie exacte ? »
-
-**[00:20 - 00:35] LA SOLUTION DIGITALE ÉLÉGANTE**  
-**Fatou :** « Chez WAZAP, il n'y a plus aucun problème de monnaie ! Le montant exact de ta paire de baskets, disons 14 500 Francs, est encodé dans le QR code. Le client scanne et le montant exact est débité de son Wave ou Orange Money. Fini les billets déchirés, fini les livreurs qui courent dans tout le quartier chercher la monnaie ! »
-
-**[00:35 - 00:40] LE SOULAGEMENT D'AMARA**  
-**Amara :** « Donc 100% de mes colis sont livrés sans dispute ? Mais c'est génial, donne-moi le contact tout de suite ! »
-
-**[00:40 - 00:45] APPEL À L'ACTION (CTA)**  
-**Fatou :** « C'est tout simple : tape **COLIS** au **05 44 05 19 72** sur WhatsApp et active tes 15 courses gratuites ! »
-
----
-
-### 📝 Publication Facebook Prête à Poster (Épisode 06)
-
-**Texte de la publication :**
-```text
-« Le livreur n'avait pas la monnaie de 10 000 F, le client s'est énervé et a annulé le colis... » 😤💸
+#Wazap #PaiementMobile #WaveCI #OrangeMoneyCI #Tresorerie #CommerceAbidjan #Cocody #Team225\n```\n\n📌 **1ᵉʳ commentaire à épingler :**\n« Vous préférez attendre une semaine pour votre reversement ou être payé à la seconde même où le client reçoit son colis ? Donnez votre avis ! 👇 »\n\n---\n\n## 🎬 ÉPISODE 06 : « Où est passée ma monnaie de 10 000 Francs ? »\n\n* **Thématique :** Élimination des litiges de monnaie • Encaissement digital précis\n* **Protagonistes :** Amara (Streetwear Marcory) & Fatou (Commerçante)\n* **Durée totale cible :** ~15s (Format Snack) ou ~45s (Format Storytelling)\n\n### 🎥 1. Prompts Google Flow / Veo (100% Sûrs, 0 Rejet, Copier-Coller 1-Clic)\n\n#### ⚡ Option A : Format Snack Rapide 15s (Recommandé — 1 seul prompt Flow)\n> Copiez ce texte directement dans la boîte de génération Google Flow :\n```text\nPlan moyen cinématique vertical 9:16. Dans une boutique branchée de baskets et mode urbaine, un jeune gérant ivoirien d'abord contrarié devant son comptoir retrouve le sourire lorsqu'une collègue commerçante lui montre sur smartphone une démonstration de paiement par scan digital. Le jeune homme hoche la tête, conquis et enthousiaste. Ambiance urbaine stylée, néons doux, rendu photoréaliste.\n```\n\n#### 🎞️ Option B : Format Storytelling Multi-Plans (4 plans de 6 à 8s)\n* **Plan 1 (Accroche) :** `Plan serré sur le jeune gérant de boutique perplexe devant son comptoir, secouant la tête de dépit.`\n* **Plan 2 (Action) :** `Une commerçante amie s'approche et pose un smartphone sur le comptoir en lui montrant le fonctionnement.`\n* **Plan 3 (Démonstration) :** `Gros plan sur l'écran montrant une validation de paiement numérique fluide et instantanée.`\n* **Plan 4 (Clôture) :** `Le jeune gérant sourit, rassuré et prêt à adopter la méthode pour toutes ses prochaines ventes.`\n\n### 🎙️ 2. Piste Audio & Voix-Off (À Enregistrer Hors Flow)\n> ⚠️ **Ne collez PAS ce texte dans Google Flow !** Générez l'audio avec Edge-TTS ou enregistrez-le au micro :\n* **Modèle de voix recommandé :** `fr-FR-HenriNeural`\n* **Voix-Off Scène (0s - 10s) :**\n  > *« Combien de ventes perdues parce que le livreur n'avait pas la monnaie exacte ? Avec WAZAP, le montant précis est encodé dans le QR Code. Le client scanne et règle au centime près par mobile money. Zéro monnaie à chercher ! »*\n* **Voix-Off Outro WAZAP (10s - 16s) :**\n  > *« Fini les soucis de monnaie : envoyez COLIS sur WhatsApp au 05 44 05 19 72 ! »*\n\n### 🏁 3. Écran de Fin & Outro Officielle\n* **Fichier Outro HD :** [`videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4`](file:///c:/Dev/Wazap/videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4)\n* **Éléments affichés :** Logo officiel WAZAP 3D 2026, Cartouche WhatsApp `05 44 05 19 72`, QR Code Universel, site `www.wazap.ci`.\n\n### 📝 4. Publication Clé en Main (Facebook Reels / TikTok)\n\n```text\n« Le livreur n'avait pas la monnaie, le client s'est énervé et a annulé le colis... » 😤💸
 
 Combien de ventes avez-vous déjà perdues à Abidjan pour une simple histoire de monnaie introuvable ou de billet froissé ?
 
@@ -363,49 +87,13 @@ Passez à la livraison moderne et sans friction.
 📲 Tapez « COLIS » sur WhatsApp : 05 44 05 19 72
 Lien 1-clic : https://wa.me/2250544051972?text=COLIS
 
-#Wazap #FintechCI #VenteEnLigne #Marcory #Treichville #ZeroTracas #LivraisonAbidjan
-```
-
----
-
-## 🎬 ÉPISODE 07 : « 0 Franc de commission sur vos produits »
-
-* **Angle :** Modèle économique WAZAP : pure plateforme de mise en relation, aucune ponction sur le chiffre d'affaires du vendeur.
-* **Décor :** Pause café entre Fatou et Salimata devant leur boutique.
-* **Durée :** 50 secondes.
-
-### 🎭 Scénario & Dialogues
-
-**[00:00 - 00:07] ACCROCHE**  
-*Salimata fait ses comptes avec une calculatrice et pousse un soupir d'exaspération.*  
-**Salimata :** « Les applications de livraison me coupent 20% sur chaque robe que je vends ! Sur une commande de 50 000 Francs, ils me prennent 10 000 Francs ! C'est comme si je travaillais pour eux ! »
-
-**[00:07 - 00:18] LA RÉPONSE DE FATOU**  
-**Fatou :** « Mais pourquoi tu acceptes ça ? WAZAP ne prend AUCUNE commission sur tes marchandises ! »  
-**Salimata (incrédule) :** « Zéro commission ? Comment ils gagnent leur vie alors ? »
-
-**[00:18 - 00:34] LA CLARTÉ DU MODÈLE ÉCONOMIQUE**  
-**Fatou :** « WAZAP est une pure plateforme de mise en relation WhatsApp. Eux, ils prennent juste un petit crédit de service de 125 à 160 Francs pour trouver le livreur le plus proche en 3 minutes. Le prix de ta robe de 50 000 Francs t'appartient à 100%. Et les frais de course habituels de 1 000 à 2 000 Francs vont à 100% dans la poche du livreur ! »
-
-**[00:34 - 00:43] LE CALCUL RENTABILITÉ**  
-**Salimata :** « Attends... donc sur 10 robes vendues, au lieu de perdre 100 000 Francs de commission, je ne paye que de simples frais de mise en relation ? Mais c'est une mine d'or ! »
-
-**[00:43 - 00:50] APPEL À L'ACTION (CTA)**  
-**Fatou :** « Et en plus, les 15 premières courses sont offertes pour démarrer ! Envoyez **COLIS** au **05 44 05 19 72** sur WhatsApp ! »
-
----
-
-### 📝 Publication Facebook Prête à Poster (Épisode 07)
-
-**Texte de la publication :**
-```text
-Pourquoi donner 15% à 25% de votre chiffre d'affaires à des applications de livraison ? 📉🚫
+#Wazap #FintechCI #VenteEnLigne #Marcory #Treichville #ZeroTracas #LivraisonAbidjan\n```\n\n📌 **1ᵉʳ commentaire à épingler :**\n« Vous avez déjà dû payer un café ou une bouteille d'eau juste pour casser un gros billet pour un client ? Dites-le nous en commentaire ! 👇 »\n\n---\n\n## 🎬 ÉPISODE 07 : « 0 Franc de commission sur vos produits »\n\n* **Thématique :** Modèle économique équitable • 100% du prix marchandise pour vous\n* **Protagonistes :** Salimata & Fatou\n* **Durée totale cible :** ~15s (Format Snack) ou ~45s (Format Storytelling)\n\n### 🎥 1. Prompts Google Flow / Veo (100% Sûrs, 0 Rejet, Copier-Coller 1-Clic)\n\n#### ⚡ Option A : Format Snack Rapide 15s (Recommandé — 1 seul prompt Flow)\n> Copiez ce texte directement dans la boîte de génération Google Flow :\n```text\nPlan moyen cinématique vertical 9:16. Deux commerçantes ivoiriennes élégantes et souriantes partagent une discussion conviviale à une table en terrasse devant leur boutique, regardant avec satisfaction un récapitulatif sur smartphone. Gestes enthousiastes, sourires complices et rires partagés, lumière naturelle ensoleillée d'Abidjan, ambiance florissante.\n```\n\n#### 🎞️ Option B : Format Storytelling Multi-Plans (4 plans de 6 à 8s)\n* **Plan 1 (Accroche) :** `Plan serré sur une créatrice calculant ses coûts avec une moue soucieuse sur son carnet de comptes.`\n* **Plan 2 (Action) :** `Son amie commerçante lui explique avec enthousiasme le principe de mise en relation directe.`\n* **Plan 3 (Démonstration) :** `Gros plan sur les sourires rayonnants des deux femmes comprenant l'économie réalisée sur chaque commande.`\n* **Plan 4 (Clôture) :** `Les deux entrepreneures se lèvent avec dynamisme, prêtes à expédier leurs nouveaux colis.`\n\n### 🎙️ 2. Piste Audio & Voix-Off (À Enregistrer Hors Flow)\n> ⚠️ **Ne collez PAS ce texte dans Google Flow !** Générez l'audio avec Edge-TTS ou enregistrez-le au micro :\n* **Modèle de voix recommandé :** `fr-FR-DeniseNeural`\n* **Voix-Off Scène (0s - 10s) :**\n  > *« Pourquoi donner quinze à vingt pour cent de votre chiffre d'affaires à des applications ? Chez WAZAP, la commission sur vos produits est de zéro franc ! Le prix de votre vente vous revient à cent pour cent ! »*\n* **Voix-Off Outro WAZAP (10s - 16s) :**\n  > *« Gardez cent pour cent de vos bénéfices : tapez COLIS sur WhatsApp au 05 44 05 19 72 ! »*\n\n### 🏁 3. Écran de Fin & Outro Officielle\n* **Fichier Outro HD :** [`videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4`](file:///c:/Dev/Wazap/videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4)\n* **Éléments affichés :** Logo officiel WAZAP 3D 2026, Cartouche WhatsApp `05 44 05 19 72`, QR Code Universel, site `www.wazap.ci`.\n\n### 📝 4. Publication Clé en Main (Facebook Reels / TikTok)\n\n```text\nPourquoi donner 15% à 25% de votre chiffre d'affaires à des applications de livraison ? 📉🚫
 
 Vous vous levez tôt pour créer ou dénicher vos articles. Votre marge bénéficiaire vous appartient !
 
 Chez WAZAP, la règle d'or est limpide :
 💰 0% DE COMMISSION SUR VOS MARCHANDISES : Le prix de votre produit vous revient à 100%.
-🛵 100% DU PRIX DE LA COURSE POUR LE LIVREUR : 1 000 à 2 000 FCFA nets pour le motard sans prélèvement.
+🛵 100% DU PRIX DE LA COURSE POUR LE LIVREUR : 1 000 à 2 000 FCFA nets pour le coursier sans prélèvement.
 ⚡ WAZAP facture uniquement des frais de mise en relation infimes (à partir de 125 F par course).
 
 Faites le calcul et protégez vos bénéfices dès aujourd'hui.
@@ -414,46 +102,7 @@ Faites le calcul et protégez vos bénéfices dès aujourd'hui.
 📲 Envoyez « COLIS » par WhatsApp au 05 44 05 19 72
 Lien direct : https://wa.me/2250544051972?text=COLIS
 
-#Wazap #Rentabilite #CommerceCI #Entrepreneuriat225 #AbidjanBusiness #VendeusesUnies #ZeroCommission
-```
-
----
-
-## 🎬 ÉPISODE 08 : « Arrêtez de crier : Allô tu es où ? »
-
-* **Angle :** La traçabilité GPS en temps réel et la fin du stress téléphonique.
-* **Décor :** Salimata assise à son bureau, le téléphone collé à l'oreille, visiblement stressée.
-* **Durée :** 45 secondes.
-
-### 🎭 Scénario & Dialogues
-
-**[00:00 - 00:07] ACCROCHE**  
-*Salimata crie au téléphone dans le vide.*  
-**Salimata :** « Allô ? Allô coursier ? Tu es où actuellement ? Tu m'as dit il y a une heure que tu étais au carrefour Duncan ! Tu es où exactement ? »  
-*Bruit d'appel coupé : bip... bip... bip... Salimata jette son téléphone sur la table.*
-
-**[00:07 - 00:19] L'APAISEMENT WAZAP**  
-*Awa entre dans le bureau avec le sourire et pose la main sur son épaule.*  
-**Awa :** « Salimata, calme-toi ! En 2026, on ne passe plus sa journée à appeler les livreurs pour leur demander où ils sont ! »  
-**Salimata :** « Mais comment je fais pour rassurer ma cliente qui attend sa livraison ? »
-
-**[00:19 - 00:35] LA DÉMONSTRATION DU LIEN DE SUIVI GPS PWA**  
-*Awa lui montre son smartphone : on voit une carte interactive avec la moto qui avance en direct vers l'adresse.*  
-**Awa :** « Regarde : dès que la course WAZAP démarre, ta cliente et toi recevez un lien de suivi en direct sur WhatsApp. Tu vois la moto avancer rue par rue avec l'heure exacte d'arrivée. Zéro mensonge, zéro coup de fil inutile, et ta cliente voit son livreur approcher en toute tranquillité. »
-
-**[00:35 - 00:40] LA RÉACTION**  
-**Salimata :** « Plus aucun stress de livraison ! Je peux enfin me concentrer sur mes ventes ! »
-
-**[00:40 - 00:45] APPEL À L'ACTION (CTA)**  
-**Awa & Salimata :** « Dites adieu aux fausses promesses au téléphone. Passez au suivi GPS WAZAP en envoyant **COLIS** au **05 44 05 19 72** ! »
-
----
-
-### 📝 Publication Facebook Prête à Poster (Épisode 08)
-
-**Texte de la publication :**
-```text
-« Allô le livreur, tu es où ? » / « Allô tantie, je suis au carrefour dans l'embouteillage ! » 😫🛵
+#Wazap #Rentabilite #CommerceCI #Entrepreneuriat225 #AbidjanBusiness #VendeusesUnies #ZeroCommission\n```\n\n📌 **1ᵉʳ commentaire à épingler :**\n« Quelle commission donnez-vous aujourd'hui aux intermédiaires sur vos ventes ? Calculez combien WAZAP vous fait économiser ! 👇 »\n\n---\n\n## 🎬 ÉPISODE 08 : « Arrêtez de crier : Allô tu es où ? »\n\n* **Thématique :** Suivi GPS en temps réel sur carte • Zéro appel stressant\n* **Protagonistes :** Salimata (Styliste)\n* **Durée totale cible :** ~15s (Format Snack) ou ~45s (Format Storytelling)\n\n### 🎥 1. Prompts Google Flow / Veo (100% Sûrs, 0 Rejet, Copier-Coller 1-Clic)\n\n#### ⚡ Option A : Format Snack Rapide 15s (Recommandé — 1 seul prompt Flow)\n> Copiez ce texte directement dans la boîte de génération Google Flow :\n```text\nPlan moyen cinématique vertical 9:16. Une styliste africaine élégante dans son showroom passe d'une expression d'attente impatiente au téléphone à un profond soulagement en découvrant sur son smartphone une carte dynamique où une icône se déplace en temps réel. Elle sourit et fait un signe d'approbation de la tête. Décor d'atelier chic, lumière douce, rendu haute fidélité.\n```\n\n#### 🎞️ Option B : Format Storytelling Multi-Plans (4 plans de 6 à 8s)\n* **Plan 1 (Accroche) :** `Plan serré sur la commerçante regardant son téléphone avec impatience et soupirant d'incertitude.`\n* **Plan 2 (Action) :** `Elle reçoit une notification lumineuse et ouvre un lien sur son écran tactile.`\n* **Plan 3 (Démonstration) :** `Gros plan sur une carte interactive moderne avec un marqueur vert avançant de manière fluide rue par rue.`\n* **Plan 4 (Clôture) :** `La commerçante sourit sereinement, rassurée sur l'heure précise de remise du colis.`\n\n### 🎙️ 2. Piste Audio & Voix-Off (À Enregistrer Hors Flow)\n> ⚠️ **Ne collez PAS ce texte dans Google Flow !** Générez l'audio avec Edge-TTS ou enregistrez-le au micro :\n* **Modèle de voix recommandé :** `fr-FR-DeniseNeural`\n* **Voix-Off Scène (0s - 10s) :**\n  > *« Allô coursier, tu es où ? En deux mille vingt-six, fini de passer votre journée à harceler les livreurs ! Avec WAZAP, vous et votre client suivez la course en direct sur la carte avec l'heure exacte d'arrivée ! »*\n* **Voix-Off Outro WAZAP (10s - 16s) :**\n  > *« Pour un suivi transparent sur carte : envoyez COLIS sur WhatsApp au 05 44 05 19 72 ! »*\n\n### 🏁 3. Écran de Fin & Outro Officielle\n* **Fichier Outro HD :** [`videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4`](file:///c:/Dev/Wazap/videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4)\n* **Éléments affichés :** Logo officiel WAZAP 3D 2026, Cartouche WhatsApp `05 44 05 19 72`, QR Code Universel, site `www.wazap.ci`.\n\n### 📝 4. Publication Clé en Main (Facebook Reels / TikTok)\n\n```text\n« Allô le livreur, tu es où ? » / « Allô tantie, je suis au carrefour dans l'embouteillage ! » 😫🛵
 
 Combien d'heures par jour perdez-vous à harceler des livreurs au téléphone pour savoir où se trouvent vos colis ?
 
@@ -469,54 +118,14 @@ Offrez le meilleur suivi à vos clients dès aujourd'hui.
 👉 Tapez « COLIS » sur WhatsApp au 05 44 05 19 72
 Lien 1-clic : https://wa.me/2250544051972?text=COLIS
 
-#Wazap #SuiviGPS #LivraisonEnDirect #AbidjanTech #Cocody #Yopougon #Plateau #Team225
-```
+#Wazap #SuiviGPS #LivraisonEnDirect #AbidjanTech #Cocody #Yopougon #Plateau #Team225\n```\n\n📌 **1ᵉʳ commentaire à épingler :**\n« Quelle est la pire excuse qu'un livreur vous a déjà donnée au téléphone quand vous lui demandiez où il était ? Partagez vos pépites ! 😂👇 »\n\n---\n\n## 🎬 ÉPISODE 09 : « La cliente qui voulait annuler sa robe »\n\n* **Thématique :** Assignation éclair en 3 min • Sauvetage des urgences\n* **Protagonistes :** Awa & Koffi\n* **Durée totale cible :** ~15s (Format Snack) ou ~45s (Format Storytelling)\n\n### 🎥 1. Prompts Google Flow / Veo (100% Sûrs, 0 Rejet, Copier-Coller 1-Clic)\n\n#### ⚡ Option A : Format Snack Rapide 15s (Recommandé — 1 seul prompt Flow)\n> Copiez ce texte directement dans la boîte de génération Google Flow :\n```text\nPlan moyen cinématique vertical 9:16. Dans une boutique de mode prestigieuse, une commerçante élégante consulte sa montre avec un léger stress puis valide une demande sur son smartphone. Trois secondes plus tard, un coursier en veste verte professionnelle entre promptement avec un sac de transport protecteur. Soulagement et grand sourire de la commerçante. Rythme dynamique, éclairage soigné.\n```\n\n#### 🎞️ Option B : Format Storytelling Multi-Plans (4 plans de 6 à 8s)\n* **Plan 1 (Accroche) :** `Plan serré sur la commerçante regardant sa montre avec une expression d'urgence maîtrisée.`\n* **Plan 2 (Action) :** `Elle effectue deux frappes rapides sur son smartphone pour déclencher une course.`\n* **Plan 3 (Démonstration) :** `La porte s'ouvre : un coursier officiel WAZAP équipé se présente poliment et prêt à partir.`\n* **Plan 4 (Clôture) :** `La commerçante lui remet la housse de vêtement avec un regard de soulagement et de gratitude.`\n\n### 🎙️ 2. Piste Audio & Voix-Off (À Enregistrer Hors Flow)\n> ⚠️ **Ne collez PAS ce texte dans Google Flow !** Générez l'audio avec Edge-TTS ou enregistrez-le au micro :\n* **Modèle de voix recommandé :** `fr-FR-DeniseNeural`\n* **Voix-Off Scène (0s - 10s) :**\n  > *« Une cliente qui menace d'annuler sa commande si le livreur n'est pas là dans quarante minutes ? Grâce à WAZAP, le coursier le plus proche est assigné en moins de trois minutes pour sauver votre vente ! »*\n* **Voix-Off Outro WAZAP (10s - 16s) :**\n  > *« Sauvez vos livraisons urgentes : tapez COLIS sur WhatsApp au 05 44 05 19 72 ! »*\n\n### 🏁 3. Écran de Fin & Outro Officielle\n* **Fichier Outro HD :** [`videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4`](file:///c:/Dev/Wazap/videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4)\n* **Éléments affichés :** Logo officiel WAZAP 3D 2026, Cartouche WhatsApp `05 44 05 19 72`, QR Code Universel, site `www.wazap.ci`.\n\n### 📝 4. Publication Clé en Main (Facebook Reels / TikTok)\n\n```text\n« Si le livreur n'est pas là avant 18h, j'annule la commande ! » 🚨😱
 
----
-
-## 🎬 ÉPISODE 09 : « La cliente qui voulait annuler sa robe »
-
-* **Angle :** L'assignation ultra-rapide en moins de 3 minutes pour sauver les ventes urgentes.
-* **Décor :** Boutique d'Awa. Une commande urgente tombe à 17h30 pour un dîner à 19h00.
-* **Durée :** 45 secondes.
-
-### 🎭 Scénario & Dialogues
-
-**[00:00 - 00:07] ACCROCHE**  
-*Awa reçoit un message vocal d'une cliente paniquée.*  
-**Message vocal cliente :** « Allô Awa ! J'ai un dîner de gala ce soir à 19h. S'il te plaît, si ton livreur ne peut pas être chez moi à Marcory dans 40 minutes, dis-moi tout de suite, je vais devoir annuler ! »
-
-**[00:07 - 00:18] LE DÉFI DU CHRONO**  
-*Awa regarde sa montre : 17h35.*  
-**Awa :** « Les agences classiques mettent deux heures juste pour trouver un coursier disponible... Mais moi, j'ai mon arme secrète ! »
-
-**[00:18 - 00:32] L'ASSIGNATION ÉCLAIR SUR WHATSAPP**  
-*Awa ouvre WhatsApp, envoie « COLIS » avec les détails. En 20 secondes, notification :*  
-*« 🟢 Coursier Koffi assigné à 400 mètres de votre boutique ! Arrivée estimée : 3 minutes. »*  
-*Koffi entre avec son sac isotherme WAZAP.*  
-**Koffi :** « Bonsoir madame Awa, je suis là pour la course express de Marcory ! »
-
-**[00:32 - 00:40] LA LIVRAISON RÉUSSIE**  
-*Plan de coupe sur la cliente recevant sa robe avec le sourire à 18h20, scannant le QR code avec Wave.*  
-**Message WhatsApp cliente :** « Merci Awa, livrée en 45 minutes chrono ! Tu as sauvé ma soirée ! »
-
-**[00:40 - 00:45] APPEL À L'ACTION (CTA)**  
-**Awa :** « Ne perdez plus jamais une vente pour un retard de livreur. Tapez **COLIS** au **05 44 05 19 72** sur WhatsApp ! »
-
----
-
-### 📝 Publication Facebook Prête à Poster (Épisode 09)
-
-**Texte de la publication :**
-```text
-« Si le livreur n'est pas là avant 18h, j'annule la commande ! » 🚨😱
-
-Les annulations de dernière minute coûtent des centaines de milliers de Francs chaque mois aux commerçants d'Abidjan.
+Les annulations de dernière minute coûtent des dizaines de milliers de Francs chaque semaine aux commerçants d'Abidjan.
 
 Grâce à l'algorithme de proximité WAZAP :
 ⚡ Assignation du livreur le plus proche en moins de 3 minutes.
 🛵 Des centaines de livreurs certifiés actifs dans toutes les communes d'Abidjan.
-⏱️ Prise en charge immédiate sans passer par un centre d'appel.
+⏱️ Prise en charge immédiate sans passer par un standard téléphonique.
 
 Sauvez vos ventes urgentes et fidélisez vos clients les plus exigeants !
 🎁 15 premières livraisons offertes sans commission de mise en relation.
@@ -524,44 +133,7 @@ Sauvez vos ventes urgentes et fidélisez vos clients les plus exigeants !
 📲 Envoyez « COLIS » par WhatsApp : 05 44 05 19 72
 Lien direct : https://wa.me/2250544051972?text=COLIS
 
-#Wazap #LivraisonExpress #AbidjanUrgence #CommerceAbidjan #Cocody #Marcory #ServiceClient5Etoiles
-```
-
----
-
-## 🎬 ÉPISODE 10 : « Livrer en sécurité sous la pluie d'Abidjan »
-
-* **Angle :** Fiabilité opérationnelle et protection des colis lors des intempéries.
-* **Décor :** Boutique cosmétique de Clarisse. Il pleut des cordes dehors sur le boulevard de Koumassi.
-* **Durée :** 45 secondes.
-
-### 🎭 Scénario & Dialogues
-
-**[00:00 - 00:07] ACCROCHE**  
-*Plan sur la pluie battante à l'extérieur. Clarisse regarde par la baie vitrée, l'air dépitée.*  
-**Clarisse :** « Dès qu'il pleut à Abidjan, tous les livreurs disparaissent de la circulation ! Et mes colis de crèmes de beauté vont encore être mouillés ou abîmés ! »
-
-**[00:07 - 00:18] LE COURSIER ÉQUIPÉ QUI ARRIVE**  
-*Bakary arrive, casque fermé, blouson vert déperlant WAZAP, sac étanche hermétique sur le dos.*  
-**Bakary :** « Bonjour madame Clarisse ! Ne vous inquiétez pas, WAZAP livre par tous les temps ! »
-
-**[00:18 - 00:32] LA PROTECTION DU COLIS SÛR**  
-*Bakary ouvre son sac intérieur totalement sec et scelle le paquet de Clarisse avec un adhésif de sécurité WAZAP.*  
-**Bakary :** « Chez nous, chaque colis est protégé dans un compartiment étanche et scellé. En plus, avec l'Assurance Colis Sûr, si votre colis a le moindre souci en route, WAZAP couvre la marchandise ! »
-
-**[00:32 - 00:40] LE TÉMOIGNAGE DE CLARISSE**  
-**Clarisse :** « Même sous la pluie torrentielle, mes clientes sont livrées à temps avec des produits impeccables. C'est ça le respect du commerçant ! »
-
-**[00:40 - 00:45] APPEL À L'ACTION (CTA)**  
-**Clarisse & Bakary :** « Ne laissez plus la pluie bloquer votre business. Rejoignez WAZAP en envoyant **COLIS** au **05 44 05 19 72** ! »
-
----
-
-### 📝 Publication Facebook Prête à Poster (Épisode 10)
-
-**Texte de la publication :**
-```text
-Dès qu'une goutte de pluie tombe sur Abidjan, votre activité s'arrête ? 🌧️🛵
+#Wazap #LivraisonExpress #AbidjanUrgence #CommerceAbidjan #Cocody #Marcory #ServiceClient5Etoiles\n```\n\n📌 **1ᵉʳ commentaire à épingler :**\n« Vous avez déjà perdu une grosse vente parce qu'aucun livreur n'était disponible à temps ? Racontez-nous ! 👇 »\n\n---\n\n## 🎬 ÉPISODE 10 : « Livrer en sécurité sous la pluie d'Abidjan »\n\n* **Thématique :** Protection intempéries • Sacs étanches hermétiques\n* **Protagonistes :** Clarisse (Koumassi) & Bakary (Livreur équipé pluie)\n* **Durée totale cible :** ~15s (Format Snack) ou ~45s (Format Storytelling)\n\n### 🎥 1. Prompts Google Flow / Veo (100% Sûrs, 0 Rejet, Copier-Coller 1-Clic)\n\n#### ⚡ Option A : Format Snack Rapide 15s (Recommandé — 1 seul prompt Flow)\n> Copiez ce texte directement dans la boîte de génération Google Flow :\n```text\nPlan moyen cinématique vertical 9:16. À travers la vitrine d'une élégante boutique de beauté, on aperçoit une forte pluie tropicale s'abattre sur la rue. À l'intérieur, un coursier courageux en blouson vert imperméable et casque scellé ouvre un sac thermique totalement sec pour y placer délicatement un colis cosmétique scellé. La gérante le remercie avec un sourire admiratif. Éclairage contrasté cinématique pluie et chaleur intérieure.\n```\n\n#### 🎞️ Option B : Format Storytelling Multi-Plans (4 plans de 6 à 8s)\n* **Plan 1 (Accroche) :** `Plan moyen depuis l'intérieur d'une boutique montrant la pluie battante sur la vitre et la gérante attentive.`\n* **Plan 2 (Action) :** `Entrée calme d'un coursier WAZAP en équipement déperlant vert émeraude, égouttant son casque avec soin.`\n* **Plan 3 (Démonstration) :** `Gros plan sur le compartiment intérieur parfaitement sec du sac isotherme scellé.`\n* **Plan 4 (Clôture) :** `La gérante et le coursier échangent un regard confiant et professionnel avant le départ.`\n\n### 🎙️ 2. Piste Audio & Voix-Off (À Enregistrer Hors Flow)\n> ⚠️ **Ne collez PAS ce texte dans Google Flow !** Générez l'audio avec Edge-TTS ou enregistrez-le au micro :\n* **Modèle de voix recommandé :** `fr-FR-DeniseNeural`\n* **Voix-Off Scène (0s - 10s) :**\n  > *« Dès qu'il pleut sur Abidjan, vos livreurs habituels disparaissent ? Pas chez WAZAP ! Nos coursiers sont équipés de sacs étanches hermétiques pour livrer vos colis secs et intacts par tous les temps ! »*\n* **Voix-Off Outro WAZAP (10s - 16s) :**\n  > *« Même sous l'orage, gardez vos clients : envoyez COLIS sur WhatsApp au 05 44 05 19 72 ! »*\n\n### 🏁 3. Écran de Fin & Outro Officielle\n* **Fichier Outro HD :** [`videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4`](file:///c:/Dev/Wazap/videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4)\n* **Éléments affichés :** Logo officiel WAZAP 3D 2026, Cartouche WhatsApp `05 44 05 19 72`, QR Code Universel, site `www.wazap.ci`.\n\n### 📝 4. Publication Clé en Main (Facebook Reels / TikTok)\n\n```text\nDès qu'une goutte de pluie tombe sur Abidjan, votre activité s'arrête ? 🌧️🛵
 
 Les excuses des coursiers injoignables et les colis arrivés trempés chez les clients, c'est du passé !
 
@@ -576,46 +148,9 @@ La météo ne doit plus jamais impacter votre chiffre d'affaires !
 👉 Tapez « COLIS » sur WhatsApp au 05 44 05 19 72
 Lien rapide : https://wa.me/2250544051972?text=COLIS
 
-#Wazap #PluieAbidjan #LivraisonPro #Koumassi #Treichville #Cocody #AbidjanBusiness #Team225
-```
+#Wazap #PluieAbidjan #LivraisonPro #Koumassi #Treichville #Cocody #AbidjanBusiness #Team225\n```\n\n📌 **1ᵉʳ commentaire à épingler :**\n« Comment réagissent vos livreurs actuels dès que le ciel s'assombrit à Abidjan ? Discutons-en en commentaire ! 🌧️👇 »\n\n---\n\n## 🎬 ÉPISODE 11 : « Le flacon de parfum précieux »\n\n* **Thématique :** Assurance Colis Sûr • Indemnisation garantie\n* **Protagonistes :** Clarisse & Koffi\n* **Durée totale cible :** ~15s (Format Snack) ou ~45s (Format Storytelling)\n\n### 🎥 1. Prompts Google Flow / Veo (100% Sûrs, 0 Rejet, Copier-Coller 1-Clic)\n\n#### ⚡ Option A : Format Snack Rapide 15s (Recommandé — 1 seul prompt Flow)\n> Copiez ce texte directement dans la boîte de génération Google Flow :\n```text\nPlan moyen cinématique vertical 9:16. Dans une parfumerie haut de gamme scintillante de flacons raffinés, une commerçante méticuleuse place un luxueux coffret dans une boîte de transport capitonnée. Un coursier professionnel en polo vert y appose délicatement un scellé de garantie et lui fait un signe de tête rassurant. Atmosphère luxueuse, reflets dorés et ambrés, grande netteté.\n```\n\n#### 🎞️ Option B : Format Storytelling Multi-Plans (4 plans de 6 à 8s)\n* **Plan 1 (Accroche) :** `Plan serré sur des flacons de parfum en cristal étincelant sur une étagère en verre éclairée.`\n* **Plan 2 (Action) :** `La commerçante emballe délicatement le flacon dans du papier de soie protecteur.`\n* **Plan 3 (Démonstration) :** `Le coursier appose un scellé officiel sur le carton d'expédition avec minutie.`\n* **Plan 4 (Clôture) :** `La commerçante sourit, rassurée par le niveau de protection et le sérieux du protocole.`\n\n### 🎙️ 2. Piste Audio & Voix-Off (À Enregistrer Hors Flow)\n> ⚠️ **Ne collez PAS ce texte dans Google Flow !** Générez l'audio avec Edge-TTS ou enregistrez-le au micro :\n* **Modèle de voix recommandé :** `fr-FR-DeniseNeural`\n* **Voix-Off Scène (0s - 10s) :**\n  > *« Un coursier indépendant qui brise votre article de valeur et vous dit qu'il n'a rien pour rembourser ? Avec l'Assurance Colis Sûr WAZAP, chaque marchandise scellée est couverte en cas de sinistre pour votre sérénité intégrale ! »*\n* **Voix-Off Outro WAZAP (10s - 16s) :**\n  > *« Protégez vos articles précieux : écrivez COLIS sur WhatsApp au 05 44 05 19 72 ! »*\n\n### 🏁 3. Écran de Fin & Outro Officielle\n* **Fichier Outro HD :** [`videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4`](file:///c:/Dev/Wazap/videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4)\n* **Éléments affichés :** Logo officiel WAZAP 3D 2026, Cartouche WhatsApp `05 44 05 19 72`, QR Code Universel, site `www.wazap.ci`.\n\n### 📝 4. Publication Clé en Main (Facebook Reels / TikTok)\n\n```text\nQue faites-vous quand un livreur casse votre article précieux et vous dit : « Pardon tantie, je n'ai rien sur moi » ? 💔😭
 
----
-
-## 🎬 ÉPISODE 11 : « Le flacon de parfum à 65 000 Francs »
-
-* **Angle :** L'Assurance Colis Sûr et l'indemnisation garantie en cas de sinistre.
-* **Décor :** Parfumerie haut de gamme de Clarisse.
-* **Durée :** 50 secondes.
-
-### 🎭 Scénario & Dialogues
-
-**[00:00 - 00:07] ACCROCHE**  
-*Clarisse tient un flacon de parfum en cristal précieux dans ses mains avec appréhension.*  
-**Clarisse :** « Ce flacon coûte 65 000 Francs. La semaine dernière, un livreur indépendant a fait tomber le colis d'une collègue et a dit : désolé tantie, je n'ai pas d'argent pour rembourser ! »
-
-**[00:07 - 00:19] LE BOUCLIER DE L'ASSURANCE COLIS SÛR**  
-*Koffi, livreur WAZAP, pose délicatement le flacon dans la boîte protégée avec le scellé de sécurité.*  
-**Koffi :** « Avec WAZAP madame Clarisse, ce risque n'existe pas. Chaque commande activée sur le réseau bénéficie automatiquement de l'Assurance Colis Sûr ! »
-
-**[00:19 - 00:35] COMMENT FONCTIONNE LA PROTECTION**  
-**Clarisse :** « C'est-à-dire ? Si jamais il y a un problème sur la route, qui me rembourse ? »  
-**Koffi :** « Dès que la course démarre, votre marchandise est couverte par la plateforme WAZAP. En cas de casse ou de perte avérée, vous êtes indemnisée rapidement sans que vous n'ayez à négocier ou vous disputer avec le livreur. Vous expédiez l'esprit 100% serein. »
-
-**[00:35 - 00:43] LE VERDICT**  
-**Clarisse :** « Travailler avec une entreprise qui prend ses responsabilités, ça change tout pour un commerçant sérieux ! »
-
-**[00:43 - 00:50] APPEL À L'ACTION (CTA)**  
-**Clarisse :** « Protégez tous vos articles de valeur avec l'Assurance Colis Sûr WAZAP. Envoyez **COLIS** au **05 44 05 19 72** sur WhatsApp ! »
-
----
-
-### 📝 Publication Facebook Prête à Poster (Épisode 11)
-
-**Texte de la publication :**
-```text
-Que faites-vous quand un livreur casse votre article à 50 000 F et vous dit : « Pardon tantie, je n'ai rien sur moi » ? 💔😭
-
-Dans l'informel, vous perdez votre argent et votre client.
+Dans l'informel, vous perdez votre produit et votre client.
 Avec WAZAP, vous êtes protégée par un vrai contrat de confiance :
 
 🛡️ ASSURANCE COLIS SÛR : Chaque expédition scellée sur le réseau WAZAP est couverte contre la casse, la détérioration ou la perte.
@@ -628,43 +163,7 @@ Faites le choix de la sécurité professionnelle dès votre prochaine course.
 📲 Envoyez « COLIS » par WhatsApp : 05 44 05 19 72
 Lien direct : https://wa.me/2250544051972?text=COLIS
 
-#Wazap #AssuranceColisSur #CommerceSecurise #ParfumerieAbidjan #BijouxAbidjan #ZeroPerte #Abidjan2026
-```
-
----
-
-## 🎬 ÉPISODE 12 : « Pourquoi nos livreurs montrent fièrement leur CNI »
-
-* **Angle :** La valorisation et la dignité des livreurs professionnels WAZAP.
-* **Décor :** Bakary et Koffi sur leurs motos propres, casques en main, devant un point de ralliement WAZAP.
-* **Durée :** 50 secondes.
-
-### 🎭 Scénario & Dialogues
-
-**[00:00 - 00:08] ACCROCHE**  
-*Bakary regarde directement la caméra avec un regard franc, fier et chaleureux.*  
-**Bakary :** « On entend partout : méfiez-vous des livreurs, ils vont fuir avec vos colis ! En tant que livreur professionnel et père de famille, ça me faisait mal au cœur. »
-
-**[00:08 - 00:22] LA DIFFÉRENCE DU STATUT WAZAP**  
-*Koffi s'approche à ses côtés en montrant son badge certifié WAZAP.*  
-**Koffi :** « Mais aujourd'hui, chez WAZAP, nous portons nos couleurs avec fierté ! Notre pièce d'identité officielle est enregistrée, notre historique est transparent et les commerçants nous font une confiance totale ! »
-
-**[00:22 - 00:36] LE RESPECT DU TRAVAIL ET DES TARIFS**  
-**Bakary :** « Pourquoi ? Parce que nous ne manipulons pas l'argent de la marchandise : le client scanne le QR code, le vendeur est payé en direct. Et nous les livreurs, nous touchons 100% du prix de notre course, au minimum 1 000 Francs net dès le premier mètre, sans aucune commission coupée sur notre sueur ! »
-
-**[00:36 - 00:43] LE MESSAGE AUX COMMERÇANTS**  
-**Koffi :** « Chers commerçants, quand vous confiez un colis à un livreur WAZAP, vous le confiez à un partenaire digne, vérifié et engagé ! »
-
-**[00:43 - 00:50] APPEL À L'ACTION (CTA)**  
-**Bakary & Koffi :** « Vendeurs d'Abidjan, expédiez avec des livreurs certifiés ! Tapez **COLIS** au **05 44 05 19 72** sur WhatsApp ! »
-
----
-
-### 📝 Publication Facebook Prête à Poster (Épisode 12)
-
-**Texte de la publication :**
-```text
-Tous les livreurs ne sont pas des « livreurs voyous ». Il y a des hommes travailleurs et intègres qui méritent votre respect ! 🛵🤝
+#Wazap #AssuranceColisSur #CommerceSecurise #ParfumerieAbidjan #BijouxAbidjan #ZeroPerte #Abidjan2026\n```\n\n📌 **1ᵉʳ commentaire à épingler :**\n« Vous avez déjà dû rembourser une cliente de votre propre poche après un incident de livraison ? Partagez votre histoire ! 👇 »\n\n---\n\n## 🎬 ÉPISODE 12 : « Pourquoi nos livreurs montrent fièrement leur badge »\n\n* **Thématique :** Dignité & Professionnalisme • Livreurs certifiés\n* **Protagonistes :** Bakary & Koffi (Livreurs professionnels WAZAP)\n* **Durée totale cible :** ~15s (Format Snack) ou ~45s (Format Storytelling)\n\n### 🎥 1. Prompts Google Flow / Veo (100% Sûrs, 0 Rejet, Copier-Coller 1-Clic)\n\n#### ⚡ Option A : Format Snack Rapide 15s (Recommandé — 1 seul prompt Flow)\n> Copiez ce texte directement dans la boîte de génération Google Flow :\n```text\nPlan moyen cinématique vertical 9:16. Deux jeunes coursiers ivoiriens intègres et fiers en tenue officielle vert émeraude WAZAP, casques homologués sous le bras, se tiennent devant leurs motos soignées en ville. L'un d'eux présente avec dignité et fierté son badge professionnel avec photo face à la caméra avec un sourire franc. Lumière du jour valorisante, arrière-plan urbain net d'Abidjan, respect et professionnalisme.\n```\n\n#### 🎞️ Option B : Format Storytelling Multi-Plans (4 plans de 6 à 8s)\n* **Plan 1 (Accroche) :** `Plan moyen sur deux jeunes coursiers en polo vert émeraude discutant respectueusement près de leurs motos.`\n* **Plan 2 (Action) :** `Gros plan sur un coursier présentant son badge officiel avec photo et mention certifiée.`\n* **Plan 3 (Démonstration) :** `Plan serré sur le regard franc, chaleureux et engagé du coursier face à l'objectif.`\n* **Plan 4 (Clôture) :** `Les deux livreurs mettent leur casque et s'apprêtent à démarrer pour servir leurs commerçants.`\n\n### 🎙️ 2. Piste Audio & Voix-Off (À Enregistrer Hors Flow)\n> ⚠️ **Ne collez PAS ce texte dans Google Flow !** Générez l'audio avec Edge-TTS ou enregistrez-le au micro :\n* **Modèle de voix recommandé :** `fr-FR-HenriNeural`\n* **Voix-Off Scène (0s - 10s) :**\n  > *« On entend souvent : méfiez-vous des livreurs ! Chez WAZAP, nous montrons fièrement notre pièce d'identité vérifiée. Nous ne touchons aucun billet sur la marchandise, et nous percevons cent pour cent de nos frais de course sans prélèvement ! »*\n* **Voix-Off Outro WAZAP (10s - 16s) :**\n  > *« Travaillez avec des livreurs certifiés : tapez COLIS sur WhatsApp au 05 44 05 19 72 ! »*\n\n### 🏁 3. Écran de Fin & Outro Officielle\n* **Fichier Outro HD :** [`videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4`](file:///c:/Dev/Wazap/videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4)\n* **Éléments affichés :** Logo officiel WAZAP 3D 2026, Cartouche WhatsApp `05 44 05 19 72`, QR Code Universel, site `www.wazap.ci`.\n\n### 📝 4. Publication Clé en Main (Facebook Reels / TikTok)\n\n```text\nTous les livreurs ne sont pas des « livreurs voyous ». Il y a des hommes travailleurs et intègres qui méritent votre respect ! 🛵🤝
 
 Chez WAZAP, nous avons fait le choix de la dignité et de la transparence :
 🪪 Nos livreurs fournissent leur pièce d'identité officielle vérifiée par IA pour intégrer le réseau.
@@ -679,44 +178,7 @@ Soutenez un réseau éthique et sécurisé à Abidjan.
 📲 Tapez « COLIS » sur WhatsApp : 05 44 05 19 72
 Lien direct : https://wa.me/2250544051972?text=COLIS
 
-#Wazap #DigniteLivreur #LivreurAbidjan #PartenariatGagnant #RespectDuTravail #AbidjanBusiness #Team225
-```
-
----
-
-## 🎬 ÉPISODE 13 : « 15 livraisons offertes pour démarrer sans risque »
-
-* **Angle :** L'offre de bienvenue irrésistible sans engagement pour convertir les sceptiques.
-* **Décor :** Rencontre entre Salimata et Amara au centre commercial de Marcory.
-* **Durée :** 45 secondes.
-
-### 🎭 Scénario & Dialogues
-
-**[00:00 - 00:06] ACCROCHE**  
-*Amara aborde Salimata avec curiosité.*  
-**Amara :** « Salimata ! Tout le monde dans le groupe Facebook des cybervendeuses ne parle que de WAZAP. Mais dis-moi la vérité : il y a un piège ? C'est quoi l'abonnement mensuel ? »
-
-**[00:06 - 00:18] LA VÉRITÉ SUR LE PACK DÉCOUVERTE**  
-*Salimata rigole franchement.*  
-**Salimata :** « Amara, il n'y a aucun abonnement et aucun piège ! Tu t'inscris sur WhatsApp en deux minutes, et WAZAP t'offre directement 15 courses avec frais de service à 0 Franc ! »
-
-**[00:18 - 00:32] CE QUI EST OFFERT ET CE QUI RESTE**  
-**Amara (intrigué) :** « C'est-à-dire que je ne paye rien du tout pour essayer ? »  
-**Salimata :** « Exactement ! Tu ne donnes aucune carte bancaire. Les frais de mise en relation de WAZAP sont totalement offerts sur tes 15 premières commandes pour que tu puisses tester la sécurité, le QR code et la rapidité des livreurs. Tu ne règles que la course normale à ton livreur comme d'habitude ! »
-
-**[00:32 - 00:40] LA DÉCISION IMMÉDIATE**  
-**Amara :** « Zéro risque financier pour essayer le service n°1 d'Abidjan ? Je m'inscris tout de suite ! »
-
-**[00:40 - 00:45] APPEL À L'ACTION (CTA)**  
-**Salimata :** « Profitez de vos 15 courses offertes avant la fin du quota du mois ! Envoyez **COLIS** au **05 44 05 19 72** sur WhatsApp ! »
-
----
-
-### 📝 Publication Facebook Prête à Poster (Épisode 13)
-
-**Texte de la publication :**
-```text
-« C'est quoi le piège ? » Réponse : Il n'y en a aucun ! 🎁✨
+#Wazap #DigniteLivreur #LivreurAbidjan #PartenariatGagnant #RespectDuTravail #AbidjanBusiness #Team225\n```\n\n📌 **1ᵉʳ commentaire à épingler :**\n« Vous connaissez un livreur honnête et travailleur qui mérite d'être félicité ? Mentionnez-le en commentaire ! 👏👇 »\n\n---\n\n## 🎬 ÉPISODE 13 : « 15 livraisons offertes pour démarrer sans risque »\n\n* **Thématique :** Pack Découverte Bienvenue • Zéro risque financier\n* **Protagonistes :** Salimata & Amara\n* **Durée totale cible :** ~15s (Format Snack) ou ~45s (Format Storytelling)\n\n### 🎥 1. Prompts Google Flow / Veo (100% Sûrs, 0 Rejet, Copier-Coller 1-Clic)\n\n#### ⚡ Option A : Format Snack Rapide 15s (Recommandé — 1 seul prompt Flow)\n> Copiez ce texte directement dans la boîte de génération Google Flow :\n```text\nPlan moyen cinématique vertical 9:16. Dans une galerie commerciale moderne, deux jeunes gérants de boutique africains discutent joyeusement. La jeune femme montre son smartphone en expliquant les détails avec enthousiasme, et le jeune homme sourit largement en esquissant un geste de satisfaction. Décor commercial moderne, lumière claire et valorisante.\n```\n\n#### 🎞️ Option B : Format Storytelling Multi-Plans (4 plans de 6 à 8s)\n* **Plan 1 (Accroche) :** `Plan moyen sur deux commerçants discutant au milieu d'une galerie marchande animée.`\n* **Plan 2 (Action) :** `La commerçante montre son écran de téléphone avec un geste clair et rassurant.`\n* **Plan 3 (Démonstration) :** `Le commerçant sourit, agréablement surpris par l'absence totale d'engagement caché.`\n* **Plan 4 (Clôture) :** `Les deux commerçants se serrent la main avec entrain et confiance.`\n\n### 🎙️ 2. Piste Audio & Voix-Off (À Enregistrer Hors Flow)\n> ⚠️ **Ne collez PAS ce texte dans Google Flow !** Générez l'audio avec Edge-TTS ou enregistrez-le au micro :\n* **Modèle de voix recommandé :** `fr-FR-DeniseNeural`\n* **Voix-Off Scène (0s - 10s) :**\n  > *« C'est quoi le piège avec WAZAP ? Aucun piège ! Zéro abonnement mensuel, zéro carte bancaire. Vos quinze premières recherches de livreurs sont avec commission offerte pour tester la sécurité et la rapidité du réseau ! »*\n* **Voix-Off Outro WAZAP (10s - 16s) :**\n  > *« Testez sans risque dès aujourd'hui : envoyez COLIS sur WhatsApp au 05 44 05 19 72 ! »*\n\n### 🏁 3. Écran de Fin & Outro Officielle\n* **Fichier Outro HD :** [`videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4`](file:///c:/Dev/Wazap/videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4)\n* **Éléments affichés :** Logo officiel WAZAP 3D 2026, Cartouche WhatsApp `05 44 05 19 72`, QR Code Universel, site `www.wazap.ci`.\n\n### 📝 4. Publication Clé en Main (Facebook Reels / TikTok)\n\n```text\n« C'est quoi le piège ? » Réponse : Il n'y en a aucun ! 🎁✨
 
 Pour vous prouver l'efficacité et la sécurité du réseau WAZAP, nous prenons 100% du risque à notre charge :
 
@@ -732,45 +194,7 @@ Les places du quota mensuel partent très vite !
 👉 Tapez « COLIS » sur WhatsApp au 05 44 05 19 72
 Lien instantané : https://wa.me/2250544051972?text=COLIS
 
-#Wazap #OffreBienvenue #TestGratuit #CommerceCI #Cybervendeuses225 #VenteAbidjan #ZeroRisque
-```
-
----
-
-## 🎬 ÉPISODE 14 : « Expédier un colis en 30 secondes chrono »
-
-* **Angle :** La simplicité absolue sans aucune application lourde à télécharger.
-* **Décor :** Jean-Luc et Fatou assis à une table. Démonstration smartphone en main.
-* **Durée :** 45 secondes.
-
-### 🎭 Scénario & Dialogues
-
-**[00:00 - 00:07] ACCROCHE**  
-*Fatou soupire en regardant son smartphone plein à craquer.*  
-**Fatou :** « Mon téléphone n'a plus de mémoire ! Chaque nouvelle plateforme me demande de télécharger une application de 150 Mo qui plante tout le temps ! »
-
-**[00:07 - 00:18] LA SIMPLICITÉ 100% WHATSAPP**  
-*Jean-Luc lui tend son écran.*  
-**Jean-Luc :** « Fatou, avec WAZAP, tu n'as AUCUNE application à télécharger ! Tout se passe sur l'application que tu utilises déjà toute la journée : WhatsApp ! »  
-**Fatou :** « Vraiment ? Montre-moi comment tu fais une expédition ! »
-
-**[00:18 - 00:33] LA DÉMO EN 3 CLICS**  
-*Plan serré sur la discussion WhatsApp officielle de Jean-Luc avec le bot WAZAP (+225 05 44 05 19 72).*  
-**Jean-Luc :** « Regarde : j'envoie le mot **COLIS**. Le système me demande l'adresse de ramassage, le numéro du client et la commune. Je colle le texte, j'envoie ma localisation... et voilà ! En 30 secondes, l'offre est diffusée aux livreurs les plus proches et mon coursier arrive ! »
-
-**[00:33 - 00:40] L'ENTHOUSIASME DE FATOU**  
-**Fatou :** « C'est tellement fluide ! Même ma petite sœur qui vient d'ouvrir sa boutique peut l'utiliser sans formation ! »
-
-**[00:40 - 00:45] APPEL À L'ACTION (CTA)**  
-**Jean-Luc :** « Faites comme nous, simplifiez-vous la vie. Envoyez **COLIS** au **05 44 05 19 72** sur WhatsApp dès maintenant ! »
-
----
-
-### 📝 Publication Facebook Prête à Poster (Épisode 14)
-
-**Texte de la publication :**
-```text
-Plus d'espace dans votre téléphone pour une nouvelle application ? Aucun problème ! 📲⚡
+#Wazap #OffreBienvenue #TestGratuit #CommerceCI #Cybervendeuses225 #VenteAbidjan #ZeroRisque\n```\n\n📌 **1ᵉʳ commentaire à épingler :**\n« Avez-vous déjà testé le service de mise en relation WAZAP ? Dites-nous ce qui vous a le plus surpris ! 👇 »\n\n---\n\n## 🎬 ÉPISODE 14 : « Expédier un colis en 30 secondes chrono »\n\n* **Thématique :** 100% sur WhatsApp • Zéro application lourde à télécharger\n* **Protagonistes :** Jean-Luc & Fatou\n* **Durée totale cible :** ~15s (Format Snack) ou ~45s (Format Storytelling)\n\n### 🎥 1. Prompts Google Flow / Veo (100% Sûrs, 0 Rejet, Copier-Coller 1-Clic)\n\n#### ⚡ Option A : Format Snack Rapide 15s (Recommandé — 1 seul prompt Flow)\n> Copiez ce texte directement dans la boîte de génération Google Flow :\n```text\nPlan moyen cinématique vertical 9:16. Un commerçant dynamique montre à sa voisine commerçante comment il pianote sur son smartphone en quelques secondes avec aisance. La jeune femme observe avec de grands yeux émerveillés et sourit devant la facilité d'utilisation. Gros plan bref sur les doigts tapant sur l'écran tactile, puis sourires partagés. Éclairage naturel, rendu photoréaliste.\n```\n\n#### 🎞️ Option B : Format Storytelling Multi-Plans (4 plans de 6 à 8s)\n* **Plan 1 (Accroche) :** `Plan serré sur la commerçante regardant son téléphone avec lassitude face aux notifications d'espace saturé.`\n* **Plan 2 (Action) :** `Le commerçant voisin lui tend son écran avec un grand sourire complice.`\n* **Plan 3 (Démonstration) :** `Gros plan sur la saisie fluide et ultra-rapide sur l'écran tactile en quelques clics.`\n* **Plan 4 (Clôture) :** `La commerçante applaudit doucement, impressionnée par la simplicité immédiate.`\n\n### 🎙️ 2. Piste Audio & Voix-Off (À Enregistrer Hors Flow)\n> ⚠️ **Ne collez PAS ce texte dans Google Flow !** Générez l'audio avec Edge-TTS ou enregistrez-le au micro :\n* **Modèle de voix recommandé :** `fr-FR-HenriNeural`\n* **Voix-Off Scène (0s - 10s) :**\n  > *« Plus d'espace dans votre téléphone pour installer une nouvelle application ? Avec WAZAP, zéro application à télécharger ! Tout se passe sur l'application que vous utilisez déjà toute la journée. Envoyez simplement les détails et votre coursier est en route ! »*\n* **Voix-Off Outro WAZAP (10s - 16s) :**\n  > *« Expédiez en trente secondes chrono : écrivez COLIS sur WhatsApp au 05 44 05 19 72 ! »*\n\n### 🏁 3. Écran de Fin & Outro Officielle\n* **Fichier Outro HD :** [`videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4`](file:///c:/Dev/Wazap/videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4)\n* **Éléments affichés :** Logo officiel WAZAP 3D 2026, Cartouche WhatsApp `05 44 05 19 72`, QR Code Universel, site `www.wazap.ci`.\n\n### 📝 4. Publication Clé en Main (Facebook Reels / TikTok)\n\n```text\nPlus d'espace dans votre téléphone pour une nouvelle application ? Aucun problème ! 📲⚡
 
 Pourquoi installer une énième application complexe quand votre outil de travail principal est déjà WhatsApp ?
 
@@ -786,49 +210,7 @@ Zéro téléchargement, zéro mise à jour compliquée, zéro perte de temps !
 👉 Tapez « COLIS » sur WhatsApp au 05 44 05 19 72
 Lien direct : https://wa.me/2250544051972?text=COLIS
 
-#Wazap #WhatsAppCommerce #Simplicite #GainDeTemps #ECommerceAbidjan #Cocody #Yopougon #Team225
-```
-
----
-
-## 🎬 ÉPISODE 15 : « Le secret des commerçantes qui dorment tranquilles »
-
-* **Angle :** L'épisode bilan choral : réassurance émotionnelle, autorité et passage à l'échelle.
-* **Décor :** Plan en terrasse avec Awa, Salimata et le coursier Bakary, souriants et accomplis.
-* **Durée :** 55 secondes.
-
-### 🎭 Scénario & Dialogues
-
-**[00:00 - 00:08] ACCROCHE**  
-*Awa et Salimata trinquent avec un verre de jus naturel, détendues et souriantes.*  
-**Awa :** « Salimata, tu te souviens de l'époque où on ne dormait pas la nuit parce qu'on attendait des virements de coursiers injoignables ? »
-
-**[00:08 - 00:20] LE CHANGEMENT DE VIE**  
-**Salimata :** « Oh oui ! Le stress des colis volés, les disputes avec les clientes, les fausses adresses... Aujourd'hui, grâce à WAZAP, j'expédie 30 commandes par jour sans une seule goutte de sueur ! »
-
-**[00:20 - 00:36] LE RAPPEL DES 4 FONDAMENTAUX PAR BAKARY**  
-*Bakary rejoint la table avec le sourire et le pouce levé.*  
-**Bakary :** « Et nous les livreurs, nous sommes fiers de vous servir chaque jour :  
-1️⃣ Zéro manipulation de cash sur vos produits grâce au Scan QR Code Universel.  
-2️⃣ Des livreurs identifiés avec leur CNI officielle vérifiée.  
-3️⃣ Suivi GPS en direct sur la carte.  
-4️⃣ Assurance Colis Sûr sur chaque livraison ! »
-
-**[00:36 - 00:48] L'INVITATION À TOUTE LA COMMUNAUTÉ**  
-**Awa :** « Chères commerçantes d'Abidjan, ne laissez plus la peur du vol freiner votre réussite. Rejoignez la communauté des vendeuses sereines ! »  
-**Salimata :** « Vos 15 premières livraisons sont avec commission offerte. C'est le moment d'accélérer vos ventes ! »
-
-**[00:48 - 00:55] APPEL À L'ACTION (CTA FINAL)**  
-**Tous ensemble :** « Envoyez **COLIS** sur WhatsApp au **05 44 05 19 72** et sécurisez votre commerce aujourd'hui ! »  
-*Outro officiel WAZAP : Logo canonique 2026, QR Code et coordonnées.*
-
----
-
-### 📝 Publication Facebook Prête à Poster (Épisode 15)
-
-**Texte de la publication :**
-```text
-Quel est le secret des cybervendeuses qui expédient 30 colis par jour à Abidjan avec le sourire ? 🌟👑
+#Wazap #WhatsAppCommerce #Simplicite #GainDeTemps #ECommerceAbidjan #Cocody #Yopougon #Team225\n```\n\n📌 **1ᵉʳ commentaire à épingler :**\n« Votre téléphone a-t-il encore de la mémoire pour télécharger une application de plus ? Avouez en commentaire ! 😂👇 »\n\n---\n\n## 🎬 ÉPISODE 15 : « Le secret des commerçantes qui dorment tranquilles »\n\n* **Thématique :** Sérénité entrepreneuriale & Bilan choral WAZAP\n* **Protagonistes :** Awa, Salimata & Bakary\n* **Durée totale cible :** ~15s (Format Snack) ou ~45s (Format Storytelling)\n\n### 🎥 1. Prompts Google Flow / Veo (100% Sûrs, 0 Rejet, Copier-Coller 1-Clic)\n\n#### ⚡ Option A : Format Snack Rapide 15s (Recommandé — 1 seul prompt Flow)\n> Copiez ce texte directement dans la boîte de génération Google Flow :\n```text\nPlan moyen cinématique vertical 9:16. Sur une belle terrasse abidjanaise ensoleillée, deux cheffes d'entreprise élégantes et rayonnantes célèbrent le succès de leur commerce avec le coursier en polo vert émeraude qui les rejoint avec le sourire. Toast convivial avec des verres de jus naturel, regards fiers et complices, énergie positive et festive. Ambiance de réussite entrepreneuriale à Abidjan.\n```\n\n#### 🎞️ Option B : Format Storytelling Multi-Plans (4 plans de 6 à 8s)\n* **Plan 1 (Accroche) :** `Plan moyen sur deux commerçantes élégantes trinquant avec un verre de jus de fruits frais en terrasse.`\n* **Plan 2 (Action) :** `Arrivée souriante du coursier en polo vert WAZAP saluant chaleureusement les deux femmes.`\n* **Plan 3 (Démonstration) :** `Gros plan sur les sourires complices et le pouce levé du coursier et des commerçantes.`\n* **Plan 4 (Clôture) :** `Plan d'ensemble chaleureux symbolisant la grande communauté des commerçants et livreurs unis d'Abidjan.`\n\n### 🎙️ 2. Piste Audio & Voix-Off (À Enregistrer Hors Flow)\n> ⚠️ **Ne collez PAS ce texte dans Google Flow !** Générez l'audio avec Edge-TTS ou enregistrez-le au micro :\n* **Modèle de voix recommandé :** `fr-FR-DeniseNeural`\n* **Voix-Off Scène (0s - 10s) :**\n  > *« Quel est le secret des cybervendeuses qui expédient des dizaines de colis chaque jour le cœur léger ? Elles ont éliminé le risque de vol grâce au paiement par QR Code WAZAP et aux livreurs vérifiés ! »*\n* **Voix-Off Outro WAZAP (10s - 16s) :**\n  > *« Rejoignez la communauté des commerçantes sereines d'Abidjan : envoyez COLIS sur WhatsApp au 05 44 05 19 72 ! »*\n\n### 🏁 3. Écran de Fin & Outro Officielle\n* **Fichier Outro HD :** [`videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4`](file:///c:/Dev/Wazap/videos/06_logos_animations_outros/outro_officielle_wazap_9_16.mp4)\n* **Éléments affichés :** Logo officiel WAZAP 3D 2026, Cartouche WhatsApp `05 44 05 19 72`, QR Code Universel, site `www.wazap.ci`.\n\n### 📝 4. Publication Clé en Main (Facebook Reels / TikTok)\n\n```text\nQuel est le secret des cybervendeuses qui expédient 30 colis par jour à Abidjan avec le sourire ? 🌟👑
 
 Elles ont éliminé la source n°1 d'angoisse : le risque de vol et de disparition des livreurs !
 
@@ -845,5 +227,4 @@ Arrêtez de stresser et développez votre boutique l'esprit tranquille.
 Envoyez simplement « COLIS » par WhatsApp au 05 44 05 19 72
 Lien instantané 1-clic : https://wa.me/2250544051972?text=COLIS
 
-#Wazap #SuccesBusiness #CommerceAbidjan #EntreprendreAuFeminin #Abidjan2026 #Cocody #Marcory #Yopougon #CIV225
-```
+#Wazap #SuccesBusiness #CommerceAbidjan #EntreprendreAuFeminin #Abidjan2026 #Cocody #Marcory #Yopougon #CIV225\n```\n\n📌 **1ᵉʳ commentaire à épingler :**\n« Vous voulez faire partie des 1 000 commerçants qui dorment sur leurs deux oreilles à Abidjan ? Tapez COLIS en commentaire ou sur WhatsApp ! 👇 »\n\n---\n
