@@ -333,6 +333,68 @@ public class RidersController : ControllerBase
         return Ok(new { message = "Livreur enrôlé avec succès", userId = user?.Id, username = user?.Username });
     }
 
+    // DELETE: api/riders/{id} — suppression d'un livreur (admin)
+    [HttpDelete("{id:guid}")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    public async Task<IActionResult> DeleteRider(Guid id)
+    {
+        var rider = await _context.Users.FirstOrDefaultAsync(u => u.Id == id && u.Role == UserRole.Rider);
+        if (rider is null)
+            return NotFound(new { error = "Livreur introuvable." });
+
+        var identity = await _context.RiderIdentities.FirstOrDefaultAsync(i => i.UserId == id);
+        if (identity is not null)
+            _context.RiderIdentities.Remove(identity);
+
+        var purchases = await _context.RiderPriorityPurchases.Where(p => p.RiderUserId == id).ToListAsync();
+        if (purchases.Count > 0)
+            _context.RiderPriorityPurchases.RemoveRange(purchases);
+
+        var offers = await _context.DeliveryOffers.Where(o => o.RiderUserId == id).ToListAsync();
+        if (offers.Count > 0)
+            _context.DeliveryOffers.RemoveRange(offers);
+
+        var ratings = await _context.RiderRatings.Where(r => r.RiderUserId == id).ToListAsync();
+        if (ratings.Count > 0)
+            _context.RiderRatings.RemoveRange(ratings);
+
+        _context.Users.Remove(rider);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = $"Livreur « {rider.Username} » supprimé avec succès." });
+    }
+
+    // POST: api/riders/purge-demo — purge spécifique des comptes démo de test
+    [HttpPost("purge-demo")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    public async Task<IActionResult> PurgeDemoRiders()
+    {
+        var demoPhones = new[] { "+33670112233", "+33760334455", "+33660445566", "+33770556677" };
+        var demoNames = new[] { "Karim Diallo", "Sofiane Benali", "Lucas Martin", "Yann Le Goff" };
+
+        var demoUsers = await _context.Users
+            .Where(u => u.Role == UserRole.Rider && (demoPhones.Contains(u.PhoneNumber) || demoNames.Contains(u.Username)))
+            .ToListAsync();
+
+        if (demoUsers.Count == 0)
+            return Ok(new { message = "Aucun compte de test détecté. La base est déjà propre.", purgedCount = 0 });
+
+        var ids = demoUsers.Select(u => u.Id).ToList();
+
+        var identities = await _context.RiderIdentities.Where(i => ids.Contains(i.UserId)).ToListAsync();
+        if (identities.Count > 0)
+            _context.RiderIdentities.RemoveRange(identities);
+
+        var offers = await _context.DeliveryOffers.Where(o => ids.Contains(o.RiderUserId)).ToListAsync();
+        if (offers.Count > 0)
+            _context.DeliveryOffers.RemoveRange(offers);
+
+        _context.Users.RemoveRange(demoUsers);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = $"{demoUsers.Count} compte(s) de test supprimé(s) avec succès.", purgedCount = demoUsers.Count });
+    }
+
     private Guid ResolveRiderId(Guid? explicitId)
     {
         if (_currentUser.Role == UserRole.Admin && explicitId.HasValue)

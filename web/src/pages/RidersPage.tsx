@@ -226,6 +226,38 @@ export default function RidersPage() {
     }
   }
 
+  const deleteRider = async (r: UserSummary): Promise<void> => {
+    if (!window.confirm(`Supprimer définitivement le compte livreur « ${r.username} » (${r.phoneNumber ?? 'sans numéro'}) ?`)) return
+    setBusy(true)
+    setError('')
+    setSyncNotice('')
+    try {
+      await api.del(`/riders/${r.id}`)
+      setSyncNotice(`Livreur « ${r.username} » supprimé avec succès.`)
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Suppression impossible')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const purgeDemo = async (): Promise<void> => {
+    if (!window.confirm('Supprimer tous les comptes de test (Karim Diallo, Lucas Martin, Sofiane Benali, Yann Le Goff) ?')) return
+    setBusy(true)
+    setError('')
+    setSyncNotice('')
+    try {
+      const res = await api.post<{ message: string; purgedCount: number }>('/riders/purge-demo', {})
+      setSyncNotice(`🧹 ${res.message}`)
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors de la suppression des comptes tests')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const certOf = (r: UserSummary): RiderCertification | undefined => certById[r.id]
   const certifiedCount = Object.values(certById).filter((c) => c.status === 'Verified').length
   const pendingCount = Object.values(certById).filter((c) => c.status === 'Pending').length
@@ -241,6 +273,16 @@ export default function RidersPage() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn btn--ghost"
+            style={{ borderColor: '#fed7aa', color: '#c2410c' }}
+            onClick={() => void purgeDemo()}
+            disabled={busy}
+            title="Supprime tous les profils de démonstration (Karim Diallo, Lucas Martin...)"
+          >
+            🧹 Purger comptes tests
+          </button>
           <button
             type="button"
             className="btn btn--ghost"
@@ -344,6 +386,15 @@ export default function RidersPage() {
                             Révoquer
                           </button>
                         )}
+                        <button
+                          className="btn btn--ghost"
+                          style={{ padding: '6px 8px', fontSize: 12, borderColor: '#e2e8f0', color: '#64748b' }}
+                          disabled={busy}
+                          onClick={() => void deleteRider(r)}
+                          title="Supprimer définitivement ce livreur"
+                        >
+                          🗑️
+                        </button>
                       </div>
                     </td>
                   </tr>
