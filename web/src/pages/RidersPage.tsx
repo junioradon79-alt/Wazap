@@ -11,6 +11,28 @@ const CERT_STATUS: Record<RiderCertification['status'], { label: string; badge: 
   Blacklisted: { label: '⛔ Exclu', badge: 'badge--red' },
 }
 
+function formatPhoneForWaMe(phone?: string | null): string {
+  if (!phone) return ''
+  let clean = phone.replace(/\D/g, '')
+  if (clean.length === 10 && (clean.startsWith('01') || clean.startsWith('05') || clean.startsWith('07'))) {
+    clean = '225' + clean
+  }
+  return clean
+}
+
+function buildWhatsAppAccessLink(rider: UserSummary, cert?: RiderCertification): string {
+  const cleanPhone = formatPhoneForWaMe(rider.phoneNumber)
+  const name = cert?.fullName || rider.username || 'champion'
+  const msg = `Salut ${name} ! Bienvenue sur WAZAP 🛵💨\n\n` +
+    `👉 Touche ce lien pour te mettre EN LIGNE (DISPO) :\n` +
+    `https://wa.me/2250544051972?text=DISPO\n\n` +
+    `📊 Touche ce lien pour voir ton TABLEAU DE BORD et tes gains :\n` +
+    `https://wa.me/2250544051972?text=DASHBOARD\n\n` +
+    `⚪ Touche ce lien pour te mettre EN PAUSE (INDISPO) :\n` +
+    `https://wa.me/2250544051972?text=INDISPO`
+  return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`
+}
+
 export default function RidersPage() {
   const [riders, setRiders] = useState<UserSummary[]>([])
   const [certById, setCertById] = useState<Record<string, RiderCertification>>({})
@@ -356,7 +378,19 @@ export default function RidersPage() {
                         : '—'}
                     </td>
                     <td>
-                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                        {r.phoneNumber && (
+                          <a
+                            className="btn btn--ghost"
+                            style={{ padding: '6px 8px', fontSize: 12, borderColor: '#25D366', color: '#128C7E', display: 'inline-flex', alignItems: 'center', gap: 4, textDecoration: 'none', fontWeight: 600 }}
+                            href={buildWhatsAppAccessLink(r, cert)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Ouvrir WhatsApp et envoyer les liens 1-clic (Dashboard, DISPO, INDISPO)"
+                          >
+                            💬 Accès WA
+                          </a>
+                        )}
                         {status !== 'Verified' && status !== 'Blacklisted' && (
                           <button
                             className="btn btn--primary"
@@ -503,16 +537,32 @@ export default function RidersPage() {
               />
             </div>
 
-            <div className="modal__actions">
-              <button className="btn" onClick={() => setVerifyTarget(null)}>Annuler</button>
-              <button
-                className="btn btn--primary"
-                onClick={() => void doVerify()}
-                disabled={busy || ocrBusy || verifyForm.fullName.trim().length === 0 || !(verifyTarget.cert.scanFileName || scanSaved)}
-                title={!(verifyTarget.cert.scanFileName || scanSaved) ? 'Téléversez d’abord le scan de la pièce d’identité' : undefined}
-              >
-                {busy ? '…' : '✅ Certifier'}
-              </button>
+            <div className="modal__actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+              <div>
+                {verifyTarget.rider.phoneNumber && (
+                  <a
+                    className="btn btn--ghost"
+                    style={{ borderColor: '#25D366', color: '#128C7E', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600 }}
+                    href={buildWhatsAppAccessLink(verifyTarget.rider, verifyTarget.cert)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Envoyer les accès et le lien Dashboard directement sur WhatsApp"
+                  >
+                    💬 Ouvrir WhatsApp & Envoyer Liens 1-Clic
+                  </a>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="btn" onClick={() => setVerifyTarget(null)}>Annuler</button>
+                <button
+                  className="btn btn--primary"
+                  onClick={() => void doVerify()}
+                  disabled={busy || ocrBusy || verifyForm.fullName.trim().length === 0 || !(verifyTarget.cert.scanFileName || scanSaved)}
+                  title={!(verifyTarget.cert.scanFileName || scanSaved) ? 'Téléversez d’abord le scan de la pièce d’identité' : undefined}
+                >
+                  {busy ? '…' : '✅ Certifier'}
+                </button>
+              </div>
             </div>
         </Modal>
       )}

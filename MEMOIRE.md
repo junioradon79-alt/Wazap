@@ -3958,9 +3958,21 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
   - Endpoint `POST /api/riders/purge-demo` supprimant d'un seul coup les 4 comptes de démonstration historiques (*Karim Diallo, Sofiane Benali, Lucas Martin, Yann Le Goff*).
   - Bouton **`🧹 Purger comptes tests`** en haut du dashboard `/app/riders` pour un espace de gestion 100% net réservé aux vrais livreurs de terrain.
 
-### 5. Validation Qualité & Déploiement
+### 5. Règle Canonique Inviolable : ZÉRO SAISIE TEXTE / 1-TAP ABSOLU (L'Essence Fondatrice WAZAP)
+- **Directive Inviolable :** Strictement banni toute invite incitant les usagers (livreurs, commerçants ou clients) à composer du texte libre au clavier. Tout flux doit reposer à 100% sur des liens bleus cliquables pré-remplis (`wa.me`), des boutons 1-clic, des scans QR code ou des chiffres uniques.
+- **Bouton 1-Clic dans le Dashboard Admin (`RidersPage.tsx`) :**
+  - Ajout du bouton d'action directe **`💬 Accès WA`** sur chaque ligne de livreur du tableau de bord.
+  - Ouvre WhatsApp avec le message pré-rempli contenant les liens bleus 1-tap pour le livreur :
+    - 🟢 Pour se mettre en ligne : `https://wa.me/2250544051972?text=DISPO`
+    - 📊 Pour voir son tableau de bord et ses gains : `https://wa.me/2250544051972?text=DASHBOARD`
+    - ⚪ Pour se mettre en pause : `https://wa.me/2250544051972?text=INDISPO`
+  - Intégration également dans le footer de la modale de certification (`💬 Ouvrir WhatsApp & Envoyer Liens 1-Clic`).
+- **Notification Automatique de Certification (`RiderService.cs`) :**
+  - Dès qu'un livreur est certifié, le message envoyé intègre directement les liens cliquables `DISPO` et `DASHBOARD` sans lui demander de saisir quoi que ce soit.
+
+### 6. Validation Qualité & Déploiement
 - **Tests .NET :** 830 tests réussis (0 échec, 100% verts).
 - **Tests Frontend Vitest :** 51 tests réussis (0 échec, 100% verts).
 - **Build de Production :** Bundle web Vite compilé sans erreur et synchronisé dans `src/Wazap.API/wwwroot/app`.
-- **Déploiement Continu :** Commits `050d214`, `11cc29f` et `f47f520` déployés sur la production (`https://junioradon79gm-001-site1.jtempurl.com/health` $\rightarrow$ 200 Healthy).
+- **Déploiement Continu :** Commits `050d214`, `11cc29f`, `f47f520` et mises à jour associées.
 

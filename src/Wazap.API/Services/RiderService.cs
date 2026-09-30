@@ -167,8 +167,11 @@ namespace Wazap.API.Services
             await _context.SaveChangesAsync();
 
             await NotifyRiderAsync(rider,
-                "✅ Félicitations ! Votre dossier est vérifié : vous êtes désormais Livreur certifié WAZAP. 🛵\n" +
-                "Envoyez DISPO pour recevoir les courses près de chez vous, puis ZONE <quartier> pour définir votre zone.");
+                "✅ Félicitations ! Votre pièce est vérifiée : vous êtes désormais Livreur certifié WAZAP 🛵💨\n\n" +
+                "👉 Touche ce lien pour te mettre EN LIGNE (0 frappe au clavier) :\n" +
+                "https://wa.me/2250544051972?text=DISPO\n\n" +
+                "📊 Touche ce lien pour voir ton TABLEAU DE BORD et tes gains :\n" +
+                "https://wa.me/2250544051972?text=DASHBOARD");
         }
 
         /// <summary>Refuse la certification (dossier incomplet, incohérences…).</summary>
