@@ -26,8 +26,13 @@ public sealed class GoogleVisionOcrService : IOcrService
         _httpClient = httpClient;
         _logger = logger;
         _apiKey = config["GoogleVision:ApiKey"]
+                  ?? config["GooglePlaces:ApiKey"]
                   ?? config["GOOGLE_PLACES_API_KEY"]
-                  ?? Environment.GetEnvironmentVariable("GOOGLE_PLACES_API_KEY");
+                  ?? config["Gemini:ApiKey"]
+                  ?? config["GEMINI_API_KEY"]
+                  ?? Environment.GetEnvironmentVariable("GOOGLE_VISION_API_KEY")
+                  ?? Environment.GetEnvironmentVariable("GOOGLE_PLACES_API_KEY")
+                  ?? Environment.GetEnvironmentVariable("GEMINI_API_KEY");
     }
 
     public async Task<OcrIdentityResult> ParseIdentityCardAsync(byte[] imageBytes, string? mimeType = null, CancellationToken ct = default)
@@ -105,14 +110,15 @@ public sealed class GoogleVisionOcrService : IOcrService
         if (string.IsNullOrWhiteSpace(rawText))
             return new OcrIdentityResult(false, null, null, null, "Texte vide.");
 
-        string? fullName = null;
+        string? lastName = null;
+        string? firstNames = null;
         string? idNumber = null;
         string documentType = "CNI";
 
         var upperRaw = rawText.ToUpperInvariant();
 
         // 0. Qualification du Type de Document :
-        if (upperRaw.Contains("PERMIS") || upperRaw.Contains("CONDUIRE") || upperRaw.Contains("MINISTERE DES TRANSPORTS"))
+        if (upperRaw.Contains("PERMIS") || upperRaw.Contains("CONDUIRE") || upperRaw.Contains("MINISTERE DES TRANSPORTS") || upperRaw.Contains("QUIPUX"))
         {
             documentType = "Permis de Conduire";
         }
@@ -126,17 +132,72 @@ public sealed class GoogleVisionOcrService : IOcrService
         // 1. Extraction du Numéro de la pièce :
         if (documentType == "Permis de Conduire")
         {
-            // Format Permis : souvent précédé de "N°", "NO", "PERMIS N°" ou format "PC-..." / 8-12 chiffres
-            var permisMatch = Regex.Match(rawText, @"(?:PERMIS(?:\s+DE\s+CONDUIRE)?|N[°O\.]?)\s*[:\-]?\s*([A-Z0-9]{6,14})\b", RegexOptions.IgnoreCase);
-            if (permisMatch.Success && permisMatch.Groups[1].Value.Length >= 6 && !permisMatch.Groups[1].Value.Equals("DE", StringComparison.OrdinalIgnoreCase))
+            // Format Permis Ivoirien Quipux/Ministère : ex "NIAG01-21-24209886I" ou avec label "5. Numéro du permis..."
+            for (int i = 0; i < lines.Length; i++)
             {
-                idNumber = permisMatch.Groups[1].Value.ToUpperInvariant();
+                var line = lines[i];
+                if (Regex.IsMatch(line, @"(?:NUM[EÉ]RO\s*(?:DU)?\s*PERMIS|PERMIS\s*(?:DE\s*CONDUIRE)?\s*N[°O\.]?|N[°O\.]\s*DU\s*PERMIS)", RegexOptions.IgnoreCase))
+                {
+                    // Regarde sur la même ligne après le label
+                    var mSame = Regex.Match(line, @"[A-Z0-9\-]{6,25}$", RegexOptions.IgnoreCase);
+                    if (mSame.Success && !mSame.Value.Contains("CONDUIRE", StringComparison.OrdinalIgnoreCase))
+                    {
+                        idNumber = mSame.Value.Trim(' ', ':', '-').ToUpperInvariant();
+                        break;
+                    }
+                    // Ou sur la ligne suivante
+                    if (i + 1 < lines.Length)
+                    {
+                        var nextLine = lines[i + 1].Trim();
+                        if (Regex.IsMatch(nextLine, @"^[A-Z0-9\-]{6,25}$", RegexOptions.IgnoreCase))
+                        {
+                            idNumber = nextLine.ToUpperInvariant();
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Regex globale Permis de Conduire CI (ex: NIAG01-21-24209886I)
+            if (string.IsNullOrWhiteSpace(idNumber))
+            {
+                var permisPattern = Regex.Match(rawText, @"\b([A-Z]{2,6}\d{2}-\d{2}-\d{6,10}[A-Z0-9]?)\b", RegexOptions.IgnoreCase);
+                if (permisPattern.Success)
+                {
+                    idNumber = permisPattern.Groups[1].Value.ToUpperInvariant();
+                }
             }
         }
 
         if (string.IsNullOrWhiteSpace(idNumber))
         {
-            // Format ONECI / CNI CI : CI suivi de chiffres ou standard 8-12 chiffres, ou PC...
+            // Format ONECI / CNI CI : ex: "CI0012345678", "C0123456789", 8-12 chiffres
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var line = lines[i];
+                if (Regex.IsMatch(line, @"(?:N[°O\.]?\s*CNI|ID\s*N[O°\.]?|NUM[EÉ]RO\s*IDENTIT[EÉ])", RegexOptions.IgnoreCase))
+                {
+                    var mSame = Regex.Match(line, @"\b(CI\s?[0-9]{8,12}|C[0-9]{8,11}|[0-9]{8,12})\b", RegexOptions.IgnoreCase);
+                    if (mSame.Success)
+                    {
+                        idNumber = Regex.Replace(mSame.Value, @"\s+", "").ToUpperInvariant();
+                        break;
+                    }
+                    if (i + 1 < lines.Length)
+                    {
+                        var mNext = Regex.Match(lines[i + 1], @"\b(CI\s?[0-9]{8,12}|C[0-9]{8,11}|[0-9]{8,12})\b", RegexOptions.IgnoreCase);
+                        if (mNext.Success)
+                        {
+                            idNumber = Regex.Replace(mNext.Value, @"\s+", "").ToUpperInvariant();
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(idNumber))
+        {
             var idMatch = Regex.Match(rawText, @"\b(CI\s?[0-9]{8,12}|C[0-9]{8,11}|PC\s?[0-9]{6,10}|[0-9]{8,12})\b", RegexOptions.IgnoreCase);
             if (idMatch.Success)
             {
@@ -145,34 +206,60 @@ public sealed class GoogleVisionOcrService : IOcrService
         }
 
         // 2. Extraction du Nom et Prénoms :
-        // Cherche les labels classiques : "NOM", "PRENOMS", "NOM / SURNAME", etc.
+        // Détecte les labels structurés avec ou sans numérotation ("1. Nom", "Nom / Surname", "2. Prénoms", etc.)
         for (int i = 0; i < lines.Length; i++)
         {
             var line = lines[i];
-            var upper = line.ToUpperInvariant();
 
-            if (upper.StartsWith("NOM") && !upper.Contains("COMMERCIAL") && !upper.Contains("MERE") && !upper.Contains("PERE"))
+            // NOM
+            if (Regex.IsMatch(line, @"^\s*(?:\d+[\.\-\)]\s*)?NOM\b", RegexOptions.IgnoreCase)
+                && !line.Contains("COMMERCIAL", StringComparison.OrdinalIgnoreCase)
+                && !line.Contains("MERE", StringComparison.OrdinalIgnoreCase)
+                && !line.Contains("PERE", StringComparison.OrdinalIgnoreCase)
+                && !line.Contains("JEUNE", StringComparison.OrdinalIgnoreCase))
             {
-                var val = line.Substring(line.IndexOf("NOM", StringComparison.OrdinalIgnoreCase) + 3).Trim(' ', ':', '-');
+                // Regarde après le label sur la même ligne
+                var val = Regex.Replace(line, @"^\s*(?:\d+[\.\-\)]\s*)?NOM(?:\s*[\/:]\s*(?:SURNAME|NAME))?\s*[:\-\.]?\s*", "", RegexOptions.IgnoreCase).Trim();
                 if (string.IsNullOrWhiteSpace(val) && i + 1 < lines.Length)
-                    val = lines[i + 1].Trim();
+                {
+                    var next = lines[i + 1].Trim();
+                    if (!Regex.IsMatch(next, @"^\s*\d+[\.\-\)]") && !next.Contains("PRENOM", StringComparison.OrdinalIgnoreCase))
+                    {
+                        val = next;
+                    }
+                }
 
-                if (!string.IsNullOrWhiteSpace(val) && val.Length > 2)
-                    fullName = val;
+                if (!string.IsNullOrWhiteSpace(val) && val.Length >= 2)
+                    lastName = val;
             }
 
-            if ((upper.StartsWith("PRENOM") || upper.Contains("PRENOMS") || upper.Contains("PRÉNOMS")) && i + 1 < lines.Length)
+            // PRÉNOMS
+            if (Regex.IsMatch(line, @"^\s*(?:\d+[\.\-\)]\s*)?PR[EÉ]NOMS?\b", RegexOptions.IgnoreCase))
             {
-                var val = line.Substring(line.IndexOf("PRENOM", StringComparison.OrdinalIgnoreCase) + 6).Trim(' ', ':', 'S', 's', '-');
+                var val = Regex.Replace(line, @"^\s*(?:\d+[\.\-\)]\s*)?PR[EÉ]NOMS?(?:\s*[\/:]\s*(?:GIVEN\s*NAMES?|FORENAMES?))?\s*[:\-\.]?\s*", "", RegexOptions.IgnoreCase).Trim();
                 if (string.IsNullOrWhiteSpace(val) && i + 1 < lines.Length)
-                    val = lines[i + 1].Trim();
+                {
+                    var next = lines[i + 1].Trim();
+                    if (!Regex.IsMatch(next, @"^\s*\d+[\.\-\)]") && !next.Contains("DATE", StringComparison.OrdinalIgnoreCase))
+                    {
+                        val = next;
+                    }
+                }
 
-                if (!string.IsNullOrWhiteSpace(val))
-                    fullName = (fullName != null ? $"{fullName} {val}" : val).Trim();
+                if (!string.IsNullOrWhiteSpace(val) && val.Length >= 2)
+                    firstNames = val;
             }
         }
 
-        // Si non trouvé par labels, on cherche la première ligne contenant des mots en majuscules (nom typique ivoirien)
+        string? fullName = null;
+        if (!string.IsNullOrWhiteSpace(lastName) && !string.IsNullOrWhiteSpace(firstNames))
+            fullName = $"{lastName} {firstNames}".Trim();
+        else if (!string.IsNullOrWhiteSpace(lastName))
+            fullName = lastName;
+        else if (!string.IsNullOrWhiteSpace(firstNames))
+            fullName = firstNames;
+
+        // Fallback heuristique si non trouvé par labels
         if (string.IsNullOrWhiteSpace(fullName))
         {
             foreach (var line in lines)
@@ -208,11 +295,11 @@ public sealed class GoogleVisionOcrService : IOcrService
 
     private static OcrIdentityResult FallbackParse(byte[] imageBytes)
     {
-        // En cas d'absence temporaire de clé, succès sans blocage pour la suite du flux
         return new OcrIdentityResult(
-            Success: true,
-            FullName: "Livreur WAZAP",
-            IdNumber: "CNI-" + Random.Shared.Next(10000000, 99999999),
-            RawText: "Mode fallback sans clé API.");
+            Success: false,
+            FullName: null,
+            IdNumber: null,
+            RawText: null,
+            Error: "Clé API Google Vision non configurée sur le serveur. Veuillez renseigner le nom et le numéro manuellement ou configurer la clé API.");
     }
 }
