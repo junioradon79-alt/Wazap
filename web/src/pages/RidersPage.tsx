@@ -19,6 +19,15 @@ export default function RidersPage() {
   const [verifyTarget, setVerifyTarget] = useState<{ rider: UserSummary; cert: RiderCertification } | null>(null)
   const [verifyForm, setVerifyForm] = useState({ fullName: '', idNumber: '', motorcycle: '' })
   const [scanSaved, setScanSaved] = useState(false)
+  const [ocrBusy, setOcrBusy] = useState(false)
+  const [ocrSuccess, setOcrSuccess] = useState('')
+  const [syncNotice, setSyncNotice] = useState('')
+  const [selectedFilePreview, setSelectedFilePreview] = useState<string | null>(null)
+
+  // Enrôlement manuel rapide
+  const [showEnrollModal, setShowEnrollModal] = useState(false)
+  const [enrollForm, setEnrollForm] = useState({ fullName: '', phoneNumber: '', zone: 'Cocody' })
+  const [enrollBusy, setEnrollBusy] = useState(false)
 
   const load = async (): Promise<void> => {
     try {
@@ -28,7 +37,6 @@ export default function RidersPage() {
       ])
       setRiders(list)
       setCertById(Object.fromEntries(certs.map((c) => [c.riderId, c])))
-      // Une reprise réussie doit effacer la bannière : elle restait affichée sinon.
       setError('')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur')
@@ -52,6 +60,8 @@ export default function RidersPage() {
       motorcycle: cert.motorcycle ?? '',
     })
     setScanSaved(Boolean(cert.scanFileName))
+    setOcrSuccess('')
+    setSelectedFilePreview(null)
     setVerifyTarget({ rider: r, cert })
   }
 
@@ -78,6 +88,82 @@ export default function RidersPage() {
       setError(err instanceof Error ? err.message : 'Téléversement impossible')
     } finally {
       setBusy(false)
+    }
+  }
+
+  const analyzeOcr = async (file: File): Promise<void> => {
+    if (!verifyTarget) return
+    setOcrBusy(true)
+    setError('')
+    setOcrSuccess('')
+    setSelectedFilePreview(URL.createObjectURL(file))
+    const token = getToken()
+    const body = new FormData()
+    body.append('file', file)
+
+    try {
+      // 1. Analyse OCR via Google Vision
+      const res = await fetch('/api/riders/ocr-scan', {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body,
+      })
+
+      if (res.ok) {
+        const data = await res.json() as { success: boolean; fullName?: string; idNumber?: string; rawText?: string; error?: string }
+        if (data.success && (data.fullName || data.idNumber)) {
+          setVerifyForm((f) => ({
+            ...f,
+            fullName: data.fullName || f.fullName,
+            idNumber: data.idNumber || f.idNumber,
+          }))
+          setOcrSuccess(`✨ OCR réussi ! Nom : ${data.fullName ?? 'Reconnu'} · N° CNI : ${data.idNumber ?? 'Reconnu'}`)
+        } else if (data.error) {
+          setError(`Notice OCR : ${data.error}`)
+        }
+      }
+
+      // 2. Sauvegarde automatique du scan sur le compte du livreur
+      await uploadScan(file)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur pendant l’analyse OCR')
+    } finally {
+      setOcrBusy(false)
+    }
+  }
+
+  const syncLeads = async (): Promise<void> => {
+    setBusy(true)
+    setError('')
+    setSyncNotice('')
+    try {
+      const res = await api.post<{ message: string; total: number }>('/riders/sync-leads', {})
+      setSyncNotice(`✅ ${res.message}`)
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors de la synchronisation des leads')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const doEnroll = async (): Promise<void> => {
+    if (!enrollForm.phoneNumber.trim()) {
+      setError('Le numéro de téléphone est obligatoire.')
+      return
+    }
+    setEnrollBusy(true)
+    setError('')
+    try {
+      await api.post('/riders/enroll', enrollForm)
+      setShowEnrollModal(false)
+      setEnrollForm({ fullName: '', phoneNumber: '', zone: 'Cocody' })
+      setSyncNotice('✅ Livreur enrôlé avec succès !')
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors de l’enrôlement')
+    } finally {
+      setEnrollBusy(false)
     }
   }
 
@@ -146,7 +232,7 @@ export default function RidersPage() {
 
   return (
     <>
-      <div className="page-head">
+      <div className="page-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1>Livreurs &amp; certification</h1>
           <p>
@@ -154,7 +240,32 @@ export default function RidersPage() {
             Garantie Colis Sûr
           </p>
         </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn btn--ghost"
+            onClick={() => void syncLeads()}
+            disabled={busy}
+            title="Convertit automatiquement tous les leads livreurs WhatsApp en comptes actifs"
+          >
+            🔄 Synchroniser Leads WhatsApp
+          </button>
+          <button
+            type="button"
+            className="btn btn--primary"
+            onClick={() => setShowEnrollModal(true)}
+            disabled={busy}
+          >
+            + Enrôler un Livreur
+          </button>
+        </div>
       </div>
+
+      {syncNotice && (
+        <div style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #a7f3d0', padding: '10px 14px', borderRadius: 6, marginBottom: 16 }}>
+          {syncNotice}
+        </div>
+      )}
 
       {error && <ErrorAlert message={error} onRetry={() => void load()} />}
 
@@ -244,10 +355,7 @@ export default function RidersPage() {
         </div>
       </section>
 
-
       {verifyTarget && (
-        // Modale partagée (C-07) : formulaire de certification pièce d'identité — Échap et
-        // restitution du focus comptent d'autant plus qu'il contient un champ de fichier.
         <Modal
           title={`Certifier « ${verifyTarget.rider.username} »`}
           labelledBy="rider-verify-title"
@@ -258,8 +366,65 @@ export default function RidersPage() {
               La moto des particuliers n'est souvent pas immatriculée : la plaque est optionnelle.
               Numéro : <span className="whatsapp">{verifyTarget.rider.phoneNumber ?? '—'}</span>
             </p>
+
+            <div className="field" style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: 14, borderRadius: 8, marginBottom: 14 }}>
+              <label style={{ fontWeight: 600, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>🪪 Scan ou Photo de la pièce d'identité</span>
+                {ocrBusy && <span style={{ color: '#059669', fontSize: 12 }}>⚡ Analyse OCR en cours...</span>}
+              </label>
+
+              {verifyTarget.cert.scanFileName || scanSaved ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '6px 0 10px 0', fontSize: 13, color: '#059669' }}>
+                  <span>✅ Scan actif enregistré</span>
+                  <button type="button" className="btn" style={{ padding: '2px 8px', fontSize: 12 }} onClick={() => void viewScan(verifyTarget.rider.id)}>
+                    👁️ Voir le scan
+                  </button>
+                </div>
+              ) : (
+                <p style={{ fontSize: 12, color: '#64748b', margin: '4px 0 8px 0' }}>
+                  Téléversez la photo de la CNI reçue sur WhatsApp pour l'analyser et la chiffrer.
+                </p>
+              )}
+
+              {selectedFilePreview && (
+                <div style={{ marginBottom: 10, textAlign: 'center' }}>
+                  <img
+                    src={selectedFilePreview}
+                    alt="Aperçu CNI"
+                    style={{ maxHeight: 140, maxWidth: '100%', borderRadius: 6, border: '1px solid #cbd5e1', objectFit: 'contain' }}
+                  />
+                </div>
+              )}
+
+              {ocrSuccess && (
+                <div style={{ background: '#ecfdf5', color: '#065f46', padding: '8px 12px', borderRadius: 6, fontSize: 12, marginBottom: 10, border: '1px solid #a7f3d0' }}>
+                  {ocrSuccess}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <label className="btn btn--primary" style={{ cursor: 'pointer', margin: 0, padding: '8px 14px', fontSize: 13, background: 'linear-gradient(135deg, #059669 0%, #047857 100%)' }}>
+                  ⚡ {ocrBusy ? 'Analyse OCR...' : 'Analyser la CNI par OCR'}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,application/pdf"
+                    disabled={busy || ocrBusy}
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) void analyzeOcr(file)
+                      e.currentTarget.value = ''
+                    }}
+                  />
+                </label>
+                <span style={{ fontSize: 12, color: '#64748b' }}>
+                  Détecte et remplit automatiquement le Nom et le N° CNI
+                </span>
+              </div>
+            </div>
+
             <div className="field">
-              <label>Nom complet (sur la pièce d'identité)</label>
+              <label>Nom complet (reconnu ou saisi)</label>
               <input
                 value={verifyForm.fullName}
                 onChange={(e) => setVerifyForm((f) => ({ ...f, fullName: e.target.value }))}
@@ -272,7 +437,7 @@ export default function RidersPage() {
               <input
                 value={verifyForm.idNumber}
                 onChange={(e) => setVerifyForm((f) => ({ ...f, idNumber: e.target.value }))}
-                placeholder="ex : CI-XXXXXXXXX"
+                placeholder="ex : CI-XXXXXXXXX ou C0123456789"
                 maxLength={40}
               />
             </div>
@@ -285,40 +450,75 @@ export default function RidersPage() {
                 maxLength={80}
               />
             </div>
-            <div className="field">
-              <label>🪪 Scan de la pièce d'identité (obligatoire)</label>
-              {verifyTarget.cert.scanFileName || scanSaved ? (
-                <p style={{ fontSize: 13, color: 'var(--wz-green-ink)' }}>
-                  ✅ Scan reçu —{' '}
-                  <button className="btn" style={{ padding: '2px 8px', fontSize: 12 }} onClick={() => void viewScan(verifyTarget.rider.id)}>
-                    Voir le scan
-                  </button>
-                </p>
-              ) : (
-                <p style={{ fontSize: 13, color: 'var(--wz-muted)' }}>Aucun scan — téléversez la photo de la pièce reçue sur WhatsApp (JPG/PNG/WEBP/PDF).</p>
-              )}
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp,application/pdf"
-                disabled={busy}
-                onChange={(e) => {
-                  const file = e.target.files?.[0]
-                  if (file) void uploadScan(file)
-                  e.currentTarget.value = ''
-                }}
-              />
-            </div>
+
             <div className="modal__actions">
               <button className="btn" onClick={() => setVerifyTarget(null)}>Annuler</button>
               <button
                 className="btn btn--primary"
                 onClick={() => void doVerify()}
-                disabled={busy || verifyForm.fullName.trim().length === 0 || !(verifyTarget.cert.scanFileName || scanSaved)}
+                disabled={busy || ocrBusy || verifyForm.fullName.trim().length === 0 || !(verifyTarget.cert.scanFileName || scanSaved)}
                 title={!(verifyTarget.cert.scanFileName || scanSaved) ? 'Téléversez d’abord le scan de la pièce d’identité' : undefined}
               >
                 {busy ? '…' : '✅ Certifier'}
               </button>
             </div>
+        </Modal>
+      )}
+
+      {showEnrollModal && (
+        <Modal
+          title="Enrôler un nouveau livreur"
+          labelledBy="rider-enroll-title"
+          onClose={() => setShowEnrollModal(false)}
+        >
+          <p style={{ fontSize: 13, marginBottom: 14 }}>
+            Crée instantanément un compte Livreur actif sur le réseau WAZAP à partir de son numéro WhatsApp.
+          </p>
+          <div className="field">
+            <label>Nom complet ou Prénom</label>
+            <input
+              value={enrollForm.fullName}
+              onChange={(e) => setEnrollForm((f) => ({ ...f, fullName: e.target.value }))}
+              placeholder="ex : Moussa Traoré"
+              maxLength={60}
+            />
+          </div>
+          <div className="field">
+            <label>Numéro WhatsApp (avec indicatif +225)</label>
+            <input
+              value={enrollForm.phoneNumber}
+              onChange={(e) => setEnrollForm((f) => ({ ...f, phoneNumber: e.target.value }))}
+              placeholder="ex : +2250544051972"
+              required
+            />
+          </div>
+          <div className="field">
+            <label>Commune principale</label>
+            <select
+              value={enrollForm.zone}
+              onChange={(e) => setEnrollForm((f) => ({ ...f, zone: e.target.value }))}
+              style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #cbd5e1' }}
+            >
+              <option value="Cocody">Cocody (Angré, 2 Plateaux, Riviera)</option>
+              <option value="Yopougon">Yopougon (Maroc, Siporex, Bel Air)</option>
+              <option value="Marcory">Marcory (Zone 4, Biétry)</option>
+              <option value="Koumassi">Koumassi / Treichville</option>
+              <option value="Plateau">Plateau / Adjamé</option>
+              <option value="Abobo">Abobo</option>
+              <option value="Port-Bouët">Port-Bouët / Vridi</option>
+              <option value="Bingerville">Bingerville</option>
+            </select>
+          </div>
+          <div className="modal__actions">
+            <button className="btn" onClick={() => setShowEnrollModal(false)}>Annuler</button>
+            <button
+              className="btn btn--primary"
+              onClick={() => void doEnroll()}
+              disabled={enrollBusy || !enrollForm.phoneNumber.trim()}
+            >
+              {enrollBusy ? 'Enrôlement...' : '✅ Activer le Livreur'}
+            </button>
+          </div>
         </Modal>
       )}
     </>

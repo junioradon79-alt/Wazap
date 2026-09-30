@@ -2,11 +2,15 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Wazap.API.Services;
 using Wazap.Application.Abstractions;
 using Wazap.Application.Dtos;
 using Wazap.Application.Exceptions;
+using Wazap.Application.Helpers;
+using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
+using Wazap.Infrastructure.Data;
 
 namespace Wazap.API.Controllers;
 
@@ -19,26 +23,54 @@ public class RidersController : ControllerBase
     private readonly RiderPriorityService _riderPriority;
     private readonly IValidator<BuyRiderPriorityRequest> _buyPriorityValidator;
     private readonly ICurrentUser _currentUser;
+    private readonly ApplicationDbContext _context;
+    private readonly RiderRecruitmentService _riderRecruitment;
+    private readonly IOcrService _ocrService;
 
     public RidersController(
         RiderService riderService,
         RiderProgramService riderProgram,
         RiderPriorityService riderPriority,
         IValidator<BuyRiderPriorityRequest> buyPriorityValidator,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        ApplicationDbContext context,
+        RiderRecruitmentService riderRecruitment,
+        IOcrService ocrService)
     {
         _riderService = riderService;
         _riderProgram = riderProgram;
         _riderPriority = riderPriority;
         _buyPriorityValidator = buyPriorityValidator;
         _currentUser = currentUser;
+        _context = context;
+        _riderRecruitment = riderRecruitment;
+        _ocrService = ocrService;
     }
 
     // GET: api/riders — réservé à l'admin (RGPD : téléphones + positions exposés)
     [HttpGet]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public async Task<IActionResult> GetAll()
-        => Ok(await _riderService.GetRidersAsync());
+    {
+        // Auto-synchronisation des leads livreurs en attente pour garantir leur visibilité immédiate :
+        try
+        {
+            var pendingLeads = await _context.Leads
+                .Where(l => (l.Source == "whatsapp-livreur" || l.Source == "dashboard-enrolement") && l.Status != LeadStatus.Discarded && l.Status != LeadStatus.Converted)
+                .ToListAsync();
+
+            foreach (var lead in pendingLeads)
+            {
+                await _riderRecruitment.CreateRiderAccountFromLeadAsync(lead);
+            }
+        }
+        catch
+        {
+            // Tolérance aux pannes : la liste principale doit toujours répondre
+        }
+
+        return Ok(await _riderService.GetRidersAsync());
+    }
 
     // POST: api/riders/location — le livreur (via son token) partage sa position ;
     // l'admin peut cibler un livreur via riderUserId.
@@ -215,6 +247,92 @@ public class RidersController : ControllerBase
         }
     }
 
+    // POST: api/riders/ocr-scan — analyse OCR d'une CNI (Bouton Magique)
+    [HttpPost("ocr-scan")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    public async Task<IActionResult> ScanIdentityCard(IFormFile file, CancellationToken ct)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { error = "Fichier manquant ou vide." });
+
+        try
+        {
+            using var ms = new MemoryStream();
+            await file.CopyToAsync(ms, ct);
+            var imageBytes = ms.ToArray();
+
+            var result = await _ocrService.ParseIdentityCardAsync(imageBytes, file.ContentType, ct);
+            return Ok(new
+            {
+                success = result.Success,
+                fullName = result.FullName,
+                idNumber = result.IdNumber,
+                rawText = result.RawText,
+                error = result.Error
+            });
+        }
+        catch (Exception ex)
+        {
+            return Ok(new
+            {
+                success = false,
+                fullName = (string?)null,
+                idNumber = (string?)null,
+                rawText = (string?)null,
+                error = ex.Message
+            });
+        }
+    }
+
+    // POST: api/riders/sync-leads — conversion explicite de tous les leads livreurs en comptes actifs
+    [HttpPost("sync-leads")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    public async Task<IActionResult> SyncLeads()
+    {
+        var leads = await _context.Leads
+            .Where(l => (l.Source == "whatsapp-livreur" || l.Source == "dashboard-enrolement") && l.Status != LeadStatus.Discarded && l.Status != LeadStatus.Converted)
+            .ToListAsync();
+
+        var converted = 0;
+        foreach (var lead in leads)
+        {
+            var user = await _riderRecruitment.CreateRiderAccountFromLeadAsync(lead);
+            if (user is not null) converted++;
+        }
+
+        return Ok(new { message = $"{converted} livreurs synchronisés avec succès.", total = leads.Count });
+    }
+
+    // POST: api/riders/enroll — enrôlement manuel immédiat depuis le dashboard
+    [HttpPost("enroll")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    public async Task<IActionResult> ManualEnroll([FromBody] ManualEnrollRiderRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.PhoneNumber))
+            return BadRequest(new { error = "Numéro de téléphone requis." });
+
+        var digits = PhoneNumberNormalizer.DigitsOnly(request.PhoneNumber);
+        var normalized = "+" + digits;
+        var lead = await _context.Leads.FirstOrDefaultAsync(l => l.WhatsAppNumber == normalized);
+        if (lead is null)
+        {
+            lead = new Lead("Livreur Enrôlé", normalized, request.Zone ?? "Cocody", "dashboard-enrolement", request.FullName);
+            _context.Leads.Add(lead);
+            await _context.SaveChangesAsync();
+        }
+        else
+        {
+            if (!string.IsNullOrWhiteSpace(request.FullName))
+                lead.Update(lead.BusinessName, request.FullName, lead.Source);
+            if (!string.IsNullOrWhiteSpace(request.Zone))
+                lead.SetZone(request.Zone);
+            await _context.SaveChangesAsync();
+        }
+
+        var user = await _riderRecruitment.CreateRiderAccountFromLeadAsync(lead, request.FullName);
+        return Ok(new { message = "Livreur enrôlé avec succès", userId = user?.Id, username = user?.Username });
+    }
+
     private Guid ResolveRiderId(Guid? explicitId)
     {
         if (_currentUser.Role == UserRole.Admin && explicitId.HasValue)
@@ -248,3 +366,5 @@ public sealed record VerifyRiderRequest(string? FullName, string? IdNumber, stri
 public sealed record RejectRiderRequest(string? Reason);
 
 public sealed record BlacklistRiderRequest(string Reason);
+
+public sealed record ManualEnrollRiderRequest(string? FullName, string PhoneNumber, string? Zone);

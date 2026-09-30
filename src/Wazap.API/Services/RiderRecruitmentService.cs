@@ -118,6 +118,15 @@ public sealed class RiderRecruitmentService
                     $"{(name is not null ? " — " + name : "")}{(zone.Length > 0 ? " · " + zone : "")}" +
                     $"{(created.ReferralCode is not null ? " · parrain " + created.ReferralCode : "")}");
 
+                if (!string.IsNullOrWhiteSpace(created.Zone))
+                {
+                    await CreateRiderAccountFromLeadAsync(created);
+                    var riderName = !string.IsNullOrWhiteSpace(created.ContactName) ? $" {created.ContactName}" : "";
+                    return $"🎉 Félicitations{riderName} ! Ton profil livreur WAZAP est activé à {created.Zone} !\n\n"
+                        + "Tu es désormais EN LIGNE 🟢 pour recevoir les courses.\n"
+                        + "Prends en photo ta pièce d'identité (CNI ou permis) 🪪 et envoie-la ici pour obtenir le badge Livreur Certifié et accéder aux courses Colis Sûr !";
+                }
+
                 return BuildAskMessage(created);
             }
 
@@ -139,6 +148,15 @@ public sealed class RiderRecruitmentService
                 lead.SetReferralCode(TryCaptureReferralCode(text));
             lead.SetStatus(LeadStatus.Contacted);
             await _context.SaveChangesAsync();
+
+            if (!string.IsNullOrWhiteSpace(lead.Zone))
+            {
+                await CreateRiderAccountFromLeadAsync(lead);
+                var riderName = !string.IsNullOrWhiteSpace(lead.ContactName) ? $" {lead.ContactName}" : "";
+                return $"🎉 Félicitations{riderName} ! Ton profil livreur WAZAP est activé à {lead.Zone} !\n\n"
+                    + "Tu es désormais EN LIGNE 🟢 pour recevoir les courses.\n"
+                    + "Prends en photo ta pièce d'identité (CNI ou permis) 🪪 et envoie-la ici pour obtenir le badge Livreur Certifié et accéder aux courses Colis Sûr !";
+            }
 
             return BuildAskMessage(lead);
         }
@@ -356,6 +374,82 @@ public sealed class RiderRecruitmentService
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Crée ou active un compte User (Role = Rider) dès qu'un lead livreur a fourni sa zone ou son nom.
+    /// Garantit que le livreur apparaît immédiatement sur le tableau de bord et peut recevoir des courses.
+    /// </summary>
+    public async Task<User?> CreateRiderAccountFromLeadAsync(Lead lead, string? resolvedName = null, string? cniNumber = null)
+    {
+        var normalized = lead.WhatsAppNumber.StartsWith("+")
+            ? lead.WhatsAppNumber
+            : "+" + PhoneNumberNormalizer.DigitsOnly(lead.WhatsAppNumber);
+
+        var existing = await _context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == normalized);
+        if (existing is not null)
+        {
+            if (existing.Role == UserRole.Rider)
+            {
+                if (!string.IsNullOrWhiteSpace(lead.Zone))
+                    existing.SetZone(lead.Zone);
+                existing.SetAvailability(true);
+                lead.SetStatus(LeadStatus.Converted);
+                await _context.SaveChangesAsync();
+                return existing;
+            }
+            _logger.LogWarning("Compte {Phone} déjà existant avec rôle non-Rider: {Role}", normalized, existing.Role);
+            return existing;
+        }
+
+        var candidateName = resolvedName ?? lead.ContactName ?? "Livreur WAZAP";
+        var username = await BuildUniqueUsernameAsync(candidateName);
+        var tempPassword = "Wazap-" + Random.Shared.Next(100000, 999999);
+        var user = new User(username, _passwordHasher.Hash(tempPassword), UserRole.Rider, normalized);
+        if (!string.IsNullOrWhiteSpace(lead.Zone))
+            user.SetZone(lead.Zone);
+        user.SetAvailability(true);
+
+        while (await _context.Users.AnyAsync(u => u.ReferralCode == user.ReferralCode))
+            user.RegenerateReferralCode();
+
+        var referrer = string.IsNullOrWhiteSpace(lead.ReferralCode)
+            ? null
+            : await _context.Users.AsNoTracking()
+                .FirstOrDefaultAsync(u => u.ReferralCode == lead.ReferralCode && u.Id != user.Id);
+        if (referrer is not null)
+            user.SetReferral(referrer.Id);
+
+        _context.Users.Add(user);
+        lead.SetStatus(LeadStatus.Converted);
+        await _context.SaveChangesAsync();
+
+        if (!string.IsNullOrWhiteSpace(cniNumber) || !string.IsNullOrWhiteSpace(candidateName))
+        {
+            try
+            {
+                var identity = await _context.RiderIdentities.FirstOrDefaultAsync(i => i.UserId == user.Id);
+                if (identity is null)
+                {
+                    identity = new RiderIdentity(user.Id, candidateName, cniNumber);
+                    _context.RiderIdentities.Add(identity);
+                }
+                else
+                {
+                    identity.UpdateParsedInfo(candidateName, cniNumber);
+                }
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Création RiderIdentity non bloquante en échec pour {Username}", username);
+            }
+        }
+
+        _logger.LogInformation("Livreur auto-enrôlé depuis Lead {Phone} -> {Username} ({Name}, Zone: {Zone})",
+            normalized, username, candidateName, user.Zone);
+
+        return user;
     }
 
     private async Task<bool> HasRiderAccountAsync(string normalizedPhone)
