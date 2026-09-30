@@ -3976,3 +3976,29 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
 - **Build de Production :** Bundle web Vite compilé sans erreur et synchronisé dans `src/Wazap.API/wwwroot/app`.
 - **Déploiement Continu :** Commits `050d214`, `11cc29f`, `f47f520` et mises à jour associées.
 
+---
+
+## 114. Session 30/09/2026 (Soir) — Modale OCR Autonome, Enrôlement 1-Clic depuis Photo & Déploiement Production
+
+### 1. Diagnostic de l'Incident Signalé par l'Utilisateur
+- **Symptôme :** En cliquant sur `⚡ Analyser CNI / Permis par OCR` sur `/app/riders` après avoir purgé les comptes tests (0 livreur dans le tableau), le bouton déclenchait par repli la modale manuelle *« Enrôler un nouveau livreur »* au lieu de la véritable modale d'analyse OCR avec glisser-déposer de fichier.
+- **Origine identifiée :** Dans le code antérieur (`2474f0b`), la fonction d'ouverture de l'OCR possédait une clause conditionnelle de repli : `if (riders.length === 0) setShowEnrollModal(true)`.
+
+### 2. Implémentation de la Solution Complète
+- **A. Modale OCR Autonome Universelle (`web/src/pages/RidersPage.tsx`) :**
+  - La modale OCR est désormais complètement autonome et s'ouvre systématiquement lors d'un clic sur `⚡ Analyser CNI / Permis par OCR`, même avec 0 livreur dans le tableau (`openVerify(pendingRider ?? (riders.length > 0 ? riders[0] : null))`).
+  - Mode Nouveau Livreur intégré directement dans la modale OCR : si aucun livreur n'est sélectionné au préalable, la modale permet de glisser la photo de la pièce, extrait instantanément le Nom complet et le Numéro de pièce via Google Vision OCR, et propose les champs Téléphone WhatsApp et Commune pour créer et certifier le livreur en un clic.
+- **B. Endpoint Backend `POST /api/riders/enroll-and-verify` (`RidersController.cs`) :**
+  - Reçoit la photo (IFormFile) et les métadonnées (téléphone, nom extrait, numéro CNI/Permis, zone, type moto).
+  - Crée ou met à jour le profil livreur en base, stocke la pièce chiffrée via `StoreScanAsync`, valide immédiatement la certification (`VerifyRiderAsync`) et expédie automatiquement le message de bienvenue WhatsApp contenant les liens 1-clic `DISPO` et `DASHBOARD`.
+- **C. Boutons 1-Clic Accès WA & Zéro Saisie Texte (Règle Canonique n°10) :**
+  - Bouton `💬 Accès WA` présent sur chaque ligne du tableau et dans le pied de la modale OCR pour envoyer les liens `wa.me` directs en 1 tap.
+
+### 3. Validation & Déploiement en Production
+- **Tests .NET :** 830 tests passés (0 échec, 100% verts).
+- **Tests Vitest :** 51 tests passés (0 échec, 100% verts).
+- **Build Web :** Bundle de production `index-BRgproOf.js` généré et synchronisé dans `wwwroot/app`.
+- **Déploiement GitHub Actions :** Validé avec succès.
+- **Vérification en Ligne :** Statut HTTP 200 `Healthy` confirmé sur `https://junioradon79gm-001-site1.jtempurl.com/health` et `index-BRgproOf.js` servi par `/app/index.html`.
+
+
