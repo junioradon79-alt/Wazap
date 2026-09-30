@@ -295,7 +295,26 @@ export default function RidersPage() {
             Garantie Colis Sûr
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <button
+            type="button"
+            className="btn btn--primary"
+            style={{ background: '#059669', borderColor: '#059669', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            onClick={() => {
+              const pendingRider = riders.find((r) => certOf(r)?.status !== 'Verified')
+              if (pendingRider) {
+                openVerify(pendingRider)
+              } else if (riders.length > 0) {
+                openVerify(riders[0])
+              } else {
+                setShowEnrollModal(true)
+              }
+            }}
+            disabled={busy}
+            title="Scanner une pièce d'identité (CNI, Permis de Conduire ou Passeport) par OCR pour certifier un livreur"
+          >
+            ⚡ Analyser CNI / Permis par OCR
+          </button>
           <button
             type="button"
             className="btn btn--ghost"
@@ -394,11 +413,12 @@ export default function RidersPage() {
                         {status !== 'Verified' && status !== 'Blacklisted' && (
                           <button
                             className="btn btn--primary"
-                            style={{ padding: '6px 8px', fontSize: 12 }}
+                            style={{ padding: '6px 8px', fontSize: 12, background: '#059669', borderColor: '#059669', fontWeight: 600 }}
                             disabled={busy}
                             onClick={() => openVerify(r)}
+                            title="Ouvrir l'analyse OCR et certifier ce livreur"
                           >
-                            Vérifier
+                            ⚡ Vérifier / OCR
                           </button>
                         )}
                         {status !== 'Blacklisted' && (
@@ -443,14 +463,36 @@ export default function RidersPage() {
 
       {verifyTarget && (
         <Modal
-          title={`Certifier « ${verifyTarget.rider.username} »`}
+          title={`⚡ Analyse OCR & Certification « ${verifyTarget.rider.username} »`}
           labelledBy="rider-verify-title"
           onClose={() => setVerifyTarget(null)}
         >
+            <div style={{ marginBottom: 12, background: '#f1f5f9', padding: '10px 12px', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+              <div>
+                <span style={{ fontSize: 12, color: '#64748b' }}>Livreur sélectionné :</span>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>{verifyTarget.rider.username} <span className="whatsapp" style={{ fontSize: 13 }}>({verifyTarget.rider.phoneNumber ?? '—'})</span></div>
+              </div>
+              {riders.length > 1 && (
+                <select
+                  value={verifyTarget.rider.id}
+                  onChange={(e) => {
+                    const sel = riders.find((r) => r.id === e.target.value)
+                    if (sel) openVerify(sel)
+                  }}
+                  style={{ padding: '4px 8px', fontSize: 12, borderRadius: 6, border: '1px solid #cbd5e1' }}
+                  title="Changer de livreur à vérifier"
+                >
+                  {riders.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.username} ({r.zone ?? 'Zone'}) {certOf(r)?.status === 'Verified' ? '✔' : '⏳'}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
             <p style={{ fontSize: 13, marginBottom: 12 }}>
-              Le scan de la pièce d'identité et le nom complet sont obligatoires avant de certifier.
-              La moto des particuliers n'est souvent pas immatriculée : la plaque est optionnelle.
-              Numéro : <span className="whatsapp">{verifyTarget.rider.phoneNumber ?? '—'}</span>
+              Téléversez ou glissez-déposez la photo de la pièce (CNI, Permis de Conduire ou Passeport) reçue sur WhatsApp. L'OCR extrait automatiquement le nom et le numéro !
             </p>
 
             <div className="field" style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: 14, borderRadius: 8, marginBottom: 14 }}>
