@@ -95,7 +95,10 @@ public sealed class GoogleVisionOcrService : IOcrService
     }
 
     /// <summary>
-    /// Analyse heuristique fine adaptée aux CNI ivoiriennes (anciennes plastifiées et nouvelles biométriques ONECI).
+    /// Analyse heuristique fine adaptée aux pièces d'identité ivoiriennes :
+    /// - CNI (anciennes plastifiées et nouvelles biométriques ONECI)
+    /// - Permis de Conduire (Ministère des Transports / Quipux Afrique / DGTTC)
+    /// - Passeport
     /// </summary>
     internal static OcrIdentityResult ExtractIvorianIdentityFields(string rawText)
     {
@@ -104,15 +107,41 @@ public sealed class GoogleVisionOcrService : IOcrService
 
         string? fullName = null;
         string? idNumber = null;
+        string documentType = "CNI";
+
+        var upperRaw = rawText.ToUpperInvariant();
+
+        // 0. Qualification du Type de Document :
+        if (upperRaw.Contains("PERMIS") || upperRaw.Contains("CONDUIRE") || upperRaw.Contains("MINISTERE DES TRANSPORTS"))
+        {
+            documentType = "Permis de Conduire";
+        }
+        else if (upperRaw.Contains("PASSEPORT") || upperRaw.Contains("PASSPORT"))
+        {
+            documentType = "Passeport";
+        }
 
         var lines = rawText.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-        // 1. Extraction du Numéro de CNI :
-        // Format ONECI / CNI CI : CI followed by digits or standard 10-11 digit numbers (ex: C012345678, CI0012345678, etc.)
-        var idMatch = Regex.Match(rawText, @"\b(CI\s?[0-9]{8,12}|C[0-9]{8,11}|[0-9]{10,11})\b", RegexOptions.IgnoreCase);
-        if (idMatch.Success)
+        // 1. Extraction du Numéro de la pièce :
+        if (documentType == "Permis de Conduire")
         {
-            idNumber = Regex.Replace(idMatch.Value, @"\s+", "").ToUpperInvariant();
+            // Format Permis : souvent précédé de "N°", "NO", "PERMIS N°" ou format "PC-..." / 8-12 chiffres
+            var permisMatch = Regex.Match(rawText, @"(?:PERMIS(?:\s+DE\s+CONDUIRE)?|N[°O\.]?)\s*[:\-]?\s*([A-Z0-9]{6,14})\b", RegexOptions.IgnoreCase);
+            if (permisMatch.Success && permisMatch.Groups[1].Value.Length >= 6 && !permisMatch.Groups[1].Value.Equals("DE", StringComparison.OrdinalIgnoreCase))
+            {
+                idNumber = permisMatch.Groups[1].Value.ToUpperInvariant();
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(idNumber))
+        {
+            // Format ONECI / CNI CI : CI suivi de chiffres ou standard 8-12 chiffres, ou PC...
+            var idMatch = Regex.Match(rawText, @"\b(CI\s?[0-9]{8,12}|C[0-9]{8,11}|PC\s?[0-9]{6,10}|[0-9]{8,12})\b", RegexOptions.IgnoreCase);
+            if (idMatch.Success)
+            {
+                idNumber = Regex.Replace(idMatch.Value, @"\s+", "").ToUpperInvariant();
+            }
         }
 
         // 2. Extraction du Nom et Prénoms :
@@ -132,7 +161,7 @@ public sealed class GoogleVisionOcrService : IOcrService
                     fullName = val;
             }
 
-            if ((upper.StartsWith("PRENOM") || upper.Contains("PRENOMS")) && i + 1 < lines.Length)
+            if ((upper.StartsWith("PRENOM") || upper.Contains("PRENOMS") || upper.Contains("PRÉNOMS")) && i + 1 < lines.Length)
             {
                 var val = line.Substring(line.IndexOf("PRENOM", StringComparison.OrdinalIgnoreCase) + 6).Trim(' ', ':', 'S', 's', '-');
                 if (string.IsNullOrWhiteSpace(val) && i + 1 < lines.Length)
@@ -143,7 +172,7 @@ public sealed class GoogleVisionOcrService : IOcrService
             }
         }
 
-        // Si non trouvé par labels, on cherche la première ligne contenant 2 mots en majuscules (nom typique ivoirien)
+        // Si non trouvé par labels, on cherche la première ligne contenant des mots en majuscules (nom typique ivoirien)
         if (string.IsNullOrWhiteSpace(fullName))
         {
             foreach (var line in lines)
@@ -155,6 +184,12 @@ public sealed class GoogleVisionOcrService : IOcrService
                     && !line.Contains("NATIONALE", StringComparison.OrdinalIgnoreCase)
                     && !line.Contains("IDENTITE", StringComparison.OrdinalIgnoreCase)
                     && !line.Contains("ONECI", StringComparison.OrdinalIgnoreCase)
+                    && !line.Contains("PERMIS", StringComparison.OrdinalIgnoreCase)
+                    && !line.Contains("CONDUIRE", StringComparison.OrdinalIgnoreCase)
+                    && !line.Contains("MINISTERE", StringComparison.OrdinalIgnoreCase)
+                    && !line.Contains("TRANSPORTS", StringComparison.OrdinalIgnoreCase)
+                    && !line.Contains("CATEGORIE", StringComparison.OrdinalIgnoreCase)
+                    && !line.Contains("QUIPUX", StringComparison.OrdinalIgnoreCase)
                     && Regex.IsMatch(line, @"^[A-ZÀ-Ÿ\s\-']+$"))
                 {
                     fullName = line.Trim();
@@ -167,7 +202,8 @@ public sealed class GoogleVisionOcrService : IOcrService
             Success: !string.IsNullOrWhiteSpace(fullName) || !string.IsNullOrWhiteSpace(idNumber),
             FullName: fullName,
             IdNumber: idNumber,
-            RawText: rawText);
+            RawText: rawText,
+            DocumentType: documentType);
     }
 
     private static OcrIdentityResult FallbackParse(byte[] imageBytes)

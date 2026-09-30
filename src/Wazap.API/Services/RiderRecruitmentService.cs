@@ -280,9 +280,10 @@ public sealed class RiderRecruitmentService
 
         try
         {
-            // Analyse OCR de la CNI pour extraire automatiquement nom complet et numéro CNI :
+            // Analyse OCR de la pièce d'identité (CNI, Permis de conduire ou Passeport) :
             string resolvedName = lead.ContactName ?? "Livreur WAZAP";
             string? detectedCni = null;
+            string? detectedDocType = null;
 
             if (_ocrService != null)
             {
@@ -297,6 +298,7 @@ public sealed class RiderRecruitmentService
                             lead.Update(lead.BusinessName, resolvedName, lead.Source);
                         }
                         detectedCni = ocr.IdNumber;
+                        detectedDocType = ocr.DocumentType ?? "Pièce d'identité";
                     }
                 }
                 catch (Exception ex)
@@ -338,7 +340,7 @@ public sealed class RiderRecruitmentService
             lead.SetStatus(LeadStatus.Converted);
             await _context.SaveChangesAsync();
 
-            var cniNotice = !string.IsNullOrWhiteSpace(detectedCni) ? $"\n🪪 CNI reconnue : {detectedCni}" : "";
+            var cniNotice = !string.IsNullOrWhiteSpace(detectedCni) ? $"\n🪪 {detectedDocType ?? "Pièce d'identité"} reconnue : {detectedCni}" : "";
             var welcomeText = $"🎉 Félicitations {resolvedName} ! Ton profil livreur WAZAP est créé !{cniNotice}\n\n"
                 + $"📍 Commune active : {lead.Zone}\n"
                 + $"• Identifiant : {username}\n"
@@ -552,7 +554,7 @@ public sealed class RiderRecruitmentService
         }
 
         // Étape 3 : Photo de la pièce d'identité (Garantie Colis Sûr)
-        return $"✅ Parfait {lead.ContactName} ! Dernière étape : Prends en PHOTO ta pièce d'identité (CNI ou Passeport) 🪪 et envoie-la ici.\n\n"
+        return $"✅ Parfait {lead.ContactName} ! Dernière étape : Prends en PHOTO ta pièce d'identité (CNI, Permis de conduire ou Passeport) 🪪 et envoie-la ici.\n\n"
             + "Dès réception de la photo, ton compte est activé et tu reçois immédiatement tes premières courses 🛵💨";
     }
 

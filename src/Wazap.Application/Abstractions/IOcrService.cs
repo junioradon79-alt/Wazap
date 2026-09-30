@@ -8,7 +8,8 @@ public sealed record OcrIdentityResult(
     string? FullName,
     string? IdNumber,
     string? RawText,
-    string? Error = null);
+    string? Error = null,
+    string? DocumentType = null);
 
 /// <summary>
 /// Service de reconnaissance optique de caractères (OCR) pour les pièces d'identité (CNI ivoiriennes).

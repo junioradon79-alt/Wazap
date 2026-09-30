@@ -267,6 +267,7 @@ public class RidersController : ControllerBase
                 success = result.Success,
                 fullName = result.FullName,
                 idNumber = result.IdNumber,
+                documentType = result.DocumentType ?? "Pièce d'identité",
                 rawText = result.RawText,
                 error = result.Error
             });
@@ -278,6 +279,7 @@ public class RidersController : ControllerBase
                 success = false,
                 fullName = (string?)null,
                 idNumber = (string?)null,
+                documentType = (string?)null,
                 rawText = (string?)null,
                 error = ex.Message
             });

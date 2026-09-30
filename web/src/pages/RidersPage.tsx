@@ -110,14 +110,15 @@ export default function RidersPage() {
       })
 
       if (res.ok) {
-        const data = await res.json() as { success: boolean; fullName?: string; idNumber?: string; rawText?: string; error?: string }
+        const data = await res.json() as { success: boolean; fullName?: string; idNumber?: string; documentType?: string; rawText?: string; error?: string }
         if (data.success && (data.fullName || data.idNumber)) {
           setVerifyForm((f) => ({
             ...f,
             fullName: data.fullName || f.fullName,
             idNumber: data.idNumber || f.idNumber,
           }))
-          setOcrSuccess(`✨ OCR réussi ! Nom : ${data.fullName ?? 'Reconnu'} · N° CNI : ${data.idNumber ?? 'Reconnu'}`)
+          const docLabel = data.documentType || 'Pièce d’identité'
+          setOcrSuccess(`✨ ${docLabel} reconnue avec succès ! Nom : ${data.fullName ?? 'Reconnu'} · N° : ${data.idNumber ?? 'Reconnu'}`)
         } else if (data.error) {
           setError(`Notice OCR : ${data.error}`)
         }
@@ -420,7 +421,7 @@ export default function RidersPage() {
 
             <div className="field" style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: 14, borderRadius: 8, marginBottom: 14 }}>
               <label style={{ fontWeight: 600, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>🪪 Scan ou Photo de la pièce d'identité</span>
+                <span>🪪 Pièce d'identité (CNI, Permis de Conduire ou Passeport)</span>
                 {ocrBusy && <span style={{ color: '#059669', fontSize: 12 }}>⚡ Analyse OCR en cours...</span>}
               </label>
 
@@ -433,7 +434,7 @@ export default function RidersPage() {
                 </div>
               ) : (
                 <p style={{ fontSize: 12, color: '#64748b', margin: '4px 0 8px 0' }}>
-                  Téléversez la photo de la CNI reçue sur WhatsApp pour l'analyser et la chiffrer.
+                  Téléversez la photo de la CNI, du Permis de Conduire ou du Passeport pour l'analyser et la chiffrer.
                 </p>
               )}
 
@@ -441,7 +442,7 @@ export default function RidersPage() {
                 <div style={{ marginBottom: 10, textAlign: 'center' }}>
                   <img
                     src={selectedFilePreview}
-                    alt="Aperçu CNI"
+                    alt="Aperçu Pièce"
                     style={{ maxHeight: 140, maxWidth: '100%', borderRadius: 6, border: '1px solid #cbd5e1', objectFit: 'contain' }}
                   />
                 </div>
@@ -455,7 +456,7 @@ export default function RidersPage() {
 
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                 <label className="btn btn--primary" style={{ cursor: 'pointer', margin: 0, padding: '8px 14px', fontSize: 13, background: 'linear-gradient(135deg, #059669 0%, #047857 100%)' }}>
-                  ⚡ {ocrBusy ? 'Analyse OCR...' : 'Analyser la CNI par OCR'}
+                  ⚡ {ocrBusy ? 'Analyse OCR...' : 'Analyser CNI / Permis par OCR'}
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp,application/pdf"
@@ -469,13 +470,13 @@ export default function RidersPage() {
                   />
                 </label>
                 <span style={{ fontSize: 12, color: '#64748b' }}>
-                  Détecte et remplit automatiquement le Nom et le N° CNI
+                  Détecte et remplit automatiquement le Nom et le N° de la pièce
                 </span>
               </div>
             </div>
 
             <div className="field">
-              <label>Nom complet (reconnu ou saisi)</label>
+              <label>Nom complet (sur la pièce d'identité)</label>
               <input
                 value={verifyForm.fullName}
                 onChange={(e) => setVerifyForm((f) => ({ ...f, fullName: e.target.value }))}
@@ -484,11 +485,11 @@ export default function RidersPage() {
               />
             </div>
             <div className="field">
-              <label>N° de la pièce (CNI, passeport…)</label>
+              <label>N° de la pièce (CNI, Permis de conduire, Passeport…)</label>
               <input
                 value={verifyForm.idNumber}
                 onChange={(e) => setVerifyForm((f) => ({ ...f, idNumber: e.target.value }))}
-                placeholder="ex : CI-XXXXXXXXX ou C0123456789"
+                placeholder="ex : CI-XXXXXXXXX, C0123456789 ou N° Permis"
                 maxLength={40}
               />
             </div>
