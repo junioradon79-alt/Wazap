@@ -625,7 +625,12 @@ if (builder.Configuration.GetValue("Networking:TrustForwardedHeaders", false))
 }
 
 app.UseDefaultFiles();
-app.UseStaticFiles();
+var staticFileContentTypeProvider = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
+staticFileContentTypeProvider.Mappings[".apk"] = "application/vnd.android.package-archive";
+app.UseStaticFiles(new StaticFileOptions
+{
+    ContentTypeProvider = staticFileContentTypeProvider
+});
 app.UseRateLimiter();
 app.UseCors("WebFrontend");
 app.UseAuthentication();
@@ -730,6 +735,25 @@ app.MapGet("/demo-video", (IWebHostEnvironment env) =>
     Results.File(Path.Combine(env.WebRootPath, "demo-video.html"), "text/html; charset=utf-8"));
 app.MapGet("/demo", (IWebHostEnvironment env) =>
     Results.File(Path.Combine(env.WebRootPath, "demo-video.html"), "text/html; charset=utf-8"));
+
+// Téléchargement direct de l'APK Passerelle Android WAZAP Gateway
+app.MapGet("/downloads/wazap-gateway.apk", (IWebHostEnvironment env) =>
+{
+    var apkPath = Path.Combine(env.WebRootPath, "downloads", "wazap-gateway.apk");
+    if (!File.Exists(apkPath))
+        return Results.NotFound(new { error = "Fichier APK WAZAP Gateway temporairement indisponible." });
+
+    return Results.File(apkPath, "application/vnd.android.package-archive", "wazap-gateway.apk");
+}).AllowAnonymous();
+
+app.MapGet("/gateway/apk", (IWebHostEnvironment env) =>
+{
+    var apkPath = Path.Combine(env.WebRootPath, "downloads", "wazap-gateway.apk");
+    if (!File.Exists(apkPath))
+        return Results.NotFound(new { error = "Fichier APK WAZAP Gateway temporairement indisponible." });
+
+    return Results.File(apkPath, "application/vnd.android.package-archive", "wazap-gateway.apk");
+}).AllowAnonymous();
 
 // Application automatique des migrations EF Core (PaaS / Render).
 if (builder.Configuration.GetValue<bool>("AutoMigrateDatabase", true))

@@ -227,4 +227,27 @@ public class GatewayWhatsAppControllerTests : IDisposable
         Assert.NotNull(updated);
         Assert.False(updated.IsAvailable);
     }
+
+    [Fact]
+    public async Task TelechargementApk_RouteDownloadsEtGateway_SontAccessibles()
+    {
+        using var factory = new WazapAppFactory();
+        var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/downloads/wazap-gateway.apk");
+        Assert.True(
+            response.StatusCode == System.Net.HttpStatusCode.OK || response.StatusCode == System.Net.HttpStatusCode.NotFound,
+            $"Statut inattendu: {response.StatusCode}");
+
+        if (response.StatusCode == System.Net.HttpStatusCode.OK)
+        {
+            Assert.Equal("application/vnd.android.package-archive", response.Content.Headers.ContentType?.MediaType);
+        }
+
+        var responseAlias = await client.GetAsync("/gateway/apk");
+        Assert.True(
+            responseAlias.StatusCode == System.Net.HttpStatusCode.OK || responseAlias.StatusCode == System.Net.HttpStatusCode.NotFound,
+            $"Statut inattendu: {responseAlias.StatusCode}");
+    }
 }
+
