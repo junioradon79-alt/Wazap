@@ -415,7 +415,7 @@ public class ClientOrdersController : ControllerBase
 
             if (rider is not null)
             {
-                var vendorDashboardUrl = "https://junioradon79gm-001-site1.jtempurl.com/app/vendor/dashboard";
+                var vendorDashboardUrl = "https://wazap.ci/app/vendor/dashboard";
                 try
                 {
                     await _whatsApp.SendDeliveredNotificationsAsync(order, rider, vendorDashboardUrl);

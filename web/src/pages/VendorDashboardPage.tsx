@@ -7,7 +7,7 @@ import '../styles/vendor-dashboard.css'
 
 /* ─── Constants ─────────────────────────────────────────── */
 const WHATSAPP_BOT = '2250544051972'
-const TRACKING_BASE = typeof window !== 'undefined' ? `${window.location.origin}/app/suivi` : 'https://wazap-api.onrender.com/app/suivi'
+const TRACKING_BASE = typeof window !== 'undefined' ? `${window.location.origin}/app/suivi` : 'https://wazap.ci/app/suivi'
 
 const STATUS_FR: Record<string, string> = {
   PendingVendorConfirmation: 'Attente vendeur',

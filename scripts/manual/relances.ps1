@@ -44,7 +44,7 @@ param(
     [ValidateSet("suivi", "msg", "relance", "recap", "journal")]
     [string]$Action,
 
-    [string]$BaseUrl = "https://junioradon79gm-001-site1.jtempurl.com",
+    [string]$BaseUrl = "https://wazap.ci",
     [string]$Username = "admin",
     [string]$Password = $env:WAZAP_ADMIN_PASSWORD,
     [string]$TotpCode = "",

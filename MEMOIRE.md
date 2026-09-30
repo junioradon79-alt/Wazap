@@ -3897,5 +3897,30 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
      - Prospection active des 1 000 premiers commerçants avec l'offre d'appel des 15 courses offertes (Pack Digital Boutique à 0 F de commission).
      - Relais communautaire des livreurs avec le défi des 50 smartphones Redmi 15C et 0% de commission.
 
+---
 
+## 112. Session 30/09/2026 (Matin) — Acquisition Officielle du Domaine wazap.ci & Alignement Intégral de la Plateforme
 
+### 1. Événement Majeur : Acquisition du Domaine Officiel `wazap.ci`
+- **Acquisition confirmée :** Le nom de domaine de marque de premier niveau national de Côte d'Ivoire **`wazap.ci`** est officiellement acquis.
+- **Fin programmée de l'URL temporaire SmarterASP :** Remplacement progressif et sécurisé de `junioradon79gm-001-site1.jtempurl.com` par `wazap.ci`.
+
+### 2. Mises à Jour & Alignements dans la Solution (.NET & React)
+- **Configuration Applicative (`appsettings.json`) :**
+  - `Client:TrackingBaseUrl` $\rightarrow$ `https://wazap.ci/app/suivi` (remplace l'ancien onrender).
+  - `SalesPage:PublicBaseUrl` $\rightarrow$ `https://wazap.ci`
+  - `SalesPage:WhatsAppNumber` $\rightarrow$ `2250544051972` (aligné sur la Règle Canonique n°2).
+  - `Cors:AllowedOrigins` $\rightarrow$ ajout de `https://wazap.ci` et `https://www.wazap.ci` en maintenant le fallback temporaire.
+- **Classes Métier & Services C# :**
+  - `ClientOptions.cs` : valeur par défaut fixée à `https://wazap.ci/app/suivi`.
+  - `PaymentSplitService.cs` : valeur par défaut `baseUrl` fixée à `https://wazap.ci`.
+  - `ClientOrdersController.cs` & `RiderDeliveryCommands.cs` : `vendorDashboardUrl` basculé sur `https://wazap.ci/app/vendor/dashboard`.
+- **Frontend PWA & Vitrines Web :**
+  - `VendorDashboardPage.tsx` : constante `TRACKING_BASE` avec repli `https://wazap.ci/app/suivi`.
+  - Re-génération du bundle de production React (`npm run build`) et synchronisation propre dans `src/Wazap.API/wwwroot/app`.
+  - Nettoyage et mise à jour de `src/Wazap.API/wwwroot/demo.html` et `demo-video.html` (liens `https://wazap.ci`, contact officiel `+225 05 44 05 19 72`, validation par Scan du QR Code Universel).
+- **Scripts d'Exploitation :**
+  - `manuel.ps1` et `relances.ps1` : `BaseUrl` par défaut configurée sur `https://wazap.ci`.
+- **Tests & Qualité :**
+  - 822/822 tests .NET réussis (100% verts).
+  - 51/51 tests Vitest réussis (100% verts).

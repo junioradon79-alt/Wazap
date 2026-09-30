@@ -108,7 +108,7 @@ public sealed class PaymentSplitService
     /// <summary>
     /// Initie un paiement fractionné pour une commande et génère les liens/QR codes de paiement Wave/Mobile Money.
     /// </summary>
-    public async Task<SplitPaymentInitiationResult> InitiateSplitPaymentAsync(Guid orderId, string baseUrl = "https://wazap-api.onrender.com", SplitFeePayer? feePayer = null)
+    public async Task<SplitPaymentInitiationResult> InitiateSplitPaymentAsync(Guid orderId, string baseUrl = "https://wazap.ci", SplitFeePayer? feePayer = null)
     {
         var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == orderId);
         if (order is null)

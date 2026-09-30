@@ -205,7 +205,7 @@ public sealed class RiderDeliveryCommands
         // 2) Notification « livré » à CHAQUE client et vendeur concerné (best-effort).
         if (marker == "LIVRE")
         {
-            var vendorDashboardUrl = "https://junioradon79gm-001-site1.jtempurl.com/app/vendor/dashboard";
+            var vendorDashboardUrl = "https://wazap.ci/app/vendor/dashboard";
             foreach (var order in orders)
             {
                 try
