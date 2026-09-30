@@ -736,8 +736,8 @@ app.MapGet("/demo-video", (IWebHostEnvironment env) =>
 app.MapGet("/demo", (IWebHostEnvironment env) =>
     Results.File(Path.Combine(env.WebRootPath, "demo-video.html"), "text/html; charset=utf-8"));
 
-// Téléchargement direct de l'APK Passerelle Android WAZAP Gateway
-app.MapGet("/downloads/wazap-gateway.apk", (IWebHostEnvironment env) =>
+// Téléchargement direct de l'APK Passerelle Android WAZAP Gateway (GET et HEAD pour les gestionnaires de téléchargement)
+app.MapMethods("/downloads/wazap-gateway.apk", new[] { "GET", "HEAD" }, (IWebHostEnvironment env) =>
 {
     var apkPath = Path.Combine(env.WebRootPath, "downloads", "wazap-gateway.apk");
     if (!File.Exists(apkPath))
@@ -746,7 +746,7 @@ app.MapGet("/downloads/wazap-gateway.apk", (IWebHostEnvironment env) =>
     return Results.File(apkPath, "application/vnd.android.package-archive", "wazap-gateway.apk");
 }).AllowAnonymous();
 
-app.MapGet("/gateway/apk", (IWebHostEnvironment env) =>
+app.MapMethods("/gateway/apk", new[] { "GET", "HEAD" }, (IWebHostEnvironment env) =>
 {
     var apkPath = Path.Combine(env.WebRootPath, "downloads", "wazap-gateway.apk");
     if (!File.Exists(apkPath))
