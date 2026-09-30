@@ -3949,9 +3949,13 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
   - Traitement automatisé des statuts livreurs (`DISPO`, `INDISPO`), du programme Redmi (`PROGRAMME`, `REDMI`), des demandes commerçants (`COLIS`, `TARIFS`) et de l'accueil universel.
   - 7 nouveaux tests unitaires xUnit (`GatewayWhatsAppControllerTests.cs`). Total : **829/829 tests .NET réussis (100% verts)**.
 
-### 3. Assemblage & Distribution de l'APK
-- **Build Gradle Android :** Compilation réussie via Gradle 8.14.3 et Android SDK 35 (`app-debug.apk` - 6.48 Mo).
-- **Disponibilité Immédiate :**
-  - Fichier local : `c:\Dev\Wazap\android\wazap-gateway-v1.0.apk`.
-  - Téléchargement web direct en production : `https://wazap.ci/downloads/wazap-gateway.apk`.
+### 3. Assemblage, Distribution & Activation Réelle sur Smartphone (`+225 05 44 05 19 72`)
+- **Build Gradle Android :** Compilation réussie en version Release signée SHA-256 (`app-release.apk` - 5.18 Mo).
+- **Installation Matérielle Directe :** Installée avec succès via ADB sur le smartphone opérationnel.
+- **Statut Opérationnel Confirmé :**
+  - Accès Notifications : **Autorisé 🟢**
+  - Optimisation Batterie : **Exemption active ⚡**
+  - Serveur : **En ligne (536 ms) 🟢**
+  - Service d'écoute : **Connecté et actif en direct sur WhatsApp Business.**
+  - Test fonctionnel direct : Simulation mot-clé `DISPO` exécutée avec succès, générant instantanément le message d'accueil livreur et la sélection des communes d'Abidjan (1 à 6).
 
