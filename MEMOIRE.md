@@ -3924,3 +3924,34 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
 - **Tests & Qualité :**
   - 822/822 tests .NET réussis (100% verts).
   - 51/51 tests Vitest réussis (100% verts).
+
+---
+
+## 113. Session 30/09/2026 (Après-midi) — Passerelle Android Souveraine WAZAP Gateway & Déploiement DNS wazap.ci
+
+### 1. Déploiement DNS & Serveur de Production wazap.ci
+- **Configuration DNS WiniHost :** Enregistrements DNS configurés avec succès (A `45.58.159.54` et CNAME `www` vers `wazap.ci`).
+- **Configuration SmarterASP.NET :** Domaine ajouté aux bindings IIS de `wazap2` (`wazap.ci` et `www.wazap.ci`), certificat SSL Let's Encrypt commandé.
+- **Vérification HTTP :** Serveur Kestrel .NET actif en direct sur `wazap.ci` répondant HTTP 307 Redirect vers HTTPS avec en-têtes Kestrel.
+
+### 2. Création de la Passerelle Android Souveraine WAZAP Gateway (`ci.wazap.gateway`)
+- **Projet Android Natif :** Projet développé sous `android/WazapGateway/` (Kotlin, SDK 35, OkHttp, Coroutines, Material Design).
+- **Service d'Écoute & Réponse Automatique (`WazapNotificationListenerService.kt`) :**
+  - Interception des notifications des applications WhatsApp Business (`com.whatsapp.w4b`) et WhatsApp standard (`com.whatsapp`).
+  - Déduplication temps-réel (mémoire cache 15s) et filtrage des notifications système WhatsApp.
+  - Extraction de l'action de réponse rapide Android (`RemoteInput`) et émission instantanée de la réponse via `actionIntent.send()` sans aucune intervention manuelle.
+- **Client API Résilient (`GatewayApiClient.kt`) :**
+  - Double point d'accès avec bascule transparente (`https://wazap.ci/api/gateway/whatsapp` et fallback immédiat `https://junioradon79gm-001-site1.jtempurl.com/api/gateway/whatsapp`).
+- **Cockpit Android (`MainActivity.kt`) :**
+  - Interface soignée Obsidian & Emerald Glow : statut de l'autorisation d'accès aux notifications, exemption d'optimisation de batterie, indicateur de santé et latence API en direct (Ping), bascule Marche/Veille (Switch Auto-Reply), bouton de simulation en 1 tap (`Test DISPO`), et console de journalisation en temps réel (`GatewayLogger.kt`).
+- **Backend C# Dédié (`GatewayWhatsAppController.cs`) :**
+  - Endpoints sécurisés `GET /api/gateway/whatsapp/ping` et `POST /api/gateway/whatsapp/process`.
+  - Traitement automatisé des statuts livreurs (`DISPO`, `INDISPO`), du programme Redmi (`PROGRAMME`, `REDMI`), des demandes commerçants (`COLIS`, `TARIFS`) et de l'accueil universel.
+  - 7 nouveaux tests unitaires xUnit (`GatewayWhatsAppControllerTests.cs`). Total : **829/829 tests .NET réussis (100% verts)**.
+
+### 3. Assemblage & Distribution de l'APK
+- **Build Gradle Android :** Compilation réussie via Gradle 8.14.3 et Android SDK 35 (`app-debug.apk` - 6.48 Mo).
+- **Disponibilité Immédiate :**
+  - Fichier local : `c:\Dev\Wazap\android\wazap-gateway-v1.0.apk`.
+  - Téléchargement web direct en production : `https://wazap.ci/downloads/wazap-gateway.apk`.
+

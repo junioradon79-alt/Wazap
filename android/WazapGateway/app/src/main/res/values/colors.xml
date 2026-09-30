@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#00D66C</color>
+    <color name="primary_dark">#00A86B</color>
+    <color name="primary_deep">#075E54</color>
+    <color name="gold">#FACC15</color>
+    <color name="bg_dark">#090D16</color>
+    <color name="card_dark">#131B2E</color>
+    <color name="card_border">#1E293B</color>
+    <color name="text_white">#F8FAFC</color>
+    <color name="text_muted">#94A3B8</color>
+    <color name="status_green">#10B981</color>
+    <color name="status_red">#EF4444</color>
+</resources>

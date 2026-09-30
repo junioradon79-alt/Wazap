@@ -35,3 +35,12 @@ scripts/activation/web.config.remote
 
 # Archives locales vidéo
 marketing/demo-video/
+
+# Android build artifacts
+.gradle/
+**/build/
+local.properties
+android/WazapGateway/.gradle/
+android/WazapGateway/build/
+android/WazapGateway/app/build/
+android/WazapGateway/local.properties

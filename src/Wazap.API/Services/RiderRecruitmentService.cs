@@ -82,6 +82,73 @@ public sealed class RiderRecruitmentService
         }
     }
 
+    /// <summary>
+    /// Traite un message d'un candidat livreur et retourne le message texte de réponse directement (utilisé par la passerelle Android WAZAP Gateway).
+    /// </summary>
+    public async Task<string?> GetCandidateResponseTextAsync(string phone, string text)
+    {
+        if (string.IsNullOrWhiteSpace(phone) || string.IsNullOrWhiteSpace(text))
+            return null;
+
+        try
+        {
+            var normalized = "+" + PhoneNumberNormalizer.DigitsOnly(phone);
+
+            if (await HasRiderAccountAsync(normalized))
+                return null;
+
+            var lead = await _context.Leads
+                .Where(l => l.WhatsAppNumber == normalized && l.Status != LeadStatus.Discarded)
+                .OrderByDescending(l => l.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (lead is null)
+            {
+                if (!HasRiderIntent(text))
+                    return null;
+
+                var name = TryCaptureName(text);
+                var zone = CaptureZone(text);
+                var created = new Lead("Candidat livreur", normalized, zone, "whatsapp-livreur", name);
+                created.SetReferralCode(TryCaptureReferralCode(text));
+                _context.Leads.Add(created);
+                await _context.SaveChangesAsync();
+
+                await NotifyTeamAsync($"Candidat livreur détecté : {normalized}" +
+                    $"{(name is not null ? " — " + name : "")}{(zone.Length > 0 ? " · " + zone : "")}" +
+                    $"{(created.ReferralCode is not null ? " · parrain " + created.ReferralCode : "")}");
+
+                return BuildAskMessage(created);
+            }
+
+            if (lead.Source != "whatsapp-livreur")
+                return null;
+
+            if (lead.Status == LeadStatus.Converted)
+            {
+                return "✅ Votre profil livreur WAZAP est déjà actif ! Envoyez DISPO pour vous mettre en ligne et recevoir des courses 🛵";
+            }
+
+            var capturedName = TryCaptureName(text);
+            if (capturedName is not null && string.IsNullOrWhiteSpace(lead.ContactName))
+                lead.Update(lead.BusinessName, capturedName, lead.Source);
+            var capturedZone = CaptureZone(text);
+            if (capturedZone.Length > 0 && string.IsNullOrWhiteSpace(lead.Zone))
+                lead.SetZone(capturedZone);
+            if (string.IsNullOrWhiteSpace(lead.ReferralCode))
+                lead.SetReferralCode(TryCaptureReferralCode(text));
+            lead.SetStatus(LeadStatus.Contacted);
+            await _context.SaveChangesAsync();
+
+            return BuildAskMessage(lead);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur Gateway GetCandidateResponseTextAsync pour {Phone}", phone);
+            return null;
+        }
+    }
+
     private async Task<bool> HandleCandidateTextCoreAsync(string phone, string text)
     {
 
