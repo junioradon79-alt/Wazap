@@ -26,6 +26,7 @@ public class RidersController : ControllerBase
     private readonly ApplicationDbContext _context;
     private readonly RiderRecruitmentService _riderRecruitment;
     private readonly IOcrService _ocrService;
+    private readonly ILogger<RidersController>? _logger;
 
     public RidersController(
         RiderService riderService,
@@ -35,7 +36,8 @@ public class RidersController : ControllerBase
         ICurrentUser currentUser,
         ApplicationDbContext context,
         RiderRecruitmentService riderRecruitment,
-        IOcrService ocrService)
+        IOcrService ocrService,
+        ILogger<RidersController>? logger = null)
     {
         _riderService = riderService;
         _riderProgram = riderProgram;
@@ -45,6 +47,7 @@ public class RidersController : ControllerBase
         _context = context;
         _riderRecruitment = riderRecruitment;
         _ocrService = ocrService;
+        _logger = logger;
     }
 
     // GET: api/riders — réservé à l'admin (RGPD : téléphones + positions exposés)
@@ -333,6 +336,63 @@ public class RidersController : ControllerBase
 
         var user = await _riderRecruitment.CreateRiderAccountFromLeadAsync(lead, request.FullName);
         return Ok(new { message = "Livreur enrôlé avec succès", userId = user?.Id, username = user?.Username });
+    }
+
+    // POST: api/riders/enroll-and-verify — Création et certification immédiate via scan OCR en un seul appel
+    [HttpPost("enroll-and-verify")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    public async Task<IActionResult> EnrollAndVerify([FromForm] IFormFile? file, [FromForm] string phoneNumber,
+        [FromForm] string? fullName, [FromForm] string? idNumber, [FromForm] string? zone, [FromForm] string? motorcycle)
+    {
+        if (string.IsNullOrWhiteSpace(phoneNumber))
+            return BadRequest(new { error = "Numéro de téléphone requis." });
+
+        var digits = PhoneNumberNormalizer.DigitsOnly(phoneNumber);
+        if (digits.Length == 10 && (digits.StartsWith("01") || digits.StartsWith("05") || digits.StartsWith("07")))
+            digits = "225" + digits;
+        var normalized = "+" + digits;
+
+        var lead = await _context.Leads.FirstOrDefaultAsync(l => l.WhatsAppNumber == normalized);
+        if (lead is null)
+        {
+            lead = new Lead("Livreur Enrôlé", normalized, zone ?? "Cocody", "dashboard-enrolement", fullName);
+            _context.Leads.Add(lead);
+            await _context.SaveChangesAsync();
+        }
+        else
+        {
+            if (!string.IsNullOrWhiteSpace(fullName))
+                lead.Update(lead.BusinessName, fullName, lead.Source);
+            if (!string.IsNullOrWhiteSpace(zone))
+                lead.SetZone(zone);
+            await _context.SaveChangesAsync();
+        }
+
+        var user = await _riderRecruitment.CreateRiderAccountFromLeadAsync(lead, fullName, idNumber);
+        if (user is null)
+            return BadRequest(new { error = "Impossible d'initialiser le compte livreur." });
+
+        if (file is not null && file.Length > 0)
+        {
+            try
+            {
+                await _riderService.StoreScanAsync(user.Id, file.OpenReadStream(), file.FileName);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "Échec de stockage du scan pour {UserId}", user.Id);
+            }
+        }
+
+        await _riderService.VerifyRiderAsync(user.Id, fullName, idNumber, motorcycle, _currentUser.Id);
+
+        return Ok(new
+        {
+            message = $"Livreur « {fullName ?? user.Username} » enrôlé et certifié avec succès !",
+            riderId = user.Id,
+            username = user.Username,
+            phoneNumber = user.PhoneNumber
+        });
     }
 
     // DELETE: api/riders/{id} — suppression d'un livreur (admin)

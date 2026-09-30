@@ -38,8 +38,11 @@ export default function RidersPage() {
   const [certById, setCertById] = useState<Record<string, RiderCertification>>({})
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  const [verifyTarget, setVerifyTarget] = useState<{ rider: UserSummary; cert: RiderCertification } | null>(null)
+  const [verifyTarget, setVerifyTarget] = useState<{ rider: UserSummary | null; cert: RiderCertification | null } | null>(null)
   const [verifyForm, setVerifyForm] = useState({ fullName: '', idNumber: '', motorcycle: '' })
+  const [newRiderPhone, setNewRiderPhone] = useState('')
+  const [newRiderZone, setNewRiderZone] = useState('Cocody')
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [scanSaved, setScanSaved] = useState(false)
   const [ocrBusy, setOcrBusy] = useState(false)
   const [ocrSuccess, setOcrSuccess] = useState('')
@@ -69,33 +72,43 @@ export default function RidersPage() {
     void load()
   }, [])
 
-  const openVerify = (r: UserSummary): void => {
-    const cert = certById[r.id] ?? {
-      riderId: r.id, username: r.username, phoneNumber: r.phoneNumber, zone: r.zone,
-      isAvailable: r.isAvailable, status: 'Pending' as const, fullName: null,
-      idNumber: null, motorcycle: null, idScanUrl: null, scanFileName: null,
-      scanReceivedAt: null, blacklistReason: null, createdAt: null, reviewedAt: null,
+  const openVerify = (r: UserSummary | null): void => {
+    if (r) {
+      const cert = certById[r.id] ?? {
+        riderId: r.id, username: r.username, phoneNumber: r.phoneNumber, zone: r.zone,
+        isAvailable: r.isAvailable, status: 'Pending' as const, fullName: null,
+        idNumber: null, motorcycle: null, idScanUrl: null, scanFileName: null,
+        scanReceivedAt: null, blacklistReason: null, createdAt: null, reviewedAt: null,
+      }
+      setVerifyForm({
+        fullName: cert.fullName ?? r.username,
+        idNumber: cert.idNumber ?? '',
+        motorcycle: cert.motorcycle ?? '',
+      })
+      setNewRiderPhone(r.phoneNumber ?? '')
+      setNewRiderZone(r.zone ?? 'Cocody')
+      setScanSaved(Boolean(cert.scanFileName))
+      setVerifyTarget({ rider: r, cert })
+    } else {
+      setVerifyForm({ fullName: '', idNumber: '', motorcycle: '' })
+      setNewRiderPhone('')
+      setNewRiderZone('Cocody')
+      setScanSaved(false)
+      setVerifyTarget({ rider: null, cert: null })
     }
-    setVerifyForm({
-      fullName: cert.fullName ?? r.username,
-      idNumber: cert.idNumber ?? '',
-      motorcycle: cert.motorcycle ?? '',
-    })
-    setScanSaved(Boolean(cert.scanFileName))
     setOcrSuccess('')
+    setSelectedFile(null)
     setSelectedFilePreview(null)
-    setVerifyTarget({ rider: r, cert })
   }
 
-  const uploadScan = async (file: File): Promise<void> => {
-    if (!verifyTarget) return
+  const uploadScan = async (file: File, riderId: string): Promise<void> => {
     setBusy(true)
     setError('')
     const token = getToken()
     const body = new FormData()
     body.append('file', file)
     try {
-      const res = await fetch(`/api/riders/${verifyTarget.rider.id}/scan`, {
+      const res = await fetch(`/api/riders/${riderId}/scan`, {
         method: 'POST',
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         body,
@@ -114,11 +127,11 @@ export default function RidersPage() {
   }
 
   const analyzeOcr = async (file: File): Promise<void> => {
-    if (!verifyTarget) return
+    setSelectedFile(file)
+    setSelectedFilePreview(URL.createObjectURL(file))
     setOcrBusy(true)
     setError('')
     setOcrSuccess('')
-    setSelectedFilePreview(URL.createObjectURL(file))
     const token = getToken()
     const body = new FormData()
     body.append('file', file)
@@ -146,8 +159,10 @@ export default function RidersPage() {
         }
       }
 
-      // 2. Sauvegarde automatique du scan sur le compte du livreur
-      await uploadScan(file)
+      // 2. Si un livreur existant est ciblé, sauvegarde immédiate du scan
+      if (verifyTarget?.rider) {
+        await uploadScan(file, verifyTarget.rider.id)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur pendant l’analyse OCR')
     } finally {
@@ -209,8 +224,38 @@ export default function RidersPage() {
   const doVerify = async (): Promise<void> => {
     if (!verifyTarget) return
     setBusy(true)
+    setError('')
     try {
-      await api.post(`/riders/${verifyTarget.rider.id}/verify`, verifyForm)
+      if (verifyTarget.rider) {
+        await api.post(`/riders/${verifyTarget.rider.id}/verify`, verifyForm)
+        setSyncNotice(`✅ Livreur « ${verifyForm.fullName || verifyTarget.rider.username} » certifié avec succès !`)
+      } else {
+        if (!newRiderPhone.trim()) {
+          setError('Le numéro WhatsApp du livreur est obligatoire pour finaliser l’enrôlement.')
+          setBusy(false)
+          return
+        }
+        const token = getToken()
+        const fd = new FormData()
+        if (selectedFile) fd.append('file', selectedFile)
+        fd.append('phoneNumber', newRiderPhone)
+        fd.append('fullName', verifyForm.fullName)
+        fd.append('idNumber', verifyForm.idNumber)
+        fd.append('zone', newRiderZone)
+        fd.append('motorcycle', verifyForm.motorcycle)
+
+        const res = await fetch('/api/riders/enroll-and-verify', {
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          body: fd,
+        })
+        if (!res.ok) {
+          const err = await res.json().catch(() => null)
+          throw new Error((err as { error?: string } | null)?.error ?? 'Échec de l’enrôlement certifié')
+        }
+        const data = await res.json() as { message: string }
+        setSyncNotice(`✅ ${data.message}`)
+      }
       setVerifyTarget(null)
       await load()
     } catch (err) {
@@ -302,13 +347,7 @@ export default function RidersPage() {
             style={{ background: '#059669', borderColor: '#059669', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}
             onClick={() => {
               const pendingRider = riders.find((r) => certOf(r)?.status !== 'Verified')
-              if (pendingRider) {
-                openVerify(pendingRider)
-              } else if (riders.length > 0) {
-                openVerify(riders[0])
-              } else {
-                setShowEnrollModal(true)
-              }
+              openVerify(pendingRider ?? (riders.length > 0 ? riders[0] : null))
             }}
             disabled={busy}
             title="Scanner une pièce d'identité (CNI, Permis de Conduire ou Passeport) par OCR pour certifier un livreur"
@@ -463,36 +502,71 @@ export default function RidersPage() {
 
       {verifyTarget && (
         <Modal
-          title={`⚡ Analyse OCR & Certification « ${verifyTarget.rider.username} »`}
+          title={verifyTarget.rider ? `⚡ Analyse OCR & Certification « ${verifyTarget.rider.username} »` : '⚡ Analyseur Magique OCR — Certifier un Livreur'}
           labelledBy="rider-verify-title"
           onClose={() => setVerifyTarget(null)}
         >
-            <div style={{ marginBottom: 12, background: '#f1f5f9', padding: '10px 12px', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-              <div>
-                <span style={{ fontSize: 12, color: '#64748b' }}>Livreur sélectionné :</span>
-                <div style={{ fontWeight: 600, fontSize: 14 }}>{verifyTarget.rider.username} <span className="whatsapp" style={{ fontSize: 13 }}>({verifyTarget.rider.phoneNumber ?? '—'})</span></div>
+            {verifyTarget.rider ? (
+              <div style={{ marginBottom: 12, background: '#f1f5f9', padding: '10px 12px', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                <div>
+                  <span style={{ fontSize: 12, color: '#64748b' }}>Livreur sélectionné :</span>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>{verifyTarget.rider.username} <span className="whatsapp" style={{ fontSize: 13 }}>({verifyTarget.rider.phoneNumber ?? '—'})</span></div>
+                </div>
+                {riders.length > 1 && (
+                  <select
+                    value={verifyTarget.rider.id}
+                    onChange={(e) => {
+                      const sel = riders.find((r) => r.id === e.target.value)
+                      if (sel) openVerify(sel)
+                    }}
+                    style={{ padding: '4px 8px', fontSize: 12, borderRadius: 6, border: '1px solid #cbd5e1' }}
+                    title="Changer de livreur à vérifier"
+                  >
+                    {riders.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.username} ({r.zone ?? 'Zone'}) {certOf(r)?.status === 'Verified' ? '✔' : '⏳'}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
-              {riders.length > 1 && (
-                <select
-                  value={verifyTarget.rider.id}
-                  onChange={(e) => {
-                    const sel = riders.find((r) => r.id === e.target.value)
-                    if (sel) openVerify(sel)
-                  }}
-                  style={{ padding: '4px 8px', fontSize: 12, borderRadius: 6, border: '1px solid #cbd5e1' }}
-                  title="Changer de livreur à vérifier"
-                >
-                  {riders.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.username} ({r.zone ?? 'Zone'}) {certOf(r)?.status === 'Verified' ? '✔' : '⏳'}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
+            ) : (
+              <div style={{ background: '#f8fafc', padding: 12, borderRadius: 8, marginBottom: 14, border: '1px solid #e2e8f0' }}>
+                <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8, color: '#0f172a' }}>
+                  📱 Coordonnées du livreur reçu sur WhatsApp :
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div className="field" style={{ margin: 0 }}>
+                    <label style={{ fontSize: 12 }}>Numéro WhatsApp</label>
+                    <input
+                      value={newRiderPhone}
+                      onChange={(e) => setNewRiderPhone(e.target.value)}
+                      placeholder="ex : +225 05 44 05 19 72"
+                      required
+                    />
+                  </div>
+                  <div className="field" style={{ margin: 0 }}>
+                    <label style={{ fontSize: 12 }}>Commune principale</label>
+                    <select
+                      value={newRiderZone}
+                      onChange={(e) => setNewRiderZone(e.target.value)}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #cbd5e1' }}
+                    >
+                      <option value="Cocody">Cocody</option>
+                      <option value="Yopougon">Yopougon</option>
+                      <option value="Marcory">Marcory</option>
+                      <option value="Koumassi">Koumassi / Treichville</option>
+                      <option value="Abobo">Abobo</option>
+                      <option value="Plateau">Plateau / Adjamé</option>
+                      <option value="Port-Bouët">Port-Bouët</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <p style={{ fontSize: 13, marginBottom: 12 }}>
-              Téléversez ou glissez-déposez la photo de la pièce (CNI, Permis de Conduire ou Passeport) reçue sur WhatsApp. L'OCR extrait automatiquement le nom et le numéro !
+              Téléversez ou glissez-déposez la photo de la pièce (CNI, Permis de Conduire ou Passeport) reçue sur WhatsApp. L'IA extrait automatiquement le nom et le numéro !
             </p>
 
             <div className="field" style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: 14, borderRadius: 8, marginBottom: 14 }}>
@@ -501,12 +575,14 @@ export default function RidersPage() {
                 {ocrBusy && <span style={{ color: '#059669', fontSize: 12 }}>⚡ Analyse OCR en cours...</span>}
               </label>
 
-              {verifyTarget.cert.scanFileName || scanSaved ? (
+              {verifyTarget.cert?.scanFileName || scanSaved ? (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '6px 0 10px 0', fontSize: 13, color: '#059669' }}>
                   <span>✅ Scan actif enregistré</span>
-                  <button type="button" className="btn" style={{ padding: '2px 8px', fontSize: 12 }} onClick={() => void viewScan(verifyTarget.rider.id)}>
-                    👁️ Voir le scan
-                  </button>
+                  {verifyTarget.rider && (
+                    <button type="button" className="btn" style={{ padding: '2px 8px', fontSize: 12 }} onClick={() => void viewScan(verifyTarget.rider!.id)}>
+                      👁️ Voir le scan
+                    </button>
+                  )}
                 </div>
               ) : (
                 <p style={{ fontSize: 12, color: '#64748b', margin: '4px 0 8px 0' }}>
@@ -532,7 +608,7 @@ export default function RidersPage() {
 
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                 <label className="btn btn--primary" style={{ cursor: 'pointer', margin: 0, padding: '8px 14px', fontSize: 13, background: 'linear-gradient(135deg, #059669 0%, #047857 100%)' }}>
-                  ⚡ {ocrBusy ? 'Analyse OCR...' : 'Analyser CNI / Permis par OCR'}
+                  ⚡ {ocrBusy ? 'Analyse OCR...' : 'Sélectionner CNI / Permis par OCR'}
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp,application/pdf"
@@ -546,7 +622,7 @@ export default function RidersPage() {
                   />
                 </label>
                 <span style={{ fontSize: 12, color: '#64748b' }}>
-                  Détecte et remplit automatiquement le Nom et le N° de la pièce
+                  Glissez-déposez la photo reçue sur WhatsApp (Google Vision lit le nom et N°)
                 </span>
               </div>
             </div>
@@ -581,11 +657,11 @@ export default function RidersPage() {
 
             <div className="modal__actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
               <div>
-                {verifyTarget.rider.phoneNumber && (
+                {verifyTarget.rider?.phoneNumber && (
                   <a
                     className="btn btn--ghost"
                     style={{ borderColor: '#25D366', color: '#128C7E', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600 }}
-                    href={buildWhatsAppAccessLink(verifyTarget.rider, verifyTarget.cert)}
+                    href={buildWhatsAppAccessLink(verifyTarget.rider, verifyTarget.cert ?? undefined)}
                     target="_blank"
                     rel="noopener noreferrer"
                     title="Envoyer les accès et le lien Dashboard directement sur WhatsApp"
@@ -599,10 +675,10 @@ export default function RidersPage() {
                 <button
                   className="btn btn--primary"
                   onClick={() => void doVerify()}
-                  disabled={busy || ocrBusy || verifyForm.fullName.trim().length === 0 || !(verifyTarget.cert.scanFileName || scanSaved)}
-                  title={!(verifyTarget.cert.scanFileName || scanSaved) ? 'Téléversez d’abord le scan de la pièce d’identité' : undefined}
+                  disabled={busy || ocrBusy || verifyForm.fullName.trim().length === 0 || (!selectedFile && !scanSaved && !verifyTarget.cert?.scanFileName)}
+                  title={(!selectedFile && !scanSaved && !verifyTarget.cert?.scanFileName) ? 'Téléversez d’abord la photo de la pièce' : undefined}
                 >
-                  {busy ? '…' : '✅ Certifier'}
+                  {busy ? '…' : verifyTarget.rider ? '✅ Certifier' : '🚀 Créer & Certifier ce Livreur'}
                 </button>
               </div>
             </div>
