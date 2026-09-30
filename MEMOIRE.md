@@ -1,8 +1,8 @@
 # 🧠 MÉMOIRE UNIQUE WAZAP — État d'avancement des chantiers
 
-> **Fichier maître du projet. Version Révisée, Épurée & Canonique : 28/09/2026**  
-> **Statut global :** Build 0 erreur / 0 warning · **821 tests .NET (815 réussis + 6 sur PostgreSQL réel en CI)** · **45/45 tests front Vitest (100%)** · TypeScript strict 0 erreur.  
-> 🚀 **Architecture WhatsApp Active :** Connecteur officiel **YCloud** (`YCloudOptions`, `YCloudWhatsAppSender`, `YCloudMediaDownloader`) sur le numéro officiel unique **`+225 07 87 11 95 20`** (Meta Tier-1 BSP).  
+> **Fichier maître du projet. Version Révisée, Épurée & Canonique : 30/09/2026**  
+> **Statut global :** Build 0 erreur / 0 warning · **833 tests .NET (827 réussis + 6 sur PostgreSQL réel en CI)** · **51/51 tests front Vitest (100%)** · TypeScript strict 0 erreur.  
+> 🚀 **Architecture WhatsApp Active :** Connecteur officiel **YCloud** (`YCloudOptions`, `YCloudWhatsAppSender`, `YCloudMediaDownloader`) sur le numéro officiel unique **`+225 05 44 05 19 72`** (Meta Tier-1 BSP).  
 > 
 > ### ⚠️ RÈGLES CANONIQUES INVIOLABLES & ÉLIMINATION DES OBSOLESCENCES
 > 1. **Fournisseur WhatsApp Unique :** **`YCloud`** est le SEUL fournisseur actif.  
@@ -3995,10 +3995,29 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
   - Bouton `💬 Accès WA` présent sur chaque ligne du tableau et dans le pied de la modale OCR pour envoyer les liens `wa.me` directs en 1 tap.
 
 ### 3. Validation & Déploiement en Production
-- **Tests .NET :** 830 tests passés (0 échec, 100% verts).
+- **Tests .NET :** 833 tests passés (0 échec, 100% verts).
 - **Tests Vitest :** 51 tests passés (0 échec, 100% verts).
 - **Build Web :** Bundle de production `index-BRgproOf.js` généré et synchronisé dans `wwwroot/app`.
 - **Déploiement GitHub Actions :** Validé avec succès.
 - **Vérification en Ligne :** Statut HTTP 200 `Healthy` confirmé sur `https://junioradon79gm-001-site1.jtempurl.com/health` et `index-BRgproOf.js` servi par `/app/index.html`.
+
+### 4. Résolution de l'Incident Mock OCR (« Livreur WAZAP ») & Moteur Permis Quipux / Ministère des Transports
+- **Diagnostic de l'Incident :**
+  - Lors du test réel avec le permis de conduire de M. **NIAGARE IBRAHIM**, l'interface affichait : *"Pièce d'identité reconnue avec succès ! Nom : Livreur WAZAP · N° : CNI-56402843"*.
+  - Cause identifiée : La méthode `FallbackParse` dans `GoogleVisionOcrService.cs` renvoyait des données fictives de mock dès que la clé API Google Vision (`GoogleVision:ApiKey` ou `GOOGLE_PLACES_API_KEY`) n'était pas configurée sur le serveur.
+- **Actions Correctives Réalisées :**
+  1. **Suppression définitive du mock trompeur :** Fini le faux *"Livreur WAZAP"* et *"CNI-..."*. Si aucune clé n'est configurée, l'OCR renvoie une notice explicite sans polluer les champs, permettant une saisie manuelle fluide ou une configuration de clé.
+  2. **Calibrage heuristique du Permis de Conduire Ivoirien :**
+     - Prise en charge des labels multi-lignes numérotés propres aux permis ivoiriens Quipux / Ministère des Transports :
+       - `1. Nom` $\rightarrow$ `NIAGARE`
+       - `2. Prénoms` $\rightarrow$ `IBRAHIM` $\rightarrow$ `FullName: "NIAGARE IBRAHIM"`
+       - `5. Numéro du permis de conduire` $\rightarrow$ `NIAG01-21-24209886I` (format 19 caractères avec tirets pris en compte à 100%).
+     - Fallback vers le numéro de sécurité à 8 chiffres (ex: `89673358`).
+  3. **Création d'une suite de tests dédiée (`GoogleVisionOcrServiceTests.cs`) :**
+     - 3 tests unitaires couvrant le permis réel d'Ibrahim Niagaré, les permis sur une seule ligne et les CNI biométriques ONECI.
+     - 100% de réussite (3/3 tests verts).
+  4. **Support étendu des clés d'API :**
+     - Recherche automatique dans `GoogleVision:ApiKey`, `GooglePlaces:ApiKey`, `GOOGLE_PLACES_API_KEY`, `Gemini:ApiKey`, `GEMINI_API_KEY` et variables d'environnement.
+
 
 
