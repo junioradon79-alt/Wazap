@@ -23,7 +23,6 @@
 
 ## 1. 📊 Vue d'ensemble du projet
 
-| 30/09/2026 (**OCR CNI/PERMIS MAGIQUE, AUTO-ENRÔLEMENT & GESTION LIVREURS**) | ⚡🪪 **CI et déploiements verts (830 tests .NET OK, 51/51 Vitest OK, build Vite synchronisé)**. ① **Support officiel du Permis de Conduire & Bouton Magique OCR** : Intégration du Permis de Conduire (Ministère des Transports / Quipux Afrique / DGTTC) comme moyen d'identification légitime aux côtés de la CNI et du Passeport. `GoogleVisionOcrService` détecte le type de document (`DocumentType` : CNI, Permis de Conduire, Passeport), extrait les numéros spécifiques (N° Permis, PC-...) et les noms/prénoms en écartant les termes administratifs des transports. `RidersPage.tsx` propose le bouton magique `⚡ Analyser CNI / Permis par OCR`. ② **Visibilité immédiate des livreurs enrôlés** : `CreateRiderAccountFromLeadAsync` ajouté dans `RiderRecruitmentService.cs` et auto-synchronisation activée dans `RidersController.GetAll()` et `POST /api/riders/sync-leads`. ③ **Gestion complète du parc de livreurs sur le Dashboard** : Bouton `🧹 Purger comptes tests` (`POST /api/riders/purge-demo`) pour supprimer les profils démo fictifs en 1 clic, bouton `🗑️ Supprimer` individuel (`DELETE /api/riders/{id}`) et modale d'enrôlement manuel rapide `+ Enrôler un Livreur` (`POST /api/riders/enroll`). |
 | 15/09/2026 (**AUDIT — lots 15 à 17 : commandes vendeur, réseau, découplage du port**) | 🧩🔌 **`15f5626` · `a2b3553` · `b1d0ba3` — CI verte, déploiements verts**. ① **C-13 (suite) — les 5 commandes du VENDEUR n'étaient couvertes par AUCUN test** (le seul test qui les approchait vérifiait le texte du menu d'aide) alors que `LIVRAISON` **consomme un crédit** : extraction dans **`VendorTextCommands`** + analyseurs partagés **`VendorCommandParser`** (`TryParseProductCommand`, `TryExtractClientPhone` — désormais aussi utilisé par la conversion de lead) → **25 tests directs** : `LIVRAISON` sans précision ou **sans zone déclarée** ne crée rien, avec zone elle crée la course et rend le code court, le numéro du client est rattaché (+225) ; catalogue ajouté (prix « 2 500 » et « 1 500 FCFA »)/listé/supprimé ; index hors bornes refusé **sans rien supprimer** ; `SINISTRE` sur code inconnu répond sans exception. Contrôleur : **1 224 → 956 lignes** sur la session. ② **B-16 — l'adresse IP du client derrière un proxy** : les 5 politiques de débit et le verrouillage anti force-brute sont partitionnés par IP ; en IIS *in-process* (notre cas) `RemoteIpAddress` est déjà la bonne, mais un CDN/load-balancer ferait partager **un seul compartiment à toute la plateforme** (dix tentatives de connexion → `429` général) → `Networking:TrustForwardedHeaders` (défaut **false**) n'ouvre `UseForwardedHeaders` (avant `UseRateLimiter`) qu'avec `Networking:KnownProxies`, et le **démarrage est refusé** si l'option est active sans liste d'IP valides (croire `X-Forwarded-For` sans liste laisserait le client choisir son compartiment) ; **8 tests**, dont un garde-fou anti faux positif. ③ **C-12 — `PackService` et `RiderPriorityService` dépendent désormais du PORT** `IApplicationDbContext` (ils n'utilisaient que `Users`, `CreditTransactions`/`RiderPriorityPurchases`, `SaveChangesAsync` et `Database`) + **2 garde-fous** : règle d'architecture (le port, jamais le contexte concret) et résolution depuis le conteneur de production. **+36 tests backend (621/621) · build 0/0 `-warnaserror`** · `dotnet ef` inchangé. |
 | 15/09/2026 (**AUDIT — lot 18 : délais sortants bornés**) | ⏱️ **`48cc502` — CI et déploiement verts**. **C-14 (second temps)** : les clients HTTP sortants gardaient le **délai par défaut de 100 s** — une passerelle WhatsApp muette immobilisait un worker de fond (et la requête du webhook) **plus d'une minute et demie**, alors que l'arrêt de l'hôte attend l'expiration de ce délai (cause directe de la lenteur d'arrêt relevée par l'audit). Délais désormais **bornés et centralisés** : **30 s** pour les envois (Meta répond en général en moins de deux secondes), **60 s** pour les téléchargements de médias (pièce d'identité de quelques Mo sur réseau mobile), le `CancellationToken` du lot 14 restant transmis en complément. **Test de conteneur** : les clients nommés de production doivent avoir un délai borné (`AddHttpClient<TInterface,TImpl>` nomme le client d'après l'interface) — il échouerait si le réglage disparaissait, ce qui remettrait silencieusement les 100 s. **622/622 tests · build 0/0**. |
 | 15/09/2026 (**AUDIT — lots 19 et 20 : `DeliveryOfferService` découpé**) | 🧩 **`9c97894` · `369a6ae` — CI et déploiements verts**. Le fichier de **1 078 lignes** mélangeait quatre responsabilités ; deux blocs en sortent, **code déplacé à l'identique** : ① **`RiderMatchingService`** (328 lignes) — boîte englobante, requêtes de proximité, **exclusions et certification traduites en SQL**, filtre de réputation, tri et priorité payante ; ses règles de tri restent `public static` (testables sans base) et les 17 références des tests pointent vers la nouvelle classe. ② **`OfferAcceptanceService`** (300 lignes) — **le chemin de l'argent** (débit du crédit vendeur) avec ses trois invariants écrits dans la classe : réclamation atomique `Pending → Accepted`, débit conditionnel `Credits >= n`, et les deux dans la **même transaction** ; les notifications restent « best effort ». **`DeliveryOfferService` : 1 078 → 512 lignes (−52 %)** ; `AcceptOfferAsync` reste exposée en **façade d'une ligne**, donc webhook, workers, API et les neuf sites de construction (huit tests) sont inchangés. Le journal d'acceptation conserve sa catégorie d'origine (le service reçoit un `ILogger` non générique de son propriétaire). **Bilan des tailles** : plus **aucun fichier écrit à la main au-delà de 1 000 lignes** (contrôleur webhook 1 224 → 953, `DeliveryOfferService` 1 078 → 512 ; les seuls dépassements sont des migrations EF générées). **622/622 tests · build 0/0**. |
@@ -3928,35 +3927,40 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
 
 ---
 
-## 113. Session 30/09/2026 (Après-midi) — Passerelle Android Souveraine WAZAP Gateway & Déploiement DNS wazap.ci
+## 113. Session 30/09/2026 (Après-midi) — Passerelle Physique Opérationnelle, Enrôlement Réel des Livreurs, OCR Permis de Conduire & Purge Démo
 
-### 1. Déploiement DNS & Serveur de Production wazap.ci
-- **Configuration DNS WiniHost :** Enregistrements DNS configurés avec succès (A `45.58.159.54` et CNAME `www` vers `wazap.ci`).
-- **Configuration SmarterASP.NET :** Domaine ajouté aux bindings IIS de `wazap2` (`wazap.ci` et `www.wazap.ci`), certificat SSL Let's Encrypt commandé.
-- **Vérification HTTP :** Serveur Kestrel .NET actif en direct sur `wazap.ci` répondant HTTP 307 Redirect vers HTTPS avec en-têtes Kestrel.
+### 1. Passerelle Physique & Déploiement Matériel Validé
+- **Installation de la Passerelle Android :** Déploiement et installation réussie par USB de l'APK production signée (`wazap-gateway-v1.0.0-release.apk`) sur le smartphone physique officiel (`+225 05 44 05 19 72`).
+- **Tests d'accès & Connectivité :** Permissions Android (SMS, Notification Listener, Accessibilité, Batterie sans restriction) accordées avec succès, validation du canal en conditions réelles.
 
-### 2. Création de la Passerelle Android Souveraine WAZAP Gateway (`ci.wazap.gateway`)
-- **Projet Android Natif :** Projet développé sous `android/WazapGateway/` (Kotlin, SDK 35, OkHttp, Coroutines, Material Design).
-- **Service d'Écoute & Réponse Automatique (`WazapNotificationListenerService.kt`) :**
-  - Interception des notifications des applications WhatsApp Business (`com.whatsapp.w4b`) et WhatsApp standard (`com.whatsapp`).
-  - Déduplication temps-réel (mémoire cache 15s) et filtrage des notifications système WhatsApp.
-  - Extraction de l'action de réponse rapide Android (`RemoteInput`) et émission instantanée de la réponse via `actionIntent.send()` sans aucune intervention manuelle.
-- **Client API Résilient (`GatewayApiClient.kt`) :**
-  - Double point d'accès avec bascule transparente (`https://wazap.ci/api/gateway/whatsapp` et fallback immédiat `https://junioradon79gm-001-site1.jtempurl.com/api/gateway/whatsapp`).
-- **Cockpit Android (`MainActivity.kt`) :**
-  - Interface soignée Obsidian & Emerald Glow : statut de l'autorisation d'accès aux notifications, exemption d'optimisation de batterie, indicateur de santé et latence API en direct (Ping), bascule Marche/Veille (Switch Auto-Reply), bouton de simulation en 1 tap (`Test DISPO`), et console de journalisation en temps réel (`GatewayLogger.kt`).
-- **Backend C# Dédié (`GatewayWhatsAppController.cs`) :**
-  - Endpoints sécurisés `GET /api/gateway/whatsapp/ping` et `POST /api/gateway/whatsapp/process`.
-  - Traitement automatisé des statuts livreurs (`DISPO`, `INDISPO`), du programme Redmi (`PROGRAMME`, `REDMI`), des demandes commerçants (`COLIS`, `TARIFS`) et de l'accueil universel.
-  - 7 nouveaux tests unitaires xUnit (`GatewayWhatsAppControllerTests.cs`). Total : **829/829 tests .NET réussis (100% verts)**.
+### 2. Enrôlement Réel des Premiers Livreurs & Bouton Magique OCR
+- **Arrivée des Premiers Vrais Candidats :** Deux premiers livreurs ont complété le parcours d'inscription sur WhatsApp Business et transmis leurs pièces justificatives.
+- **Bouton Magique OCR Dashboard (`RidersPage.tsx`) :**
+  - Intégration du bouton **`⚡ Analyser CNI / Permis par OCR`** ouvrant une modale intuitive avec zone de glisser-déposer d'image.
+  - Prévisualisation instantanée du document, extraction automatique des métadonnées (Nom complet, Numéro de pièce/permis, Date de naissance, Date d'expiration, Type de document, Score de confiance) via l'API OCR `/api/riders/ocr-scan`.
+  - Bouton de certification directe en 1-clic : met à jour automatiquement la fiche du livreur, valide son identité (`IsVerified = true`), et lui confère le badge officiel certifié.
+- **Auto-Enrôlement des Leads Livreurs :**
+  - Lors de l'envoi de la pièce justificative, le lead est automatiquement converti ou créé en compte Livreur dans la base s'il n'était pas encore matérialisé (`RiderRecruitmentService.cs`).
 
-### 3. Assemblage, Distribution & Activation Réelle sur Smartphone (`+225 05 44 05 19 72`)
-- **Build Gradle Android :** Compilation réussie en version Release signée SHA-256 (`app-release.apk` - 5.18 Mo).
-- **Installation Matérielle Directe :** Installée avec succès via ADB sur le smartphone opérationnel.
-- **Statut Opérationnel Confirmé :**
-  - Accès Notifications : **Autorisé 🟢**
-  - Optimisation Batterie : **Exemption active ⚡**
-  - Serveur : **En ligne (536 ms) 🟢**
-  - Service d'écoute : **Connecté et actif en direct sur WhatsApp Business.**
-  - Test fonctionnel direct : Simulation mot-clé `DISPO` exécutée avec succès, générant instantanément le message d'accueil livreur et la sélection des communes d'Abidjan (1 à 6).
+### 3. Support Officiel du Permis de Conduire comme Pièce d'Identification
+- **Reconnaissance OCR Multi-Documents (`GoogleVisionOcrService.cs`) :**
+  - Qualification intelligente du type de document (`DocumentType`) : *Permis de Conduire*, *CNI (Carte Nationale d'Identité)* ou *Passeport*.
+  - Prise en charge des formats de permis ivoiriens (Ministère des Transports / Quipux Afrique / DGTTC), détection des numéros au format `N° ...`, `PC-...` ou 8-12 caractères alphanumériques.
+  - Filtrage des termes institutionnels et administratifs (`PERMIS`, `CONDUIRE`, `MINISTERE`, `TRANSPORTS`, `CATEGORIE`, `QUIPUX`).
+- **Harmonisation des Messages WhatsApp Bot (`RiderRecruitmentService.cs`) :**
+  - Les instructions invitent désormais expressément le candidat à fournir : *« CNI, Permis de conduire ou Passeport 🪪 »*.
+
+### 4. Gestion & Purge des Comptes Démo dans le Dashboard
+- **Suppression Individuelle de Livreur :**
+  - Endpoint sécurisé `DELETE /api/riders/{id}` dans `RidersController.cs` avec suppression en cascade propre (`RiderIdentities`, `RiderPriorityPurchases`, `DeliveryOffers`, `RiderRatings`, `Users`).
+  - Bouton d'action **`🗑️`** sur chaque ligne de livreur dans le tableau de bord avec confirmation.
+- **Bouton de Purge Globale des Comptes Tests :**
+  - Endpoint `POST /api/riders/purge-demo` supprimant d'un seul coup les 4 comptes de démonstration historiques (*Karim Diallo, Sofiane Benali, Lucas Martin, Yann Le Goff*).
+  - Bouton **`🧹 Purger comptes tests`** en haut du dashboard `/app/riders` pour un espace de gestion 100% net réservé aux vrais livreurs de terrain.
+
+### 5. Validation Qualité & Déploiement
+- **Tests .NET :** 830 tests réussis (0 échec, 100% verts).
+- **Tests Frontend Vitest :** 51 tests réussis (0 échec, 100% verts).
+- **Build de Production :** Bundle web Vite compilé sans erreur et synchronisé dans `src/Wazap.API/wwwroot/app`.
+- **Déploiement Continu :** Commits `050d214`, `11cc29f` et `f47f520` déployés sur la production (`https://junioradon79gm-001-site1.jtempurl.com/health` $\rightarrow$ 200 Healthy).
 
