@@ -418,3 +418,66 @@ export interface WhatsAppCostSummaryDto {
   averageCostPerOrder: number
 }
 
+export interface RiderActiveOrder {
+  orderId: string
+  code: string
+  clientName: string | null
+  clientPhone: string | null
+  vendorName: string | null
+  vendorPhone: string | null
+  pickupAddress: string | null
+  deliveryAddress: string | null
+  amount: number
+  deliveryFee: number
+  totalAmount: number
+  status: string
+  assignedAt: string
+}
+
+export interface RiderRecentOrderItem {
+  id: string
+  code: string
+  clientName: string | null
+  deliveryAddress: string | null
+  deliveryFee: number
+  status: string
+  deliveredAt: string | null
+}
+
+export interface RiderProgramProgress {
+  deliveries: number
+  deliveriesTarget: number
+  validatedReferrals: number
+  referralsTarget: number
+  averageRating: number | null
+  certified: boolean
+  ratingMet: boolean
+  rewardLabel: string
+  conditionsMet: number
+  rewardUnlocked: boolean
+}
+
+export interface RiderDashboard {
+  id: string
+  username: string
+  fullName: string | null
+  phoneNumber: string | null
+  zone: string | null
+  isAvailable: boolean
+  isVerified: boolean
+  identityStatus: string
+  idNumber: string | null
+  documentType: string | null
+  deliveriesToday: number
+  deliveriesThisMonth: number
+  totalDeliveries: number
+  totalEarningsEstimated: number
+  ratingAverage: number | null
+  ratingCount: number
+  referralCode: string
+  validatedReferrals: number
+  programProgress: RiderProgramProgress | null
+  activeOrder: RiderActiveOrder | null
+  recentOrders: RiderRecentOrderItem[]
+}
+

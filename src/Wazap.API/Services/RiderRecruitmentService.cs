@@ -351,10 +351,13 @@ public sealed class RiderRecruitmentService
             await _context.SaveChangesAsync();
 
             var cniNotice = !string.IsNullOrWhiteSpace(detectedCni) ? $"\n🪪 {detectedDocType ?? "Pièce d'identité"} reconnue : {detectedCni}" : "";
+            var riderDashboardUrl = $"https://junioradon79gm-001-site1.jtempurl.com/app/login?u={Uri.EscapeDataString(username)}&p={Uri.EscapeDataString(tempPassword)}";
             var welcomeText = $"🎉 Félicitations {resolvedName} ! Ton profil livreur WAZAP est créé !{cniNotice}\n\n"
                 + $"📍 Commune active : {lead.Zone}\n"
                 + $"• Identifiant : {username}\n"
                 + $"• Mot de passe : {tempPassword}\n\n"
+                + "📊 Ton Cockpit Livreur en direct (1 clic sans rien taper) :\n"
+                + $"{riderDashboardUrl}\n\n"
                 + "🛡️ Pièce d'identité enregistrée en sécurité (Assurance Colis Sûr).\n\n"
                 + "👉 Pour commencer à recevoir les courses maintenant, clique sur le bouton ci-dessous :";
 

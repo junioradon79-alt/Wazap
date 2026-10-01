@@ -166,12 +166,15 @@ namespace Wazap.API.Services
             identity.Verify(fullName, idNumber, motorcycle, reviewerId);
             await _context.SaveChangesAsync();
 
+            var dashboardUrl = $"https://junioradon79gm-001-site1.jtempurl.com/app/login?u={Uri.EscapeDataString(rider.Username)}";
             await NotifyRiderAsync(rider,
                 "✅ Félicitations ! Votre pièce est vérifiée : vous êtes désormais Livreur certifié WAZAP 🛵💨\n\n" +
+                "📊 Touche ce lien pour ouvrir ton COCKPIT LIVREUR (courses, gains nets et challenge smartphone) :\n" +
+                $"{dashboardUrl}\n\n" +
                 "👉 Touche ce lien pour te mettre EN LIGNE (0 frappe au clavier) :\n" +
                 "https://wa.me/2250544051972?text=DISPO\n\n" +
-                "📊 Touche ce lien pour voir ton TABLEAU DE BORD et tes gains :\n" +
-                "https://wa.me/2250544051972?text=DASHBOARD");
+                "⚪ Touche ce lien pour te mettre en pause :\n" +
+                "https://wa.me/2250544051972?text=INDISPO");
         }
 
         /// <summary>Refuse la certification (dossier incomplet, incohérences…).</summary>

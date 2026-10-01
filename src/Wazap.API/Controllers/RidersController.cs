@@ -75,6 +75,121 @@ public class RidersController : ControllerBase
         return Ok(await _riderService.GetRidersAsync());
     }
 
+    // GET: api/riders/dashboard — espace livreur connecté (statut, zone, courses, gains, progression)
+    [HttpGet("dashboard")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Rider,Admin")]
+    public async Task<IActionResult> GetDashboard([FromQuery] Guid? riderUserId)
+    {
+        var riderId = ResolveRiderId(riderUserId);
+        var rider = await _context.Users.AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == riderId && u.Role == UserRole.Rider);
+
+        if (rider is null)
+            return NotFound(new { error = "Profil livreur introuvable." });
+
+        var identity = await _context.RiderIdentities.AsNoTracking()
+            .FirstOrDefaultAsync(i => i.UserId == riderId);
+
+        var now = DateTime.UtcNow;
+        var todayStart = now.Date;
+        var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        var orders = await _context.Orders.AsNoTracking()
+            .Where(o => o.RiderUserId == riderId)
+            .OrderByDescending(o => o.CreatedAt)
+            .ToListAsync();
+
+        var deliveriesToday = orders.Count(o => o.Status == OrderStatus.Delivered && o.DeliveredAt >= todayStart);
+        var deliveriesThisMonth = orders.Count(o => o.Status == OrderStatus.Delivered && o.DeliveredAt >= monthStart);
+        var totalDeliveries = orders.Count(o => o.Status == OrderStatus.Delivered);
+        var totalEarnings = orders.Where(o => o.Status == OrderStatus.Delivered).Sum(o => o.DeliveryFee);
+
+        var ratings = await _context.RiderRatings.AsNoTracking()
+            .Where(r => r.RiderUserId == riderId)
+            .ToListAsync();
+        var avgRating = ratings.Count > 0 ? Math.Round(ratings.Average(r => r.Score), 1) : (double?)null;
+
+        var activeOrderEntity = orders.FirstOrDefault(o => o.Status == OrderStatus.RiderAssigned || o.Status == OrderStatus.InTransit);
+        RiderActiveOrderDto? activeOrder = null;
+        if (activeOrderEntity is not null)
+        {
+            var vendor = activeOrderEntity.VendorUserId.HasValue
+                ? await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == activeOrderEntity.VendorUserId.Value)
+                : null;
+
+            activeOrder = new RiderActiveOrderDto(
+                OrderId: activeOrderEntity.Id,
+                Code: activeOrderEntity.Id.ToString()[..8].ToUpperInvariant(),
+                ClientName: activeOrderEntity.ClientName,
+                ClientPhone: activeOrderEntity.ClientWhatsAppNumber,
+                VendorName: vendor?.Username ?? "Commerçant WAZAP",
+                VendorPhone: vendor?.PhoneNumber,
+                PickupAddress: vendor?.Zone ?? "Point de retrait",
+                DeliveryAddress: activeOrderEntity.ClientAddress ?? "Adresse de livraison",
+                Amount: activeOrderEntity.Amount,
+                DeliveryFee: activeOrderEntity.DeliveryFee,
+                TotalAmount: activeOrderEntity.TotalAmount,
+                Status: activeOrderEntity.Status.ToString(),
+                AssignedAt: activeOrderEntity.RiderAssignedAt ?? activeOrderEntity.CreatedAt
+            );
+        }
+
+        var program = await _riderProgram.BuildProgressAsync(riderId);
+        var programDto = program is null ? null : new RiderProgramProgressDto(
+            Deliveries: program.Deliveries,
+            DeliveriesTarget: program.DeliveriesTarget,
+            ValidatedReferrals: program.ValidatedReferrals,
+            ReferralsTarget: program.ReferralsTarget,
+            AverageRating: program.AverageRating,
+            Certified: program.Certified,
+            RatingMet: program.RatingMet,
+            RewardLabel: program.RewardLabel,
+            ConditionsMet: program.ConditionsMet,
+            RewardUnlocked: program.RewardUnlocked
+        );
+
+        var recentOrders = orders
+            .Take(10)
+            .Select(o => new RiderRecentOrderItem(
+                Id: o.Id,
+                Code: o.Id.ToString()[..8].ToUpperInvariant(),
+                ClientName: o.ClientName,
+                DeliveryAddress: o.ClientAddress ?? "Non renseignée",
+                DeliveryFee: o.DeliveryFee,
+                Status: o.Status.ToString(),
+                DeliveredAt: o.DeliveredAt
+            ))
+            .ToList();
+
+        var referralsCount = await _context.Users.CountAsync(u => u.ReferredByUserId == riderId);
+
+        var dto = new RiderDashboardDto(
+            Id: rider.Id,
+            Username: rider.Username,
+            FullName: identity?.FullName ?? rider.Username,
+            PhoneNumber: rider.PhoneNumber,
+            Zone: rider.Zone,
+            IsAvailable: rider.IsAvailable,
+            IsVerified: identity?.Status == RiderIdentityStatus.Verified,
+            IdentityStatus: identity?.Status.ToString() ?? "Unverified",
+            IdNumber: identity?.IdNumber,
+            DocumentType: "CNI / Permis",
+            DeliveriesToday: deliveriesToday,
+            DeliveriesThisMonth: deliveriesThisMonth,
+            TotalDeliveries: totalDeliveries,
+            TotalEarningsEstimated: totalEarnings,
+            RatingAverage: avgRating,
+            RatingCount: ratings.Count,
+            ReferralCode: rider.ReferralCode ?? "WA-XXXX",
+            ValidatedReferrals: referralsCount,
+            ProgramProgress: programDto,
+            ActiveOrder: activeOrder,
+            RecentOrders: recentOrders
+        );
+
+        return Ok(dto);
+    }
+
     // POST: api/riders/location — le livreur (via son token) partage sa position ;
     // l'admin peut cibler un livreur via riderUserId.
     [HttpPost("location")]

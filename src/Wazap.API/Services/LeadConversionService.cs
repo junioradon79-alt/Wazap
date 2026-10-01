@@ -116,7 +116,7 @@ public sealed class LeadConversionService
         await _context.SaveChangesAsync(ct);
 
         if (sendWelcome)
-            await SendWelcomeAsync(lead, user, trialCredits);
+            await SendWelcomeAsync(lead, user, trialCredits, tempPassword);
 
         if (sponsor is not null)
         {
@@ -158,13 +158,21 @@ public sealed class LeadConversionService
         return username;
     }
 
-    private async Task SendWelcomeAsync(Lead lead, User user, int trialCredits)
+    private async Task SendWelcomeAsync(Lead lead, User user, int trialCredits, string? tempPassword = null)
     {
         var name = string.IsNullOrWhiteSpace(lead.ContactName) ? lead.BusinessName : lead.ContactName;
-        var msg = $"Félicitations {name} ! 🎉 Votre compte vendeur WAZAP est actif.\n"
+        var dashboardUrl = string.IsNullOrWhiteSpace(tempPassword)
+            ? $"https://junioradon79gm-001-site1.jtempurl.com/app/login?u={Uri.EscapeDataString(user.Username)}"
+            : $"https://junioradon79gm-001-site1.jtempurl.com/app/login?u={Uri.EscapeDataString(user.Username)}&p={Uri.EscapeDataString(tempPassword)}";
+
+        var msg = $"Félicitations {name} ! 🎉 Votre compte commerçant WAZAP est actif.\n\n"
+            + $"• Identifiant : {user.Username}\n"
+            + (tempPassword != null ? $"• Mot de passe : {tempPassword}\n" : "")
             + $"• Code parrainage : {user.ReferralCode}\n"
-            + (trialCredits > 0 ? $"• {trialCredits} crédits offerts pour démarrer (15 premières commandes)\n" : "")
-            + "Pour lancer votre 1re commande test, envoyez : LIVRAISON + votre produit + quartier\n"
+            + (trialCredits > 0 ? $"• {trialCredits} crédits offerts pour démarrer (15 premières commandes)\n\n" : "\n")
+            + "📊 Accédez directement à votre Tableau de Bord Marchand (1 clic sans mot de passe à taper) :\n"
+            + $"{dashboardUrl}\n\n"
+            + "👉 Pour lancer votre 1re commande test par WhatsApp, envoyez : LIVRAISON + votre produit + quartier\n"
             + "Ex. « LIVRAISON 2 poulets braisés à Marcory, rue Princesse » 🛵";
 
         try

@@ -23,11 +23,12 @@ function formatPhoneForWaMe(phone?: string | null): string {
 function buildWhatsAppAccessLink(rider: UserSummary, cert?: RiderCertification): string {
   const cleanPhone = formatPhoneForWaMe(rider.phoneNumber)
   const name = cert?.fullName || rider.username || 'champion'
+  const dashboardWebUrl = `https://junioradon79gm-001-site1.jtempurl.com/app/login?u=${encodeURIComponent(rider.username)}`
   const msg = `Salut ${name} ! Bienvenue sur WAZAP 🛵💨\n\n` +
+    `📊 Touche ce lien pour ouvrir ton COCKPIT LIVREUR (courses, gains nets, challenge smartphone) :\n` +
+    `${dashboardWebUrl}\n\n` +
     `👉 Touche ce lien pour te mettre EN LIGNE (DISPO) :\n` +
     `https://wa.me/2250544051972?text=DISPO\n\n` +
-    `📊 Touche ce lien pour voir ton TABLEAU DE BORD et tes gains :\n` +
-    `https://wa.me/2250544051972?text=DASHBOARD\n\n` +
     `⚪ Touche ce lien pour te mettre EN PAUSE (INDISPO) :\n` +
     `https://wa.me/2250544051972?text=INDISPO`
   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`

@@ -34,9 +34,22 @@ export default function Layout() {
         </div>
 
         <nav className="sidebar__nav">
-          <span className="nav__section">{user?.role === 'Vendor' ? 'Mon activité' : 'Pilotage'}</span>
+          <span className="nav__section">
+            {user?.role === 'Vendor' ? 'Mon activité' : user?.role === 'Rider' ? 'Espace Livreur' : 'Pilotage'}
+          </span>
           {user?.role === 'Vendor'
             ? NAV.filter((item) => item.to === '/' || item.to === '/account' || item.to === '/catalogue').map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  className={({ isActive }) => `nav__item${isActive ? ' active' : ''}`}
+                >
+                  <span className="nav__icon">{item.icon}</span> {item.label}
+                </NavLink>
+              ))
+            : user?.role === 'Rider'
+            ? NAV.filter((item) => item.to === '/' || item.to === '/account').map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
@@ -75,8 +88,20 @@ export default function Layout() {
       <main className="main">
         <header className="topbar">
           <div>
-            <h1 className="topbar__title">Administration WAZAP</h1>
-            <p className="topbar__subtitle">Plateforme de livraison &amp; packs prépayés</p>
+            <h1 className="topbar__title">
+              {user?.role === 'Rider'
+                ? 'Espace Livreur WAZAP'
+                : user?.role === 'Vendor'
+                ? 'Espace Marchand WAZAP'
+                : 'Administration WAZAP'}
+            </h1>
+            <p className="topbar__subtitle">
+              {user?.role === 'Rider'
+                ? 'Cockpit coursier · 0% commission · Grand Abidjan'
+                : user?.role === 'Vendor'
+                ? 'Gestion des expéditions & packs prépayés'
+                : 'Plateforme de livraison & packs prépayés'}
+            </p>
           </div>
           <div className="topbar__actions">
             <span className="topbar__live"><span className="topbar__dot" /> Live</span>

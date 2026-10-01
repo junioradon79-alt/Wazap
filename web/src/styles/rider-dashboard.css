@@ -1,0 +1,361 @@
+/* ============================================================
+   WAZAP — Rider Dashboard Premium CSS
+   Thème : Obsidian profond + Émeraude vif + Néon Livreur
+   ============================================================ */
+
+:root {
+  --rd-bg: #0b0f14;
+  --rd-surface: #121820;
+  --rd-surface-2: #19222c;
+  --rd-border: rgba(255, 255, 255, 0.08);
+  --rd-border-em: rgba(0, 214, 108, 0.3);
+  --rd-emerald: #00d66c;
+  --rd-emerald-glow: rgba(0, 214, 108, 0.15);
+  --rd-emerald-bright: #10b981;
+  --rd-amber: #f59e0b;
+  --rd-amber-glow: rgba(245, 158, 11, 0.15);
+  --rd-blue: #38bdf8;
+  --rd-blue-glow: rgba(56, 189, 248, 0.15);
+  --rd-text: #f1f5f9;
+  --rd-text-muted: #94a3b8;
+  --rd-radius: 16px;
+  --rd-radius-sm: 10px;
+}
+
+.rd-page {
+  background: var(--rd-bg);
+  min-height: 100vh;
+  color: var(--rd-text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  padding-bottom: 60px;
+}
+
+.rd-header {
+  background: linear-gradient(135deg, #0e151d 0%, #081a17 100%);
+  border-bottom: 1px solid var(--rd-border-em);
+  padding: 24px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.rd-header__left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.rd-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid var(--rd-emerald);
+  object-fit: cover;
+  box-shadow: 0 0 16px var(--rd-emerald-glow);
+}
+
+.rd-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rd-subtitle {
+  font-size: 13px;
+  color: var(--rd-text-muted);
+  margin: 4px 0 0;
+}
+
+.rd-badge-certified {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 214, 108, 0.15);
+  color: #00d66c;
+  border: 1px solid rgba(0, 214, 108, 0.4);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rd-badge-pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rd-dispo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.rd-dispo-btn--online {
+  background: #00d66c;
+  color: #000;
+  box-shadow: 0 0 20px rgba(0, 214, 108, 0.4);
+}
+
+.rd-dispo-btn--online:hover {
+  background: #10b981;
+}
+
+.rd-dispo-btn--offline {
+  background: #334155;
+  color: #f1f5f9;
+}
+
+.rd-dispo-btn--offline:hover {
+  background: #475569;
+}
+
+.rd-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Zone switcher */
+.rd-zone-bar {
+  background: var(--rd-surface);
+  border: 1px solid var(--rd-border);
+  border-radius: var(--rd-radius);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.rd-zone-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rd-pill {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--rd-surface-2);
+  color: var(--rd-text-muted);
+  border: 1px solid var(--rd-border);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.rd-pill:hover {
+  color: var(--rd-text);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.rd-pill--active {
+  background: rgba(0, 214, 108, 0.2);
+  color: #00d66c;
+  border-color: #00d66c;
+}
+
+/* Stats grid */
+.rd-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.rd-stat-card {
+  background: var(--rd-surface);
+  border: 1px solid var(--rd-border);
+  border-radius: var(--rd-radius);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.rd-stat-card__icon {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+.rd-stat-card__label {
+  font-size: 12px;
+  color: var(--rd-text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.rd-stat-card__val {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--rd-text);
+}
+
+.rd-stat-card__desc {
+  font-size: 12px;
+  color: #00d66c;
+}
+
+/* Active delivery */
+.rd-active-order {
+  background: linear-gradient(145deg, #101923 0%, #0d261e 100%);
+  border: 2px solid #00d66c;
+  border-radius: var(--rd-radius);
+  padding: 24px;
+  box-shadow: 0 0 30px rgba(0, 214, 108, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.rd-active-order__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 14px;
+}
+
+.rd-active-order__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.rd-active-box {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--rd-radius-sm);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rd-active-box__title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rd-active-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.rd-btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.rd-btn-wa {
+  background: #25d366;
+  color: #000;
+}
+
+.rd-btn-maps {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.rd-btn-call {
+  background: #334155;
+  color: #fff;
+}
+
+/* Ambassador banner */
+.rd-ambassador-card {
+  background: linear-gradient(135deg, #1e1b4b 0%, #172554 100%);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  border-radius: var(--rd-radius);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rd-progress-bar {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  height: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.rd-progress-fill {
+  background: linear-gradient(90deg, #8b5cf6, #38bdf8);
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+/* Orders table */
+.rd-table-card {
+  background: var(--rd-surface);
+  border: 1px solid var(--rd-border);
+  border-radius: var(--rd-radius);
+  padding: 20px;
+  overflow-x: auto;
+}
+
+.rd-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.rd-table th {
+  text-align: left;
+  padding: 12px 14px;
+  color: var(--rd-text-muted);
+  border-bottom: 1px solid var(--rd-border);
+  font-weight: 600;
+}
+
+.rd-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}

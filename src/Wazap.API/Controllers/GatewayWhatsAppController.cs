@@ -296,9 +296,12 @@ public class GatewayWhatsAppController : ControllerBase
         }
 
         var idNotice = !string.IsNullOrWhiteSpace(extractedIdNumber) ? $" (N° {extractedIdNumber})" : "";
+        var riderDashboardUrl = $"https://junioradon79gm-001-site1.jtempurl.com/app/login?u={Uri.EscapeDataString(rider.Username)}";
         var replyText = $"🎉 Félicitations {finalVerifiedName} !\n\n"
             + $"✅ Votre {docType}{idNotice} a été analysée et validée avec succès par notre système 🪪⚡\n\n"
             + "🛡️ Vous avez désormais le statut officiel de LIVREUR CERTIFIÉ WAZAP (Assurance Colis Sûr activée) !\n\n"
+            + "📊 Touchez ce lien pour ouvrir votre Cockpit Livreur (courses, gains nets et challenge smartphone) :\n"
+            + $"👉 {riderDashboardUrl}\n\n"
             + "🛵 Pour vous mettre en ligne et recevoir vos premières courses immédiatement, cliquez ci-dessous :\n"
             + "👉 https://wa.me/2250544051972?text=DISPO";
 

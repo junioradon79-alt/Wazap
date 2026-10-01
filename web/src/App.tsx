@@ -9,6 +9,7 @@ import { useAuth } from './auth/AuthContext'
 const LoginPage = lazy(() => import('./pages/LoginPage'))
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 const VendorDashboardPage = lazy(() => import('./pages/VendorDashboardPage'))
+const RiderDashboardPage = lazy(() => import('./pages/RiderDashboardPage'))
 const PacksPage = lazy(() => import('./pages/PacksPage'))
 const TransactionsPage = lazy(() => import('./pages/TransactionsPage'))
 const VendorsPage = lazy(() => import('./pages/VendorsPage'))
@@ -38,17 +39,14 @@ function Protected({ children }: { children: ReactNode }) {
   if (loading) return <div className="loading"><span className="loading__spinner" /> Chargement…</div>
   if (!user) return <Navigate to="/login" replace />
 
-  // L'espace d'administration n'est ouvert qu'aux rôles Admin et Vendor. Un compte Livreur ou
-  // Client qui atteignait /app voyait la coquille d'administration et une succession de 403
-  // sans explication : on affiche désormais une porte fermée explicite (le serveur applique
-  // déjà ses propres contrôles — c'est une défense en profondeur, pas une autorisation).
-  if (user.role !== 'Admin' && user.role !== 'Vendor') {
+  // L'espace connecté est ouvert aux rôles Admin, Vendor et Rider.
+  if (user.role !== 'Admin' && user.role !== 'Vendor' && user.role !== 'Rider') {
     return (
       <div className="app-shell" style={{ display: 'block', padding: '2rem' }}>
         <div className="card" style={{ maxWidth: 560, margin: '4rem auto' }}>
           <h1 className="topbar__title">Espace réservé</h1>
           <p className="topbar__subtitle">
-            Cet espace est réservé aux vendeurs et aux administrateurs WAZAP. Votre compte
+            Cet espace est réservé aux commerçants, livreurs et administrateurs WAZAP. Votre compte
             « {user.role} » s’utilise directement sur WhatsApp.
           </p>
           <button className="btn btn--primary" style={{ marginTop: 12 }} onClick={logout}>
@@ -82,7 +80,7 @@ export default function App() {
           element={user ? <Navigate to="/" replace /> : <LoginPage />}
         />
 
-        {/* Espace connecté (Admin & Marchand) */}
+        {/* Espace connecté (Admin, Marchand & Livreur) */}
         <Route
           element={
             <Protected>
@@ -93,9 +91,19 @@ export default function App() {
           {user && (
             <Route
               path="/"
-              element={user.role === 'Vendor' ? <VendorDashboardPage /> : <DashboardPage />}
+              element={
+                user.role === 'Vendor' ? (
+                  <VendorDashboardPage />
+                ) : user.role === 'Rider' ? (
+                  <RiderDashboardPage />
+                ) : (
+                  <DashboardPage />
+                )
+              }
             />
           )}
+          <Route path="/vendor/dashboard" element={<VendorDashboardPage />} />
+          <Route path="/rider/dashboard" element={<RiderDashboardPage />} />
           <Route path="/packs" element={<PacksPage />} />
           <Route path="/transactions" element={<TransactionsPage />} />
           <Route path="/vendors" element={<VendorsPage />} />

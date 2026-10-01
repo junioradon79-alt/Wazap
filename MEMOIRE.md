@@ -1,7 +1,7 @@
 # 🧠 MÉMOIRE UNIQUE WAZAP — État d'avancement des chantiers
 
-> **Fichier maître du projet. Version Révisée, Épurée & Canonique : 01/10/2026**  
-> **Statut global :** Build 0 erreur / 0 warning · **844 tests .NET (838 réussis + 6 sur PostgreSQL réel en CI)** · **51/51 tests front Vitest (100%)** · TypeScript strict 0 erreur.  
+> **Fichier maître du projet. Version Révisée, Épurée & Canonique : 30/09/2026**  
+> **Statut global :** Build 0 erreur / 0 warning · **846 tests .NET (840 réussis + 6 sur PostgreSQL réel en CI)** · **57/57 tests front Vitest (100%)** · TypeScript strict 0 erreur.  
 > 🚀 **Architecture WhatsApp Active :** Connecteur officiel **YCloud** (`YCloudOptions`, `YCloudWhatsAppSender`, `YCloudMediaDownloader`) sur le numéro officiel unique **`+225 05 44 05 19 72`** (Meta Tier-1 BSP).  
 > 
 > ### ⚠️ RÈGLES CANONIQUES INVIOLABLES & ÉLIMINATION DES OBSOLESCENCES
@@ -23,7 +23,6 @@
 
 ## 1. 📊 Vue d'ensemble du projet
 
-| 01/10/2026 (**ALIGNEMENT CANONIQUE 1-TAP ZÉRO SAISIE TEXTE — RÈGLE 10 & 8**) | ⚡📲 **Enrôlement 1-Tap Livreurs 100% automatisé & Zéro Frappe Clavier.** ① **Liens bleus directs `wa.me`** : accueil livreur sur `DISPO` avec 5 raccourcis 1-clic pré-remplis (`1 Cocody`, `2 Yopougon`, `3 Zone Sud`, `4 Abobo`, `5 Plateau`). ② **Zéro frappe clavier** : le candidat n'a pas à taper son nom au clavier ; dès le choix de zone envoyé via le lien cliquable, le compte/lead est activé à la commune et la photo de la pièce d'identité est demandée directement. ③ **Extraction automatique OCR** : `GoogleVisionOcrService` extrait automatiquement le nom complet et le numéro de document depuis la photo de CNI / Permis. ④ **Résilience Passerelle Android Gateway** : ajout d'une boucle de temporisation (retry 600ms + 1000ms) pour garantir la synchronisation disque des photos WhatsApp Business (`WhatsApp Business Images` et `WhatsApp Business Documents`) avant soumission OCR. ⑤ **Test unitaire dédié** : `Candidate_1TapFlow_DispoThenClickLink_CreatesRiderAccountAndPromptsPhotoZeroText` (838 tests réussis, 0 échec). |
 | 15/09/2026 (**AUDIT — lots 15 à 17 : commandes vendeur, réseau, découplage du port**) | 🧩🔌 **`15f5626` · `a2b3553` · `b1d0ba3` — CI verte, déploiements verts**. ① **C-13 (suite) — les 5 commandes du VENDEUR n'étaient couvertes par AUCUN test** (le seul test qui les approchait vérifiait le texte du menu d'aide) alors que `LIVRAISON` **consomme un crédit** : extraction dans **`VendorTextCommands`** + analyseurs partagés **`VendorCommandParser`** (`TryParseProductCommand`, `TryExtractClientPhone` — désormais aussi utilisé par la conversion de lead) → **25 tests directs** : `LIVRAISON` sans précision ou **sans zone déclarée** ne crée rien, avec zone elle crée la course et rend le code court, le numéro du client est rattaché (+225) ; catalogue ajouté (prix « 2 500 » et « 1 500 FCFA »)/listé/supprimé ; index hors bornes refusé **sans rien supprimer** ; `SINISTRE` sur code inconnu répond sans exception. Contrôleur : **1 224 → 956 lignes** sur la session. ② **B-16 — l'adresse IP du client derrière un proxy** : les 5 politiques de débit et le verrouillage anti force-brute sont partitionnés par IP ; en IIS *in-process* (notre cas) `RemoteIpAddress` est déjà la bonne, mais un CDN/load-balancer ferait partager **un seul compartiment à toute la plateforme** (dix tentatives de connexion → `429` général) → `Networking:TrustForwardedHeaders` (défaut **false**) n'ouvre `UseForwardedHeaders` (avant `UseRateLimiter`) qu'avec `Networking:KnownProxies`, et le **démarrage est refusé** si l'option est active sans liste d'IP valides (croire `X-Forwarded-For` sans liste laisserait le client choisir son compartiment) ; **8 tests**, dont un garde-fou anti faux positif. ③ **C-12 — `PackService` et `RiderPriorityService` dépendent désormais du PORT** `IApplicationDbContext` (ils n'utilisaient que `Users`, `CreditTransactions`/`RiderPriorityPurchases`, `SaveChangesAsync` et `Database`) + **2 garde-fous** : règle d'architecture (le port, jamais le contexte concret) et résolution depuis le conteneur de production. **+36 tests backend (621/621) · build 0/0 `-warnaserror`** · `dotnet ef` inchangé. |
 | 15/09/2026 (**AUDIT — lot 18 : délais sortants bornés**) | ⏱️ **`48cc502` — CI et déploiement verts**. **C-14 (second temps)** : les clients HTTP sortants gardaient le **délai par défaut de 100 s** — une passerelle WhatsApp muette immobilisait un worker de fond (et la requête du webhook) **plus d'une minute et demie**, alors que l'arrêt de l'hôte attend l'expiration de ce délai (cause directe de la lenteur d'arrêt relevée par l'audit). Délais désormais **bornés et centralisés** : **30 s** pour les envois (Meta répond en général en moins de deux secondes), **60 s** pour les téléchargements de médias (pièce d'identité de quelques Mo sur réseau mobile), le `CancellationToken` du lot 14 restant transmis en complément. **Test de conteneur** : les clients nommés de production doivent avoir un délai borné (`AddHttpClient<TInterface,TImpl>` nomme le client d'après l'interface) — il échouerait si le réglage disparaissait, ce qui remettrait silencieusement les 100 s. **622/622 tests · build 0/0**. |
 | 15/09/2026 (**AUDIT — lots 19 et 20 : `DeliveryOfferService` découpé**) | 🧩 **`9c97894` · `369a6ae` — CI et déploiements verts**. Le fichier de **1 078 lignes** mélangeait quatre responsabilités ; deux blocs en sortent, **code déplacé à l'identique** : ① **`RiderMatchingService`** (328 lignes) — boîte englobante, requêtes de proximité, **exclusions et certification traduites en SQL**, filtre de réputation, tri et priorité payante ; ses règles de tri restent `public static` (testables sans base) et les 17 références des tests pointent vers la nouvelle classe. ② **`OfferAcceptanceService`** (300 lignes) — **le chemin de l'argent** (débit du crédit vendeur) avec ses trois invariants écrits dans la classe : réclamation atomique `Pending → Accepted`, débit conditionnel `Credits >= n`, et les deux dans la **même transaction** ; les notifications restent « best effort ». **`DeliveryOfferService` : 1 078 → 512 lignes (−52 %)** ; `AcceptOfferAsync` reste exposée en **façade d'une ligne**, donc webhook, workers, API et les neuf sites de construction (huit tests) sont inchangés. Le journal d'acceptation conserve sa catégorie d'origine (le service reçoit un `ILogger` non générique de son propriétaire). **Bilan des tailles** : plus **aucun fichier écrit à la main au-delà de 1 000 lignes** (contrôleur webhook 1 224 → 953, `DeliveryOfferService` 1 078 → 512 ; les seuls dépassements sont des migrations EF générées). **622/622 tests · build 0/0**. |
@@ -4053,31 +4052,39 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
 
 ---
 
-## 116. Session 01/10/2026 (Après-Midi) — Automatisation Totale du Recrutement Livreur WhatsApp & Passerelle Android
+## 116. Session 01/10/2026 (Après-midi) — Espace Livreur Connecté (`RiderDashboardPage`), Authentification 1-Clic Sans Saisie & Liens Directs Vendeurs & Livreurs
 
-### 1. Diagnostic de l'Incident Signalé par l'Utilisateur
-- **Symptôme :** Lors de l'envoi de `DISPO` par un candidat sur WhatsApp Business (+225 05 44 05 19 72), aucune réponse automatique n'était émise et les photos n'étaient pas ingérées, forçant l'opérateur à enrôler manuellement les livreurs sur le dashboard web.
-- **Causes racines identifiées :**
-  1. **Blocage d'adresse réseau :** Dans `GatewayApiClient.kt`, `PRIMARY_BASE_URL` pointait sur `https://wazap.ci`, temporairement inaccessible à cause du délai DNS WiniHost, bloquant les requêtes en timeout.
-  2. **Extraction de numéro défaillante :** Dans `WazapNotificationListenerService.kt`, `title` était envoyé comme `sender`. Lorsque le contact était enregistré ou avait un pseudo WhatsApp sans chiffres (ex : « Ibrahim »), le backend recevait 0 chiffre et ignorait silencieusement le message (`category: "ignored"`).
-  3. **Absence de traitement automatique des photos :** Les notifications WhatsApp indiquent `📷 Photo` sans inclure les octets. Le backend renvoyait alors le message d'accueil universel au lieu d'ingérer l'image, empêchant l'OCR automatique.
+### 1. Contexte & Demande Utilisateur
+- **Demande :** Dès que les profils sont vérifiés (vendeurs convertis ou livreurs certifiés), ils doivent recevoir automatiquement un lien direct pour accéder à leur dashboard spécifique, avec respect absolu de la règle n°10 (Zéro Saisie Texte / 1-Tap Absolu).
 
-### 2. Implémentations Réalisées
-- **A. Passerelle Android Réactive & Résiliente (`android/WazapGateway`) :**
-  - **URL Principale :** `PRIMARY_BASE_URL` basculée sur `https://junioradon79gm-001-site1.jtempurl.com/api/gateway/whatsapp` (réponse < 300 ms) avec repli transparent sur `wazap.ci`.
-  - **Extraction Robuste du Numéro E.164 :** Inspection prioritaire de `notification.shortcutId` (JID WhatsApp `225XXXXXXXX@s.whatsapp.net`), `sbn.tag`, `MessagingStyle` (`person.key`/`person.uri`) et Regex sur le titre.
-  - **Filtrage des Groupes :** Rejet systématique des messages de groupes (`@g.us`) pour éviter tout spam.
-  - **Détection & Téléversement des Photos :** Recherche automatique du dernier fichier image reçu dans `/storage/emulated/0/Android/media/com.whatsapp.w4b/WhatsApp Business/Media/WhatsApp Business Images/` (dans les 3 dernières minutes) et envoi multipart vers le nouvel endpoint `POST /upload-photo`.
-  - **Maintien en Vie & Permissions :** Notification de premier plan persistante (`wazap_gateway_service_channel`) pour empêcher l'arrêt par le gestionnaire de batterie Android, et ajout des permissions `READ_MEDIA_IMAGES` / `READ_EXTERNAL_STORAGE`.
-- **B. Backend & Endpoint OCR Passerelle (`GatewayWhatsAppController.cs`) :**
-  - Nouvel endpoint `POST /api/gateway/whatsapp/upload-photo` : reçoit l'image et le numéro, exécute l'OCR Google Vision, stocke le scan chiffré via `StoreScanAsync`, certifie le livreur (`VerifyRiderAsync`), convertit le lead et retourne instantanément le message de félicitations avec les liens 1-clic `DISPO`.
-  - Message de repli dédié en cas de notification texte photo (`photo_acknowledgement`).
-  - Personnalisation automatique du nom du candidat via `senderName` dans `RiderRecruitmentService.cs`.
-- **C. Génération de l'APK Signée & Prête à l'Emploi :**
-  - Compilation Gradle validée (`assembleDebug`) $\rightarrow$ APK signée prête pour installation directe (7,5 Mo) copiée dans `src/Wazap.API/wwwroot/downloads/wazap-gateway.apk`.
+### 2. Réalisations Techniques Complètes
+- **A. Espace Livreur Connecté & Mobile-First (`RiderDashboardPage.tsx` + `rider-dashboard.css`) :**
+  - Nouveau cockpit dédié aux livreurs WAZAP avec thème Obsidian & Emerald Glow.
+  - En-tête : Nom complet, badge `🛡️ CERTIFIÉ WAZAP` (Assurance Colis Sûr) ou `⏳ EN ATTENTE DE CONTRÔLE`.
+  - Bouton 1-Tap de bascule de disponibilité (`🟢 EN LIGNE (DISPO)` $\leftrightarrow$ `⚪ EN PAUSE (INDISPO)`) branché sur `PUT /api/riders/{id}/availability`.
+  - Sélecteur rapide de commune d'intervention (10 communes du Grand Abidjan en pilules 1-clic) branché sur `PUT /api/riders/{id}/zone`.
+  - 4 cartes KPIs temps réel : Courses du jour, Gains nets estimés (100% livreur sans commission), Note de réputation sur 5 étoiles et Total historique de livraisons.
+  - Carte de course active (si en livraison) : Retrait vendeur (tél, adresse, boutons d'appel direct et WhatsApp), Livraison client final (tél, adresse, bouton GPS Google Maps en 1 tap), décomposition nette (frais de livraison vs marchandise QR Code Universel) et rappel zéro cash.
+  - Hub Challenge Ambassadeur WAZAP (Smartphone Redmi 15C Neuf) avec jauges de progression (livraisons et filleuls).
+  - Hub Parrainage Livreur avec bouton 1-clic de partage WhatsApp pré-rempli.
+  - Tableau d'historique récent des 10 dernières courses.
+- **B. Backend API Livreur (`RidersController.cs` & `RiderDashboardDto.cs`) :**
+  - Endpoint sécurisé `GET /api/riders/dashboard` retournant l'état complet du compte livreur connecté (statistiques, gains, note, course en cours, progression ambassadeur).
+- **C. Authentification 1-Clic Sans Saisie Clavier (`LoginPage.tsx` & Règle Canonique n°10) :**
+  - Prise en charge automatique des paramètres URL `?u=...&p=...`.
+  - À l'ouverture d'un lien reçu par WhatsApp, l'utilisateur est authentifié immédiatement sans avoir à taper ses identifiants au clavier. Écran de connexion 1-clic fluide et redirection instantanée vers son tableau de bord spécifique selon son rôle (`Vendor` $\rightarrow$ `VendorDashboardPage`, `Rider` $\rightarrow$ `RiderDashboardPage`, `Admin` $\rightarrow$ `DashboardPage`).
+- **D. Mise à Jour des Liens de Vérification WhatsApp :**
+  - `LeadConversionService.cs` : envoi automatique du mot de passe temporaire et du lien 1-tap vers l'Espace Marchand.
+  - `RiderRecruitmentService.cs` : envoi du lien 1-tap vers le Cockpit Livreur dès la conversion par OCR.
+  - `GatewayWhatsAppController.cs` : inclusion du lien direct vers le Cockpit Livreur suite au scan USB.
+  - `RiderService.cs` : message de certification WhatsApp enrichi du lien direct vers le Cockpit Livreur.
+  - `RidersPage.tsx` : bouton `💬 Accès WA` pré-rempli avec le lien direct vers le Cockpit Livreur.
+- **E. Navigation & Sécurité de l'App Shell (`App.tsx` & `Layout.tsx`) :**
+  - Prise en charge du rôle `Rider` dans le composant `Protected`.
+  - Sidebar et topbar adaptées au rôle de l'utilisateur connecté (`Espace Livreur WAZAP`, `Espace Marchand WAZAP`, `Administration WAZAP`).
 
-### 3. Validation Qualité Complète
-- **Tests .NET :** 837 tests réussis (100% verts, 0 échec, +4 nouveaux tests unitaires dédiés).
-- **Tests Vitest :** 51/51 tests réussis (100% verts).
-- **Build Web :** Bundle de production Vite compilé et synchronisé dans `src/Wazap.API/wwwroot/app`.
-
+### 3. Validation Qualité & Déploiement
+- **Tests .NET :** 846 tests réussis (0 échec, 100% verts, 6 tests PG réels CI).
+- **Tests Front Vitest :** 57 tests réussis (100% verts, dont 6 nouveaux tests pour `RiderDashboardPage.test.tsx`).
+- **Build de Production :** Bundle Vite optimisé et synchronisé dans `src/Wazap.API/wwwroot/app`.
+- **Règles d'Architecture & Zéro Saisie :** Couvertes et validées par les tests de régression automatique.

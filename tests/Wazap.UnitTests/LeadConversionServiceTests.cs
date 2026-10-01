@@ -83,6 +83,28 @@ public class LeadConversionServiceTests
     }
 
     [Fact]
+    public async Task ConvertLead_WhenSendWelcomeTrue_SendsDashboardLinkWithOneTap()
+    {
+        var db = new TestDbContext();
+        var context = db.Context;
+        var sender = new RecordingWhatsAppSender();
+        var service = CreateService(db, sender);
+
+        var lead = new Lead("Chez Thalia", "+2250708091011", "Cocody", "page-vente", "Thalia");
+        context.Leads.Add(lead);
+        await context.SaveChangesAsync();
+
+        var result = await service.ConvertAsync(lead.Id, sendWelcome: true);
+
+        Assert.NotNull(result.TemporaryPassword);
+        Assert.Single(sender.TextMessages);
+        var msg = sender.TextMessages[0];
+        Assert.Equal("+2250708091011", msg.Phone);
+        Assert.Contains("Tableau de Bord Marchand", msg.Message);
+        Assert.Contains("/app/login?u=chezthalia&p=" + Uri.EscapeDataString(result.TemporaryPassword), msg.Message);
+    }
+
+    [Fact]
     public async Task ConvertLead_WhenVendorAlreadyExists_IsIdempotent()
     {
         var db = new TestDbContext();
