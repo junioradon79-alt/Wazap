@@ -4021,3 +4021,31 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
 
 
 
+
+
+---
+
+## 115. Session 01/10/2026 (Matin) — Diagnostic DNS WiniHost/Cloudflare & Sécurisation Résiliente de la Production
+
+### 1. Diagnostic Approfondi DNS & Blocage WiniHost
+- **Identification de la cause racine :**
+  - Cloudflare avait attribué les serveurs de noms officiels : `bonnie.ns.cloudflare.com` et `nicolas.ns.cloudflare.com`.
+  - Chez le registrar WiniHost (`manager.winihost.com`), le domaine `wazap.ci` reste coincé en statut `Pending` (avec nuage rouge), ce qui verrouille l'interface en lecture seule et empêche l'édition directe des serveurs DNS.
+  - Le registre `.ci` (`any.nic.ci`) conservait d'anciens serveurs (`ed` et `eva`), provoquant une réponse `Query refused` depuis Cloudflare et rendant `wazap.ci` temporairement injoignable sur le réseau mondial.
+- **Canal de support réactif identifié :**
+  - L'équipe WiniHost est joignable directement sur WhatsApp au `+225 05 55 800 400`. Message envoyé avec la demande d'attribution immédiate des serveurs `bonnie` et `nicolas`.
+
+### 2. Sécurisation Résiliente Immédiate de la Plateforme (Zéro Rupture Terrain)
+- **Objectif :** Empêcher tout échec de distribution ou lien brisé pour les coursiers et commerçants actifs sur le terrain pendant l'attente du déblocage WiniHost.
+- **Ajustements appliqués :**
+  - `Client:TrackingBaseUrl` $\rightarrow$ rétabli sur `https://junioradon79gm-001-site1.jtempurl.com/app/suivi` dans `appsettings.json` et `ClientOptions.cs`.
+  - `SalesPage:PublicBaseUrl` $\rightarrow$ rétabli sur `https://junioradon79gm-001-site1.jtempurl.com` dans `appsettings.json`.
+  - `ClientOrdersController.cs` & `RiderDeliveryCommands.cs` : `vendorDashboardUrl` pointé sur `https://junioradon79gm-001-site1.jtempurl.com/app/vendor/dashboard`.
+  - `PaymentSplitService.cs` : `baseUrl` par défaut configurée sur `https://junioradon79gm-001-site1.jtempurl.com`.
+  - `demo.html` : Liens vers la vitrine convertis en chemins relatifs `/app/vente` pour une compatibilité universelle quel que soit le domaine d'accès.
+  - `scripts/manual/manuel.ps1` & `relances.ps1` : `$BaseUrl` calée sur l'URL active.
+  - `Cors:AllowedOrigins` : Maintient simultanément `junioradon79gm-001-site1.jtempurl.com`, `wazap.ci`, `www.wazap.ci` et `localhost:5173`.
+- **Validation Qualité Complète :**
+  - Tests .NET : 833 tests réussis (100% verts, 6 tests PG réels CI).
+  - Tests Front Vitest : 51/51 tests réussis (100% verts).
+  - Build Web de production généré (`npm run build`) et bundle synchronisé dans `src/Wazap.API/wwwroot/app`.
