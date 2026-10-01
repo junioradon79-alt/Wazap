@@ -22,7 +22,7 @@
 ## 5. Zéro Saisie Texte / 1-Tap Absolu
 - **Interdiction des formulaires et de la frappe au clavier :** Pour les livreurs, commerçants et clients, privilégier à 100% :
   - Liens bleus pré-remplis `wa.me`.
-  - Authentification 1-clic par URL : `?u=...&p=...`.
+  - Authentification 1-clic par URL : `?u=...`.
   - Scan de pièces par OCR Google Vision (CNI, Permis de conduire, Passeport).
   - Boutons de bascule d'état (ex: `🟢 DISPO` / `⚪ INDISPO`).
 
@@ -32,3 +32,8 @@
 ## 7. Langue des Vidéos & Marketing
 - Dialogues et voix-off des productions vidéo exclusivement en français soigné et naturel (aucun nouchi informel).
 - Textes de description (captions) systématiques avec Hook, Bénéfices, CTA WhatsApp et hashtags ciblés Abidjan.
+
+## 8. Isolation Étanche WhatsApp Business vs WhatsApp Personnel
+- **Package unique écouté par l'Android Gateway :** `com.whatsapp.w4b` (WhatsApp Business). Interdiction formelle et définitive d'écouter ou d'interagir avec `com.whatsapp` (WhatsApp standard).
+- **Protection absolue du numéro personnel du propriétaire / admin :** Le numéro `+225 07 08 32 33 66` est strictement banni de tout traitement automatisé et de toute réponse bot (`shouldReply = false`, `ignored_protected_number`).
+- **Zéro auto-réponse intempestive :** Les messages ordinaires sans mot-clé WAZAP ne déclenchent aucune réponse automatique afin de garantir une étanchéité totale avec les conversations privées.
