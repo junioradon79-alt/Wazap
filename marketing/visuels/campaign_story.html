@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>WAZAP story</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100vw;height:100vh;overflow:hidden}
+body{font-family:'Segoe UI',Arial,sans-serif;color:#15221b;background:#fff}
+.bg{position:absolute;inset:0;background:
+ radial-gradient(80vmin 80vmin at 90% -6%,rgba(7,160,75,.16),transparent 58%),
+ radial-gradient(60vmin 60vmin at -6% 104%,rgba(14,122,62,.10),transparent 55%),
+ linear-gradient(178deg,#ffffff,#eef8f1)}
+.wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding:9vmin 8vmin;text-align:center}
+.logo{display:flex;align-items:center;gap:2vmin;font-weight:800;font-size:5vmin}
+.mark{width:7vmin;height:7vmin;border-radius:1.8vmin;background:linear-gradient(135deg,#0e7a3e,#07a04b);display:flex;align-items:center;justify-content:center;font-size:4.2vmin;color:#fff}
+.badge{margin:8vmin 0 4vmin;background:#e7f6ee;color:#0e7a3e;font-weight:700;font-size:3.6vmin;border-radius:999px;padding:1.4vmin 3.6vmin}
+h1{font-size:11vmin;line-height:1.1}
+.sub{margin:4vmin 0 0;font-size:4.6vmin;color:#48604f;max-width:86vmin;line-height:1.5}
+.pill-wrap{margin:6vmin 0;display:flex;flex-direction:column;gap:2vmin;align-items:center}
+.pill{font-size:3.6vmin;font-weight:700;border:1px solid #dce9e0;background:#fff;border-radius:999px;padding:1.2vmin 3vmin}
+.pill.green{background:#0e7a3e;border-color:#0e7a3e;color:#fff}
+.qr{width:34vmin;height:34vmin;background:#fff;border:1px solid #e3e9e4;border-radius:4vmin;padding:1.6vmin;box-shadow:0 12px 30px rgba(21,34,27,.10)}
+.qr img{width:100%;height:100%;display:block}
+.cta{margin-top:auto;font-size:4vmin;line-height:1.45;font-weight:700}
+.url{margin-top:1vmin;font-size:3.2vmin;color:#7c8a81;font-weight:400}
+.url b{color:#0e7a3e}
+.foot{margin-top:3vmin;font-size:2.9vmin;color:#8a988f}
+</style></head><body>
+<div class="bg"></div>
+<div class="wrap">
+  <div class="logo"><span class="mark">⚡</span> WAZAP</div>
+  <span class="badge" id="badge">🚚 LA LIVRAISON DE VOTRE QUARTIER</span>
+  <h1 id="h1">Vendez plus.<br>Livrez sans effort.</h1>
+  <p class="sub" id="sub">Commandes par WhatsApp · livreur automatique · suivi en direct</p>
+  <div class="pill-wrap" id="offers">
+    <span class="pill green">15 premières commandes offertes</span>
+    <span class="pill">Sans abonnement</span>
+  </div>
+  <div class="qr"><img id="qr" alt="QR"></div>
+  <div class="cta" id="cta">Scannez pour activer<br><span class="url">👉 <b id="url">…/vente</b></span></div>
+  <div class="foot">⚡ WAZAP — WhatsApp 225 05 75 80 38 01</div>
+</div>
+<script>
+const a = new URLSearchParams(location.search).get('a') || 'com';
+if (a === 'rider') {
+  document.getElementById('badge').textContent = '🛵 REJOIGNEZ LES LIVREURS WAZAP';
+  document.getElementById('h1').innerHTML = 'Gagnez en livrant<br>autour de chez vous.';
+  document.getElementById('sub').textContent = 'Les courses de votre quartier, vos horaires, payé par course.';
+  document.getElementById('offers').innerHTML = '<span class="pill green">Vous choisissez vos horaires</span>';
+  document.getElementById('cta').innerHTML = 'Envoyez « je veux livrer » sur WhatsApp<br><span class="url">👉 <b id="url">…/vente</b></span>';
+}
+const src = a === 'rider' ? 'recrutement-rider' : 'social-story';
+document.getElementById('qr').src = 'https://junioradon79gm-001-site1.jtempurl.com/api/public/sales/qrcode?size=400&src=' + src;
+</script></body></html>

@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Visuel WAZAP Conquête Motards</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=Space+Grotesk:wght@700;900&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 1080px;
+      height: 1080px;
+      background: #06110a;
+      color: #ffffff;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 44px 48px;
+    }
+
+    .bg-glow-top {
+      position: absolute;
+      top: -140px;
+      right: -100px;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(0, 214, 108, 0.22) 0%, transparent 70%);
+      pointer-events: none;
+      filter: blur(40px);
+    }
+
+    .bg-glow-bottom {
+      position: absolute;
+      bottom: -140px;
+      left: -100px;
+      width: 550px;
+      height: 550px;
+      background: radial-gradient(circle, rgba(0, 168, 107, 0.20) 0%, transparent 70%);
+      pointer-events: none;
+      filter: blur(50px);
+    }
+
+    .bg-mesh {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 30%, rgba(13, 31, 21, 0.6) 0%, #06110a 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* HEADER */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-logo {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      border: 3px solid #00D66C;
+      box-shadow: 0 0 25px rgba(0, 214, 108, 0.4);
+      object-fit: cover;
+    }
+
+    .brand-text h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 30px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand-text h1 span {
+      color: #00D66C;
+    }
+
+    .brand-text p {
+      font-size: 13px;
+      font-weight: 700;
+      color: #8C9F92;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .header-badges {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge-pill {
+      background: linear-gradient(135deg, rgba(0, 214, 108, 0.2), rgba(0, 214, 108, 0.05));
+      border: 2px solid #00D66C;
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 900;
+      color: #A7F3D0;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      box-shadow: 0 0 15px rgba(0, 214, 108, 0.2);
+    }
+
+    .badge-day {
+      background: rgba(255, 184, 0, 0.15);
+      border: 1px solid #FFB800;
+      color: #FFB800;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* SECTION HERO : PERSONNAGE + BULLE CHOC */
+    .hero-section {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 28px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .avatar-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .avatar-img-wrap {
+      width: 250px;
+      height: 250px;
+      border-radius: 50%;
+      border: 4px solid #00D66C;
+      box-shadow: 0 0 40px rgba(0, 214, 108, 0.35);
+      overflow: hidden;
+      background: #0A1E12;
+      position: relative;
+    }
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+    }
+
+    .avatar-name-badge {
+      margin-top: 12px;
+      background: rgba(13, 31, 21, 0.95);
+      border: 1.5px solid #00D66C;
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #E2E8F0;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    }
+
+    .statement-box {
+      background: linear-gradient(145deg, rgba(13, 35, 22, 0.95), rgba(7, 20, 12, 0.95));
+      border: 2px solid rgba(0, 214, 108, 0.35);
+      border-radius: 26px;
+      padding: 26px 30px;
+      box-shadow: 0 0 35px rgba(0, 214, 108, 0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .statement-hook {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+      line-height: 1.2;
+      text-transform: uppercase;
+      color: #FFFFFF;
+      letter-spacing: -0.5px;
+    }
+
+    .statement-highlight {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 34px;
+      font-weight: 900;
+      line-height: 1.15;
+      text-transform: uppercase;
+      color: #00D66C;
+      text-shadow: 0 0 25px rgba(0, 214, 108, 0.4);
+    }
+
+    .statement-subtext {
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.4;
+      color: #CBD5E1;
+    }
+
+    /* CARTE CENTRALE : DUEL / PREUVE CHIFFREE */
+    .kpi-section {
+      background: rgba(14, 26, 18, 0.9);
+      border: 2px solid rgba(0, 214, 108, 0.4);
+      border-radius: 22px;
+      padding: 20px 28px;
+      margin-top: 14px;
+      backdrop-filter: blur(10px);
+    }
+
+    .kpi-header {
+      font-size: 13px;
+      font-weight: 800;
+      color: #94A3B8;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .kpi-duel-row {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 18px;
+    }
+
+    .kpi-box-other {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1.5px solid rgba(239, 68, 68, 0.35);
+      border-radius: 14px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .kpi-box-other .icon {
+      font-size: 24px;
+    }
+
+    .kpi-box-other .text {
+      font-size: 15px;
+      font-weight: 800;
+      color: #F87171;
+      line-height: 1.3;
+    }
+
+    .kpi-box-wazap {
+      background: linear-gradient(135deg, rgba(0, 214, 108, 0.25), rgba(0, 214, 108, 0.1));
+      border: 2px solid #00D66C;
+      border-radius: 14px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 0 25px rgba(0, 214, 108, 0.25);
+    }
+
+    .kpi-box-wazap .icon {
+      font-size: 26px;
+    }
+
+    .kpi-box-wazap .text {
+      font-size: 16px;
+      font-weight: 900;
+      color: #FFFFFF;
+      line-height: 1.3;
+    }
+
+    .kpi-box-wazap .text span {
+      color: #FFB800;
+    }
+
+    /* BANDEAU ACTION INFERIEUR */
+    .footer-bar {
+      margin-top: 16px;
+      background: rgba(10, 22, 14, 0.95);
+      border: 2px solid rgba(0, 214, 108, 0.4);
+      border-radius: 22px;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(12px);
+    }
+
+    .qr-block {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .qr-img {
+      width: 78px;
+      height: 78px;
+      border-radius: 12px;
+      background: #FFFFFF;
+      padding: 4px;
+      border: 2px solid #00D66C;
+    }
+
+    .qr-desc h4 {
+      font-size: 15px;
+      font-weight: 900;
+      color: #FFFFFF;
+      text-transform: uppercase;
+    }
+
+    .qr-desc p {
+      font-size: 12px;
+      color: #86EFAC;
+      margin-top: 2px;
+      font-weight: 700;
+    }
+
+    .cta-center {
+      text-align: center;
+    }
+
+    .cta-wa-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #00D66C;
+      color: #06110A;
+      font-size: 18px;
+      font-weight: 900;
+      padding: 10px 22px;
+      border-radius: 999px;
+      text-decoration: none;
+      box-shadow: 0 0 25px rgba(0, 214, 108, 0.6);
+      letter-spacing: 0.5px;
+    }
+
+    .cta-phone {
+      margin-top: 4px;
+      font-size: 14px;
+      font-weight: 800;
+      color: #CBD5E1;
+      letter-spacing: 1px;
+    }
+
+    .reward-pill {
+      background: rgba(255, 184, 0, 0.15);
+      border: 1px solid #FFB800;
+      padding: 8px 16px;
+      border-radius: 14px;
+      text-align: right;
+    }
+
+    .reward-pill .tag {
+      font-size: 11px;
+      font-weight: 800;
+      color: #FFB800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .reward-pill .title {
+      font-size: 13px;
+      font-weight: 900;
+      color: #FFFFFF;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-glow-top"></div>
+  <div class="bg-glow-bottom"></div>
+  <div class="bg-mesh"></div>
+
+  <div class="content">
+    <!-- HEADER -->
+    <div class="header">
+      <div class="brand-wrap">
+        <img src="../logo_officiel_wazap.jpg" alt="Logo Officiel WAZAP" class="brand-logo">
+        <div class="brand-text">
+          <h1>WAZAP<span>.CI</span> ⚡</h1>
+          <p>Opération Dignité Motard</p>
+        </div>
+      </div>
+      <div class="header-badges">
+        <div class="badge-pill" id="badge-text">🛑 STOP AUX 450 FCFA</div>
+        <div class="badge-day" id="day-text">JOUR 1 • MATIN</div>
+      </div>
+    </div>
+
+    <!-- HERO : PERSONNAGE + DECLARATION -->
+    <div class="hero-section">
+      <div class="avatar-card">
+        <div class="avatar-img-wrap">
+          <img src="../facebook-livreurs/assets/avatars/bakary.jpg" alt="Avatar" class="avatar-img" id="avatar-img">
+        </div>
+        <div class="avatar-name-badge" id="avatar-name">Bakary S. • Motard Marcory</div>
+      </div>
+
+      <div class="statement-box">
+        <div class="statement-hook" id="statement-hook">FIN DES COURSES AU RABAIS !</div>
+        <div class="statement-highlight" id="statement-highlight">CHEZ WAZAP, C'EST 1 000 F MINIMUM</div>
+        <div class="statement-subtext" id="statement-subtext">Même pour 300 mètres dans le même quartier. 0% de commission prélevée sur toi.</div>
+      </div>
+    </div>
+
+    <!-- SECTION COMPARATIVE / KPI -->
+    <div class="kpi-section">
+      <div class="kpi-header" id="kpi-header">COMPARAISON 1 COURSE INTRA-COMMUNE</div>
+      <div class="kpi-duel-row">
+        <div class="kpi-box-other">
+          <span class="icon">❌</span>
+          <div class="text" id="kpi-other">Yango : 450 F brut (- comm. flotte)</div>
+        </div>
+        <div class="kpi-box-wazap">
+          <span class="icon">🟢</span>
+          <div class="text" id="kpi-wazap">WAZAP : 1 000 F NET GARANTI DÈS 1m</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BANDEAU ACTION INFERIEUR -->
+    <div class="footer-bar">
+      <div class="qr-block">
+        <img src="../facebook-livreurs/assets/qr_dignite_dispo.png" alt="QR Code WhatsApp WAZAP" class="qr-img">
+        <div class="qr-desc">
+          <h4>Scan le QR Code</h4>
+          <p>ou écris « DISPO » en 1 clic</p>
+        </div>
+      </div>
+
+      <div class="cta-center">
+        <div class="cta-wa-btn">
+          <span>💬</span> Rejoindre sur WhatsApp
+        </div>
+        <div class="cta-phone">+225 05 44 05 19 72</div>
+      </div>
+
+      <div class="reward-pill">
+        <div class="tag">🎁 Défi Pionniers</div>
+        <div class="title">Smartphone Redmi 15C<br>Neuf offert au meilleur !</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Injection dynamique des paramètres via l'URL
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('badge')) document.getElementById('badge-text').textContent = params.get('badge');
+    if (params.get('day')) document.getElementById('day-text').textContent = params.get('day');
+    if (params.get('avatar')) document.getElementById('avatar-img').src = '../facebook-livreurs/assets/avatars/' + params.get('avatar') + '.jpg';
+    if (params.get('name')) document.getElementById('avatar-name').textContent = params.get('name');
+    if (params.get('hook')) document.getElementById('statement-hook').textContent = params.get('hook');
+    if (params.get('highlight')) document.getElementById('statement-highlight').textContent = params.get('highlight');
+    if (params.get('subtext')) document.getElementById('statement-subtext').textContent = params.get('subtext');
+    if (params.get('kpiTitle')) document.getElementById('kpi-header').textContent = params.get('kpiTitle');
+    if (params.get('kpiOther')) document.getElementById('kpi-other').textContent = params.get('kpiOther');
+    if (params.get('kpiWazap')) document.getElementById('kpi-wazap').textContent = params.get('kpiWazap');
+  </script>
+</body>
+</html>

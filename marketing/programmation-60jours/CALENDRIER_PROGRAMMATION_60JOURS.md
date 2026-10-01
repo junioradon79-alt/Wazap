@@ -18,21 +18,21 @@
 
 ---
 
-## 🗓️ JOUR J01 — 2026-10-01 • Protagoniste : Awa (🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE)
+## 🗓️ JOUR J01 — 2026-10-01 • Protagoniste : Awa (Joaillerie Cocody) (🛡️ SÉCURITÉ COMMERÇANTS)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_01_securite_awa_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_01_securite_awa_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE
+* **Bénéfice Clé :** 🛡️ SÉCURITÉ COMMERÇANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-🚨 Commerçants d'Abidjan : commencez votre journée sans la peur au ventre de confier vos colis !
+🚨 WAZAP.CI - FINI LES LIVREURS QUI DISPARAISSENT AVEC VOTRE ARGENT !
 
-Chaque matin, c'est le même dilemme : confier vos commandes à un coursier inconnu et prier pour qu'il ne disparaisse pas avec votre recette ?
+Chaque matin à Abidjan, c'est la même angoisse pour les commerçants : confier des colis de valeur à un coursier inconnu et prier pour qu'il ne disparaisse pas avec la recette !
 
 Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
-À la remise, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
+À la remise du colis, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
 
 🛡️ Livreurs vérifiés CNI par IA Google Cloud Vision
 📍 Géolocalisation live sur la carte
@@ -51,17 +51,19 @@ Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_01_securite_awa_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_01_securite_awa_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE
+* **Bénéfice Clé :** 🛡️ SÉCURITÉ COMMERÇANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-⚡ Rush de midi à Abidjan : votre client n'a pas la monnaie ou veut payer à la livraison ?
+⚡ WAZAP.CI : LE LIVREUR NE TOUCHE PAS À UN SEUL FRANC DE VOTRE MARCHANDISE !
 
-Pas besoin d'annuler la vente ni d'envoyer le livreur chercher la monnaie au carrefour.
-Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money.
+Rush de midi à Abidjan : votre client n'a pas la monnaie sur 10 000 F ou exige de payer à la livraison ?
+
+Pas besoin d'annuler la vente ni d'envoyer le coursier chercher la monnaie au carrefour.
+Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money (Wave, Orange Money, MTN).
 
 Le livreur ne touche à aucun billet de votre marchandise : il ne perçoit que ses frais de course.
-Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement immédiat dans votre trésorerie !
+Résultat : zéro risque de vol, zéro faux billet, encaissement immédiat dans votre trésorerie !
 
 📲 Pour tester gratuitement avec 15 courses offertes : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -76,18 +78,18 @@ Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement imm
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_01_securite_awa_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_01_securite_awa_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE
+* **Bénéfice Clé :** 🛡️ SÉCURITÉ COMMERÇANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
 🌙 18h30 à Abidjan : clôturez votre journée avec 100% de vos recettes en caisse et l'esprit tranquille.
 
-Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous ?
+Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous, la peur au ventre qu'il ait coupé son téléphone ?
 Avec WAZAP, ce stress appartient définitivement au passé.
 
-Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article fragile.
+Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article.
 
-C'est ça, la nouvelle norme du commerce à Abidjan.
+C'est ça, la nouvelle norme du commerce sécurisé à Abidjan.
 
 💼 Rejoignez plus de 1 000 commerçants satisfaits : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -99,21 +101,21 @@ C'est ça, la nouvelle norme du commerce à Abidjan.
 
 ---
 
-## 🗓️ JOUR J02 — 2026-10-02 • Protagoniste : Fatou (🛡️ COLIS FRAGILES & DÉLICATS)
+## 🗓️ JOUR J02 — 2026-10-02 • Protagoniste : Fatou (Pâtisserie Yopougon) (🛡️ ENCAISSEMENT 100% GARANTI)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_02_securite_fatou_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_02_securite_fatou_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ COLIS FRAGILES & DÉLICATS
+* **Bénéfice Clé :** 🛡️ ENCAISSEMENT 100% GARANTI
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-🚨 Commerçants d'Abidjan : commencez votre journée sans la peur au ventre de confier vos colis !
+🚨 WAZAP.CI - FINI LES LIVREURS QUI DISPARAISSENT AVEC VOTRE ARGENT !
 
-Chaque matin, c'est le même dilemme : confier vos commandes à un coursier inconnu et prier pour qu'il ne disparaisse pas avec votre recette ?
+Chaque matin à Abidjan, c'est la même angoisse pour les commerçants : confier des colis de valeur à un coursier inconnu et prier pour qu'il ne disparaisse pas avec la recette !
 
 Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
-À la remise, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
+À la remise du colis, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
 
 🛡️ Livreurs vérifiés CNI par IA Google Cloud Vision
 📍 Géolocalisation live sur la carte
@@ -132,17 +134,19 @@ Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_02_securite_fatou_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_02_securite_fatou_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ COLIS FRAGILES & DÉLICATS
+* **Bénéfice Clé :** 🛡️ ENCAISSEMENT 100% GARANTI
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-⚡ Rush de midi à Abidjan : votre client n'a pas la monnaie ou veut payer à la livraison ?
+⚡ WAZAP.CI : LE LIVREUR NE TOUCHE PAS À UN SEUL FRANC DE VOTRE MARCHANDISE !
 
-Pas besoin d'annuler la vente ni d'envoyer le livreur chercher la monnaie au carrefour.
-Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money.
+Rush de midi à Abidjan : votre client n'a pas la monnaie sur 10 000 F ou exige de payer à la livraison ?
+
+Pas besoin d'annuler la vente ni d'envoyer le coursier chercher la monnaie au carrefour.
+Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money (Wave, Orange Money, MTN).
 
 Le livreur ne touche à aucun billet de votre marchandise : il ne perçoit que ses frais de course.
-Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement immédiat dans votre trésorerie !
+Résultat : zéro risque de vol, zéro faux billet, encaissement immédiat dans votre trésorerie !
 
 📲 Pour tester gratuitement avec 15 courses offertes : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -157,18 +161,18 @@ Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement imm
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_02_securite_fatou_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_02_securite_fatou_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ COLIS FRAGILES & DÉLICATS
+* **Bénéfice Clé :** 🛡️ ENCAISSEMENT 100% GARANTI
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
 🌙 18h30 à Abidjan : clôturez votre journée avec 100% de vos recettes en caisse et l'esprit tranquille.
 
-Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous ?
+Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous, la peur au ventre qu'il ait coupé son téléphone ?
 Avec WAZAP, ce stress appartient définitivement au passé.
 
-Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article fragile.
+Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article.
 
-C'est ça, la nouvelle norme du commerce à Abidjan.
+C'est ça, la nouvelle norme du commerce sécurisé à Abidjan.
 
 💼 Rejoignez plus de 1 000 commerçants satisfaits : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -180,21 +184,21 @@ C'est ça, la nouvelle norme du commerce à Abidjan.
 
 ---
 
-## 🗓️ JOUR J03 — 2026-10-03 • Protagoniste : Clarisse (🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE)
+## 🗓️ JOUR J03 — 2026-10-03 • Protagoniste : Clarisse (Cosmétiques Koumassi) (🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_03_securite_clarisse_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_03_securite_clarisse_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE
+* **Bénéfice Clé :** 🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-🚨 Commerçants d'Abidjan : commencez votre journée sans la peur au ventre de confier vos colis !
+🚨 WAZAP.CI - FINI LES LIVREURS QUI DISPARAISSENT AVEC VOTRE ARGENT !
 
-Chaque matin, c'est le même dilemme : confier vos commandes à un coursier inconnu et prier pour qu'il ne disparaisse pas avec votre recette ?
+Chaque matin à Abidjan, c'est la même angoisse pour les commerçants : confier des colis de valeur à un coursier inconnu et prier pour qu'il ne disparaisse pas avec la recette !
 
 Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
-À la remise, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
+À la remise du colis, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
 
 🛡️ Livreurs vérifiés CNI par IA Google Cloud Vision
 📍 Géolocalisation live sur la carte
@@ -213,17 +217,19 @@ Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_03_securite_clarisse_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_03_securite_clarisse_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE
+* **Bénéfice Clé :** 🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-⚡ Rush de midi à Abidjan : votre client n'a pas la monnaie ou veut payer à la livraison ?
+⚡ WAZAP.CI : LE LIVREUR NE TOUCHE PAS À UN SEUL FRANC DE VOTRE MARCHANDISE !
 
-Pas besoin d'annuler la vente ni d'envoyer le livreur chercher la monnaie au carrefour.
-Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money.
+Rush de midi à Abidjan : votre client n'a pas la monnaie sur 10 000 F ou exige de payer à la livraison ?
+
+Pas besoin d'annuler la vente ni d'envoyer le coursier chercher la monnaie au carrefour.
+Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money (Wave, Orange Money, MTN).
 
 Le livreur ne touche à aucun billet de votre marchandise : il ne perçoit que ses frais de course.
-Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement immédiat dans votre trésorerie !
+Résultat : zéro risque de vol, zéro faux billet, encaissement immédiat dans votre trésorerie !
 
 📲 Pour tester gratuitement avec 15 courses offertes : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -238,18 +244,18 @@ Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement imm
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_03_securite_clarisse_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_03_securite_clarisse_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE
+* **Bénéfice Clé :** 🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
 🌙 18h30 à Abidjan : clôturez votre journée avec 100% de vos recettes en caisse et l'esprit tranquille.
 
-Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous ?
+Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous, la peur au ventre qu'il ait coupé son téléphone ?
 Avec WAZAP, ce stress appartient définitivement au passé.
 
-Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article fragile.
+Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article.
 
-C'est ça, la nouvelle norme du commerce à Abidjan.
+C'est ça, la nouvelle norme du commerce sécurisé à Abidjan.
 
 💼 Rejoignez plus de 1 000 commerçants satisfaits : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -261,12 +267,12 @@ C'est ça, la nouvelle norme du commerce à Abidjan.
 
 ---
 
-## 🗓️ JOUR J04 — 2026-10-04 • Protagoniste : Salimata (⚡ GAIN DE TEMPS ULTRA-RAPIDE)
+## 🗓️ JOUR J04 — 2026-10-04 • Protagoniste : Salimata (Styliste Angré) (⚡ RAPIDITÉ ÉCLAIR)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_04_rapidite_salimata_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_04_rapidite_salimata_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ GAIN DE TEMPS ULTRA-RAPIDE
+* **Bénéfice Clé :** ⚡ RAPIDITÉ ÉCLAIR
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -294,7 +300,7 @@ Notre algorithme intelligent géolocalise et alerte les 5 livreurs disponibles l
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_04_rapidite_salimata_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_04_rapidite_salimata_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ GAIN DE TEMPS ULTRA-RAPIDE
+* **Bénéfice Clé :** ⚡ RAPIDITÉ ÉCLAIR
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -320,7 +326,7 @@ Le résultat ? Des clients fidélisés qui recommandent les yeux fermés !
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_04_rapidite_salimata_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_04_rapidite_salimata_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ GAIN DE TEMPS ULTRA-RAPIDE
+* **Bénéfice Clé :** ⚡ RAPIDITÉ ÉCLAIR
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -341,12 +347,12 @@ Vous gardez les yeux sur la carte interactive sans devoir harceler le coursier a
 
 ---
 
-## 🗓️ JOUR J05 — 2026-10-05 • Protagoniste : Momo (⚡ LE RUSH DE MIDI MAÎTRISÉ)
+## 🗓️ JOUR J05 — 2026-10-05 • Protagoniste : Chef Momo (Grillades d'Abidjan) (🔥 RUSH DE MIDI MAÎTRISÉ)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_05_rapidite_momo_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_05_rapidite_momo_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ LE RUSH DE MIDI MAÎTRISÉ
+* **Bénéfice Clé :** 🔥 RUSH DE MIDI MAÎTRISÉ
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -374,7 +380,7 @@ Notre algorithme intelligent géolocalise et alerte les 5 livreurs disponibles l
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_05_rapidite_momo_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_05_rapidite_momo_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ LE RUSH DE MIDI MAÎTRISÉ
+* **Bénéfice Clé :** 🔥 RUSH DE MIDI MAÎTRISÉ
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -400,7 +406,7 @@ Le résultat ? Des clients fidélisés qui recommandent les yeux fermés !
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_05_rapidite_momo_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_05_rapidite_momo_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ LE RUSH DE MIDI MAÎTRISÉ
+* **Bénéfice Clé :** 🔥 RUSH DE MIDI MAÎTRISÉ
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -421,12 +427,12 @@ Vous gardez les yeux sur la carte interactive sans devoir harceler le coursier a
 
 ---
 
-## 🗓️ JOUR J06 — 2026-10-06 • Protagoniste : Amara (⚡ FINIE LA GALÈRE DE MONNAIE)
+## 🗓️ JOUR J06 — 2026-10-06 • Protagoniste : Amara (Streetwear Marcory) (💵 MONNAIE RÉSOLUE 0 CASH)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_06_rapidite_amara_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_06_rapidite_amara_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ FINIE LA GALÈRE DE MONNAIE
+* **Bénéfice Clé :** 💵 MONNAIE RÉSOLUE 0 CASH
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -454,7 +460,7 @@ Notre algorithme intelligent géolocalise et alerte les 5 livreurs disponibles l
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_06_rapidite_amara_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_06_rapidite_amara_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ FINIE LA GALÈRE DE MONNAIE
+* **Bénéfice Clé :** 💵 MONNAIE RÉSOLUE 0 CASH
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -480,7 +486,7 @@ Le résultat ? Des clients fidélisés qui recommandent les yeux fermés !
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_06_rapidite_amara_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_06_rapidite_amara_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ FINIE LA GALÈRE DE MONNAIE
+* **Bénéfice Clé :** 💵 MONNAIE RÉSOLUE 0 CASH
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -501,12 +507,12 @@ Vous gardez les yeux sur la carte interactive sans devoir harceler le coursier a
 
 ---
 
-## 🗓️ JOUR J07 — 2026-10-07 • Protagoniste : Tantie Aïcha (💎 OFFRE EXCLUSIVE COMMERÇANTS)
+## 🗓️ JOUR J07 — 2026-10-07 • Protagoniste : Tantie Aïcha (Wax & Mode Adjamé) (💎 15 COURSES OFFERTES)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_07_valeur_aicha_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_07_valeur_aicha_story_vertical.png`)
-* **Bénéfice Clé :** 💎 OFFRE EXCLUSIVE COMMERÇANTS
+* **Bénéfice Clé :** 💎 15 COURSES OFFERTES
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -531,7 +537,7 @@ C'est notre façon de vous prouver l'efficacité de notre technologie sans que v
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_07_valeur_aicha_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_07_valeur_aicha_story_vertical.png`)
-* **Bénéfice Clé :** 💎 OFFRE EXCLUSIVE COMMERÇANTS
+* **Bénéfice Clé :** 💎 15 COURSES OFFERTES
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -559,7 +565,7 @@ Avec WAZAP, bénéficiez de :
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_07_valeur_aicha_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_07_valeur_aicha_story_vertical.png`)
-* **Bénéfice Clé :** 💎 OFFRE EXCLUSIVE COMMERÇANTS
+* **Bénéfice Clé :** 💎 15 COURSES OFFERTES
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -586,12 +592,12 @@ Révolution WAZAP :
 
 ---
 
-## 🗓️ JOUR J08 — 2026-10-08 • Protagoniste : Bakary (🛵 LIVREURS INDÉPENDANTS DU 225)
+## 🗓️ JOUR J08 — 2026-10-08 • Protagoniste : Bakary (Livreur Leader Marcory) (🛵 LIVREURS INDÉPENDANTS)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_08_valeur_bakary_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_08_valeur_bakary_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS DU 225
+* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -618,7 +624,7 @@ Tout se passe sur WhatsApp Business sans application lourde qui décharge votre 
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_08_valeur_bakary_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_08_valeur_bakary_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS DU 225
+* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -643,7 +649,7 @@ En plus, tu ne transportes pas l'argent du commerçant : le client paie directem
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_08_valeur_bakary_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_08_valeur_bakary_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS DU 225
+* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -665,12 +671,12 @@ C'est la liberté et le respect du travailleur ivoirien.
 
 ---
 
-## 🗓️ JOUR J09 — 2026-10-09 • Protagoniste : Koffi (🛵 RESPECT & DIGNITÉ DES COURSIERS)
+## 🗓️ JOUR J09 — 2026-10-09 • Protagoniste : Koffi (Livreur Certifié Riviera) (🎯 DIGNITÉ & RESPECT LIVREURS)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_09_valeur_koffi_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_09_valeur_koffi_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 RESPECT & DIGNITÉ DES COURSIERS
+* **Bénéfice Clé :** 🎯 DIGNITÉ & RESPECT LIVREURS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -697,7 +703,7 @@ Tout se passe sur WhatsApp Business sans application lourde qui décharge votre 
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_09_valeur_koffi_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_09_valeur_koffi_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 RESPECT & DIGNITÉ DES COURSIERS
+* **Bénéfice Clé :** 🎯 DIGNITÉ & RESPECT LIVREURS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -722,7 +728,7 @@ En plus, tu ne transportes pas l'argent du commerçant : le client paie directem
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_09_valeur_koffi_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_09_valeur_koffi_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 RESPECT & DIGNITÉ DES COURSIERS
+* **Bénéfice Clé :** 🎯 DIGNITÉ & RESPECT LIVREURS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -744,12 +750,12 @@ C'est la liberté et le respect du travailleur ivoirien.
 
 ---
 
-## 🗓️ JOUR J10 — 2026-10-10 • Protagoniste : Duel Comparatif (⚖️ COMPARATIF SANS FILTRE)
+## 🗓️ JOUR J10 — 2026-10-10 • Protagoniste : Le Duel Choc à Abidjan (🥊 COMPARATIF SANS FILTRE)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_10_duel_comparatif_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_10_duel_comparatif_story_vertical.png`)
-* **Bénéfice Clé :** ⚖️ COMPARATIF SANS FILTRE
+* **Bénéfice Clé :** 🥊 COMPARATIF SANS FILTRE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -774,7 +780,7 @@ C'est notre façon de vous prouver l'efficacité de notre technologie sans que v
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_10_duel_comparatif_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_10_duel_comparatif_story_vertical.png`)
-* **Bénéfice Clé :** ⚖️ COMPARATIF SANS FILTRE
+* **Bénéfice Clé :** 🥊 COMPARATIF SANS FILTRE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -802,7 +808,7 @@ Avec WAZAP, bénéficiez de :
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_10_duel_comparatif_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_10_duel_comparatif_story_vertical.png`)
-* **Bénéfice Clé :** ⚖️ COMPARATIF SANS FILTRE
+* **Bénéfice Clé :** 🥊 COMPARATIF SANS FILTRE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -829,21 +835,21 @@ Révolution WAZAP :
 
 ---
 
-## 🗓️ JOUR J11 — 2026-10-11 • Protagoniste : Awa (🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE)
+## 🗓️ JOUR J11 — 2026-10-11 • Protagoniste : Awa (Joaillerie Cocody) (🛡️ SÉCURITÉ COMMERÇANTS)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_01_securite_awa_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_01_securite_awa_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE
+* **Bénéfice Clé :** 🛡️ SÉCURITÉ COMMERÇANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-🚨 Commerçants d'Abidjan : commencez votre journée sans la peur au ventre de confier vos colis !
+🚨 WAZAP.CI - FINI LES LIVREURS QUI DISPARAISSENT AVEC VOTRE ARGENT !
 
-Chaque matin, c'est le même dilemme : confier vos commandes à un coursier inconnu et prier pour qu'il ne disparaisse pas avec votre recette ?
+Chaque matin à Abidjan, c'est la même angoisse pour les commerçants : confier des colis de valeur à un coursier inconnu et prier pour qu'il ne disparaisse pas avec la recette !
 
 Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
-À la remise, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
+À la remise du colis, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
 
 🛡️ Livreurs vérifiés CNI par IA Google Cloud Vision
 📍 Géolocalisation live sur la carte
@@ -862,17 +868,19 @@ Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_01_securite_awa_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_01_securite_awa_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE
+* **Bénéfice Clé :** 🛡️ SÉCURITÉ COMMERÇANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-⚡ Rush de midi à Abidjan : votre client n'a pas la monnaie ou veut payer à la livraison ?
+⚡ WAZAP.CI : LE LIVREUR NE TOUCHE PAS À UN SEUL FRANC DE VOTRE MARCHANDISE !
 
-Pas besoin d'annuler la vente ni d'envoyer le livreur chercher la monnaie au carrefour.
-Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money.
+Rush de midi à Abidjan : votre client n'a pas la monnaie sur 10 000 F ou exige de payer à la livraison ?
+
+Pas besoin d'annuler la vente ni d'envoyer le coursier chercher la monnaie au carrefour.
+Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money (Wave, Orange Money, MTN).
 
 Le livreur ne touche à aucun billet de votre marchandise : il ne perçoit que ses frais de course.
-Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement immédiat dans votre trésorerie !
+Résultat : zéro risque de vol, zéro faux billet, encaissement immédiat dans votre trésorerie !
 
 📲 Pour tester gratuitement avec 15 courses offertes : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -887,18 +895,18 @@ Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement imm
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_01_securite_awa_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_01_securite_awa_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE
+* **Bénéfice Clé :** 🛡️ SÉCURITÉ COMMERÇANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
 🌙 18h30 à Abidjan : clôturez votre journée avec 100% de vos recettes en caisse et l'esprit tranquille.
 
-Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous ?
+Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous, la peur au ventre qu'il ait coupé son téléphone ?
 Avec WAZAP, ce stress appartient définitivement au passé.
 
-Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article fragile.
+Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article.
 
-C'est ça, la nouvelle norme du commerce à Abidjan.
+C'est ça, la nouvelle norme du commerce sécurisé à Abidjan.
 
 💼 Rejoignez plus de 1 000 commerçants satisfaits : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -910,21 +918,21 @@ C'est ça, la nouvelle norme du commerce à Abidjan.
 
 ---
 
-## 🗓️ JOUR J12 — 2026-10-12 • Protagoniste : Fatou (🛡️ COLIS FRAGILES & DÉLICATS)
+## 🗓️ JOUR J12 — 2026-10-12 • Protagoniste : Fatou (Pâtisserie Yopougon) (🛡️ ENCAISSEMENT 100% GARANTI)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_02_securite_fatou_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_02_securite_fatou_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ COLIS FRAGILES & DÉLICATS
+* **Bénéfice Clé :** 🛡️ ENCAISSEMENT 100% GARANTI
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-🚨 Commerçants d'Abidjan : commencez votre journée sans la peur au ventre de confier vos colis !
+🚨 WAZAP.CI - FINI LES LIVREURS QUI DISPARAISSENT AVEC VOTRE ARGENT !
 
-Chaque matin, c'est le même dilemme : confier vos commandes à un coursier inconnu et prier pour qu'il ne disparaisse pas avec votre recette ?
+Chaque matin à Abidjan, c'est la même angoisse pour les commerçants : confier des colis de valeur à un coursier inconnu et prier pour qu'il ne disparaisse pas avec la recette !
 
 Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
-À la remise, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
+À la remise du colis, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
 
 🛡️ Livreurs vérifiés CNI par IA Google Cloud Vision
 📍 Géolocalisation live sur la carte
@@ -943,17 +951,19 @@ Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_02_securite_fatou_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_02_securite_fatou_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ COLIS FRAGILES & DÉLICATS
+* **Bénéfice Clé :** 🛡️ ENCAISSEMENT 100% GARANTI
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-⚡ Rush de midi à Abidjan : votre client n'a pas la monnaie ou veut payer à la livraison ?
+⚡ WAZAP.CI : LE LIVREUR NE TOUCHE PAS À UN SEUL FRANC DE VOTRE MARCHANDISE !
 
-Pas besoin d'annuler la vente ni d'envoyer le livreur chercher la monnaie au carrefour.
-Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money.
+Rush de midi à Abidjan : votre client n'a pas la monnaie sur 10 000 F ou exige de payer à la livraison ?
+
+Pas besoin d'annuler la vente ni d'envoyer le coursier chercher la monnaie au carrefour.
+Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money (Wave, Orange Money, MTN).
 
 Le livreur ne touche à aucun billet de votre marchandise : il ne perçoit que ses frais de course.
-Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement immédiat dans votre trésorerie !
+Résultat : zéro risque de vol, zéro faux billet, encaissement immédiat dans votre trésorerie !
 
 📲 Pour tester gratuitement avec 15 courses offertes : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -968,18 +978,18 @@ Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement imm
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_02_securite_fatou_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_02_securite_fatou_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ COLIS FRAGILES & DÉLICATS
+* **Bénéfice Clé :** 🛡️ ENCAISSEMENT 100% GARANTI
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
 🌙 18h30 à Abidjan : clôturez votre journée avec 100% de vos recettes en caisse et l'esprit tranquille.
 
-Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous ?
+Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous, la peur au ventre qu'il ait coupé son téléphone ?
 Avec WAZAP, ce stress appartient définitivement au passé.
 
-Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article fragile.
+Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article.
 
-C'est ça, la nouvelle norme du commerce à Abidjan.
+C'est ça, la nouvelle norme du commerce sécurisé à Abidjan.
 
 💼 Rejoignez plus de 1 000 commerçants satisfaits : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -991,21 +1001,21 @@ C'est ça, la nouvelle norme du commerce à Abidjan.
 
 ---
 
-## 🗓️ JOUR J13 — 2026-10-13 • Protagoniste : Clarisse (🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE)
+## 🗓️ JOUR J13 — 2026-10-13 • Protagoniste : Clarisse (Cosmétiques Koumassi) (🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_03_securite_clarisse_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_03_securite_clarisse_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE
+* **Bénéfice Clé :** 🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-🚨 Commerçants d'Abidjan : commencez votre journée sans la peur au ventre de confier vos colis !
+🚨 WAZAP.CI - FINI LES LIVREURS QUI DISPARAISSENT AVEC VOTRE ARGENT !
 
-Chaque matin, c'est le même dilemme : confier vos commandes à un coursier inconnu et prier pour qu'il ne disparaisse pas avec votre recette ?
+Chaque matin à Abidjan, c'est la même angoisse pour les commerçants : confier des colis de valeur à un coursier inconnu et prier pour qu'il ne disparaisse pas avec la recette !
 
 Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
-À la remise, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
+À la remise du colis, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
 
 🛡️ Livreurs vérifiés CNI par IA Google Cloud Vision
 📍 Géolocalisation live sur la carte
@@ -1024,17 +1034,19 @@ Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_03_securite_clarisse_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_03_securite_clarisse_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE
+* **Bénéfice Clé :** 🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-⚡ Rush de midi à Abidjan : votre client n'a pas la monnaie ou veut payer à la livraison ?
+⚡ WAZAP.CI : LE LIVREUR NE TOUCHE PAS À UN SEUL FRANC DE VOTRE MARCHANDISE !
 
-Pas besoin d'annuler la vente ni d'envoyer le livreur chercher la monnaie au carrefour.
-Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money.
+Rush de midi à Abidjan : votre client n'a pas la monnaie sur 10 000 F ou exige de payer à la livraison ?
+
+Pas besoin d'annuler la vente ni d'envoyer le coursier chercher la monnaie au carrefour.
+Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money (Wave, Orange Money, MTN).
 
 Le livreur ne touche à aucun billet de votre marchandise : il ne perçoit que ses frais de course.
-Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement immédiat dans votre trésorerie !
+Résultat : zéro risque de vol, zéro faux billet, encaissement immédiat dans votre trésorerie !
 
 📲 Pour tester gratuitement avec 15 courses offertes : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -1049,18 +1061,18 @@ Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement imm
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_03_securite_clarisse_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_03_securite_clarisse_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE
+* **Bénéfice Clé :** 🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
 🌙 18h30 à Abidjan : clôturez votre journée avec 100% de vos recettes en caisse et l'esprit tranquille.
 
-Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous ?
+Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous, la peur au ventre qu'il ait coupé son téléphone ?
 Avec WAZAP, ce stress appartient définitivement au passé.
 
-Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article fragile.
+Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article.
 
-C'est ça, la nouvelle norme du commerce à Abidjan.
+C'est ça, la nouvelle norme du commerce sécurisé à Abidjan.
 
 💼 Rejoignez plus de 1 000 commerçants satisfaits : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -1072,12 +1084,12 @@ C'est ça, la nouvelle norme du commerce à Abidjan.
 
 ---
 
-## 🗓️ JOUR J14 — 2026-10-14 • Protagoniste : Salimata (⚡ GAIN DE TEMPS ULTRA-RAPIDE)
+## 🗓️ JOUR J14 — 2026-10-14 • Protagoniste : Salimata (Styliste Angré) (⚡ RAPIDITÉ ÉCLAIR)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_04_rapidite_salimata_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_04_rapidite_salimata_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ GAIN DE TEMPS ULTRA-RAPIDE
+* **Bénéfice Clé :** ⚡ RAPIDITÉ ÉCLAIR
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1105,7 +1117,7 @@ Notre algorithme intelligent géolocalise et alerte les 5 livreurs disponibles l
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_04_rapidite_salimata_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_04_rapidite_salimata_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ GAIN DE TEMPS ULTRA-RAPIDE
+* **Bénéfice Clé :** ⚡ RAPIDITÉ ÉCLAIR
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1131,7 +1143,7 @@ Le résultat ? Des clients fidélisés qui recommandent les yeux fermés !
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_04_rapidite_salimata_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_04_rapidite_salimata_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ GAIN DE TEMPS ULTRA-RAPIDE
+* **Bénéfice Clé :** ⚡ RAPIDITÉ ÉCLAIR
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1152,12 +1164,12 @@ Vous gardez les yeux sur la carte interactive sans devoir harceler le coursier a
 
 ---
 
-## 🗓️ JOUR J15 — 2026-10-15 • Protagoniste : Momo (⚡ LE RUSH DE MIDI MAÎTRISÉ)
+## 🗓️ JOUR J15 — 2026-10-15 • Protagoniste : Chef Momo (Grillades d'Abidjan) (🔥 RUSH DE MIDI MAÎTRISÉ)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_05_rapidite_momo_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_05_rapidite_momo_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ LE RUSH DE MIDI MAÎTRISÉ
+* **Bénéfice Clé :** 🔥 RUSH DE MIDI MAÎTRISÉ
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1185,7 +1197,7 @@ Notre algorithme intelligent géolocalise et alerte les 5 livreurs disponibles l
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_05_rapidite_momo_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_05_rapidite_momo_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ LE RUSH DE MIDI MAÎTRISÉ
+* **Bénéfice Clé :** 🔥 RUSH DE MIDI MAÎTRISÉ
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1211,7 +1223,7 @@ Le résultat ? Des clients fidélisés qui recommandent les yeux fermés !
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_05_rapidite_momo_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_05_rapidite_momo_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ LE RUSH DE MIDI MAÎTRISÉ
+* **Bénéfice Clé :** 🔥 RUSH DE MIDI MAÎTRISÉ
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1232,12 +1244,12 @@ Vous gardez les yeux sur la carte interactive sans devoir harceler le coursier a
 
 ---
 
-## 🗓️ JOUR J16 — 2026-10-16 • Protagoniste : Amara (⚡ FINIE LA GALÈRE DE MONNAIE)
+## 🗓️ JOUR J16 — 2026-10-16 • Protagoniste : Amara (Streetwear Marcory) (💵 MONNAIE RÉSOLUE 0 CASH)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_06_rapidite_amara_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_06_rapidite_amara_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ FINIE LA GALÈRE DE MONNAIE
+* **Bénéfice Clé :** 💵 MONNAIE RÉSOLUE 0 CASH
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1265,7 +1277,7 @@ Notre algorithme intelligent géolocalise et alerte les 5 livreurs disponibles l
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_06_rapidite_amara_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_06_rapidite_amara_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ FINIE LA GALÈRE DE MONNAIE
+* **Bénéfice Clé :** 💵 MONNAIE RÉSOLUE 0 CASH
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1291,7 +1303,7 @@ Le résultat ? Des clients fidélisés qui recommandent les yeux fermés !
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_06_rapidite_amara_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_06_rapidite_amara_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ FINIE LA GALÈRE DE MONNAIE
+* **Bénéfice Clé :** 💵 MONNAIE RÉSOLUE 0 CASH
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1312,12 +1324,12 @@ Vous gardez les yeux sur la carte interactive sans devoir harceler le coursier a
 
 ---
 
-## 🗓️ JOUR J17 — 2026-10-17 • Protagoniste : Tantie Aïcha (💎 OFFRE EXCLUSIVE COMMERÇANTS)
+## 🗓️ JOUR J17 — 2026-10-17 • Protagoniste : Tantie Aïcha (Wax & Mode Adjamé) (💎 15 COURSES OFFERTES)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_07_valeur_aicha_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_07_valeur_aicha_story_vertical.png`)
-* **Bénéfice Clé :** 💎 OFFRE EXCLUSIVE COMMERÇANTS
+* **Bénéfice Clé :** 💎 15 COURSES OFFERTES
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1342,7 +1354,7 @@ C'est notre façon de vous prouver l'efficacité de notre technologie sans que v
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_07_valeur_aicha_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_07_valeur_aicha_story_vertical.png`)
-* **Bénéfice Clé :** 💎 OFFRE EXCLUSIVE COMMERÇANTS
+* **Bénéfice Clé :** 💎 15 COURSES OFFERTES
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1370,7 +1382,7 @@ Avec WAZAP, bénéficiez de :
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_07_valeur_aicha_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_07_valeur_aicha_story_vertical.png`)
-* **Bénéfice Clé :** 💎 OFFRE EXCLUSIVE COMMERÇANTS
+* **Bénéfice Clé :** 💎 15 COURSES OFFERTES
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1397,12 +1409,12 @@ Révolution WAZAP :
 
 ---
 
-## 🗓️ JOUR J18 — 2026-10-18 • Protagoniste : Bakary (🛵 LIVREURS INDÉPENDANTS DU 225)
+## 🗓️ JOUR J18 — 2026-10-18 • Protagoniste : Bakary (Livreur Leader Marcory) (🛵 LIVREURS INDÉPENDANTS)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_08_valeur_bakary_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_08_valeur_bakary_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS DU 225
+* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1429,7 +1441,7 @@ Tout se passe sur WhatsApp Business sans application lourde qui décharge votre 
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_08_valeur_bakary_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_08_valeur_bakary_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS DU 225
+* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1454,7 +1466,7 @@ En plus, tu ne transportes pas l'argent du commerçant : le client paie directem
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_08_valeur_bakary_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_08_valeur_bakary_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS DU 225
+* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1476,12 +1488,12 @@ C'est la liberté et le respect du travailleur ivoirien.
 
 ---
 
-## 🗓️ JOUR J19 — 2026-10-19 • Protagoniste : Koffi (🛵 RESPECT & DIGNITÉ DES COURSIERS)
+## 🗓️ JOUR J19 — 2026-10-19 • Protagoniste : Koffi (Livreur Certifié Riviera) (🎯 DIGNITÉ & RESPECT LIVREURS)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_09_valeur_koffi_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_09_valeur_koffi_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 RESPECT & DIGNITÉ DES COURSIERS
+* **Bénéfice Clé :** 🎯 DIGNITÉ & RESPECT LIVREURS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1508,7 +1520,7 @@ Tout se passe sur WhatsApp Business sans application lourde qui décharge votre 
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_09_valeur_koffi_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_09_valeur_koffi_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 RESPECT & DIGNITÉ DES COURSIERS
+* **Bénéfice Clé :** 🎯 DIGNITÉ & RESPECT LIVREURS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1533,7 +1545,7 @@ En plus, tu ne transportes pas l'argent du commerçant : le client paie directem
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_09_valeur_koffi_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_09_valeur_koffi_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 RESPECT & DIGNITÉ DES COURSIERS
+* **Bénéfice Clé :** 🎯 DIGNITÉ & RESPECT LIVREURS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1555,12 +1567,12 @@ C'est la liberté et le respect du travailleur ivoirien.
 
 ---
 
-## 🗓️ JOUR J20 — 2026-10-20 • Protagoniste : Duel Comparatif (⚖️ COMPARATIF SANS FILTRE)
+## 🗓️ JOUR J20 — 2026-10-20 • Protagoniste : Le Duel Choc à Abidjan (🥊 COMPARATIF SANS FILTRE)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_10_duel_comparatif_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_10_duel_comparatif_story_vertical.png`)
-* **Bénéfice Clé :** ⚖️ COMPARATIF SANS FILTRE
+* **Bénéfice Clé :** 🥊 COMPARATIF SANS FILTRE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1585,7 +1597,7 @@ C'est notre façon de vous prouver l'efficacité de notre technologie sans que v
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_10_duel_comparatif_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_10_duel_comparatif_story_vertical.png`)
-* **Bénéfice Clé :** ⚖️ COMPARATIF SANS FILTRE
+* **Bénéfice Clé :** 🥊 COMPARATIF SANS FILTRE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1613,7 +1625,7 @@ Avec WAZAP, bénéficiez de :
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_10_duel_comparatif_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_10_duel_comparatif_story_vertical.png`)
-* **Bénéfice Clé :** ⚖️ COMPARATIF SANS FILTRE
+* **Bénéfice Clé :** 🥊 COMPARATIF SANS FILTRE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1640,21 +1652,21 @@ Révolution WAZAP :
 
 ---
 
-## 🗓️ JOUR J21 — 2026-10-21 • Protagoniste : Awa (🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE)
+## 🗓️ JOUR J21 — 2026-10-21 • Protagoniste : Awa (Joaillerie Cocody) (🛡️ SÉCURITÉ COMMERÇANTS)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_01_securite_awa_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_01_securite_awa_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE
+* **Bénéfice Clé :** 🛡️ SÉCURITÉ COMMERÇANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-🚨 Commerçants d'Abidjan : commencez votre journée sans la peur au ventre de confier vos colis !
+🚨 WAZAP.CI - FINI LES LIVREURS QUI DISPARAISSENT AVEC VOTRE ARGENT !
 
-Chaque matin, c'est le même dilemme : confier vos commandes à un coursier inconnu et prier pour qu'il ne disparaisse pas avec votre recette ?
+Chaque matin à Abidjan, c'est la même angoisse pour les commerçants : confier des colis de valeur à un coursier inconnu et prier pour qu'il ne disparaisse pas avec la recette !
 
 Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
-À la remise, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
+À la remise du colis, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
 
 🛡️ Livreurs vérifiés CNI par IA Google Cloud Vision
 📍 Géolocalisation live sur la carte
@@ -1673,17 +1685,19 @@ Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_01_securite_awa_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_01_securite_awa_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE
+* **Bénéfice Clé :** 🛡️ SÉCURITÉ COMMERÇANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-⚡ Rush de midi à Abidjan : votre client n'a pas la monnaie ou veut payer à la livraison ?
+⚡ WAZAP.CI : LE LIVREUR NE TOUCHE PAS À UN SEUL FRANC DE VOTRE MARCHANDISE !
 
-Pas besoin d'annuler la vente ni d'envoyer le livreur chercher la monnaie au carrefour.
-Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money.
+Rush de midi à Abidjan : votre client n'a pas la monnaie sur 10 000 F ou exige de payer à la livraison ?
+
+Pas besoin d'annuler la vente ni d'envoyer le coursier chercher la monnaie au carrefour.
+Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money (Wave, Orange Money, MTN).
 
 Le livreur ne touche à aucun billet de votre marchandise : il ne perçoit que ses frais de course.
-Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement immédiat dans votre trésorerie !
+Résultat : zéro risque de vol, zéro faux billet, encaissement immédiat dans votre trésorerie !
 
 📲 Pour tester gratuitement avec 15 courses offertes : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -1698,18 +1712,18 @@ Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement imm
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_01_securite_awa_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_01_securite_awa_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE
+* **Bénéfice Clé :** 🛡️ SÉCURITÉ COMMERÇANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
 🌙 18h30 à Abidjan : clôturez votre journée avec 100% de vos recettes en caisse et l'esprit tranquille.
 
-Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous ?
+Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous, la peur au ventre qu'il ait coupé son téléphone ?
 Avec WAZAP, ce stress appartient définitivement au passé.
 
-Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article fragile.
+Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article.
 
-C'est ça, la nouvelle norme du commerce à Abidjan.
+C'est ça, la nouvelle norme du commerce sécurisé à Abidjan.
 
 💼 Rejoignez plus de 1 000 commerçants satisfaits : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -1721,21 +1735,21 @@ C'est ça, la nouvelle norme du commerce à Abidjan.
 
 ---
 
-## 🗓️ JOUR J22 — 2026-10-22 • Protagoniste : Fatou (🛡️ COLIS FRAGILES & DÉLICATS)
+## 🗓️ JOUR J22 — 2026-10-22 • Protagoniste : Fatou (Pâtisserie Yopougon) (🛡️ ENCAISSEMENT 100% GARANTI)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_02_securite_fatou_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_02_securite_fatou_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ COLIS FRAGILES & DÉLICATS
+* **Bénéfice Clé :** 🛡️ ENCAISSEMENT 100% GARANTI
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-🚨 Commerçants d'Abidjan : commencez votre journée sans la peur au ventre de confier vos colis !
+🚨 WAZAP.CI - FINI LES LIVREURS QUI DISPARAISSENT AVEC VOTRE ARGENT !
 
-Chaque matin, c'est le même dilemme : confier vos commandes à un coursier inconnu et prier pour qu'il ne disparaisse pas avec votre recette ?
+Chaque matin à Abidjan, c'est la même angoisse pour les commerçants : confier des colis de valeur à un coursier inconnu et prier pour qu'il ne disparaisse pas avec la recette !
 
 Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
-À la remise, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
+À la remise du colis, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
 
 🛡️ Livreurs vérifiés CNI par IA Google Cloud Vision
 📍 Géolocalisation live sur la carte
@@ -1754,17 +1768,19 @@ Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_02_securite_fatou_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_02_securite_fatou_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ COLIS FRAGILES & DÉLICATS
+* **Bénéfice Clé :** 🛡️ ENCAISSEMENT 100% GARANTI
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-⚡ Rush de midi à Abidjan : votre client n'a pas la monnaie ou veut payer à la livraison ?
+⚡ WAZAP.CI : LE LIVREUR NE TOUCHE PAS À UN SEUL FRANC DE VOTRE MARCHANDISE !
 
-Pas besoin d'annuler la vente ni d'envoyer le livreur chercher la monnaie au carrefour.
-Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money.
+Rush de midi à Abidjan : votre client n'a pas la monnaie sur 10 000 F ou exige de payer à la livraison ?
+
+Pas besoin d'annuler la vente ni d'envoyer le coursier chercher la monnaie au carrefour.
+Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money (Wave, Orange Money, MTN).
 
 Le livreur ne touche à aucun billet de votre marchandise : il ne perçoit que ses frais de course.
-Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement immédiat dans votre trésorerie !
+Résultat : zéro risque de vol, zéro faux billet, encaissement immédiat dans votre trésorerie !
 
 📲 Pour tester gratuitement avec 15 courses offertes : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -1779,18 +1795,18 @@ Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement imm
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_02_securite_fatou_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_02_securite_fatou_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ COLIS FRAGILES & DÉLICATS
+* **Bénéfice Clé :** 🛡️ ENCAISSEMENT 100% GARANTI
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
 🌙 18h30 à Abidjan : clôturez votre journée avec 100% de vos recettes en caisse et l'esprit tranquille.
 
-Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous ?
+Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous, la peur au ventre qu'il ait coupé son téléphone ?
 Avec WAZAP, ce stress appartient définitivement au passé.
 
-Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article fragile.
+Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article.
 
-C'est ça, la nouvelle norme du commerce à Abidjan.
+C'est ça, la nouvelle norme du commerce sécurisé à Abidjan.
 
 💼 Rejoignez plus de 1 000 commerçants satisfaits : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -1802,21 +1818,21 @@ C'est ça, la nouvelle norme du commerce à Abidjan.
 
 ---
 
-## 🗓️ JOUR J23 — 2026-10-23 • Protagoniste : Clarisse (🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE)
+## 🗓️ JOUR J23 — 2026-10-23 • Protagoniste : Clarisse (Cosmétiques Koumassi) (🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_03_securite_clarisse_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_03_securite_clarisse_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE
+* **Bénéfice Clé :** 🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-🚨 Commerçants d'Abidjan : commencez votre journée sans la peur au ventre de confier vos colis !
+🚨 WAZAP.CI - FINI LES LIVREURS QUI DISPARAISSENT AVEC VOTRE ARGENT !
 
-Chaque matin, c'est le même dilemme : confier vos commandes à un coursier inconnu et prier pour qu'il ne disparaisse pas avec votre recette ?
+Chaque matin à Abidjan, c'est la même angoisse pour les commerçants : confier des colis de valeur à un coursier inconnu et prier pour qu'il ne disparaisse pas avec la recette !
 
 Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
-À la remise, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
+À la remise du colis, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
 
 🛡️ Livreurs vérifiés CNI par IA Google Cloud Vision
 📍 Géolocalisation live sur la carte
@@ -1835,17 +1851,19 @@ Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_03_securite_clarisse_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_03_securite_clarisse_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE
+* **Bénéfice Clé :** 🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-⚡ Rush de midi à Abidjan : votre client n'a pas la monnaie ou veut payer à la livraison ?
+⚡ WAZAP.CI : LE LIVREUR NE TOUCHE PAS À UN SEUL FRANC DE VOTRE MARCHANDISE !
 
-Pas besoin d'annuler la vente ni d'envoyer le livreur chercher la monnaie au carrefour.
-Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money.
+Rush de midi à Abidjan : votre client n'a pas la monnaie sur 10 000 F ou exige de payer à la livraison ?
+
+Pas besoin d'annuler la vente ni d'envoyer le coursier chercher la monnaie au carrefour.
+Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money (Wave, Orange Money, MTN).
 
 Le livreur ne touche à aucun billet de votre marchandise : il ne perçoit que ses frais de course.
-Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement immédiat dans votre trésorerie !
+Résultat : zéro risque de vol, zéro faux billet, encaissement immédiat dans votre trésorerie !
 
 📲 Pour tester gratuitement avec 15 courses offertes : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -1860,18 +1878,18 @@ Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement imm
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_03_securite_clarisse_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_03_securite_clarisse_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE
+* **Bénéfice Clé :** 🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
 🌙 18h30 à Abidjan : clôturez votre journée avec 100% de vos recettes en caisse et l'esprit tranquille.
 
-Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous ?
+Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous, la peur au ventre qu'il ait coupé son téléphone ?
 Avec WAZAP, ce stress appartient définitivement au passé.
 
-Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article fragile.
+Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article.
 
-C'est ça, la nouvelle norme du commerce à Abidjan.
+C'est ça, la nouvelle norme du commerce sécurisé à Abidjan.
 
 💼 Rejoignez plus de 1 000 commerçants satisfaits : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -1883,12 +1901,12 @@ C'est ça, la nouvelle norme du commerce à Abidjan.
 
 ---
 
-## 🗓️ JOUR J24 — 2026-10-24 • Protagoniste : Salimata (⚡ GAIN DE TEMPS ULTRA-RAPIDE)
+## 🗓️ JOUR J24 — 2026-10-24 • Protagoniste : Salimata (Styliste Angré) (⚡ RAPIDITÉ ÉCLAIR)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_04_rapidite_salimata_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_04_rapidite_salimata_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ GAIN DE TEMPS ULTRA-RAPIDE
+* **Bénéfice Clé :** ⚡ RAPIDITÉ ÉCLAIR
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1916,7 +1934,7 @@ Notre algorithme intelligent géolocalise et alerte les 5 livreurs disponibles l
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_04_rapidite_salimata_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_04_rapidite_salimata_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ GAIN DE TEMPS ULTRA-RAPIDE
+* **Bénéfice Clé :** ⚡ RAPIDITÉ ÉCLAIR
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1942,7 +1960,7 @@ Le résultat ? Des clients fidélisés qui recommandent les yeux fermés !
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_04_rapidite_salimata_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_04_rapidite_salimata_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ GAIN DE TEMPS ULTRA-RAPIDE
+* **Bénéfice Clé :** ⚡ RAPIDITÉ ÉCLAIR
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1963,12 +1981,12 @@ Vous gardez les yeux sur la carte interactive sans devoir harceler le coursier a
 
 ---
 
-## 🗓️ JOUR J25 — 2026-10-25 • Protagoniste : Momo (⚡ LE RUSH DE MIDI MAÎTRISÉ)
+## 🗓️ JOUR J25 — 2026-10-25 • Protagoniste : Chef Momo (Grillades d'Abidjan) (🔥 RUSH DE MIDI MAÎTRISÉ)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_05_rapidite_momo_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_05_rapidite_momo_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ LE RUSH DE MIDI MAÎTRISÉ
+* **Bénéfice Clé :** 🔥 RUSH DE MIDI MAÎTRISÉ
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -1996,7 +2014,7 @@ Notre algorithme intelligent géolocalise et alerte les 5 livreurs disponibles l
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_05_rapidite_momo_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_05_rapidite_momo_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ LE RUSH DE MIDI MAÎTRISÉ
+* **Bénéfice Clé :** 🔥 RUSH DE MIDI MAÎTRISÉ
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2022,7 +2040,7 @@ Le résultat ? Des clients fidélisés qui recommandent les yeux fermés !
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_05_rapidite_momo_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_05_rapidite_momo_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ LE RUSH DE MIDI MAÎTRISÉ
+* **Bénéfice Clé :** 🔥 RUSH DE MIDI MAÎTRISÉ
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2043,12 +2061,12 @@ Vous gardez les yeux sur la carte interactive sans devoir harceler le coursier a
 
 ---
 
-## 🗓️ JOUR J26 — 2026-10-26 • Protagoniste : Amara (⚡ FINIE LA GALÈRE DE MONNAIE)
+## 🗓️ JOUR J26 — 2026-10-26 • Protagoniste : Amara (Streetwear Marcory) (💵 MONNAIE RÉSOLUE 0 CASH)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_06_rapidite_amara_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_06_rapidite_amara_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ FINIE LA GALÈRE DE MONNAIE
+* **Bénéfice Clé :** 💵 MONNAIE RÉSOLUE 0 CASH
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2076,7 +2094,7 @@ Notre algorithme intelligent géolocalise et alerte les 5 livreurs disponibles l
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_06_rapidite_amara_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_06_rapidite_amara_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ FINIE LA GALÈRE DE MONNAIE
+* **Bénéfice Clé :** 💵 MONNAIE RÉSOLUE 0 CASH
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2102,7 +2120,7 @@ Le résultat ? Des clients fidélisés qui recommandent les yeux fermés !
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_06_rapidite_amara_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_06_rapidite_amara_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ FINIE LA GALÈRE DE MONNAIE
+* **Bénéfice Clé :** 💵 MONNAIE RÉSOLUE 0 CASH
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2123,12 +2141,12 @@ Vous gardez les yeux sur la carte interactive sans devoir harceler le coursier a
 
 ---
 
-## 🗓️ JOUR J27 — 2026-10-27 • Protagoniste : Tantie Aïcha (💎 OFFRE EXCLUSIVE COMMERÇANTS)
+## 🗓️ JOUR J27 — 2026-10-27 • Protagoniste : Tantie Aïcha (Wax & Mode Adjamé) (💎 15 COURSES OFFERTES)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_07_valeur_aicha_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_07_valeur_aicha_story_vertical.png`)
-* **Bénéfice Clé :** 💎 OFFRE EXCLUSIVE COMMERÇANTS
+* **Bénéfice Clé :** 💎 15 COURSES OFFERTES
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2153,7 +2171,7 @@ C'est notre façon de vous prouver l'efficacité de notre technologie sans que v
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_07_valeur_aicha_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_07_valeur_aicha_story_vertical.png`)
-* **Bénéfice Clé :** 💎 OFFRE EXCLUSIVE COMMERÇANTS
+* **Bénéfice Clé :** 💎 15 COURSES OFFERTES
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2181,7 +2199,7 @@ Avec WAZAP, bénéficiez de :
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_07_valeur_aicha_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_07_valeur_aicha_story_vertical.png`)
-* **Bénéfice Clé :** 💎 OFFRE EXCLUSIVE COMMERÇANTS
+* **Bénéfice Clé :** 💎 15 COURSES OFFERTES
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2208,12 +2226,12 @@ Révolution WAZAP :
 
 ---
 
-## 🗓️ JOUR J28 — 2026-10-28 • Protagoniste : Bakary (🛵 LIVREURS INDÉPENDANTS DU 225)
+## 🗓️ JOUR J28 — 2026-10-28 • Protagoniste : Bakary (Livreur Leader Marcory) (🛵 LIVREURS INDÉPENDANTS)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_08_valeur_bakary_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_08_valeur_bakary_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS DU 225
+* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2240,7 +2258,7 @@ Tout se passe sur WhatsApp Business sans application lourde qui décharge votre 
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_08_valeur_bakary_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_08_valeur_bakary_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS DU 225
+* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2265,7 +2283,7 @@ En plus, tu ne transportes pas l'argent du commerçant : le client paie directem
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_08_valeur_bakary_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_08_valeur_bakary_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS DU 225
+* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2287,12 +2305,12 @@ C'est la liberté et le respect du travailleur ivoirien.
 
 ---
 
-## 🗓️ JOUR J29 — 2026-10-29 • Protagoniste : Koffi (🛵 RESPECT & DIGNITÉ DES COURSIERS)
+## 🗓️ JOUR J29 — 2026-10-29 • Protagoniste : Koffi (Livreur Certifié Riviera) (🎯 DIGNITÉ & RESPECT LIVREURS)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_09_valeur_koffi_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_09_valeur_koffi_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 RESPECT & DIGNITÉ DES COURSIERS
+* **Bénéfice Clé :** 🎯 DIGNITÉ & RESPECT LIVREURS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2319,7 +2337,7 @@ Tout se passe sur WhatsApp Business sans application lourde qui décharge votre 
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_09_valeur_koffi_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_09_valeur_koffi_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 RESPECT & DIGNITÉ DES COURSIERS
+* **Bénéfice Clé :** 🎯 DIGNITÉ & RESPECT LIVREURS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2344,7 +2362,7 @@ En plus, tu ne transportes pas l'argent du commerçant : le client paie directem
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_09_valeur_koffi_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_09_valeur_koffi_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 RESPECT & DIGNITÉ DES COURSIERS
+* **Bénéfice Clé :** 🎯 DIGNITÉ & RESPECT LIVREURS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2366,12 +2384,12 @@ C'est la liberté et le respect du travailleur ivoirien.
 
 ---
 
-## 🗓️ JOUR J30 — 2026-10-30 • Protagoniste : Duel Comparatif (⚖️ COMPARATIF SANS FILTRE)
+## 🗓️ JOUR J30 — 2026-10-30 • Protagoniste : Le Duel Choc à Abidjan (🥊 COMPARATIF SANS FILTRE)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_10_duel_comparatif_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_10_duel_comparatif_story_vertical.png`)
-* **Bénéfice Clé :** ⚖️ COMPARATIF SANS FILTRE
+* **Bénéfice Clé :** 🥊 COMPARATIF SANS FILTRE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2396,7 +2414,7 @@ C'est notre façon de vous prouver l'efficacité de notre technologie sans que v
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_10_duel_comparatif_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_10_duel_comparatif_story_vertical.png`)
-* **Bénéfice Clé :** ⚖️ COMPARATIF SANS FILTRE
+* **Bénéfice Clé :** 🥊 COMPARATIF SANS FILTRE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2424,7 +2442,7 @@ Avec WAZAP, bénéficiez de :
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_10_duel_comparatif_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_10_duel_comparatif_story_vertical.png`)
-* **Bénéfice Clé :** ⚖️ COMPARATIF SANS FILTRE
+* **Bénéfice Clé :** 🥊 COMPARATIF SANS FILTRE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2451,21 +2469,21 @@ Révolution WAZAP :
 
 ---
 
-## 🗓️ JOUR J31 — 2026-10-31 • Protagoniste : Awa (🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE)
+## 🗓️ JOUR J31 — 2026-10-31 • Protagoniste : Awa (Joaillerie Cocody) (🛡️ SÉCURITÉ COMMERÇANTS)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_01_securite_awa_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_01_securite_awa_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE
+* **Bénéfice Clé :** 🛡️ SÉCURITÉ COMMERÇANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-🚨 Commerçants d'Abidjan : commencez votre journée sans la peur au ventre de confier vos colis !
+🚨 WAZAP.CI - FINI LES LIVREURS QUI DISPARAISSENT AVEC VOTRE ARGENT !
 
-Chaque matin, c'est le même dilemme : confier vos commandes à un coursier inconnu et prier pour qu'il ne disparaisse pas avec votre recette ?
+Chaque matin à Abidjan, c'est la même angoisse pour les commerçants : confier des colis de valeur à un coursier inconnu et prier pour qu'il ne disparaisse pas avec la recette !
 
 Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
-À la remise, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
+À la remise du colis, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
 
 🛡️ Livreurs vérifiés CNI par IA Google Cloud Vision
 📍 Géolocalisation live sur la carte
@@ -2484,17 +2502,19 @@ Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_01_securite_awa_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_01_securite_awa_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE
+* **Bénéfice Clé :** 🛡️ SÉCURITÉ COMMERÇANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-⚡ Rush de midi à Abidjan : votre client n'a pas la monnaie ou veut payer à la livraison ?
+⚡ WAZAP.CI : LE LIVREUR NE TOUCHE PAS À UN SEUL FRANC DE VOTRE MARCHANDISE !
 
-Pas besoin d'annuler la vente ni d'envoyer le livreur chercher la monnaie au carrefour.
-Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money.
+Rush de midi à Abidjan : votre client n'a pas la monnaie sur 10 000 F ou exige de payer à la livraison ?
+
+Pas besoin d'annuler la vente ni d'envoyer le coursier chercher la monnaie au carrefour.
+Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money (Wave, Orange Money, MTN).
 
 Le livreur ne touche à aucun billet de votre marchandise : il ne perçoit que ses frais de course.
-Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement immédiat dans votre trésorerie !
+Résultat : zéro risque de vol, zéro faux billet, encaissement immédiat dans votre trésorerie !
 
 📲 Pour tester gratuitement avec 15 courses offertes : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -2509,18 +2529,18 @@ Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement imm
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_01_securite_awa_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_01_securite_awa_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE
+* **Bénéfice Clé :** 🛡️ SÉCURITÉ COMMERÇANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
 🌙 18h30 à Abidjan : clôturez votre journée avec 100% de vos recettes en caisse et l'esprit tranquille.
 
-Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous ?
+Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous, la peur au ventre qu'il ait coupé son téléphone ?
 Avec WAZAP, ce stress appartient définitivement au passé.
 
-Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article fragile.
+Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article.
 
-C'est ça, la nouvelle norme du commerce à Abidjan.
+C'est ça, la nouvelle norme du commerce sécurisé à Abidjan.
 
 💼 Rejoignez plus de 1 000 commerçants satisfaits : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -2532,21 +2552,21 @@ C'est ça, la nouvelle norme du commerce à Abidjan.
 
 ---
 
-## 🗓️ JOUR J32 — 2026-11-01 • Protagoniste : Fatou (🛡️ COLIS FRAGILES & DÉLICATS)
+## 🗓️ JOUR J32 — 2026-11-01 • Protagoniste : Fatou (Pâtisserie Yopougon) (🛡️ ENCAISSEMENT 100% GARANTI)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_02_securite_fatou_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_02_securite_fatou_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ COLIS FRAGILES & DÉLICATS
+* **Bénéfice Clé :** 🛡️ ENCAISSEMENT 100% GARANTI
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-🚨 Commerçants d'Abidjan : commencez votre journée sans la peur au ventre de confier vos colis !
+🚨 WAZAP.CI - FINI LES LIVREURS QUI DISPARAISSENT AVEC VOTRE ARGENT !
 
-Chaque matin, c'est le même dilemme : confier vos commandes à un coursier inconnu et prier pour qu'il ne disparaisse pas avec votre recette ?
+Chaque matin à Abidjan, c'est la même angoisse pour les commerçants : confier des colis de valeur à un coursier inconnu et prier pour qu'il ne disparaisse pas avec la recette !
 
 Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
-À la remise, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
+À la remise du colis, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
 
 🛡️ Livreurs vérifiés CNI par IA Google Cloud Vision
 📍 Géolocalisation live sur la carte
@@ -2565,17 +2585,19 @@ Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_02_securite_fatou_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_02_securite_fatou_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ COLIS FRAGILES & DÉLICATS
+* **Bénéfice Clé :** 🛡️ ENCAISSEMENT 100% GARANTI
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-⚡ Rush de midi à Abidjan : votre client n'a pas la monnaie ou veut payer à la livraison ?
+⚡ WAZAP.CI : LE LIVREUR NE TOUCHE PAS À UN SEUL FRANC DE VOTRE MARCHANDISE !
 
-Pas besoin d'annuler la vente ni d'envoyer le livreur chercher la monnaie au carrefour.
-Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money.
+Rush de midi à Abidjan : votre client n'a pas la monnaie sur 10 000 F ou exige de payer à la livraison ?
+
+Pas besoin d'annuler la vente ni d'envoyer le coursier chercher la monnaie au carrefour.
+Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money (Wave, Orange Money, MTN).
 
 Le livreur ne touche à aucun billet de votre marchandise : il ne perçoit que ses frais de course.
-Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement immédiat dans votre trésorerie !
+Résultat : zéro risque de vol, zéro faux billet, encaissement immédiat dans votre trésorerie !
 
 📲 Pour tester gratuitement avec 15 courses offertes : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -2590,18 +2612,18 @@ Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement imm
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_02_securite_fatou_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_02_securite_fatou_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ COLIS FRAGILES & DÉLICATS
+* **Bénéfice Clé :** 🛡️ ENCAISSEMENT 100% GARANTI
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
 🌙 18h30 à Abidjan : clôturez votre journée avec 100% de vos recettes en caisse et l'esprit tranquille.
 
-Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous ?
+Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous, la peur au ventre qu'il ait coupé son téléphone ?
 Avec WAZAP, ce stress appartient définitivement au passé.
 
-Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article fragile.
+Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article.
 
-C'est ça, la nouvelle norme du commerce à Abidjan.
+C'est ça, la nouvelle norme du commerce sécurisé à Abidjan.
 
 💼 Rejoignez plus de 1 000 commerçants satisfaits : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -2613,21 +2635,21 @@ C'est ça, la nouvelle norme du commerce à Abidjan.
 
 ---
 
-## 🗓️ JOUR J33 — 2026-11-02 • Protagoniste : Clarisse (🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE)
+## 🗓️ JOUR J33 — 2026-11-02 • Protagoniste : Clarisse (Cosmétiques Koumassi) (🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_03_securite_clarisse_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_03_securite_clarisse_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE
+* **Bénéfice Clé :** 🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-🚨 Commerçants d'Abidjan : commencez votre journée sans la peur au ventre de confier vos colis !
+🚨 WAZAP.CI - FINI LES LIVREURS QUI DISPARAISSENT AVEC VOTRE ARGENT !
 
-Chaque matin, c'est le même dilemme : confier vos commandes à un coursier inconnu et prier pour qu'il ne disparaisse pas avec votre recette ?
+Chaque matin à Abidjan, c'est la même angoisse pour les commerçants : confier des colis de valeur à un coursier inconnu et prier pour qu'il ne disparaisse pas avec la recette !
 
 Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
-À la remise, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
+À la remise du colis, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
 
 🛡️ Livreurs vérifiés CNI par IA Google Cloud Vision
 📍 Géolocalisation live sur la carte
@@ -2646,17 +2668,19 @@ Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_03_securite_clarisse_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_03_securite_clarisse_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE
+* **Bénéfice Clé :** 🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-⚡ Rush de midi à Abidjan : votre client n'a pas la monnaie ou veut payer à la livraison ?
+⚡ WAZAP.CI : LE LIVREUR NE TOUCHE PAS À UN SEUL FRANC DE VOTRE MARCHANDISE !
 
-Pas besoin d'annuler la vente ni d'envoyer le livreur chercher la monnaie au carrefour.
-Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money.
+Rush de midi à Abidjan : votre client n'a pas la monnaie sur 10 000 F ou exige de payer à la livraison ?
+
+Pas besoin d'annuler la vente ni d'envoyer le coursier chercher la monnaie au carrefour.
+Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money (Wave, Orange Money, MTN).
 
 Le livreur ne touche à aucun billet de votre marchandise : il ne perçoit que ses frais de course.
-Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement immédiat dans votre trésorerie !
+Résultat : zéro risque de vol, zéro faux billet, encaissement immédiat dans votre trésorerie !
 
 📲 Pour tester gratuitement avec 15 courses offertes : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -2671,18 +2695,18 @@ Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement imm
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_03_securite_clarisse_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_03_securite_clarisse_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE
+* **Bénéfice Clé :** 🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
 🌙 18h30 à Abidjan : clôturez votre journée avec 100% de vos recettes en caisse et l'esprit tranquille.
 
-Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous ?
+Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous, la peur au ventre qu'il ait coupé son téléphone ?
 Avec WAZAP, ce stress appartient définitivement au passé.
 
-Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article fragile.
+Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article.
 
-C'est ça, la nouvelle norme du commerce à Abidjan.
+C'est ça, la nouvelle norme du commerce sécurisé à Abidjan.
 
 💼 Rejoignez plus de 1 000 commerçants satisfaits : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -2694,12 +2718,12 @@ C'est ça, la nouvelle norme du commerce à Abidjan.
 
 ---
 
-## 🗓️ JOUR J34 — 2026-11-03 • Protagoniste : Salimata (⚡ GAIN DE TEMPS ULTRA-RAPIDE)
+## 🗓️ JOUR J34 — 2026-11-03 • Protagoniste : Salimata (Styliste Angré) (⚡ RAPIDITÉ ÉCLAIR)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_04_rapidite_salimata_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_04_rapidite_salimata_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ GAIN DE TEMPS ULTRA-RAPIDE
+* **Bénéfice Clé :** ⚡ RAPIDITÉ ÉCLAIR
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2727,7 +2751,7 @@ Notre algorithme intelligent géolocalise et alerte les 5 livreurs disponibles l
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_04_rapidite_salimata_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_04_rapidite_salimata_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ GAIN DE TEMPS ULTRA-RAPIDE
+* **Bénéfice Clé :** ⚡ RAPIDITÉ ÉCLAIR
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2753,7 +2777,7 @@ Le résultat ? Des clients fidélisés qui recommandent les yeux fermés !
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_04_rapidite_salimata_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_04_rapidite_salimata_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ GAIN DE TEMPS ULTRA-RAPIDE
+* **Bénéfice Clé :** ⚡ RAPIDITÉ ÉCLAIR
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2774,12 +2798,12 @@ Vous gardez les yeux sur la carte interactive sans devoir harceler le coursier a
 
 ---
 
-## 🗓️ JOUR J35 — 2026-11-04 • Protagoniste : Momo (⚡ LE RUSH DE MIDI MAÎTRISÉ)
+## 🗓️ JOUR J35 — 2026-11-04 • Protagoniste : Chef Momo (Grillades d'Abidjan) (🔥 RUSH DE MIDI MAÎTRISÉ)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_05_rapidite_momo_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_05_rapidite_momo_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ LE RUSH DE MIDI MAÎTRISÉ
+* **Bénéfice Clé :** 🔥 RUSH DE MIDI MAÎTRISÉ
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2807,7 +2831,7 @@ Notre algorithme intelligent géolocalise et alerte les 5 livreurs disponibles l
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_05_rapidite_momo_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_05_rapidite_momo_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ LE RUSH DE MIDI MAÎTRISÉ
+* **Bénéfice Clé :** 🔥 RUSH DE MIDI MAÎTRISÉ
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2833,7 +2857,7 @@ Le résultat ? Des clients fidélisés qui recommandent les yeux fermés !
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_05_rapidite_momo_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_05_rapidite_momo_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ LE RUSH DE MIDI MAÎTRISÉ
+* **Bénéfice Clé :** 🔥 RUSH DE MIDI MAÎTRISÉ
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2854,12 +2878,12 @@ Vous gardez les yeux sur la carte interactive sans devoir harceler le coursier a
 
 ---
 
-## 🗓️ JOUR J36 — 2026-11-05 • Protagoniste : Amara (⚡ FINIE LA GALÈRE DE MONNAIE)
+## 🗓️ JOUR J36 — 2026-11-05 • Protagoniste : Amara (Streetwear Marcory) (💵 MONNAIE RÉSOLUE 0 CASH)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_06_rapidite_amara_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_06_rapidite_amara_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ FINIE LA GALÈRE DE MONNAIE
+* **Bénéfice Clé :** 💵 MONNAIE RÉSOLUE 0 CASH
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2887,7 +2911,7 @@ Notre algorithme intelligent géolocalise et alerte les 5 livreurs disponibles l
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_06_rapidite_amara_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_06_rapidite_amara_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ FINIE LA GALÈRE DE MONNAIE
+* **Bénéfice Clé :** 💵 MONNAIE RÉSOLUE 0 CASH
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2913,7 +2937,7 @@ Le résultat ? Des clients fidélisés qui recommandent les yeux fermés !
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_06_rapidite_amara_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_06_rapidite_amara_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ FINIE LA GALÈRE DE MONNAIE
+* **Bénéfice Clé :** 💵 MONNAIE RÉSOLUE 0 CASH
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2934,12 +2958,12 @@ Vous gardez les yeux sur la carte interactive sans devoir harceler le coursier a
 
 ---
 
-## 🗓️ JOUR J37 — 2026-11-06 • Protagoniste : Tantie Aïcha (💎 OFFRE EXCLUSIVE COMMERÇANTS)
+## 🗓️ JOUR J37 — 2026-11-06 • Protagoniste : Tantie Aïcha (Wax & Mode Adjamé) (💎 15 COURSES OFFERTES)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_07_valeur_aicha_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_07_valeur_aicha_story_vertical.png`)
-* **Bénéfice Clé :** 💎 OFFRE EXCLUSIVE COMMERÇANTS
+* **Bénéfice Clé :** 💎 15 COURSES OFFERTES
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2964,7 +2988,7 @@ C'est notre façon de vous prouver l'efficacité de notre technologie sans que v
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_07_valeur_aicha_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_07_valeur_aicha_story_vertical.png`)
-* **Bénéfice Clé :** 💎 OFFRE EXCLUSIVE COMMERÇANTS
+* **Bénéfice Clé :** 💎 15 COURSES OFFERTES
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -2992,7 +3016,7 @@ Avec WAZAP, bénéficiez de :
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_07_valeur_aicha_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_07_valeur_aicha_story_vertical.png`)
-* **Bénéfice Clé :** 💎 OFFRE EXCLUSIVE COMMERÇANTS
+* **Bénéfice Clé :** 💎 15 COURSES OFFERTES
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3019,12 +3043,12 @@ Révolution WAZAP :
 
 ---
 
-## 🗓️ JOUR J38 — 2026-11-07 • Protagoniste : Bakary (🛵 LIVREURS INDÉPENDANTS DU 225)
+## 🗓️ JOUR J38 — 2026-11-07 • Protagoniste : Bakary (Livreur Leader Marcory) (🛵 LIVREURS INDÉPENDANTS)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_08_valeur_bakary_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_08_valeur_bakary_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS DU 225
+* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3051,7 +3075,7 @@ Tout se passe sur WhatsApp Business sans application lourde qui décharge votre 
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_08_valeur_bakary_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_08_valeur_bakary_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS DU 225
+* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3076,7 +3100,7 @@ En plus, tu ne transportes pas l'argent du commerçant : le client paie directem
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_08_valeur_bakary_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_08_valeur_bakary_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS DU 225
+* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3098,12 +3122,12 @@ C'est la liberté et le respect du travailleur ivoirien.
 
 ---
 
-## 🗓️ JOUR J39 — 2026-11-08 • Protagoniste : Koffi (🛵 RESPECT & DIGNITÉ DES COURSIERS)
+## 🗓️ JOUR J39 — 2026-11-08 • Protagoniste : Koffi (Livreur Certifié Riviera) (🎯 DIGNITÉ & RESPECT LIVREURS)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_09_valeur_koffi_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_09_valeur_koffi_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 RESPECT & DIGNITÉ DES COURSIERS
+* **Bénéfice Clé :** 🎯 DIGNITÉ & RESPECT LIVREURS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3130,7 +3154,7 @@ Tout se passe sur WhatsApp Business sans application lourde qui décharge votre 
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_09_valeur_koffi_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_09_valeur_koffi_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 RESPECT & DIGNITÉ DES COURSIERS
+* **Bénéfice Clé :** 🎯 DIGNITÉ & RESPECT LIVREURS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3155,7 +3179,7 @@ En plus, tu ne transportes pas l'argent du commerçant : le client paie directem
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_09_valeur_koffi_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_09_valeur_koffi_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 RESPECT & DIGNITÉ DES COURSIERS
+* **Bénéfice Clé :** 🎯 DIGNITÉ & RESPECT LIVREURS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3177,12 +3201,12 @@ C'est la liberté et le respect du travailleur ivoirien.
 
 ---
 
-## 🗓️ JOUR J40 — 2026-11-09 • Protagoniste : Duel Comparatif (⚖️ COMPARATIF SANS FILTRE)
+## 🗓️ JOUR J40 — 2026-11-09 • Protagoniste : Le Duel Choc à Abidjan (🥊 COMPARATIF SANS FILTRE)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_10_duel_comparatif_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_10_duel_comparatif_story_vertical.png`)
-* **Bénéfice Clé :** ⚖️ COMPARATIF SANS FILTRE
+* **Bénéfice Clé :** 🥊 COMPARATIF SANS FILTRE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3207,7 +3231,7 @@ C'est notre façon de vous prouver l'efficacité de notre technologie sans que v
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_10_duel_comparatif_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_10_duel_comparatif_story_vertical.png`)
-* **Bénéfice Clé :** ⚖️ COMPARATIF SANS FILTRE
+* **Bénéfice Clé :** 🥊 COMPARATIF SANS FILTRE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3235,7 +3259,7 @@ Avec WAZAP, bénéficiez de :
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_10_duel_comparatif_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_10_duel_comparatif_story_vertical.png`)
-* **Bénéfice Clé :** ⚖️ COMPARATIF SANS FILTRE
+* **Bénéfice Clé :** 🥊 COMPARATIF SANS FILTRE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3262,21 +3286,21 @@ Révolution WAZAP :
 
 ---
 
-## 🗓️ JOUR J41 — 2026-11-10 • Protagoniste : Awa (🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE)
+## 🗓️ JOUR J41 — 2026-11-10 • Protagoniste : Awa (Joaillerie Cocody) (🛡️ SÉCURITÉ COMMERÇANTS)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_01_securite_awa_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_01_securite_awa_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE
+* **Bénéfice Clé :** 🛡️ SÉCURITÉ COMMERÇANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-🚨 Commerçants d'Abidjan : commencez votre journée sans la peur au ventre de confier vos colis !
+🚨 WAZAP.CI - FINI LES LIVREURS QUI DISPARAISSENT AVEC VOTRE ARGENT !
 
-Chaque matin, c'est le même dilemme : confier vos commandes à un coursier inconnu et prier pour qu'il ne disparaisse pas avec votre recette ?
+Chaque matin à Abidjan, c'est la même angoisse pour les commerçants : confier des colis de valeur à un coursier inconnu et prier pour qu'il ne disparaisse pas avec la recette !
 
 Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
-À la remise, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
+À la remise du colis, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
 
 🛡️ Livreurs vérifiés CNI par IA Google Cloud Vision
 📍 Géolocalisation live sur la carte
@@ -3295,17 +3319,19 @@ Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_01_securite_awa_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_01_securite_awa_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE
+* **Bénéfice Clé :** 🛡️ SÉCURITÉ COMMERÇANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-⚡ Rush de midi à Abidjan : votre client n'a pas la monnaie ou veut payer à la livraison ?
+⚡ WAZAP.CI : LE LIVREUR NE TOUCHE PAS À UN SEUL FRANC DE VOTRE MARCHANDISE !
 
-Pas besoin d'annuler la vente ni d'envoyer le livreur chercher la monnaie au carrefour.
-Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money.
+Rush de midi à Abidjan : votre client n'a pas la monnaie sur 10 000 F ou exige de payer à la livraison ?
+
+Pas besoin d'annuler la vente ni d'envoyer le coursier chercher la monnaie au carrefour.
+Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money (Wave, Orange Money, MTN).
 
 Le livreur ne touche à aucun billet de votre marchandise : il ne perçoit que ses frais de course.
-Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement immédiat dans votre trésorerie !
+Résultat : zéro risque de vol, zéro faux billet, encaissement immédiat dans votre trésorerie !
 
 📲 Pour tester gratuitement avec 15 courses offertes : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -3320,18 +3346,18 @@ Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement imm
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_01_securite_awa_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_01_securite_awa_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE
+* **Bénéfice Clé :** 🛡️ SÉCURITÉ COMMERÇANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
 🌙 18h30 à Abidjan : clôturez votre journée avec 100% de vos recettes en caisse et l'esprit tranquille.
 
-Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous ?
+Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous, la peur au ventre qu'il ait coupé son téléphone ?
 Avec WAZAP, ce stress appartient définitivement au passé.
 
-Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article fragile.
+Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article.
 
-C'est ça, la nouvelle norme du commerce à Abidjan.
+C'est ça, la nouvelle norme du commerce sécurisé à Abidjan.
 
 💼 Rejoignez plus de 1 000 commerçants satisfaits : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -3343,21 +3369,21 @@ C'est ça, la nouvelle norme du commerce à Abidjan.
 
 ---
 
-## 🗓️ JOUR J42 — 2026-11-11 • Protagoniste : Fatou (🛡️ COLIS FRAGILES & DÉLICATS)
+## 🗓️ JOUR J42 — 2026-11-11 • Protagoniste : Fatou (Pâtisserie Yopougon) (🛡️ ENCAISSEMENT 100% GARANTI)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_02_securite_fatou_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_02_securite_fatou_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ COLIS FRAGILES & DÉLICATS
+* **Bénéfice Clé :** 🛡️ ENCAISSEMENT 100% GARANTI
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-🚨 Commerçants d'Abidjan : commencez votre journée sans la peur au ventre de confier vos colis !
+🚨 WAZAP.CI - FINI LES LIVREURS QUI DISPARAISSENT AVEC VOTRE ARGENT !
 
-Chaque matin, c'est le même dilemme : confier vos commandes à un coursier inconnu et prier pour qu'il ne disparaisse pas avec votre recette ?
+Chaque matin à Abidjan, c'est la même angoisse pour les commerçants : confier des colis de valeur à un coursier inconnu et prier pour qu'il ne disparaisse pas avec la recette !
 
 Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
-À la remise, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
+À la remise du colis, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
 
 🛡️ Livreurs vérifiés CNI par IA Google Cloud Vision
 📍 Géolocalisation live sur la carte
@@ -3376,17 +3402,19 @@ Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_02_securite_fatou_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_02_securite_fatou_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ COLIS FRAGILES & DÉLICATS
+* **Bénéfice Clé :** 🛡️ ENCAISSEMENT 100% GARANTI
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-⚡ Rush de midi à Abidjan : votre client n'a pas la monnaie ou veut payer à la livraison ?
+⚡ WAZAP.CI : LE LIVREUR NE TOUCHE PAS À UN SEUL FRANC DE VOTRE MARCHANDISE !
 
-Pas besoin d'annuler la vente ni d'envoyer le livreur chercher la monnaie au carrefour.
-Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money.
+Rush de midi à Abidjan : votre client n'a pas la monnaie sur 10 000 F ou exige de payer à la livraison ?
+
+Pas besoin d'annuler la vente ni d'envoyer le coursier chercher la monnaie au carrefour.
+Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money (Wave, Orange Money, MTN).
 
 Le livreur ne touche à aucun billet de votre marchandise : il ne perçoit que ses frais de course.
-Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement immédiat dans votre trésorerie !
+Résultat : zéro risque de vol, zéro faux billet, encaissement immédiat dans votre trésorerie !
 
 📲 Pour tester gratuitement avec 15 courses offertes : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -3401,18 +3429,18 @@ Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement imm
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_02_securite_fatou_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_02_securite_fatou_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ COLIS FRAGILES & DÉLICATS
+* **Bénéfice Clé :** 🛡️ ENCAISSEMENT 100% GARANTI
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
 🌙 18h30 à Abidjan : clôturez votre journée avec 100% de vos recettes en caisse et l'esprit tranquille.
 
-Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous ?
+Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous, la peur au ventre qu'il ait coupé son téléphone ?
 Avec WAZAP, ce stress appartient définitivement au passé.
 
-Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article fragile.
+Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article.
 
-C'est ça, la nouvelle norme du commerce à Abidjan.
+C'est ça, la nouvelle norme du commerce sécurisé à Abidjan.
 
 💼 Rejoignez plus de 1 000 commerçants satisfaits : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -3424,21 +3452,21 @@ C'est ça, la nouvelle norme du commerce à Abidjan.
 
 ---
 
-## 🗓️ JOUR J43 — 2026-11-12 • Protagoniste : Clarisse (🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE)
+## 🗓️ JOUR J43 — 2026-11-12 • Protagoniste : Clarisse (Cosmétiques Koumassi) (🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_03_securite_clarisse_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_03_securite_clarisse_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE
+* **Bénéfice Clé :** 🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-🚨 Commerçants d'Abidjan : commencez votre journée sans la peur au ventre de confier vos colis !
+🚨 WAZAP.CI - FINI LES LIVREURS QUI DISPARAISSENT AVEC VOTRE ARGENT !
 
-Chaque matin, c'est le même dilemme : confier vos commandes à un coursier inconnu et prier pour qu'il ne disparaisse pas avec votre recette ?
+Chaque matin à Abidjan, c'est la même angoisse pour les commerçants : confier des colis de valeur à un coursier inconnu et prier pour qu'il ne disparaisse pas avec la recette !
 
 Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
-À la remise, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
+À la remise du colis, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
 
 🛡️ Livreurs vérifiés CNI par IA Google Cloud Vision
 📍 Géolocalisation live sur la carte
@@ -3457,17 +3485,19 @@ Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_03_securite_clarisse_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_03_securite_clarisse_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE
+* **Bénéfice Clé :** 🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-⚡ Rush de midi à Abidjan : votre client n'a pas la monnaie ou veut payer à la livraison ?
+⚡ WAZAP.CI : LE LIVREUR NE TOUCHE PAS À UN SEUL FRANC DE VOTRE MARCHANDISE !
 
-Pas besoin d'annuler la vente ni d'envoyer le livreur chercher la monnaie au carrefour.
-Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money.
+Rush de midi à Abidjan : votre client n'a pas la monnaie sur 10 000 F ou exige de payer à la livraison ?
+
+Pas besoin d'annuler la vente ni d'envoyer le coursier chercher la monnaie au carrefour.
+Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money (Wave, Orange Money, MTN).
 
 Le livreur ne touche à aucun billet de votre marchandise : il ne perçoit que ses frais de course.
-Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement immédiat dans votre trésorerie !
+Résultat : zéro risque de vol, zéro faux billet, encaissement immédiat dans votre trésorerie !
 
 📲 Pour tester gratuitement avec 15 courses offertes : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -3482,18 +3512,18 @@ Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement imm
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_03_securite_clarisse_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_03_securite_clarisse_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE
+* **Bénéfice Clé :** 🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
 🌙 18h30 à Abidjan : clôturez votre journée avec 100% de vos recettes en caisse et l'esprit tranquille.
 
-Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous ?
+Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous, la peur au ventre qu'il ait coupé son téléphone ?
 Avec WAZAP, ce stress appartient définitivement au passé.
 
-Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article fragile.
+Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article.
 
-C'est ça, la nouvelle norme du commerce à Abidjan.
+C'est ça, la nouvelle norme du commerce sécurisé à Abidjan.
 
 💼 Rejoignez plus de 1 000 commerçants satisfaits : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -3505,12 +3535,12 @@ C'est ça, la nouvelle norme du commerce à Abidjan.
 
 ---
 
-## 🗓️ JOUR J44 — 2026-11-13 • Protagoniste : Salimata (⚡ GAIN DE TEMPS ULTRA-RAPIDE)
+## 🗓️ JOUR J44 — 2026-11-13 • Protagoniste : Salimata (Styliste Angré) (⚡ RAPIDITÉ ÉCLAIR)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_04_rapidite_salimata_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_04_rapidite_salimata_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ GAIN DE TEMPS ULTRA-RAPIDE
+* **Bénéfice Clé :** ⚡ RAPIDITÉ ÉCLAIR
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3538,7 +3568,7 @@ Notre algorithme intelligent géolocalise et alerte les 5 livreurs disponibles l
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_04_rapidite_salimata_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_04_rapidite_salimata_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ GAIN DE TEMPS ULTRA-RAPIDE
+* **Bénéfice Clé :** ⚡ RAPIDITÉ ÉCLAIR
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3564,7 +3594,7 @@ Le résultat ? Des clients fidélisés qui recommandent les yeux fermés !
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_04_rapidite_salimata_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_04_rapidite_salimata_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ GAIN DE TEMPS ULTRA-RAPIDE
+* **Bénéfice Clé :** ⚡ RAPIDITÉ ÉCLAIR
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3585,12 +3615,12 @@ Vous gardez les yeux sur la carte interactive sans devoir harceler le coursier a
 
 ---
 
-## 🗓️ JOUR J45 — 2026-11-14 • Protagoniste : Momo (⚡ LE RUSH DE MIDI MAÎTRISÉ)
+## 🗓️ JOUR J45 — 2026-11-14 • Protagoniste : Chef Momo (Grillades d'Abidjan) (🔥 RUSH DE MIDI MAÎTRISÉ)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_05_rapidite_momo_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_05_rapidite_momo_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ LE RUSH DE MIDI MAÎTRISÉ
+* **Bénéfice Clé :** 🔥 RUSH DE MIDI MAÎTRISÉ
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3618,7 +3648,7 @@ Notre algorithme intelligent géolocalise et alerte les 5 livreurs disponibles l
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_05_rapidite_momo_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_05_rapidite_momo_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ LE RUSH DE MIDI MAÎTRISÉ
+* **Bénéfice Clé :** 🔥 RUSH DE MIDI MAÎTRISÉ
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3644,7 +3674,7 @@ Le résultat ? Des clients fidélisés qui recommandent les yeux fermés !
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_05_rapidite_momo_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_05_rapidite_momo_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ LE RUSH DE MIDI MAÎTRISÉ
+* **Bénéfice Clé :** 🔥 RUSH DE MIDI MAÎTRISÉ
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3665,12 +3695,12 @@ Vous gardez les yeux sur la carte interactive sans devoir harceler le coursier a
 
 ---
 
-## 🗓️ JOUR J46 — 2026-11-15 • Protagoniste : Amara (⚡ FINIE LA GALÈRE DE MONNAIE)
+## 🗓️ JOUR J46 — 2026-11-15 • Protagoniste : Amara (Streetwear Marcory) (💵 MONNAIE RÉSOLUE 0 CASH)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_06_rapidite_amara_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_06_rapidite_amara_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ FINIE LA GALÈRE DE MONNAIE
+* **Bénéfice Clé :** 💵 MONNAIE RÉSOLUE 0 CASH
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3698,7 +3728,7 @@ Notre algorithme intelligent géolocalise et alerte les 5 livreurs disponibles l
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_06_rapidite_amara_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_06_rapidite_amara_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ FINIE LA GALÈRE DE MONNAIE
+* **Bénéfice Clé :** 💵 MONNAIE RÉSOLUE 0 CASH
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3724,7 +3754,7 @@ Le résultat ? Des clients fidélisés qui recommandent les yeux fermés !
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_06_rapidite_amara_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_06_rapidite_amara_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ FINIE LA GALÈRE DE MONNAIE
+* **Bénéfice Clé :** 💵 MONNAIE RÉSOLUE 0 CASH
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3745,12 +3775,12 @@ Vous gardez les yeux sur la carte interactive sans devoir harceler le coursier a
 
 ---
 
-## 🗓️ JOUR J47 — 2026-11-16 • Protagoniste : Tantie Aïcha (💎 OFFRE EXCLUSIVE COMMERÇANTS)
+## 🗓️ JOUR J47 — 2026-11-16 • Protagoniste : Tantie Aïcha (Wax & Mode Adjamé) (💎 15 COURSES OFFERTES)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_07_valeur_aicha_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_07_valeur_aicha_story_vertical.png`)
-* **Bénéfice Clé :** 💎 OFFRE EXCLUSIVE COMMERÇANTS
+* **Bénéfice Clé :** 💎 15 COURSES OFFERTES
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3775,7 +3805,7 @@ C'est notre façon de vous prouver l'efficacité de notre technologie sans que v
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_07_valeur_aicha_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_07_valeur_aicha_story_vertical.png`)
-* **Bénéfice Clé :** 💎 OFFRE EXCLUSIVE COMMERÇANTS
+* **Bénéfice Clé :** 💎 15 COURSES OFFERTES
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3803,7 +3833,7 @@ Avec WAZAP, bénéficiez de :
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_07_valeur_aicha_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_07_valeur_aicha_story_vertical.png`)
-* **Bénéfice Clé :** 💎 OFFRE EXCLUSIVE COMMERÇANTS
+* **Bénéfice Clé :** 💎 15 COURSES OFFERTES
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3830,12 +3860,12 @@ Révolution WAZAP :
 
 ---
 
-## 🗓️ JOUR J48 — 2026-11-17 • Protagoniste : Bakary (🛵 LIVREURS INDÉPENDANTS DU 225)
+## 🗓️ JOUR J48 — 2026-11-17 • Protagoniste : Bakary (Livreur Leader Marcory) (🛵 LIVREURS INDÉPENDANTS)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_08_valeur_bakary_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_08_valeur_bakary_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS DU 225
+* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3862,7 +3892,7 @@ Tout se passe sur WhatsApp Business sans application lourde qui décharge votre 
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_08_valeur_bakary_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_08_valeur_bakary_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS DU 225
+* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3887,7 +3917,7 @@ En plus, tu ne transportes pas l'argent du commerçant : le client paie directem
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_08_valeur_bakary_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_08_valeur_bakary_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS DU 225
+* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3909,12 +3939,12 @@ C'est la liberté et le respect du travailleur ivoirien.
 
 ---
 
-## 🗓️ JOUR J49 — 2026-11-18 • Protagoniste : Koffi (🛵 RESPECT & DIGNITÉ DES COURSIERS)
+## 🗓️ JOUR J49 — 2026-11-18 • Protagoniste : Koffi (Livreur Certifié Riviera) (🎯 DIGNITÉ & RESPECT LIVREURS)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_09_valeur_koffi_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_09_valeur_koffi_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 RESPECT & DIGNITÉ DES COURSIERS
+* **Bénéfice Clé :** 🎯 DIGNITÉ & RESPECT LIVREURS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3941,7 +3971,7 @@ Tout se passe sur WhatsApp Business sans application lourde qui décharge votre 
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_09_valeur_koffi_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_09_valeur_koffi_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 RESPECT & DIGNITÉ DES COURSIERS
+* **Bénéfice Clé :** 🎯 DIGNITÉ & RESPECT LIVREURS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3966,7 +3996,7 @@ En plus, tu ne transportes pas l'argent du commerçant : le client paie directem
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_09_valeur_koffi_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_09_valeur_koffi_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 RESPECT & DIGNITÉ DES COURSIERS
+* **Bénéfice Clé :** 🎯 DIGNITÉ & RESPECT LIVREURS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -3988,12 +4018,12 @@ C'est la liberté et le respect du travailleur ivoirien.
 
 ---
 
-## 🗓️ JOUR J50 — 2026-11-19 • Protagoniste : Duel Comparatif (⚖️ COMPARATIF SANS FILTRE)
+## 🗓️ JOUR J50 — 2026-11-19 • Protagoniste : Le Duel Choc à Abidjan (🥊 COMPARATIF SANS FILTRE)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_10_duel_comparatif_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_10_duel_comparatif_story_vertical.png`)
-* **Bénéfice Clé :** ⚖️ COMPARATIF SANS FILTRE
+* **Bénéfice Clé :** 🥊 COMPARATIF SANS FILTRE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4018,7 +4048,7 @@ C'est notre façon de vous prouver l'efficacité de notre technologie sans que v
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_10_duel_comparatif_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_10_duel_comparatif_story_vertical.png`)
-* **Bénéfice Clé :** ⚖️ COMPARATIF SANS FILTRE
+* **Bénéfice Clé :** 🥊 COMPARATIF SANS FILTRE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4046,7 +4076,7 @@ Avec WAZAP, bénéficiez de :
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_10_duel_comparatif_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_10_duel_comparatif_story_vertical.png`)
-* **Bénéfice Clé :** ⚖️ COMPARATIF SANS FILTRE
+* **Bénéfice Clé :** 🥊 COMPARATIF SANS FILTRE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4073,21 +4103,21 @@ Révolution WAZAP :
 
 ---
 
-## 🗓️ JOUR J51 — 2026-11-20 • Protagoniste : Awa (🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE)
+## 🗓️ JOUR J51 — 2026-11-20 • Protagoniste : Awa (Joaillerie Cocody) (🛡️ SÉCURITÉ COMMERÇANTS)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_01_securite_awa_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_01_securite_awa_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE
+* **Bénéfice Clé :** 🛡️ SÉCURITÉ COMMERÇANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-🚨 Commerçants d'Abidjan : commencez votre journée sans la peur au ventre de confier vos colis !
+🚨 WAZAP.CI - FINI LES LIVREURS QUI DISPARAISSENT AVEC VOTRE ARGENT !
 
-Chaque matin, c'est le même dilemme : confier vos commandes à un coursier inconnu et prier pour qu'il ne disparaisse pas avec votre recette ?
+Chaque matin à Abidjan, c'est la même angoisse pour les commerçants : confier des colis de valeur à un coursier inconnu et prier pour qu'il ne disparaisse pas avec la recette !
 
 Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
-À la remise, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
+À la remise du colis, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
 
 🛡️ Livreurs vérifiés CNI par IA Google Cloud Vision
 📍 Géolocalisation live sur la carte
@@ -4106,17 +4136,19 @@ Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_01_securite_awa_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_01_securite_awa_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE
+* **Bénéfice Clé :** 🛡️ SÉCURITÉ COMMERÇANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-⚡ Rush de midi à Abidjan : votre client n'a pas la monnaie ou veut payer à la livraison ?
+⚡ WAZAP.CI : LE LIVREUR NE TOUCHE PAS À UN SEUL FRANC DE VOTRE MARCHANDISE !
 
-Pas besoin d'annuler la vente ni d'envoyer le livreur chercher la monnaie au carrefour.
-Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money.
+Rush de midi à Abidjan : votre client n'a pas la monnaie sur 10 000 F ou exige de payer à la livraison ?
+
+Pas besoin d'annuler la vente ni d'envoyer le coursier chercher la monnaie au carrefour.
+Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money (Wave, Orange Money, MTN).
 
 Le livreur ne touche à aucun billet de votre marchandise : il ne perçoit que ses frais de course.
-Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement immédiat dans votre trésorerie !
+Résultat : zéro risque de vol, zéro faux billet, encaissement immédiat dans votre trésorerie !
 
 📲 Pour tester gratuitement avec 15 courses offertes : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -4131,18 +4163,18 @@ Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement imm
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_01_securite_awa_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_01_securite_awa_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉCURITÉ VENDEURS 100% BLINDÉE
+* **Bénéfice Clé :** 🛡️ SÉCURITÉ COMMERÇANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
 🌙 18h30 à Abidjan : clôturez votre journée avec 100% de vos recettes en caisse et l'esprit tranquille.
 
-Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous ?
+Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous, la peur au ventre qu'il ait coupé son téléphone ?
 Avec WAZAP, ce stress appartient définitivement au passé.
 
-Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article fragile.
+Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article.
 
-C'est ça, la nouvelle norme du commerce à Abidjan.
+C'est ça, la nouvelle norme du commerce sécurisé à Abidjan.
 
 💼 Rejoignez plus de 1 000 commerçants satisfaits : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -4154,21 +4186,21 @@ C'est ça, la nouvelle norme du commerce à Abidjan.
 
 ---
 
-## 🗓️ JOUR J52 — 2026-11-21 • Protagoniste : Fatou (🛡️ COLIS FRAGILES & DÉLICATS)
+## 🗓️ JOUR J52 — 2026-11-21 • Protagoniste : Fatou (Pâtisserie Yopougon) (🛡️ ENCAISSEMENT 100% GARANTI)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_02_securite_fatou_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_02_securite_fatou_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ COLIS FRAGILES & DÉLICATS
+* **Bénéfice Clé :** 🛡️ ENCAISSEMENT 100% GARANTI
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-🚨 Commerçants d'Abidjan : commencez votre journée sans la peur au ventre de confier vos colis !
+🚨 WAZAP.CI - FINI LES LIVREURS QUI DISPARAISSENT AVEC VOTRE ARGENT !
 
-Chaque matin, c'est le même dilemme : confier vos commandes à un coursier inconnu et prier pour qu'il ne disparaisse pas avec votre recette ?
+Chaque matin à Abidjan, c'est la même angoisse pour les commerçants : confier des colis de valeur à un coursier inconnu et prier pour qu'il ne disparaisse pas avec la recette !
 
 Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
-À la remise, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
+À la remise du colis, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
 
 🛡️ Livreurs vérifiés CNI par IA Google Cloud Vision
 📍 Géolocalisation live sur la carte
@@ -4187,17 +4219,19 @@ Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_02_securite_fatou_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_02_securite_fatou_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ COLIS FRAGILES & DÉLICATS
+* **Bénéfice Clé :** 🛡️ ENCAISSEMENT 100% GARANTI
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-⚡ Rush de midi à Abidjan : votre client n'a pas la monnaie ou veut payer à la livraison ?
+⚡ WAZAP.CI : LE LIVREUR NE TOUCHE PAS À UN SEUL FRANC DE VOTRE MARCHANDISE !
 
-Pas besoin d'annuler la vente ni d'envoyer le livreur chercher la monnaie au carrefour.
-Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money.
+Rush de midi à Abidjan : votre client n'a pas la monnaie sur 10 000 F ou exige de payer à la livraison ?
+
+Pas besoin d'annuler la vente ni d'envoyer le coursier chercher la monnaie au carrefour.
+Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money (Wave, Orange Money, MTN).
 
 Le livreur ne touche à aucun billet de votre marchandise : il ne perçoit que ses frais de course.
-Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement immédiat dans votre trésorerie !
+Résultat : zéro risque de vol, zéro faux billet, encaissement immédiat dans votre trésorerie !
 
 📲 Pour tester gratuitement avec 15 courses offertes : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -4212,18 +4246,18 @@ Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement imm
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_02_securite_fatou_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_02_securite_fatou_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ COLIS FRAGILES & DÉLICATS
+* **Bénéfice Clé :** 🛡️ ENCAISSEMENT 100% GARANTI
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
 🌙 18h30 à Abidjan : clôturez votre journée avec 100% de vos recettes en caisse et l'esprit tranquille.
 
-Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous ?
+Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous, la peur au ventre qu'il ait coupé son téléphone ?
 Avec WAZAP, ce stress appartient définitivement au passé.
 
-Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article fragile.
+Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article.
 
-C'est ça, la nouvelle norme du commerce à Abidjan.
+C'est ça, la nouvelle norme du commerce sécurisé à Abidjan.
 
 💼 Rejoignez plus de 1 000 commerçants satisfaits : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -4235,21 +4269,21 @@ C'est ça, la nouvelle norme du commerce à Abidjan.
 
 ---
 
-## 🗓️ JOUR J53 — 2026-11-22 • Protagoniste : Clarisse (🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE)
+## 🗓️ JOUR J53 — 2026-11-22 • Protagoniste : Clarisse (Cosmétiques Koumassi) (🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_03_securite_clarisse_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_03_securite_clarisse_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE
+* **Bénéfice Clé :** 🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-🚨 Commerçants d'Abidjan : commencez votre journée sans la peur au ventre de confier vos colis !
+🚨 WAZAP.CI - FINI LES LIVREURS QUI DISPARAISSENT AVEC VOTRE ARGENT !
 
-Chaque matin, c'est le même dilemme : confier vos commandes à un coursier inconnu et prier pour qu'il ne disparaisse pas avec votre recette ?
+Chaque matin à Abidjan, c'est la même angoisse pour les commerçants : confier des colis de valeur à un coursier inconnu et prier pour qu'il ne disparaisse pas avec la recette !
 
 Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
-À la remise, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
+À la remise du colis, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.
 
 🛡️ Livreurs vérifiés CNI par IA Google Cloud Vision
 📍 Géolocalisation live sur la carte
@@ -4268,17 +4302,19 @@ Sur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_03_securite_clarisse_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_03_securite_clarisse_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE
+* **Bénéfice Clé :** 🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
-⚡ Rush de midi à Abidjan : votre client n'a pas la monnaie ou veut payer à la livraison ?
+⚡ WAZAP.CI : LE LIVREUR NE TOUCHE PAS À UN SEUL FRANC DE VOTRE MARCHANDISE !
 
-Pas besoin d'annuler la vente ni d'envoyer le livreur chercher la monnaie au carrefour.
-Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money.
+Rush de midi à Abidjan : votre client n'a pas la monnaie sur 10 000 F ou exige de payer à la livraison ?
+
+Pas besoin d'annuler la vente ni d'envoyer le coursier chercher la monnaie au carrefour.
+Grâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money (Wave, Orange Money, MTN).
 
 Le livreur ne touche à aucun billet de votre marchandise : il ne perçoit que ses frais de course.
-Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement immédiat dans votre trésorerie !
+Résultat : zéro risque de vol, zéro faux billet, encaissement immédiat dans votre trésorerie !
 
 📲 Pour tester gratuitement avec 15 courses offertes : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -4293,18 +4329,18 @@ Résultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement imm
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_03_securite_clarisse_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_03_securite_clarisse_story_vertical.png`)
-* **Bénéfice Clé :** 🛡️ SÉRÉNITÉ TOTALE SOUS LA PLUIE
+* **Bénéfice Clé :** 🌧️ SÉRÉNITÉ SOUS LA PLUIE & SUIVI LIVE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
 🌙 18h30 à Abidjan : clôturez votre journée avec 100% de vos recettes en caisse et l'esprit tranquille.
 
-Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous ?
+Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous, la peur au ventre qu'il ait coupé son téléphone ?
 Avec WAZAP, ce stress appartient définitivement au passé.
 
-Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article fragile.
+Chaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article.
 
-C'est ça, la nouvelle norme du commerce à Abidjan.
+C'est ça, la nouvelle norme du commerce sécurisé à Abidjan.
 
 💼 Rejoignez plus de 1 000 commerçants satisfaits : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.
 
@@ -4316,12 +4352,12 @@ C'est ça, la nouvelle norme du commerce à Abidjan.
 
 ---
 
-## 🗓️ JOUR J54 — 2026-11-23 • Protagoniste : Salimata (⚡ GAIN DE TEMPS ULTRA-RAPIDE)
+## 🗓️ JOUR J54 — 2026-11-23 • Protagoniste : Salimata (Styliste Angré) (⚡ RAPIDITÉ ÉCLAIR)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_04_rapidite_salimata_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_04_rapidite_salimata_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ GAIN DE TEMPS ULTRA-RAPIDE
+* **Bénéfice Clé :** ⚡ RAPIDITÉ ÉCLAIR
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4349,7 +4385,7 @@ Notre algorithme intelligent géolocalise et alerte les 5 livreurs disponibles l
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_04_rapidite_salimata_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_04_rapidite_salimata_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ GAIN DE TEMPS ULTRA-RAPIDE
+* **Bénéfice Clé :** ⚡ RAPIDITÉ ÉCLAIR
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4375,7 +4411,7 @@ Le résultat ? Des clients fidélisés qui recommandent les yeux fermés !
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_04_rapidite_salimata_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_04_rapidite_salimata_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ GAIN DE TEMPS ULTRA-RAPIDE
+* **Bénéfice Clé :** ⚡ RAPIDITÉ ÉCLAIR
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4396,12 +4432,12 @@ Vous gardez les yeux sur la carte interactive sans devoir harceler le coursier a
 
 ---
 
-## 🗓️ JOUR J55 — 2026-11-24 • Protagoniste : Momo (⚡ LE RUSH DE MIDI MAÎTRISÉ)
+## 🗓️ JOUR J55 — 2026-11-24 • Protagoniste : Chef Momo (Grillades d'Abidjan) (🔥 RUSH DE MIDI MAÎTRISÉ)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_05_rapidite_momo_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_05_rapidite_momo_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ LE RUSH DE MIDI MAÎTRISÉ
+* **Bénéfice Clé :** 🔥 RUSH DE MIDI MAÎTRISÉ
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4429,7 +4465,7 @@ Notre algorithme intelligent géolocalise et alerte les 5 livreurs disponibles l
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_05_rapidite_momo_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_05_rapidite_momo_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ LE RUSH DE MIDI MAÎTRISÉ
+* **Bénéfice Clé :** 🔥 RUSH DE MIDI MAÎTRISÉ
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4455,7 +4491,7 @@ Le résultat ? Des clients fidélisés qui recommandent les yeux fermés !
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_05_rapidite_momo_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_05_rapidite_momo_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ LE RUSH DE MIDI MAÎTRISÉ
+* **Bénéfice Clé :** 🔥 RUSH DE MIDI MAÎTRISÉ
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4476,12 +4512,12 @@ Vous gardez les yeux sur la carte interactive sans devoir harceler le coursier a
 
 ---
 
-## 🗓️ JOUR J56 — 2026-11-25 • Protagoniste : Amara (⚡ FINIE LA GALÈRE DE MONNAIE)
+## 🗓️ JOUR J56 — 2026-11-25 • Protagoniste : Amara (Streetwear Marcory) (💵 MONNAIE RÉSOLUE 0 CASH)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_06_rapidite_amara_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_06_rapidite_amara_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ FINIE LA GALÈRE DE MONNAIE
+* **Bénéfice Clé :** 💵 MONNAIE RÉSOLUE 0 CASH
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4509,7 +4545,7 @@ Notre algorithme intelligent géolocalise et alerte les 5 livreurs disponibles l
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_06_rapidite_amara_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_06_rapidite_amara_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ FINIE LA GALÈRE DE MONNAIE
+* **Bénéfice Clé :** 💵 MONNAIE RÉSOLUE 0 CASH
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4535,7 +4571,7 @@ Le résultat ? Des clients fidélisés qui recommandent les yeux fermés !
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_06_rapidite_amara_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_06_rapidite_amara_story_vertical.png`)
-* **Bénéfice Clé :** ⚡ FINIE LA GALÈRE DE MONNAIE
+* **Bénéfice Clé :** 💵 MONNAIE RÉSOLUE 0 CASH
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4556,12 +4592,12 @@ Vous gardez les yeux sur la carte interactive sans devoir harceler le coursier a
 
 ---
 
-## 🗓️ JOUR J57 — 2026-11-26 • Protagoniste : Tantie Aïcha (💎 OFFRE EXCLUSIVE COMMERÇANTS)
+## 🗓️ JOUR J57 — 2026-11-26 • Protagoniste : Tantie Aïcha (Wax & Mode Adjamé) (💎 15 COURSES OFFERTES)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_07_valeur_aicha_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_07_valeur_aicha_story_vertical.png`)
-* **Bénéfice Clé :** 💎 OFFRE EXCLUSIVE COMMERÇANTS
+* **Bénéfice Clé :** 💎 15 COURSES OFFERTES
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4586,7 +4622,7 @@ C'est notre façon de vous prouver l'efficacité de notre technologie sans que v
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_07_valeur_aicha_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_07_valeur_aicha_story_vertical.png`)
-* **Bénéfice Clé :** 💎 OFFRE EXCLUSIVE COMMERÇANTS
+* **Bénéfice Clé :** 💎 15 COURSES OFFERTES
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4614,7 +4650,7 @@ Avec WAZAP, bénéficiez de :
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_07_valeur_aicha_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_07_valeur_aicha_story_vertical.png`)
-* **Bénéfice Clé :** 💎 OFFRE EXCLUSIVE COMMERÇANTS
+* **Bénéfice Clé :** 💎 15 COURSES OFFERTES
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4641,12 +4677,12 @@ Révolution WAZAP :
 
 ---
 
-## 🗓️ JOUR J58 — 2026-11-27 • Protagoniste : Bakary (🛵 LIVREURS INDÉPENDANTS DU 225)
+## 🗓️ JOUR J58 — 2026-11-27 • Protagoniste : Bakary (Livreur Leader Marcory) (🛵 LIVREURS INDÉPENDANTS)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_08_valeur_bakary_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_08_valeur_bakary_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS DU 225
+* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4673,7 +4709,7 @@ Tout se passe sur WhatsApp Business sans application lourde qui décharge votre 
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_08_valeur_bakary_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_08_valeur_bakary_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS DU 225
+* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4698,7 +4734,7 @@ En plus, tu ne transportes pas l'argent du commerçant : le client paie directem
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_08_valeur_bakary_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_08_valeur_bakary_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS DU 225
+* **Bénéfice Clé :** 🛵 LIVREURS INDÉPENDANTS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4720,12 +4756,12 @@ C'est la liberté et le respect du travailleur ivoirien.
 
 ---
 
-## 🗓️ JOUR J59 — 2026-11-28 • Protagoniste : Koffi (🛵 RESPECT & DIGNITÉ DES COURSIERS)
+## 🗓️ JOUR J59 — 2026-11-28 • Protagoniste : Koffi (Livreur Certifié Riviera) (🎯 DIGNITÉ & RESPECT LIVREURS)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_09_valeur_koffi_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_09_valeur_koffi_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 RESPECT & DIGNITÉ DES COURSIERS
+* **Bénéfice Clé :** 🎯 DIGNITÉ & RESPECT LIVREURS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4752,7 +4788,7 @@ Tout se passe sur WhatsApp Business sans application lourde qui décharge votre 
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_09_valeur_koffi_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_09_valeur_koffi_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 RESPECT & DIGNITÉ DES COURSIERS
+* **Bénéfice Clé :** 🎯 DIGNITÉ & RESPECT LIVREURS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4777,7 +4813,7 @@ En plus, tu ne transportes pas l'argent du commerçant : le client paie directem
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_09_valeur_koffi_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_09_valeur_koffi_story_vertical.png`)
-* **Bénéfice Clé :** 🛵 RESPECT & DIGNITÉ DES COURSIERS
+* **Bénéfice Clé :** 🎯 DIGNITÉ & RESPECT LIVREURS
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4799,12 +4835,12 @@ C'est la liberté et le respect du travailleur ivoirien.
 
 ---
 
-## 🗓️ JOUR J60 — 2026-11-29 • Protagoniste : Duel Comparatif (⚖️ COMPARATIF SANS FILTRE)
+## 🗓️ JOUR J60 — 2026-11-29 • Protagoniste : Le Duel Choc à Abidjan (🥊 COMPARATIF SANS FILTRE)
 
 ### ⏰ Post 1 — Matin (08h00) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_10_duel_comparatif_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_10_duel_comparatif_story_vertical.png`)
-* **Bénéfice Clé :** ⚖️ COMPARATIF SANS FILTRE
+* **Bénéfice Clé :** 🥊 COMPARATIF SANS FILTRE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4829,7 +4865,7 @@ C'est notre façon de vous prouver l'efficacité de notre technologie sans que v
 ### ⏰ Post 2 — Midi (12h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_10_duel_comparatif_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_10_duel_comparatif_story_vertical.png`)
-* **Bénéfice Clé :** ⚖️ COMPARATIF SANS FILTRE
+* **Bénéfice Clé :** 🥊 COMPARATIF SANS FILTRE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text
@@ -4857,7 +4893,7 @@ Avec WAZAP, bénéficiez de :
 ### ⏰ Post 3 — Soir (18h30) — Canaux : Facebook Feed & Story · Instagram Feed & Story · WhatsApp Statut
 
 * **Format Visuel :** Feed Carré 1:1 (`visuels/feed/visuel_10_duel_comparatif_feed_square.png`) & Story Verticale 9:16 (`visuels/story/visuel_10_duel_comparatif_story_vertical.png`)
-* **Bénéfice Clé :** ⚖️ COMPARATIF SANS FILTRE
+* **Bénéfice Clé :** 🥊 COMPARATIF SANS FILTRE
 
 #### 📝 Légende prête à coller (Caption Facebook & Instagram) :
 ```text

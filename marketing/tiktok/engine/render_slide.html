@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>WAZAP TikTok Frame Renderer</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800;900&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #070c09;
+      color: #ffffff;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .frame-container {
+      position: relative;
+      width: 1080px;
+      height: 1920px;
+      display: flex;
+      flex-direction: column;
+      padding: 120px 80px 140px 80px;
+      background: radial-gradient(circle at 50% 15%, rgba(0, 214, 108, 0.18), transparent 50%),
+                  radial-gradient(circle at 80% 85%, rgba(247, 201, 72, 0.12), transparent 45%),
+                  linear-gradient(180deg, #09120c 0%, #060a08 100%);
+      overflow: hidden;
+    }
+
+    /* Ambient glow circles */
+    .glow-top {
+      position: absolute;
+      top: -150px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 500px;
+      background: radial-gradient(ellipse, rgba(0, 214, 108, 0.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .glow-bottom {
+      position: absolute;
+      bottom: -150px;
+      right: -100px;
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(0, 214, 108, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* Top Bar with Brand Logo */
+    .header {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+      margin-bottom: 70px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .brand-logo {
+      height: 96px;
+      width: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 24px rgba(0, 214, 108, 0.3));
+    }
+
+    .target-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 36px;
+      background: rgba(0, 214, 108, 0.12);
+      border: 2px solid rgba(0, 214, 108, 0.4);
+      border-radius: 999px;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: #00d66c;
+      text-transform: uppercase;
+      box-shadow: 0 8px 32px rgba(0, 214, 108, 0.15);
+    }
+
+    .target-badge.gold {
+      background: rgba(247, 201, 72, 0.12);
+      border-color: rgba(247, 201, 72, 0.45);
+      color: #f7c948;
+      box-shadow: 0 8px 32px rgba(247, 201, 72, 0.15);
+    }
+
+    .target-badge.red {
+      background: rgba(255, 77, 77, 0.12);
+      border-color: rgba(255, 77, 77, 0.45);
+      color: #ff5252;
+      box-shadow: 0 8px 32px rgba(255, 77, 77, 0.15);
+    }
+
+    /* Slide Content Center */
+    .content {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    /* Main Hook Title */
+    .hook-title {
+      font-size: 82px;
+      line-height: 1.12;
+      font-weight: 900;
+      letter-spacing: -2px;
+      margin-bottom: 40px;
+      color: #ffffff;
+      text-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
+    }
+
+    .hook-title span.highlight {
+      background: linear-gradient(135deg, #00d66c 0%, #2bf78e 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hook-title span.gold {
+      background: linear-gradient(135deg, #f7c948 0%, #ffd978 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Subtitle / Insight */
+    .subtitle {
+      font-size: 40px;
+      line-height: 1.45;
+      font-weight: 600;
+      color: #b3c9bc;
+      margin-bottom: 50px;
+    }
+
+    /* Cards / Points list */
+    .points-list {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      margin-top: 20px;
+      margin-bottom: 50px;
+    }
+
+    .point-card {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      background: rgba(18, 30, 22, 0.7);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 32px;
+      padding: 32px 36px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(20px);
+    }
+
+    .point-card.active {
+      border-color: rgba(0, 214, 108, 0.45);
+      background: rgba(0, 214, 108, 0.08);
+    }
+
+    .point-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 72px;
+      height: 72px;
+      border-radius: 24px;
+      background: rgba(0, 214, 108, 0.2);
+      color: #00d66c;
+      font-size: 36px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .point-icon.gold {
+      background: rgba(247, 201, 72, 0.2);
+      color: #f7c948;
+    }
+
+    .point-text {
+      font-size: 36px;
+      line-height: 1.35;
+      font-weight: 700;
+      color: #f0f7f3;
+    }
+
+    /* Big Highlight Box (Offer or PIN code) */
+    .special-box {
+      margin-top: 30px;
+      margin-bottom: 50px;
+      padding: 44px;
+      background: linear-gradient(135deg, rgba(0, 214, 108, 0.18) 0%, rgba(13, 27, 18, 0.8) 100%);
+      border: 3px solid #00d66c;
+      border-radius: 36px;
+      box-shadow: 0 24px 60px rgba(0, 214, 108, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .special-box.gold {
+      background: linear-gradient(135deg, rgba(247, 201, 72, 0.18) 0%, rgba(27, 22, 10, 0.8) 100%);
+      border-color: #f7c948;
+      box-shadow: 0 24px 60px rgba(247, 201, 72, 0.25);
+    }
+
+    .special-content h3 {
+      font-size: 46px;
+      font-weight: 900;
+      color: #ffffff;
+      margin-bottom: 12px;
+    }
+
+    .special-content p {
+      font-size: 32px;
+      color: #b5d5c0;
+      font-weight: 600;
+    }
+
+    .special-badge {
+      font-size: 56px;
+      font-weight: 900;
+      padding: 18px 36px;
+      background: #00d66c;
+      color: #05140a;
+      border-radius: 24px;
+      box-shadow: 0 10px 25px rgba(0, 214, 108, 0.4);
+    }
+
+    .special-badge.gold {
+      background: #f7c948;
+      color: #1a1403;
+      box-shadow: 0 10px 25px rgba(247, 201, 72, 0.4);
+    }
+
+    /* Footer Action Banner */
+    .footer {
+      position: relative;
+      z-index: 10;
+      margin-top: auto;
+    }
+
+    .cta-button {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      background: linear-gradient(135deg, #00d66c 0%, #00ab56 100%);
+      color: #04140a;
+      font-size: 42px;
+      font-weight: 900;
+      padding: 38px 40px;
+      border-radius: 36px;
+      box-shadow: 0 20px 50px rgba(0, 214, 108, 0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .cta-subtext {
+      text-align: center;
+      margin-top: 28px;
+      font-size: 30px;
+      font-weight: 700;
+      color: #9cb8a7;
+      letter-spacing: 0.5px;
+    }
+
+    .cta-subtext strong {
+      color: #00d66c;
+    }
+  </style>
+</head>
+<body>
+  <div class="frame-container">
+    <div class="glow-top"></div>
+    <div class="glow-bottom"></div>
+
+    <!-- Header -->
+    <div class="header">
+      <div class="brand-group">
+        <img src="assets/logo.png" alt="WAZAP" class="brand-logo" id="brandLogo">
+      </div>
+      <div class="target-badge" id="targetBadge">⚡ ABIDJAN LIVRAISON</div>
+    </div>
+
+    <!-- Main Dynamic Content -->
+    <div class="content" id="mainContent">
+      <div class="hook-title" id="hookTitle">
+        Marre des livreurs qui disparaissent à <span class="highlight">Abidjan</span> ?
+      </div>
+      <div class="subtitle" id="subtitle">
+        Trouve un coursier vérifié en moins de 30 secondes pour ton commerce.
+      </div>
+      <div class="points-list" id="pointsList">
+        <!-- Dynamic points will inject here -->
+      </div>
+      <div class="special-box" id="specialBox" style="display: none;">
+        <div class="special-content">
+          <h3 id="specialTitle">Offre Spéciale Vendeurs</h3>
+          <p id="specialDesc">15 premières courses sans engagement</p>
+        </div>
+        <div class="special-badge" id="specialBadge">OFFERT</div>
+      </div>
+    </div>
+
+    <!-- Footer CTA -->
+    <div class="footer">
+      <div class="cta-button" id="ctaBtn">
+        <span>👉 LIEN DANS LA BIO</span>
+      </div>
+      <div class="cta-subtext" id="ctaSubtext">
+        Dis ton quartier en commentaire <strong>Cocody, Marcory, Yopougon...</strong> 👇
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // URL Query parameters reader
+    const params = new URLSearchParams(location.search);
+
+    // Dynamic config
+    const target = params.get('target') || 'commercant';
+    const badge = params.get('badge') || (target === 'livreur' ? '🛵 LIVREURS WAZAP' : '🏪 COMMERCES ABIDJAN');
+    const badgeColor = params.get('badge_color') || (target === 'livreur' ? 'gold' : '');
+    const hook = params.get('hook') || 'La livraison rapide et sécurisée à Abidjan ⚡';
+    const subtitle = params.get('subtitle') || 'Suivi en direct sur carte • Code secret PIN • 0 abonnement';
+    const pointsStr = params.get('points') || '';
+    const specialTitle = params.get('special_title') || '';
+    const specialDesc = params.get('special_desc') || '';
+    const specialBadge = params.get('special_badge') || '';
+    const specialColor = params.get('special_color') || '';
+    const cta = params.get('cta') || '👉 LIEN DIRECT DANS LA BIO';
+    const commentPrompt = params.get('prompt') || 'Dis ton quartier en commentaire 👇';
+
+    // Apply values to DOM
+    const badgeEl = document.getElementById('targetBadge');
+    badgeEl.textContent = badge;
+    if (badgeColor) badgeEl.classList.add(badgeColor);
+
+    // Format highlight in hook if [brackets] used
+    let formattedHook = hook;
+    if (hook.includes('[') && hook.includes(']')) {
+      formattedHook = hook.replace(/\[(.*?)\]/g, '<span class="highlight">$1</span>');
+    } else if (hook.includes('{') && hook.includes('}')) {
+      formattedHook = hook.replace(/\{(.*?)\}/g, '<span class="gold">$1</span>');
+    }
+    document.getElementById('hookTitle').innerHTML = formattedHook;
+    document.getElementById('subtitle').textContent = subtitle;
+
+    // Render points if provided
+    const pointsListEl = document.getElementById('pointsList');
+    if (pointsStr) {
+      const points = pointsStr.split('|');
+      pointsListEl.innerHTML = '';
+      points.forEach((pt, index) => {
+        const card = document.createElement('div');
+        card.className = 'point-card' + (index === 0 ? ' active' : '');
+        
+        let iconEmoji = (index + 1);
+        if (target === 'livreur') {
+          iconEmoji = ['🛵', '💰', '📱', '🎁'][index % 4];
+        } else {
+          iconEmoji = ['⚡', '📦', '📍', '💳'][index % 4];
+        }
+
+        card.innerHTML = `
+          <div class="point-icon ${target === 'livreur' ? 'gold' : ''}">${iconEmoji}</div>
+          <div class="point-text">${pt.trim()}</div>
+        `;
+        pointsListEl.appendChild(card);
+      });
+    }
+
+    // Special box if provided
+    if (specialTitle) {
+      const specialBoxEl = document.getElementById('specialBox');
+      specialBoxEl.style.display = 'flex';
+      if (specialColor === 'gold') specialBoxEl.classList.add('gold');
+      document.getElementById('specialTitle').textContent = specialTitle;
+      document.getElementById('specialDesc').textContent = specialDesc;
+      const badgeTextEl = document.getElementById('specialBadge');
+      badgeTextEl.textContent = specialBadge;
+      if (specialColor === 'gold') badgeTextEl.classList.add('gold');
+    }
+
+    // CTA
+    document.getElementById('ctaBtn').innerHTML = `<span>${cta}</span>`;
+    document.getElementById('ctaSubtext').innerHTML = `${commentPrompt}`;
+  </script>
+</body>
+</html>

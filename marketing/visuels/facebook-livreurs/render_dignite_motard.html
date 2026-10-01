@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Opération Dignité Motard - WAZAP</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=Space+Grotesk:wght@700;900&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 1080px;
+      height: 1080px;
+      background: #06110a;
+      color: #ffffff;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 44px 48px;
+    }
+
+    /* Fond & Effets d'éclairage néon */
+    .bg-glow-top {
+      position: absolute;
+      top: -160px;
+      right: -100px;
+      width: 550px;
+      height: 550px;
+      background: radial-gradient(circle, rgba(0, 214, 108, 0.22) 0%, transparent 70%);
+      pointer-events: none;
+      filter: blur(40px);
+    }
+
+    .bg-glow-bottom {
+      position: absolute;
+      bottom: -150px;
+      left: -120px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(0, 168, 107, 0.20) 0%, transparent 70%);
+      pointer-events: none;
+      filter: blur(50px);
+    }
+
+    .bg-mesh {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 30%, rgba(13, 31, 21, 0.6) 0%, #06110a 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* HEADER */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .brand-logo {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 3px solid #00D66C;
+      box-shadow: 0 0 25px rgba(0, 214, 108, 0.4);
+      object-fit: cover;
+    }
+
+    .brand-text h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-text h1 span {
+      color: #00D66C;
+    }
+
+    .brand-text p {
+      font-size: 14px;
+      font-weight: 700;
+      color: #8C9F92;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .badge-alert {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.05));
+      border: 2px solid #EF4444;
+      padding: 10px 22px;
+      border-radius: 999px;
+      font-size: 15px;
+      font-weight: 900;
+      color: #FF6B6B;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.25);
+    }
+
+    /* TITRE PRINCIPAL */
+    .hero-title-wrap {
+      margin-top: 18px;
+      text-align: center;
+    }
+
+    .hero-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 46px;
+      font-weight: 900;
+      line-height: 1.15;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+    }
+
+    .hero-title .highlight-red {
+      color: #FF5A5A;
+      text-decoration: line-through;
+    }
+
+    .hero-title .highlight-green {
+      color: #00D66C;
+      text-shadow: 0 0 35px rgba(0, 214, 108, 0.5);
+    }
+
+    .hero-subtitle {
+      font-size: 19px;
+      font-weight: 700;
+      color: #CBD5E1;
+      margin-top: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    /* GRILLE COMPARATIVE 2 COLONNES */
+    .duel-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.08fr;
+      gap: 22px;
+      margin-top: 22px;
+    }
+
+    /* CARTE LES AUTRES */
+    .card-other {
+      background: rgba(18, 22, 20, 0.85);
+      border: 2px solid rgba(239, 68, 68, 0.4);
+      border-radius: 24px;
+      padding: 26px 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      backdrop-filter: blur(10px);
+    }
+
+    .card-header-other {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 18px;
+    }
+
+    .card-header-other h3 {
+      font-size: 20px;
+      font-weight: 800;
+      color: #94A3B8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .card-header-other .tag-bad {
+      background: rgba(239, 68, 68, 0.2);
+      color: #F87171;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 6px;
+    }
+
+    .items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .item-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .item-icon {
+      font-size: 20px;
+      line-height: 1.2;
+    }
+
+    .item-text h4 {
+      font-size: 16px;
+      font-weight: 800;
+      color: #E2E8F0;
+    }
+
+    .item-text p {
+      font-size: 13px;
+      color: #94A3B8;
+      margin-top: 2px;
+      line-height: 1.3;
+    }
+
+    .card-footer-other {
+      margin-top: 20px;
+      padding-top: 14px;
+      border-top: 1px dashed rgba(239, 68, 68, 0.3);
+      background: rgba(239, 68, 68, 0.08);
+      padding: 12px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .card-footer-other .stat-label {
+      font-size: 12px;
+      color: #94A3B8;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .card-footer-other .stat-val {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 24px;
+      font-weight: 900;
+      color: #F87171;
+      margin-top: 2px;
+    }
+
+    /* CARTE WAZAP */
+    .card-wazap {
+      background: linear-gradient(145deg, rgba(7, 35, 20, 0.95), rgba(4, 20, 11, 0.95));
+      border: 3px solid #00D66C;
+      border-radius: 26px;
+      padding: 26px 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 0 45px rgba(0, 214, 108, 0.28);
+      position: relative;
+    }
+
+    .card-wazap-badge {
+      position: absolute;
+      top: -14px;
+      right: 24px;
+      background: linear-gradient(135deg, #FFB800, #F59E0B);
+      color: #000000;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 999px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.5);
+    }
+
+    .card-header-wazap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(0, 214, 108, 0.25);
+      margin-bottom: 18px;
+    }
+
+    .card-header-wazap h3 {
+      font-size: 22px;
+      font-weight: 900;
+      color: #00D66C;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-header-wazap .tag-good {
+      background: rgba(0, 214, 108, 0.25);
+      border: 1px solid #00D66C;
+      color: #FFFFFF;
+      font-size: 13px;
+      font-weight: 900;
+      padding: 4px 12px;
+      border-radius: 6px;
+    }
+
+    .card-footer-wazap {
+      margin-top: 20px;
+      background: linear-gradient(135deg, rgba(0, 214, 108, 0.2), rgba(0, 214, 108, 0.08));
+      border: 1px solid #00D66C;
+      padding: 12px;
+      border-radius: 14px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(0, 214, 108, 0.2);
+    }
+
+    .card-footer-wazap .stat-label {
+      font-size: 12px;
+      color: #A7F3D0;
+      text-transform: uppercase;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .card-footer-wazap .stat-val {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 28px;
+      font-weight: 900;
+      color: #FFFFFF;
+      margin-top: 2px;
+    }
+
+    .card-footer-wazap .stat-val span {
+      color: #FFB800;
+    }
+
+    /* BANDEAU ACTION INFERIEUR */
+    .footer-bar {
+      margin-top: 22px;
+      background: rgba(13, 27, 19, 0.95);
+      border: 2px solid rgba(0, 214, 108, 0.4);
+      border-radius: 22px;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(12px);
+    }
+
+    .qr-block {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .qr-img {
+      width: 86px;
+      height: 86px;
+      border-radius: 12px;
+      background: #FFFFFF;
+      padding: 4px;
+      border: 2px solid #00D66C;
+    }
+
+    .qr-desc h4 {
+      font-size: 16px;
+      font-weight: 900;
+      color: #FFFFFF;
+      text-transform: uppercase;
+    }
+
+    .qr-desc p {
+      font-size: 13px;
+      color: #86EFAC;
+      margin-top: 3px;
+      font-weight: 600;
+    }
+
+    .cta-center {
+      text-align: center;
+    }
+
+    .cta-wa-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #00D66C;
+      color: #06110A;
+      font-size: 19px;
+      font-weight: 900;
+      padding: 12px 26px;
+      border-radius: 999px;
+      text-decoration: none;
+      box-shadow: 0 0 25px rgba(0, 214, 108, 0.6);
+      letter-spacing: 0.5px;
+    }
+
+    .cta-phone {
+      margin-top: 6px;
+      font-size: 15px;
+      font-weight: 800;
+      color: #CBD5E1;
+      letter-spacing: 1px;
+    }
+
+    .reward-pill {
+      background: rgba(255, 184, 0, 0.15);
+      border: 1px solid #FFB800;
+      padding: 10px 18px;
+      border-radius: 16px;
+      text-align: right;
+    }
+
+    .reward-pill .tag {
+      font-size: 11px;
+      font-weight: 800;
+      color: #FFB800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .reward-pill .title {
+      font-size: 14px;
+      font-weight: 900;
+      color: #FFFFFF;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-glow-top"></div>
+  <div class="bg-glow-bottom"></div>
+  <div class="bg-mesh"></div>
+
+  <div class="content">
+    <!-- HEADER -->
+    <div class="header">
+      <div class="brand-wrap">
+        <img src="../logo_officiel_wazap.jpg" alt="Logo Officiel WAZAP" class="brand-logo">
+        <div class="brand-text">
+          <h1>WAZAP<span>.CI</span> ⚡</h1>
+          <p>Plateforme de Mise en Relation Équitable</p>
+        </div>
+      </div>
+      <div class="badge-alert">
+        <span>🛑</span> Opération Dignité Motard
+      </div>
+    </div>
+
+    <!-- TITRE PRINCIPAL -->
+    <div class="hero-title-wrap">
+      <h2 class="hero-title">
+        STOP AUX COURSES À <span class="highlight-red">450 FCFA</span> !<br>
+        CHEZ WAZAP, C'EST <span class="highlight-green">1 000 F MINIMUM</span>.
+      </h2>
+      <p class="hero-subtitle">Même pour 300 mètres. 0% de commission prélevée sur le livreur.</p>
+    </div>
+
+    <!-- GRILLE COMPARATIVE DUEL -->
+    <div class="duel-grid">
+      <!-- LES AUTRES (YANGO) -->
+      <div class="card-other">
+        <div>
+          <div class="card-header-other">
+            <h3>Les Autres Applis</h3>
+            <span class="tag-bad">Courses au km</span>
+          </div>
+          <div class="items-list">
+            <div class="item-row">
+              <span class="item-icon">❌</span>
+              <div class="item-text">
+                <h4>Courses à 450 F - 650 F</h4>
+                <p>Sous-payé pour 2 à 4 km dans les embouteillages.</p>
+              </div>
+            </div>
+            <div class="item-row">
+              <span class="item-icon">❌</span>
+              <div class="item-text">
+                <h4>15% à 20% de commission</h4>
+                <p>La flotte et l'app ponctionnent ta sueur.</p>
+              </div>
+            </div>
+            <div class="item-row">
+              <span class="item-icon">❌</span>
+              <div class="item-text">
+                <h4>Argent bloqué</h4>
+                <p>Retraits compliqués sur portefeuille virtuel.</p>
+              </div>
+            </div>
+            <div class="item-row">
+              <span class="item-icon">❌</span>
+              <div class="item-text">
+                <h4>Carburant à ta charge</h4>
+                <p>À 875 F le litre de super, tu travailles à perte.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer-other">
+          <div class="stat-label">Bilan réel pour 30 courses :</div>
+          <div class="stat-val">~6 500 FCFA net</div>
+        </div>
+      </div>
+
+      <!-- WAZAP -->
+      <div class="card-wazap">
+        <div class="card-wazap-badge">⚡ 100% ÉQUITABLE</div>
+        <div>
+          <div class="card-header-wazap">
+            <h3>WAZAP Officiel</h3>
+            <span class="tag-good">Plancher Garanti</span>
+          </div>
+          <div class="items-list">
+            <div class="item-row">
+              <span class="item-icon">🟢</span>
+              <div class="item-text">
+                <h4 style="color:#00D66C; font-size:17px;">1 000 FCFA MINIMUM NET</h4>
+                <p>Plancher inviolable garanti dès le 1er mètre.</p>
+              </div>
+            </div>
+            <div class="item-row">
+              <span class="item-icon">🟢</span>
+              <div class="item-text">
+                <h4 style="color:#FFFFFF;">0 FCFA de commission (0%)</h4>
+                <p>100% du tarif de course reste dans ta poche.</p>
+              </div>
+            </div>
+            <div class="item-row">
+              <span class="item-icon">🟢</span>
+              <div class="item-text">
+                <h4 style="color:#FFFFFF;">Cash direct ou Wave immédiat</h4>
+                <p>Encaissé sur-le-champ sans intermédiaire.</p>
+              </div>
+            </div>
+            <div class="item-row">
+              <span class="item-icon">🟢</span>
+              <div class="item-text">
+                <h4 style="color:#FFB800;">1 500 F voisine • 2 000 F traversée</h4>
+                <p>Barème transparent selon la réalité d'Abidjan.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer-wazap">
+          <div class="stat-label">Bilan réel pour 30 courses :</div>
+          <div class="stat-val">24 000 FCFA <span>(×3,7 !)</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BANDEAU ACTION INFERIEUR -->
+    <div class="footer-bar">
+      <div class="qr-block">
+        <img src="assets/qr_dignite_dispo.png" alt="QR Code WhatsApp WAZAP" class="qr-img">
+        <div class="qr-desc">
+          <h4>Scan le QR Code</h4>
+          <p>ou écris « DISPO » en 1 clic</p>
+        </div>
+      </div>
+
+      <div class="cta-center">
+        <div class="cta-wa-btn">
+          <span>💬</span> Rejoindre sur WhatsApp
+        </div>
+        <div class="cta-phone">+225 05 44 05 19 72</div>
+      </div>
+
+      <div class="reward-pill">
+        <div class="tag">🎁 Défi Mensuel</div>
+        <div class="title">Smartphone Redmi 15C<br>Neuf à gagner !</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

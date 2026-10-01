@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>WAZAP - Flyer Recrutement Livreurs A5</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    @page {
+      size: A5 portrait;
+      margin: 0;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #eef2ef;
+      color: #111827;
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    /* Print-ready A5 container (148 x 210 mm, ISO 216 standard proportion 1 : 1.414) */
+    .flyer-container {
+      position: relative;
+      width: 1400px;
+      height: 1980px;
+      padding: 34px 44px 18px 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: #ffffff;
+      overflow: hidden;
+      box-shadow: 0 10px 60px rgba(0, 0, 0, 0.15);
+    }
+
+    /* 1. HEADER */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 26px;
+      padding-bottom: 12px;
+    }
+
+    .logo-img {
+      height: 92px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .header-divider {
+      width: 3.5px;
+      height: 68px;
+      background: #00b050;
+      border-radius: 2px;
+    }
+
+    .header-tagline {
+      font-size: 46px;
+      font-weight: 900;
+      color: #00b050;
+      font-style: italic;
+      letter-spacing: -0.01em;
+      line-height: 1.05;
+    }
+
+    .green-separator-line {
+      width: 100%;
+      height: 5px;
+      background: #00b050;
+      border-radius: 3px;
+      margin-bottom: 16px;
+    }
+
+    /* 2. HEADLINE & INTRO */
+    .hero-text-zone {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .hero-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 68px;
+      font-weight: 900;
+      text-transform: uppercase;
+      line-height: 0.98;
+      color: #0d1410;
+      letter-spacing: -0.01em;
+      margin-bottom: 10px;
+    }
+
+    .hero-subtitle {
+      font-size: 22px;
+      font-weight: 700;
+      color: #00873d;
+      line-height: 1.35;
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+
+    .hero-subtitle .sub-detail {
+      color: #1f2937;
+      font-weight: 800;
+    }
+
+    /* 3. HERO VISUAL (COURIER + ENTIRE SMARTPHONE) */
+    .hero-visual-container {
+      position: relative;
+      width: 100%;
+      height: 1010px;
+      border-radius: 28px;
+      overflow: hidden;
+      margin-bottom: 8px;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.1);
+      background: #06110a;
+    }
+
+    .courier-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 20%;
+      display: block;
+    }
+
+    /* Floating Pill Badge over visual */
+    .prize-badge-overlay {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 92%;
+      max-width: 1160px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      z-index: 10;
+    }
+
+    .prize-pill {
+      background: linear-gradient(135deg, #00b050 0%, #008f40 100%);
+      color: #ffffff;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 52px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 12px 50px;
+      border-radius: 999px;
+      box-shadow: 0 12px 35px rgba(0, 176, 80, 0.5), 0 0 25px rgba(0, 214, 108, 0.4);
+      border: 3.5px solid #ffffff;
+      text-align: center;
+      width: 100%;
+    }
+
+    .prize-guarantee {
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(8px);
+      padding: 7px 32px;
+      border-radius: 999px;
+      font-size: 21px;
+      font-weight: 800;
+      color: #0b1c11;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .prize-guarantee highlight {
+      color: #00a859;
+      font-weight: 900;
+    }
+
+    /* 4. THE 3 CONDITIONS (3 PILLARS) */
+    .conditions-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      padding: 6px 10px 12px 10px;
+    }
+
+    .condition-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 6px;
+      position: relative;
+    }
+
+    .condition-col:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      right: -10px;
+      top: 15%;
+      height: 70%;
+      width: 1.5px;
+      background: #e5e7eb;
+    }
+
+    .cond-icon-circle {
+      width: 62px;
+      height: 62px;
+      background: #00b050;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 32px;
+      box-shadow: 0 6px 18px rgba(0, 176, 80, 0.35);
+      flex-shrink: 0;
+    }
+
+    .cond-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 28px;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: #0d1410;
+      line-height: 1.1;
+      letter-spacing: 0.02em;
+    }
+
+    .cond-desc {
+      font-size: 17px;
+      font-weight: 600;
+      color: #4b5563;
+      line-height: 1.35;
+      padding: 0 8px;
+    }
+
+    .cond-desc b {
+      color: #00873d;
+      font-weight: 800;
+    }
+
+    /* 5. BOTTOM CALL TO ACTION BANNER (EMERALD GREEN) */
+    .cta-banner {
+      background: #00a859;
+      border-radius: 24px;
+      padding: 26px 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+      box-shadow: 0 14px 40px rgba(0, 168, 89, 0.38);
+      color: #ffffff;
+    }
+
+    .cta-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .cta-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 68px;
+      font-weight: 900;
+      text-transform: uppercase;
+      line-height: 0.95;
+      letter-spacing: 0.02em;
+      color: #ffffff;
+      text-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .cta-sub1 {
+      font-size: 30px;
+      font-weight: 800;
+      color: #e6fffa;
+      letter-spacing: 0.01em;
+      line-height: 1.1;
+    }
+
+    .cta-right-qr {
+      flex-shrink: 0;
+      background: #ffffff;
+      padding: 12px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qr-img {
+      width: 205px;
+      height: 205px;
+      display: block;
+    }
+
+    /* 6. FOOTER */
+    .footer-bar {
+      text-align: center;
+      padding-top: 10px;
+      font-size: 21px;
+      font-weight: 800;
+      color: #1f2937;
+      letter-spacing: 0.02em;
+    }
+
+    .footer-bar span {
+      color: #00a859;
+    }
+
+    @media print {
+      body {
+        background: none;
+      }
+      .flyer-container {
+        width: 100vw;
+        height: 100vh;
+        box-shadow: none;
+        border-radius: 0;
+        padding: 34px 44px 18px 44px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="flyer-container">
+    <!-- 1. HEADER -->
+    <div>
+      <header class="header">
+        <img src="logo_wazap_officiel.jpg" alt="Logo WAZAP" class="logo-img">
+        <div class="header-divider"></div>
+        <div class="header-tagline">Le Yango de la marchandise</div>
+      </header>
+      <div class="green-separator-line"></div>
+    </div>
+
+    <!-- 2. HEADLINE & HOOK -->
+    <section class="hero-text-zone">
+      <h1 class="hero-title">
+        DEVENS LE LIVREUR PRÉFÉRÉ<br>
+        DES BOUTIQUES DE TON QUARTIER
+      </h1>
+      <p class="hero-subtitle">
+        Des courses à moins de 5 min de ta position, tous les jours.<br>
+        <span class="sub-detail">Toutes les boutiques d'Abidjan t'attendent déjà.</span>
+      </p>
+    </section>
+
+    <!-- 3. HERO VISUAL (SMARTPHONE ENTIER EN ÉVIDENCE + LIVREUR SOURIANT) -->
+    <section class="hero-visual-container">
+      <img src="livreur_smartphone_wazap.jpg" alt="Smartphone 5G entier et Livreur WAZAP" class="courier-photo">
+      
+      <!-- Overlay Banner on bottom of photo -->
+      <div class="prize-badge-overlay">
+        <div class="prize-pill">
+          SMARTPHONE REDMI 15C 5G OFFERT
+        </div>
+        <div class="prize-guarantee">
+          🎁 <highlight>GARANTI</highlight> APRÈS VALIDATION DES 3 CONDITIONS CI-DESSOUS :
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. THE 3 CONDITIONS (3 PILLARS) -->
+    <section class="conditions-bar">
+      <!-- Condition 1 -->
+      <div class="condition-col">
+        <div class="cond-icon-circle">📲</div>
+        <div class="cond-title">1. SCANNE LE QR CODE</div>
+        <p class="cond-desc">
+          Enrôle-toi en 30s sur WhatsApp. Envoie « <b>je veux livrer</b> » sans payer 1 franc.
+        </p>
+      </div>
+
+      <!-- Condition 2 -->
+      <div class="condition-col">
+        <div class="cond-icon-circle">🏍️</div>
+        <div class="cond-title">2. 250 COURSES WAZAP</div>
+        <p class="cond-desc">
+          En 3 mois max — <b>moins de 3 courses par jour !</b>
+        </p>
+      </div>
+
+      <!-- Condition 3 -->
+      <div class="condition-col">
+        <div class="cond-icon-circle">👥</div>
+        <div class="cond-title">3. PARRAINE 5 AUTRES LIVREURS</div>
+        <p class="cond-desc">
+          Partage ton code à 5 collègues livreurs.
+        </p>
+      </div>
+    </section>
+
+    <!-- 5. CALL TO ACTION BANNER (EMERALD GREEN - AGRANDI & ÉPURÉ) -->
+    <section class="cta-banner">
+      <div class="cta-left">
+        <div class="cta-title">SCANNE POUR T'ENRÔLER</div>
+        <div class="cta-sub1">WhatsApp direct - Réponse en 5 min</div>
+      </div>
+
+      <div class="cta-right-qr">
+        <img src="qr_recrutement_whatsapp.png" alt="QR Code WhatsApp Enrôlement Livreur" class="qr-img">
+      </div>
+    </section>
+
+    <!-- 6. FOOTER -->
+    <footer class="footer-bar">
+      WhatsApp <span>05 44 05 19 72</span> | Abidjan
+    </footer>
+  </div>
+</body>
+</html>

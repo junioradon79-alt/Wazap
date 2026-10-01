@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>WAZAP feed</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100vw;height:100vh;overflow:hidden}
+body{font-family:'Segoe UI','Segoe UI Variable Display',Arial,sans-serif;color:#15221b;background:#fff}
+.bg{position:absolute;inset:0;background:
+ radial-gradient(70vw 60vh at 92% -12%,rgba(7,160,75,.16),transparent 62%),
+ radial-gradient(60vw 55vh at -6% 110%,rgba(14,122,62,.10),transparent 60%),
+ linear-gradient(178deg,#ffffff 0%,#f1f9f3 100%)}
+.wrap{position:absolute;inset:0;display:flex;flex-direction:column;padding:7vh 7vw}
+.logo{display:flex;align-items:center;gap:1.1vw;font-weight:800;font-size:2.1vw;letter-spacing:-.5px}
+.mark{width:2.8vw;height:2.8vw;border-radius:.6vw;background:linear-gradient(135deg,#0e7a3e,#07a04b);display:flex;align-items:center;justify-content:center;font-size:1.8vw;color:#fff}
+.badge{align-self:flex-start;margin:4vh 0 2.2vh;background:#e7f6ee;color:#0e7a3e;font-weight:700;font-size:1.35vw;border-radius:999px;padding:.7vw 1.6vw}
+h1{font-size:4.6vw;line-height:1.08;max-width:74vw;letter-spacing:-.8px}
+.sub{margin-top:2vh;font-size:1.75vw;color:#48604f;max-width:66vw;line-height:1.4}
+.offers{display:flex;gap:1vw;margin-top:2.2vh;flex-wrap:wrap}
+.pill{font-size:1.3vw;font-weight:700;background:#fff;border:1px solid #dce9e0;border-radius:999px;padding:.7vw 1.3vw}
+.pill.green{background:#0e7a3e;border-color:#0e7a3e;color:#fff}
+.cta{margin-top:auto;display:flex;align-items:center;gap:2.2vw}
+.qr{width:11vw;height:11vw;background:#fff;border:1px solid #e3e9e4;border-radius:1.2vw;padding:.5vw;box-shadow:0 8px 24px rgba(21,34,27,.08)}
+.qr img{width:100%;height:100%;display:block}
+.cta-txt{font-size:1.55vw;line-height:1.45;color:#15221b}
+.cta-txt b{font-size:1.8vw}
+.url{margin-top:.6vh;font-size:1.15vw;color:#7c8a81}
+.url b{color:#0e7a3e}
+.foot{margin-top:2vh;display:flex;align-items:center;justify-content:space-between;font-size:1.1vw;color:#8a988f}
+.foot .chat{color:#0e7a3e;font-weight:700}
+</style></head><body>
+<div class="bg"></div>
+<div class="wrap">
+  <div class="logo"><span class="mark">⚡</span> WAZAP</div>
+  <span class="badge" id="badge">🚚 La livraison de votre quartier, gérée depuis WhatsApp</span>
+  <h1 id="h1">Vendez plus.<br>Livrez sans effort.</h1>
+  <p class="sub" id="sub">Vos clients commandent par WhatsApp, un livreur proche est assigné automatiquement, ils suivent leur course en direct.</p>
+  <div class="offers" id="offers">
+    <span class="pill green">15 premières commandes offertes</span>
+    <span class="pill">Sans abonnement</span>
+    <span class="pill">Packs dès 1 000 FCFA</span>
+  </div>
+  <div class="cta">
+    <div class="qr"><img id="qr" alt="QR"></div>
+    <div class="cta-txt"><b>Scannez ou cliquez</b><br>Activez la livraison de votre commerce.<br>
+      <span class="url">👉 <b id="url">…/vente</b></span></div>
+  </div>
+  <div class="foot"><span>⚡ WAZAP — Vendez plus, livrez sans effort</span><span class="chat">WhatsApp 225 05 75 80 38 01</span></div>
+</div>
+<script>
+const a = new URLSearchParams(location.search).get('a') || 'com';
+const RIDER = {
+  badge: '🛵 Rejoignez les livreurs WAZAP',
+  h1: 'Gagnez en livrant autour de chez vous.',
+  sub: 'Recevez les courses de votre quartier sur WhatsApp. Vous choisissez vos disponibilités, vous êtes payé par course.',
+  offers: '<span class="pill green">Coursiers moto & particuliers</span><span class="pill">Vos horaires</span><span class="pill">Paiement par course</span>',
+  ctaTxt: 'Envoyez-nous un message WhatsApp :<br><b>« Bonjour WAZAP, je veux livrer »</b>',
+  url: '…/vente',
+};
+if (a === 'rider') {
+  document.getElementById('badge').textContent = RIDER.badge;
+  document.getElementById('h1').innerHTML = RIDER.h1;
+  document.getElementById('sub').textContent = RIDER.sub;
+  document.getElementById('offers').innerHTML = RIDER.offers;
+  document.querySelector('.cta-txt b').textContent = 'Prêt à livrer ?';
+  document.getElementById('url').textContent = RIDER.url;
+}
+const src = a === 'rider' ? 'recrutement-rider' : 'social-feed';
+document.getElementById('qr').src = 'https://junioradon79gm-001-site1.jtempurl.com/api/public/sales/qrcode?size=220&src=' + src;
+</script></body></html>

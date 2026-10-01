@@ -10,9 +10,9 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$Html  = 'A5_recrutement_livreur.html',
+    [string]$Html  = (Join-Path $PSScriptRoot 'A5_recrutement_livreur.html'),
     [switch]$SkipQr,
-    [string]$WaUrl = 'https://wa.me/2250787119520?text=Bonjour%20WAZAP%20!%20Je%20veux%20livrer'
+    [string]$WaUrl = 'https://junioradon79gm-001-site1.jtempurl.com/devenir-livreur'
 )
 $ErrorActionPreference = 'Stop'
 

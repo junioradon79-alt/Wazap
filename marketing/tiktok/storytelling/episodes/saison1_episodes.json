@@ -1,0 +1,502 @@
+[
+  {
+    "id": "story_ep01",
+    "number": 1,
+    "title": "Le livreur au carrefour depuis 8h du matin",
+    "durationSeconds": 45,
+    "target": "Commerçantes d'Abidjan excédées par les retards et annulations",
+    "scenes": [
+      {
+        "sceneIndex": 1,
+        "duration": 9,
+        "bgImage": "characters/sarah_stressee.jpg",
+        "seriesTitle": "🎬 LES GALÈRES D'ABIDJAN • EP. 01",
+        "hookBadge": "FLAGRANT DÉLIT",
+        "hookBadgeColor": "red",
+        "hookType": "danger",
+        "hookText": "Quand ton livreur te jure : <highlight class=\"yellow\">« Je suis au carrefour »</highlight> 🚩",
+        "bubble": {
+          "direction": "incoming",
+          "sender": "Tantie Sarah (Boutique Adjamé)",
+          "time": "11:42",
+          "message": "Allô Marius ? Tu es où ? La cliente de Cocody m'appelle depuis 1h ! Tu es parti ?"
+        },
+        "captionLabel": "ACTE 1 : L'ANGOISSE",
+        "captionText": "Il est 11h45. La cliente menace d'<span class=\"kw\">annuler la perruque à 45 000 F</span> si le livreur n'arrive pas immédiatement ! 😭"
+      },
+      {
+        "sceneIndex": 2,
+        "duration": 9,
+        "bgImage": "characters/marius_clande.jpg",
+        "seriesTitle": "🎬 LES GALÈRES D'ABIDJAN • EP. 01",
+        "hookBadge": "RÉALITÉ DU TERRAIN",
+        "hookBadgeColor": "orange",
+        "hookType": "danger",
+        "hookText": "Le fameux carrefour : <highlight class=\"red\">Garbadrome Mama Félicité</highlight> 🍗",
+        "bubble": {
+          "direction": "outgoing",
+          "sender": "Marius (Le Clandé)",
+          "time": "11:43",
+          "message": "Tantie Sarah ! Deux minutes j'arrive ! Il y a embouteillage à Saint-Jean !"
+        },
+        "captionLabel": "ACTE 2 : LE MENSONGE",
+        "captionText": "Le gars est assis au <span class=\"kw\">garba tranquillement</span> ! Le colis de 45 000 F est posé par terre dans la poussière... 🤦‍♂️"
+      },
+      {
+        "sceneIndex": 3,
+        "duration": 10,
+        "bgImage": "characters/koffi_wazap.jpg",
+        "seriesTitle": "⚡ LA SOLUTION OFFICIELLE WAZAP",
+        "isSuccess": true,
+        "hookBadge": "LIVRAISON PRO WAZAP",
+        "hookBadgeColor": "green",
+        "hookType": "success",
+        "hookText": "Arrête de confier ton business à des <highlight class=\"yellow\">livreurs fantômes</highlight> !",
+        "benefits": [
+          { "icon": "📍", "text": "Suivi GPS en temps réel sur la carte d'Abidjan" },
+          { "icon": "🔒", "text": "Validation livraison par code secret SMS client" },
+          { "icon": "💰", "text": "Encaissement sécurisé et virement instantané Wave/OM" }
+        ],
+        "captionLabel": "ACTE 3 : LE SAUVEUR WAZAP",
+        "captionText": "Avec <span class=\"kw-green\">Wazap</span>, chaque coursier est identifié, géolocalisé et noté par tes clients à chaque course ! 🚀"
+      },
+      {
+        "sceneIndex": 4,
+        "duration": 9,
+        "bgImage": "characters/jessica_satisfaite.jpg",
+        "seriesTitle": "⭐ EXPÉRIENCE CLIENT COCODY",
+        "isSuccess": true,
+        "hookBadge": "CLIENTE VIP RASSURÉE",
+        "hookBadgeColor": "gold",
+        "hookType": "success",
+        "hookText": "Jessica reçoit son colis en <highlight class=\"yellow\">40 minutes chrono</highlight> ✨",
+        "bubble": {
+          "direction": "incoming",
+          "sender": "Wazap Notification SMS",
+          "time": "12:15",
+          "message": "✅ Votre commande #WZ-842 a été livrée avec succès ! Note du livreur : ⭐⭐⭐⭐⭐"
+        },
+        "captionLabel": "ACTE 4 : LA FIDÉLISATION",
+        "captionText": "Une cliente livrée à l'heure avec un <span class=\"kw\">suivi professionnel</span>, c'est une cliente qui commande chaque semaine !"
+      },
+      {
+        "sceneIndex": 5,
+        "duration": 8,
+        "bgImage": "characters/sarah_heureuse.jpg",
+        "seriesTitle": "🚀 LE TRIOMPHE WAZAP",
+        "isSuccess": true,
+        "hookBadge": "RÉSULTAT GARANTI",
+        "hookBadgeColor": "green",
+        "hookType": "success",
+        "hookText": "150 colis livrés par semaine <highlight class=\"yellow\">sans aucune dispute</highlight> !",
+        "benefits": [
+          { "icon": "📱", "text": "Création de commande en 30 secondes" },
+          { "icon": "🛡️", "text": "Zéro colis perdu, zéro argent disparu" }
+        ],
+        "showCta": true,
+        "captionLabel": "PASSE À L'ACTION",
+        "captionText": "Rejoins les commerçantes qui dorment tranquilles à Abidjan ! <span class=\"kw-green\">Clique sur le lien en bio TikTok !</span>"
+      }
+    ]
+  },
+  {
+    "id": "story_ep02",
+    "number": 2,
+    "title": "Le faux client fantôme de Yopougon",
+    "durationSeconds": 45,
+    "target": "Commerçantes victimes de fausses commandes et de frais de livraison perdus",
+    "scenes": [
+      {
+        "sceneIndex": 1,
+        "duration": 9,
+        "bgImage": "characters/sarah_stressee.jpg",
+        "seriesTitle": "🎬 LES GALÈRES D'ABIDJAN • EP. 02",
+        "hookBadge": "COMMANDE DE RÊVE",
+        "hookBadgeColor": "orange",
+        "hookType": "danger",
+        "hookText": "Quand le client commande pour <highlight class=\"yellow\">65 000 FCFA</highlight> sur WhatsApp...",
+        "bubble": {
+          "direction": "incoming",
+          "sender": "Client WhatsApp (Inconnu)",
+          "time": "14:10",
+          "message": "Envoyez les 3 robes à Yopougon Bel Air ! Je paye cash à la livraison !"
+        },
+        "captionLabel": "ACTE 1 : LA FAUSSE JOIE",
+        "captionText": "Sarah prépare le colis en vitesse et paye 2 500 F d'avance au coursier pour aller à Yopougon... 💸"
+      },
+      {
+        "sceneIndex": 2,
+        "duration": 9,
+        "bgImage": "characters/koffi_attente_client.jpg",
+        "seriesTitle": "🎬 LES GALÈRES D'ABIDJAN • EP. 02",
+        "hookBadge": "DISPARITION TOTALE",
+        "hookBadgeColor": "red",
+        "hookType": "danger",
+        "hookText": "Sous le soleil de Yopougon : <highlight class=\"red\">« Le numéro n'est pas attribué »</highlight> 📵",
+        "bubble": {
+          "direction": "outgoing",
+          "sender": "Livreur à Yopougon",
+          "time": "15:30",
+          "message": "Tantie Sarah ! Ça fait 45 min je suis devant Maquis l'Espoir, son numéro ne passe plus !"
+        },
+        "captionLabel": "ACTE 2 : LE CLIENT FANTÔME",
+        "captionText": "Le client a bloqué le numéro ! <span class=\"kw\">Frais de transport perdus</span>, temps gâché, retour boutique à zéro franc ! 😤"
+      },
+      {
+        "sceneIndex": 3,
+        "duration": 10,
+        "bgImage": "characters/koffi_wazap.jpg",
+        "seriesTitle": "⚡ LA PARADE ANTI-FANTÔME WAZAP",
+        "isSuccess": true,
+        "hookBadge": "VALIDATION INTELLIGENTE",
+        "hookBadgeColor": "green",
+        "hookType": "success",
+        "hookText": "Zéro déplacement tant que le client n'a pas <highlight class=\"yellow\">confirmé son GPS</highlight> !",
+        "benefits": [
+          { "icon": "📍", "text": "Le client valide son repère exact en 1 clic sur WhatsApp" },
+          { "icon": "📱", "text": "Numéro de téléphone vérifié par SMS automatique" },
+          { "icon": "🛡️", "text": "Acompte Mobile Money sécurisé si besoin" }
+        ],
+        "captionLabel": "ACTE 3 : LE FILTRE WAZAP",
+        "captionText": "Avec <span class=\"kw-green\">Wazap</span>, les faux acheteurs fuient immédiatement. Tu ne livres QUE les vrais clients sérieux !"
+      },
+      {
+        "sceneIndex": 4,
+        "duration": 9,
+        "bgImage": "characters/jessica_satisfaite.jpg",
+        "seriesTitle": "⭐ CLIENTS VÉRIFIÉS SEULEMENT",
+        "isSuccess": true,
+        "hookBadge": "COMMANDE CONFIRMÉE",
+        "hookBadgeColor": "gold",
+        "hookType": "success",
+        "hookText": "100% des colis envoyés sont des <highlight class=\"yellow\">colis payés</highlight> 🎯",
+        "bubble": {
+          "direction": "incoming",
+          "sender": "Wazap Validation System",
+          "time": "16:00",
+          "message": "✅ Client vérifié : Repère géolocalisé validé à 100%. Livreur en route !"
+        },
+        "captionLabel": "ACTE 4 : LA SÉCURITÉ",
+        "captionText": "Finies les courses à vide à Yopougon ou Abobo ! Ton carburant et ton temps sont protégés à chaque commande !"
+      },
+      {
+        "sceneIndex": 5,
+        "duration": 8,
+        "bgImage": "characters/sarah_heureuse.jpg",
+        "seriesTitle": "🚀 ZÉRO PERTE GARANTIE",
+        "isSuccess": true,
+        "hookBadge": "RENTABILITÉ MAXIMALE",
+        "hookBadgeColor": "green",
+        "hookType": "success",
+        "hookText": "Protège ton stock et ton argent dès aujourd'hui !",
+        "benefits": [
+          { "icon": "⚡", "text": "Activation gratuite en 2 minutes chrono" },
+          { "icon": "🎁", "text": "15 livraisons professionnelles offertes" }
+        ],
+        "showCta": true,
+        "captionLabel": "STOP AUX FAUX CLIENTS",
+        "captionText": "Ne perds plus un seul franc dans les livraisons fantômes ! <span class=\"kw-green\">Lien officiel dans la bio TikTok !</span>"
+      }
+    ]
+  },
+  {
+    "id": "story_ep03",
+    "number": 3,
+    "title": "Le calcul de caisse qui ne balance jamais à 20h",
+    "durationSeconds": 45,
+    "target": "Commerçantes fatiguées des trous de caisse et des relances de livreurs",
+    "scenes": [
+      {
+        "sceneIndex": 1,
+        "duration": 9,
+        "bgImage": "characters/sarah_caisse_nuit.jpg",
+        "seriesTitle": "🎬 LES GALÈRES D'ABIDJAN • EP. 03",
+        "hookBadge": "LE CAUCHEMAR DE 20H",
+        "hookBadgeColor": "red",
+        "hookType": "danger",
+        "hookText": "20h à la boutique : <highlight class=\"yellow\">Il manque 35 000 FCFA dans la caisse</highlight> 🤯",
+        "bubble": {
+          "direction": "incoming",
+          "sender": "Cahier de comptes froissé",
+          "time": "20:15",
+          "message": "Total vendu : 180 000 F | Espèces reçues : 145 000 F | Écart : -35 000 F ❌"
+        },
+        "captionLabel": "ACTE 1 : LE TROU DE CAISSE",
+        "captionText": "Tantie Sarah a fait 12 livraisons dans la journée, mais le soir, les comptes ne balancent jamais ! 😭"
+      },
+      {
+        "sceneIndex": 2,
+        "duration": 9,
+        "bgImage": "characters/marius_clande.jpg",
+        "seriesTitle": "🎬 LES GALÈRES D'ABIDJAN • EP. 03",
+        "hookBadge": "L'EXCUSE CLASSIQUE",
+        "hookBadgeColor": "orange",
+        "hookType": "danger",
+        "hookText": "La fameuse note vocale : <highlight class=\"red\">« Tantie j'avais pas la monnaie »</highlight> 🤦‍♀️",
+        "bubble": {
+          "direction": "outgoing",
+          "sender": "Marius (Le Clandé)",
+          "time": "20:30",
+          "message": "Tantie, la cliente m'a donné gros billet ! Demain matin sans faute je te dépose ça !"
+        },
+        "captionLabel": "ACTE 2 : L'ARGENT QUI DORT DEHORS",
+        "captionText": "Demain devient après-demain, le livreur coupe son téléphone et ton bénéfice s'évapore dans la nature... 😡"
+      },
+      {
+        "sceneIndex": 3,
+        "duration": 10,
+        "bgImage": "characters/koffi_wazap.jpg",
+        "seriesTitle": "⚡ LA CAISSE AUTOMATIQUE WAZAP",
+        "isSuccess": true,
+        "hookBadge": "TRANSPARENCE TOTALE",
+        "hookBadgeColor": "green",
+        "hookType": "success",
+        "hookText": "Chaque franc encaissé arrive <highlight class=\"yellow\">directement sur ton compte</highlight> !",
+        "benefits": [
+          { "icon": "💳", "text": "Encaissement Mobile Money (Wave, OM, Moov, MTN)" },
+          { "icon": "📊", "text": "Tableau de bord financier net au centime près" },
+          { "icon": "🔒", "text": "Zéro espèce qui traîne dans les poches des livreurs" }
+        ],
+        "captionLabel": "ACTE 3 : LE TABLEAU DE BORD NET",
+        "captionText": "Avec <span class=\"kw-green\">Wazap</span>, tu vois tes encaissements en direct sur ton smartphone. Plus besoin de cahier d'écolier !"
+      },
+      {
+        "sceneIndex": 4,
+        "duration": 9,
+        "bgImage": "characters/sarah_heureuse.jpg",
+        "seriesTitle": "⭐ SÉRÉNITÉ FINANCIÈRE",
+        "isSuccess": true,
+        "hookBadge": "COMPTABILITÉ PARFAITE",
+        "hookBadgeColor": "gold",
+        "hookType": "success",
+        "hookText": "À 20h : Caisse équilibrée, <highlight class=\"yellow\">l'esprit 100% tranquille</highlight> 🥂",
+        "bubble": {
+          "direction": "incoming",
+          "sender": "Wazap Wallet Instant",
+          "time": "20:00",
+          "message": "💰 180 000 FCFA collectés aujourd'hui. Virement Wave effectué avec succès !"
+        },
+        "captionLabel": "ACTE 4 : LE SOULAGEMENT",
+        "captionText": "Dors sur tes deux oreilles en sachant exactement où se trouve chaque franc de ton commerce !"
+      },
+      {
+        "sceneIndex": 5,
+        "duration": 8,
+        "bgImage": "characters/sarah_heureuse.jpg",
+        "seriesTitle": "🚀 AUTOMATISE TON COMMERCE",
+        "isSuccess": true,
+        "hookBadge": "COMMENCE AUJOURD'HUI",
+        "hookBadgeColor": "green",
+        "hookType": "success",
+        "hookText": "Gère tes livraisons comme une cheffe d'entreprise moderne !",
+        "benefits": [
+          { "icon": "📱", "text": "Zéro installation compliquée, tout sur smartphone" },
+          { "icon": "🎁", "text": "15 courses gratuites pour tester sans engagement" }
+        ],
+        "showCta": true,
+        "captionLabel": "PRENDS LE CONTRÔLE",
+        "captionText": "Rejoins les vendeuses qui gèrent leurs finances comme des pros ! <span class=\"kw-green\">Lien en bio TikTok !</span>"
+      }
+    ]
+  },
+  {
+    "id": "story_ep04",
+    "number": 4,
+    "title": "La cliente VIP de Cocody Angré qui exige un suivi en direct",
+    "durationSeconds": 45,
+    "target": "Commerçantes vendant des articles haut de gamme (mèches, parfums, mode)",
+    "scenes": [
+      {
+        "sceneIndex": 1,
+        "duration": 9,
+        "bgImage": "characters/jessica_satisfaite.jpg",
+        "seriesTitle": "🎬 LES GALÈRES D'ABIDJAN • EP. 04",
+        "hookBadge": "CLIENTE HAUT DE GAMME",
+        "hookBadgeColor": "orange",
+        "hookType": "danger",
+        "hookText": "Jessica commande une robe à <highlight class=\"yellow\">85 000 FCFA</highlight> pour ce soir 19h... 👗",
+        "bubble": {
+          "direction": "incoming",
+          "sender": "Jessica (Cocody Angré)",
+          "time": "16:15",
+          "message": "Ma soirée commence à 19h précises ! Si à 18h le colis n'est pas là, je refuse !"
+        },
+        "captionLabel": "ACTE 1 : LA PRESSION DU TEMPS",
+        "captionText": "Jessica ne supporte pas le flou. Si elle n'a pas de lien de suivi professionnel, elle commande chez un concurrent !"
+      },
+      {
+        "sceneIndex": 2,
+        "duration": 9,
+        "bgImage": "characters/sarah_stressee.jpg",
+        "seriesTitle": "🎬 LES GALÈRES D'ABIDJAN • EP. 04",
+        "hookBadge": "STRESS LOGISTIQUE",
+        "hookBadgeColor": "red",
+        "hookType": "danger",
+        "hookText": "Quand ton livreur habituel ne sait même pas <highlight class=\"red\">partager sa position</highlight> 🗺️",
+        "bubble": {
+          "direction": "outgoing",
+          "sender": "Tantie Sarah (Stressée)",
+          "time": "17:00",
+          "message": "Livreur tu es où ? Envoie-moi ta localisation GPS ! La cliente est en train de s'énerver !"
+        },
+        "captionLabel": "ACTE 2 : LA CRISE DU CHRONO",
+        "captionText": "17h15 : Le livreur s'est trompé de carrefour à Angré ! Sarah risque de perdre sa cliente la plus fidèle..."
+      },
+      {
+        "sceneIndex": 3,
+        "duration": 10,
+        "bgImage": "characters/koffi_wazap.jpg",
+        "seriesTitle": "⚡ LE SUIVI RADAR LIVE WAZAP",
+        "isSuccess": true,
+        "hookBadge": "TECHNOLOGIE VTC",
+        "hookBadgeColor": "green",
+        "hookType": "success",
+        "hookText": "Le client suit son livreur en direct comme sur <highlight class=\"yellow\">Uber ou Yango</highlight> !",
+        "benefits": [
+          { "icon": "📍", "text": "Carte interactive en direct avec trajet calculé au mètre près" },
+          { "icon": "⏱️", "text": "Heure d'arrivée estimée mise à jour en temps réel" },
+          { "icon": "🔔", "text": "Alerte SMS automatique à 5 minutes de la maison" }
+        ],
+        "captionLabel": "ACTE 3 : LE STANDING WAZAP",
+        "captionText": "Avec <span class=\"kw-green\">Wazap</span>, ta boutique passe instantanément au niveau des plus grands sites e-commerce internationaux !"
+      },
+      {
+        "sceneIndex": 4,
+        "duration": 9,
+        "bgImage": "characters/jessica_satisfaite.jpg",
+        "seriesTitle": "⭐ CLIENTE BLUFFÉE",
+        "isSuccess": true,
+        "hookBadge": "EXPÉRIENCE 5 ÉTOILES",
+        "hookBadgeColor": "gold",
+        "hookType": "success",
+        "hookText": "17h48 : Jessica est livrée, <highlight class=\"yellow\">12 minutes d'avance</highlight> ! ✨",
+        "bubble": {
+          "direction": "incoming",
+          "sender": "Jessica (Cocody Angré)",
+          "time": "17:50",
+          "message": "Franchement bravo ! J'ai suivi le livreur tout le long sur la carte. Je recommanderai chez vous !"
+        },
+        "captionLabel": "ACTE 4 : LA FIDÉLISATION VIP",
+        "captionText": "Donner un suivi GPS à tes clients, c'est doubler tes ventes par le bouche-à-oreille et les recommandations !"
+      },
+      {
+        "sceneIndex": 5,
+        "duration": 8,
+        "bgImage": "characters/sarah_heureuse.jpg",
+        "seriesTitle": "🚀 VALORISE TA MARQUE",
+        "isSuccess": true,
+        "hookBadge": "IMAGE DE MARQUE PRO",
+        "hookBadgeColor": "green",
+        "hookType": "success",
+        "hookText": "Donne à ta boutique l'image professionnelle qu'elle mérite !",
+        "benefits": [
+          { "icon": "💎", "text": "Lien de suivi personnalisé à l'image de ta marque" },
+          { "icon": "🛵", "text": "Livreurs formés, polis et ponctuels" }
+        ],
+        "showCta": true,
+        "captionLabel": "PASSE AU NIVEAU SUPÉRIEUR",
+        "captionText": "Fais passer ta boutique au niveau supérieur gratuitement ! <span class=\"kw-green\">Clique sur le lien en bio TikTok !</span>"
+      }
+    ]
+  },
+  {
+    "id": "story_ep05",
+    "number": 5,
+    "title": "50 livraisons en une journée sans perdre la tête",
+    "durationSeconds": 45,
+    "target": "Commerçantes voulant scaler de 5 commandes à 50 commandes par jour",
+    "scenes": [
+      {
+        "sceneIndex": 1,
+        "duration": 9,
+        "bgImage": "characters/sarah_stressee.jpg",
+        "seriesTitle": "🎬 LES GALÈRES D'ABIDJAN • EP. 05",
+        "hookBadge": "L'ENGORGEGEMENT DU SUCCÈS",
+        "hookBadgeColor": "orange",
+        "hookType": "danger",
+        "hookText": "Quand les commandes explosent mais que la <highlight class=\"yellow\">logistique ne suit plus</highlight>...",
+        "bubble": {
+          "direction": "incoming",
+          "sender": "WhatsApp Pro (38 messages non lus)",
+          "time": "10:00",
+          "message": "Tantie, ma commande de Marcory part quand ? Et celle de Koumassi ? Et Yopougon ?"
+        },
+        "captionLabel": "ACTE 1 : LE PIÈGE DE LA CROISSANCE",
+        "captionText": "Faire des ventes c'est bien, mais expédier 40 colis avec 5 livreurs différents sur WhatsApp, c'est l'asile psychiatrique ! 🤯"
+      },
+      {
+        "sceneIndex": 2,
+        "duration": 9,
+        "bgImage": "characters/marius_clande.jpg",
+        "seriesTitle": "🎬 LES GALÈRES D'ABIDJAN • EP. 05",
+        "hookBadge": "LA GUERRE DES COURSES",
+        "hookBadgeColor": "red",
+        "hookType": "danger",
+        "hookText": "Les livreurs qui refusent les quartiers : <highlight class=\"red\">« Marcory c'est trop loin ! »</highlight> 🏍️",
+        "bubble": {
+          "direction": "outgoing",
+          "sender": "Coursier Indépendant",
+          "time": "10:45",
+          "message": "Tantie moi je prends seulement Cocody ! Yopougon je vais pas là-bas aujourd'hui !"
+        },
+        "captionLabel": "ACTE 2 : LE BLOCAGE",
+        "captionText": "La moitié de tes colis reste bloquée à la boutique parce que les livreurs choisissent leurs courses au feeling... 😫"
+      },
+      {
+        "sceneIndex": 3,
+        "duration": 10,
+        "bgImage": "characters/koffi_wazap.jpg",
+        "seriesTitle": "⚡ LE DISPATCH AUTOMATIQUE WAZAP",
+        "isSuccess": true,
+        "hookBadge": "INTELLIGENCE LOGISTIQUE",
+        "hookBadgeColor": "green",
+        "hookType": "success",
+        "hookText": "Groupage automatique par commune en <highlight class=\"yellow\">1 seul clic</highlight> !",
+        "benefits": [
+          { "icon": "🏙️", "text": "Dispatch intelligent par zone : Cocody, Yopougon, Marcory..." },
+          { "icon": "👥", "text": "Flotte de livreurs dédiés disponibles immédiatement" },
+          { "icon": "📉", "text": "Frais de livraison réduits grâce aux tournées optimisées" }
+        ],
+        "captionLabel": "ACTE 3 : L'USINE LOGISTIQUE WAZAP",
+        "captionText": "Avec <span class=\"kw-green\">Wazap</span>, tu importes 50 commandes en 30 secondes. Le système assigne le meilleur livreur pour chaque commune !"
+      },
+      {
+        "sceneIndex": 4,
+        "duration": 9,
+        "bgImage": "characters/sarah_heureuse.jpg",
+        "seriesTitle": "⭐ LE SCALING RÉUSSI",
+        "isSuccess": true,
+        "hookBadge": "RECORD DE VENTES",
+        "hookBadgeColor": "gold",
+        "hookType": "success",
+        "hookText": "50 colis expédiés à 11h, <highlight class=\"yellow\">tous livrés avant 17h</highlight> ! 🚀",
+        "bubble": {
+          "direction": "incoming",
+          "sender": "Wazap Dispatch Hub",
+          "time": "17:00",
+          "message": "🎉 Rapport du jour : 50/50 colis livrés avec succès. Taux de satisfaction : 99.2% !"
+        },
+        "captionLabel": "ACTE 4 : LA VICTOIRE DU COMMERCE",
+        "captionText": "Passe de vendeuse débordée à cheffe d'entreprise sereine avec un outil qui travaille pour toi 24h/24 !"
+      },
+      {
+        "sceneIndex": 5,
+        "duration": 8,
+        "bgImage": "characters/sarah_heureuse.jpg",
+        "seriesTitle": "🚀 PRÊTE À EXPLOSER TES VENTES ?",
+        "isSuccess": true,
+        "hookBadge": "COMMENCE GRATUITEMENT",
+        "hookBadgeColor": "green",
+        "hookType": "success",
+        "hookText": "Fais passer ton e-commerce à l'échelle supérieure dès maintenant !",
+        "benefits": [
+          { "icon": "📦", "text": "15 livraisons professionnelles 100% offertes" },
+          { "icon": "🚀", "text": "Zéro abonnement, zéro frais cachés" }
+        ],
+        "showCta": true,
+        "captionLabel": "REJOINS LA RÉVOLUTION",
+        "captionText": "Ne laisse plus la livraison freiner ta croissance ! <span class=\"kw-green\">Lien d'inscription gratuit en bio TikTok !</span>"
+      }
+    ]
+  }
+]

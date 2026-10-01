@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>WAZAP carré</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100vw;height:100vh;overflow:hidden}
+body{font-family:'Segoe UI',Arial,sans-serif;color:#15221b;background:#fff}
+.bg{position:absolute;inset:0;background:
+ radial-gradient(70vmin 70vmin at 90% -8%,rgba(7,160,75,.15),transparent 60%),
+ radial-gradient(60vmin 60vmin at -8% 105%,rgba(14,122,62,.10),transparent 55%),
+ linear-gradient(178deg,#ffffff,#f1f9f3)}
+.wrap{position:absolute;inset:0;display:flex;flex-direction:column;padding:7vmin;text-align:center}
+.logo{display:flex;align-items:center;justify-content:center;gap:1.6vmin;font-weight:800;font-size:3.6vmin}
+.mark{width:5vmin;height:5vmin;border-radius:1.2vmin;background:linear-gradient(135deg,#0e7a3e,#07a04b);display:flex;align-items:center;justify-content:center;font-size:3vmin;color:#fff}
+.badge{margin:5.5vmin auto 3vmin;background:#e7f6ee;color:#0e7a3e;font-weight:700;font-size:2.4vmin;border-radius:999px;padding:1vmin 2.4vmin;max-width:84vmin}
+h1{font-size:7vmin;line-height:1.1;max-width:90vmin;margin:0 auto}
+.sub{margin:2.4vmin auto 0;font-size:3vmin;color:#48604f;max-width:80vmin;line-height:1.45}
+.pill-wrap{margin:3.4vmin auto;display:flex;gap:1.6vmin;justify-content:center;flex-wrap:wrap}
+.pill{font-size:2.4vmin;font-weight:700;border:1px solid #dce9e0;background:#fff;border-radius:999px;padding:1vmin 2.2vmin}
+.pill.green{background:#0e7a3e;border-color:#0e7a3e;color:#fff}
+.cta{display:flex;align-items:center;justify-content:center;gap:4vmin}
+.qr{width:20vmin;height:20vmin;background:#fff;border:1px solid #e3e9e4;border-radius:2.4vmin;padding:1vmin;box-shadow:0 10px 28px rgba(21,34,27,.09)}
+.qr img{width:100%;height:100%;display:block}
+.cta-txt{font-size:3vmin;line-height:1.4;text-align:left}
+.cta-txt b{font-size:3.6vmin}
+.url{margin-top:1vmin;font-size:2.1vmin;color:#7c8a81}
+.url b{color:#0e7a3e}
+.foot{margin-top:auto;font-size:2.2vmin;color:#8a988f}
+</style></head><body>
+<div class="bg"></div>
+<div class="wrap">
+  <div class="logo"><span class="mark">⚡</span> WAZAP</div>
+  <span class="badge" id="badge">🚚 La livraison de votre quartier, gérée depuis WhatsApp</span>
+  <h1 id="h1">Vendez plus.<br>Livrez sans effort.</h1>
+  <p class="sub" id="sub">Vos clients commandent par WhatsApp, un livreur proche est assigné automatiquement.</p>
+  <div class="pill-wrap" id="offers">
+    <span class="pill green">15 premières commandes offertes</span>
+    <span class="pill">Sans abonnement</span>
+    <span class="pill">Packs dès 1 000 FCFA</span>
+  </div>
+  <div class="cta">
+    <div class="qr"><img id="qr" alt="QR"></div>
+    <div class="cta-txt"><b>Scannez</b><br>Activez la livraison de votre commerce.<br>
+      <span class="url">👉 <b id="url">…/vente</b></span></div>
+  </div>
+  <div class="foot">⚡ WAZAP — WhatsApp 225 05 75 80 38 01</div>
+</div>
+<script>
+const a = new URLSearchParams(location.search).get('a') || 'com';
+if (a === 'rider') {
+  document.getElementById('badge').textContent = '🛵 Rejoignez les livreurs WAZAP';
+  document.getElementById('h1').innerHTML = 'Gagnez en livrant<br>autour de chez vous.';
+  document.getElementById('sub').textContent = 'Recevez les courses de votre quartier sur WhatsApp, quand vous voulez.';
+  document.getElementById('offers').innerHTML = '<span class="pill green">Vos horaires</span><span class="pill">Payé par course</span>';
+  document.querySelector('.cta-txt').innerHTML = '<b>Prêt à livrer ?</b><br>Envoyez « je veux livrer » sur WhatsApp.<br><span class="url">👉 <b id="url">…/vente</b></span>';
+}
+const src = a === 'rider' ? 'recrutement-rider' : 'social-carre';
+document.getElementById('qr').src = 'https://junioradon79gm-001-site1.jtempurl.com/api/public/sales/qrcode?size=300&src=' + src;
+</script></body></html>

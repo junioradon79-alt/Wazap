@@ -44,3 +44,6 @@ android/WazapGateway/.gradle/
 android/WazapGateway/build/
 android/WazapGateway/app/build/
 android/WazapGateway/local.properties
+
+# Fichiers temporaires de rendu marketing
+marketing/programmation-60jours/templates/temp/

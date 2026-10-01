@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>WAZAP statut</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100vw;height:100vh;overflow:hidden}
+body{font-family:'Segoe UI',Arial,sans-serif;color:#fff;background:#0e7a3e}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:9vmin 8vmin}
+.grad{position:absolute;inset:0;background:linear-gradient(160deg,var(--c1),var(--c2))}
+.halo{position:absolute;inset:0;background:radial-gradient(75vmin 60vmin at 88% -6%,rgba(255,255,255,.18),transparent 58%),radial-gradient(55vmin 50vmin at -8% 106%,rgba(0,0,0,.16),transparent 55%)}
+.logo{position:relative;display:flex;align-items:center;gap:2vmin;font-weight:800;font-size:5vmin;margin-bottom:6vmin}
+.mark{width:6.5vmin;height:6.5vmin;border-radius:1.6vmin;background:#fff;display:flex;align-items:center;justify-content:center;font-size:4vmin}
+.content{position:relative;flex:1;display:flex;flex-direction:column;justify-content:center}
+.kicker{align-self:flex-start;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);font-weight:700;font-size:4.4vmin;border-radius:999px;padding:1.6vmin 4vmin;margin-bottom:5vmin}
+.main{font-size:12.5vmin;line-height:1.1;font-weight:800}
+.sub{margin-top:4vmin;font-size:5.6vmin;line-height:1.4;font-weight:600}
+.qr{width:30vmin;height:30vmin;background:#fff;border-radius:4vmin;padding:2vmin;margin-top:5vmin;box-shadow:0 12px 30px rgba(0,0,0,.2)}
+.qr img{width:100%;height:100%;display:block}
+.phone{display:inline-block;margin-top:5vmin;background:#fff;color:#0e7a3e;font-weight:800;font-size:5.6vmin;border-radius:2.4vmin;padding:2.4vmin 5vmin}
+.foot{margin-top:auto;display:flex;align-items:center;gap:2vmin;font-size:4vmin;font-weight:700}
+</style></head><body>
+<div class="slide">
+  <div class="grad"></div><div class="halo"></div>
+  <div class="logo"><span class="mark">⚡</span> WAZAP</div>
+  <div class="content" id="c"></div>
+  <div class="foot"><span style="width:3vmin;height:3vmin;border-radius:1vmin;background:#fff;display:inline-block"></span> Abidjan · WhatsApp</div>
+</div>
+<script>
+const v = new URLSearchParams(location.search).get('v') || 'sales';
+const CFG = {
+  sales:   { c1:'#0e7a3e', c2:'#07a04b', k:'OFFRE — COMMERÇANTS', m:'Vos 15 premières commandes sont OFFERTES', s:'Activez la livraison de votre commerce en 30 s.', qr:'sales-qr' },
+  rider:   { c1:'#122a1e', c2:'#0e7a3e', k:'🛵 RECRUTEMENT', m:'Gagnez en livrant autour de chez vous', s:'Vos horaires · Payé par course', phone:'Envoie « je veux livrer »' },
+  parrain: { c1:'#07a04b', c2:'#0e7a3e', k:'🎁 PARRAINAGE', m:'Parrainez un commerce → +5 crédits', s:'Chaque filleul inscrit vous offre 5 crédits de livraison.', qr:'parrain-qr' },
+};
+const cfg = CFG[v] || CFG.sales;
+document.querySelector('.grad').style.setProperty('--c1', cfg.c1);
+document.querySelector('.grad').style.setProperty('--c2', cfg.c2);
+let html = '<div class="kicker">' + cfg.k + '</div><div class="main">' + cfg.m + '</div><div class="sub">' + cfg.s + '</div>';
+if (cfg.phone) html += '<span class="phone">' + cfg.phone + ' → 225 05 75 80 38 01</span>';
+else {
+  const src = v === 'parrain' ? 'whatsapp-parrainage' : 'whatsapp-statut';
+  html += '<div class="qr"><img src="https://junioradon79gm-001-site1.jtempurl.com/api/public/sales/qrcode?size=400&src=' + src + '" alt="QR"></div>';
+}
+document.getElementById('c').innerHTML = html;
+</script></body></html>

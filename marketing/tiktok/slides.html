@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>WAZAP TikTok slide</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100vw;height:100vh;overflow:hidden}
+body{font-family:'Segoe UI',Arial,sans-serif;color:#fff;background:#0e7a3e}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:9vmin 8vmin}
+.grad{position:absolute;inset:0;background:linear-gradient(165deg,var(--c1),var(--c2))}
+.halo{position:absolute;inset:0;background:radial-gradient(70vmin 60vmin at 85% -6%,rgba(255,255,255,.18),transparent 60%),radial-gradient(55vmin 50vmin at -8% 108%,rgba(0,0,0,.16),transparent 55%)}
+.content{position:relative;display:flex;flex-direction:column;justify-content:center;flex:1}
+.kicker{align-self:flex-start;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);font-weight:700;font-size:4.2vmin;border-radius:999px;padding:1.6vmin 4vmin;margin-bottom:5vmin}
+.main{font-size:13vmin;line-height:1.08;font-weight:800;letter-spacing:-.5px}
+.sub{margin-top:4vmin;font-size:5vmin;line-height:1.45;color:rgba(255,255,255,.94);font-weight:600}
+.emoji{position:absolute;top:7vmin;right:6vmin;font-size:11vmin;opacity:.95}
+.qr{width:30vmin;height:30vmin;background:#fff;border-radius:4vmin;padding:2vmin;margin-top:5vmin;box-shadow:0 12px 30px rgba(0,0,0,.2)}
+.qr img{width:100%;height:100%;display:block}
+.cta{font-size:6.5vmin;font-weight:800;margin-top:4vmin}
+.url{font-size:4vmin;color:rgba(255,255,255,.85);margin-top:1.5vmin;font-weight:600}
+.foot{margin-top:auto;display:flex;align-items:center;gap:2vmin;font-size:3.8vmin;font-weight:700}
+.dot{width:3.2vmin;height:3.2vmin;border-radius:1vmin;background:#fff}
+</style></head><body>
+<div class="slide">
+  <div class="grad"></div><div class="halo"></div>
+  <div class="content" id="c"></div>
+  <div class="foot"><span class="dot"></span> WAZAP — la livraison en un éclair ⚡</div>
+</div>
+<script>
+const v = new URLSearchParams(location.search).get('v') || 'com';
+const s = Number(new URLSearchParams(location.search).get('s') || 0);
+
+const COM = [
+ { k:'PSA · ton quartier', e:'🍗', m:'Tes clients veulent commander…', s:'…mais personne ne livre ton quartier ?', c1:'#0e7a3e', c2:'#078a48' },
+ { k:'LE PROBLÈME', e:'😩', m:'Tu perds des ventes chaque semaine.', s:'Des clients prêts à payer, faute de livraison.', c1:'#122a1e', c2:'#0e7a3e' },
+ { k:'LA SOLUTION', e:'⚡', m:'WAZAP = la livraison de ton quartier.', s:'100% WhatsApp · zéro app à installer.', c1:'#07a04b', c2:'#0e7a3e' },
+ { k:'COMMENT ÇA MARCHE', e:'🛵', m:'1️⃣ Ils commandent sur WhatsApp\n2️⃣ Un livreur proche est trouvé\n3️⃣ Livré, suivi en direct', s:'Toi, tu valides d’un message.', c1:'#0e7a3e', c2:'#056e37' },
+ { k:'POUR DÉMARRER', e:'🎁', m:'Tes 15 premières commandes sont OFFERTES.', s:'Crédits à l’usage ensuite — dès 1 000 FCFA.', c1:'#07a04b', c2:'#0a5e33' },
+ { k:'PAS D’ENGAGEMENT', e:'📱', m:'Tes clients commandent comme ils t’écrivent déjà.', s:'Sur WhatsApp. Simple.', c1:'#0e7a3e', c2:'#093f25' },
+ { k:'À TOI DE JOUER', e:'👇', m:'Scanne et active la livraison.', s:'qr', c1:'#07a04b', c2:'#0e7a3e' },
+];
+const RIDER = [
+ { k:'TU LIVRES DÉJÀ ?', e:'🛵', m:'Gagne de l’argent en livrant autour de chez toi.', s:'Les courses de ton quartier, sur WhatsApp.', c1:'#0e7a3e', c2:'#06aa54' },
+ { k:'TES RÈGLES', e:'⏱️', m:'Tu choisis tes disponibilités.', s:'Quand tu veux, où tu veux.', c1:'#122a1e', c2:'#0e7a3e' },
+ { k:'PAYÉ PAR COURSE', e:'💰', m:'Chaque course livrée = de l’argent.', s:'Rejoins les livreurs WAZAP.', c1:'#07a04b', c2:'#056e37' },
+ { k:'AUCUNE APP', e:'📱', m:'Tout se passe sur WhatsApp.', s:'Dis « je veux livrer » et c’est parti.', c1:'#0e7a3e', c2:'#093f25' },
+ { k:'ON TE CONTACTE', e:'👋', m:'Envoie « je veux livrer »', s:'au 225 05 75 80 38 01', c1:'#07a04b', c2:'#0e7a3e' },
+];
+
+// Variante J+6 — nouveau hook livreur (slide 0 seulement, slides 1-4 = RIDER inchangées)
+const RIDER_V2 = [
+ { k:'NOUVEAU DÉFI', e:'💸', m:'5 000 F par après-midi ?', s:'C’est possible en livrant ton quartier sur WhatsApp.', c1:'#0e7a3e', c2:'#06aa54' },
+];
+
+// Variante J+12 — hook commerçants qui ouvre direct sur l’offre (slide 0 seulement, slides 1-6 = COM inchangées)
+const COM_V2 = [
+ { k:'OFFRE DE LANCEMENT', e:'🎁', m:'15 commandes offertes.', s:'Active WAZAP dans ton commerce et livre dès aujourd’hui.', c1:'#07a04b', c2:'#0a5e33' },
+];
+
+// Pool d'angles pour la cadence 3 posts/jour — 2 slides (hook, détail) par angle,
+// CTA réutilisée : com_6 pour les angles commerçants, rider_4 pour les angles livreurs,
+// nouvelle CTA "quartier" pour les angles marque/quartier.
+const ANGLE_COM_SPEED = [
+ { k:'CHRONO', e:'⏱️', m:'Commande à 12h01.', s:'Livré à 12h20 dans ton quartier.', c1:'#0e7a3e', c2:'#07a04b' },
+ { k:'SANS COMPLICATION', e:'🚀', m:'Un livreur proche, prévenu en un clic.', s:'Toi, tu valides juste la commande sur WhatsApp.', c1:'#122a1e', c2:'#0e7a3e' },
+];
+const ANGLE_RIDER_FREE = [
+ { k:'AUCUN FRAIS', e:'🆓', m:'Pas de moto à acheter, pas d’abonnement.', s:'Utilise juste ton téléphone et WhatsApp.', c1:'#0e7a3e', c2:'#06aa54' },
+ { k:'TU DÉCIDES', e:'📍', m:'Choisis ton quartier de livraison.', s:'On t’envoie les courses proches de chez toi.', c1:'#122a1e', c2:'#0e7a3e' },
+];
+const ANGLE_QUARTIER_LOCAL = [
+ { k:'C’EST CHEZ TOI ?', e:'📍', m:'Cocody. Marcory. Yopougon. Adjamé.', s:'WAZAP livre déjà dans ton quartier.', c1:'#0e7a3e', c2:'#078a48' },
+ { k:'100% WHATSAPP', e:'⚡', m:'Pas d’app à télécharger.', s:'Juste ton quartier, un message, une livraison.', c1:'#07a04b', c2:'#0e7a3e' },
+];
+const ANGLE_QUARTIER_BRAND = [
+ { k:'C’EST QUOI WAZAP ?', e:'⚡', m:'La livraison de ton quartier.', s:'100% WhatsApp. Zéro app. Zéro complication.', c1:'#0e7a3e', c2:'#07a04b' },
+ { k:'POUR TOUT LE MONDE', e:'🤝', m:'Commerçants qui veulent livrer.', s:'Livreurs qui veulent gagner plus.', c1:'#122a1e', c2:'#0e7a3e' },
+];
+const CTA_QUARTIER = [
+ { k:'À TOI DE JOUER', e:'👇', m:'Dis-nous ton quartier en commentaire.', s:'On te dit si WAZAP y est déjà 📍', c1:'#07a04b', c2:'#0e7a3e' },
+];
+
+const SETS = {
+  com:COM, rider:RIDER, rider2:RIDER_V2, com2:COM_V2,
+  com_speed:ANGLE_COM_SPEED, rider_free:ANGLE_RIDER_FREE,
+  quartier_local:ANGLE_QUARTIER_LOCAL, quartier_brand:ANGLE_QUARTIER_BRAND,
+  ctaq:CTA_QUARTIER,
+};
+const cfg = (SETS[v] || COM)[s];
+if (!cfg) document.body.innerHTML = '';
+const c = document.getElementById('c');
+document.querySelector('.grad').style.setProperty('--c1', cfg.c1);
+document.querySelector('.grad').style.setProperty('--c2', cfg.c2);
+let html = '<div class="kicker">' + cfg.k + '</div><div class="main" style="white-space:pre-line">' + cfg.m.replace(/\n/g, '<br>') + '</div>';
+if (cfg.s !== 'qr') html += '<div class="sub">' + cfg.s + '</div>';
+else {
+  html += '<div class="qr"><img src="https://junioradon79gm-001-site1.jtempurl.com/api/public/sales/qrcode?size=400&src=tiktok-com" alt="QR"></div>' +
+          '<div class="cta">Scanne → /vente</div><div class="url">15 commandes offertes 🎁</div>';
+}
+if (cfg.e) html = '<span class="emoji">' + cfg.e + '</span>' + html;
+c.innerHTML = html;
+</script></body></html>

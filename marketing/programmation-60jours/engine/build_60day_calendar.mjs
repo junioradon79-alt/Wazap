@@ -12,20 +12,20 @@ const catalog = JSON.parse(fs.readFileSync(path.join(__dirname, 'visuals_catalog
 const copyTemplates = {
   securite: {
     matin: (char, visual) => ({
-      hook: `🚨 Commerçants d'Abidjan : commencez votre journée sans la peur au ventre de confier vos colis !`,
-      body: `Chaque matin, c'est le même dilemme : confier vos commandes à un coursier inconnu et prier pour qu'il ne disparaisse pas avec votre recette ?\n\nSur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.\nÀ la remise, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.\n\n🛡️ Livreurs vérifiés CNI par IA Google Cloud Vision\n📍 Géolocalisation live sur la carte\n🎁 15 premières livraisons offertes sans commission WAZAP !`,
+      hook: `🚨 WAZAP.CI - FINI LES LIVREURS QUI DISPARAISSENT AVEC VOTRE ARGENT !`,
+      body: `Chaque matin à Abidjan, c'est la même angoisse pour les commerçants : confier des colis de valeur à un coursier inconnu et prier pour qu'il ne disparaisse pas avec la recette !\n\nSur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.\nÀ la remise du colis, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte). L'argent arrive instantanément sur VOTRE compte avant même que le livreur ne reparte.\n\n🛡️ Livreurs vérifiés CNI par IA Google Cloud Vision\n📍 Géolocalisation live sur la carte\n🎁 15 premières livraisons offertes sans commission WAZAP !`,
       cta: `👉 Prêt à expédier en toute sérénité ? Envoyez « COLIS » sur WhatsApp au 05 44 05 19 72 ou scannez le QR code sur le visuel.`,
       comment: `💬 Avez-vous déjà été victime d'un livreur qui a disparu avec votre recette de marchandise à Abidjan ? Partagez votre expérience en commentaire.`
     }),
     midi: (char, visual) => ({
-      hook: `⚡ Rush de midi à Abidjan : votre client n'a pas la monnaie ou veut payer à la livraison ?`,
-      body: `Pas besoin d'annuler la vente ni d'envoyer le livreur chercher la monnaie au carrefour.\nGrâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money.\n\nLe livreur ne touche à aucun billet de votre marchandise : il ne perçoit que ses frais de course.\nRésultat : zéro risque de vol, zéro faux billet de 10 000 F, encaissement immédiat dans votre trésorerie !`,
+      hook: `⚡ WAZAP.CI : LE LIVREUR NE TOUCHE PAS À UN SEUL FRANC DE VOTRE MARCHANDISE !`,
+      body: `Rush de midi à Abidjan : votre client n'a pas la monnaie sur 10 000 F ou exige de payer à la livraison ?\n\nPas besoin d'annuler la vente ni d'envoyer le coursier chercher la monnaie au carrefour.\nGrâce au QR Code Universel WAZAP, le client règle le montant exact de votre marchandise au centime près par Mobile Money (Wave, Orange Money, MTN).\n\nLe livreur ne touche à aucun billet de votre marchandise : il ne perçoit que ses frais de course.\nRésultat : zéro risque de vol, zéro faux billet, encaissement immédiat dans votre trésorerie !`,
       cta: `📲 Pour tester gratuitement avec 15 courses offertes : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.`,
       comment: `🔒 Quel est votre moyen de paiement Mobile Money préféré pour encaisser vos commandes : Wave, Orange Money ou MTN ? Dites-le nous en commentaire !`
     }),
     soir: (char, visual) => ({
       hook: `🌙 18h30 à Abidjan : clôturez votre journée avec 100% de vos recettes en caisse et l'esprit tranquille.`,
-      body: `Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous ?\nAvec WAZAP, ce stress appartient définitivement au passé.\n\nChaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article fragile.\n\nC'est ça, la nouvelle norme du commerce à Abidjan.`,
+      body: `Combien de fois avez-vous attendu le retour d'un livreur tard le soir pour récupérer vos sous, la peur au ventre qu'il ait coupé son téléphone ?\nAvec WAZAP, ce stress appartient définitivement au passé.\n\nChaque colis livré dans la journée a été payé en direct à la seconde même de la remise. Vous consultez votre tableau de bord marchand, toutes vos courses sont validées, et l'Assurance Colis Sûr a couvert chaque article.\n\nC'est ça, la nouvelle norme du commerce sécurisé à Abidjan.`,
       cta: `💼 Rejoignez plus de 1 000 commerçants satisfaits : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72.`,
       comment: `✨ À quelle heure clôturez-vous habituellement vos comptes de livraison le soir ? Partagez vos réalités d'entrepreneur ci-dessous !`
     })
