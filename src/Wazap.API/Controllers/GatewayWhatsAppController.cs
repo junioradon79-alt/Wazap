@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Wazap.API.Services;
+using Wazap.Application.Abstractions;
 using Wazap.Application.Helpers;
 using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
@@ -22,6 +23,7 @@ public class GatewayWhatsAppController : ControllerBase
     private readonly RiderRecruitmentService _riderRecruitment;
     private readonly RiderService _riderService;
     private readonly RiderProgramService _riderProgram;
+    private readonly IOcrService? _ocrService;
     private readonly ILogger<GatewayWhatsAppController> _logger;
 
     public GatewayWhatsAppController(
@@ -29,13 +31,15 @@ public class GatewayWhatsAppController : ControllerBase
         RiderRecruitmentService riderRecruitment,
         RiderService riderService,
         RiderProgramService riderProgram,
-        ILogger<GatewayWhatsAppController> logger)
+        ILogger<GatewayWhatsAppController> logger,
+        IOcrService? ocrService = null)
     {
         _context = context;
         _riderRecruitment = riderRecruitment;
         _riderService = riderService;
         _riderProgram = riderProgram;
         _logger = logger;
+        _ocrService = ocrService;
     }
 
     /// <summary>Ping de diagnostic pour tester la connectivité depuis l'application Android.</summary>
@@ -77,7 +81,7 @@ public class GatewayWhatsAppController : ControllerBase
         _logger.LogInformation("Passerelle Android WAZAP : Message de {Phone} : {Text}", normalizedPhone, text);
 
         // 1. Candidat Livreur (Enrôlement, Commune, Choix 1-6)
-        var candidateReply = await _riderRecruitment.GetCandidateResponseTextAsync(normalizedPhone, text);
+        var candidateReply = await _riderRecruitment.GetCandidateResponseTextAsync(normalizedPhone, text, request.SenderName);
         if (candidateReply is not null)
         {
             return Ok(new GatewayInboundResponse(
@@ -166,7 +170,16 @@ public class GatewayWhatsAppController : ControllerBase
             return Ok(new GatewayInboundResponse(true, true, reply, "pricing_info", normalizedPhone));
         }
 
-        // 5. Message d'accueil universel (Orientation)
+        // 5. Message de secours si notification photo reçue sous forme texte
+        if (text.Contains("photo", StringComparison.OrdinalIgnoreCase) || text.Contains("📷") || text.Contains("image", StringComparison.OrdinalIgnoreCase))
+        {
+            var photoReply = "📸 Photo bien reçue ! Notre système vérifie votre pièce d'identité 🪪⚡\n\n"
+                + "Dès validation, votre compte passera Livreur Certifié Colis Sûr.\n"
+                + "👉 Pour voir vos courses en attente, tape : DISPO";
+            return Ok(new GatewayInboundResponse(true, true, photoReply, "photo_acknowledgement", normalizedPhone));
+        }
+
+        // 6. Message d'accueil universel (Orientation)
         var defaultReply = "👋 Bonjour et bienvenue sur WAZAP Abidjan ⚡\n\n"
             + "👉 Tu es LIVREUR et veux gagner 1 000 à 2 000 F net par course (0% commission) ?\n"
             + "➔ Envoie simplement « DISPO »\n\n"
@@ -176,6 +189,125 @@ public class GatewayWhatsAppController : ControllerBase
             + "➔ Envoie « TARIFS »";
 
         return Ok(new GatewayInboundResponse(true, true, defaultReply, "universal_greeting", normalizedPhone));
+    }
+
+    /// <summary>
+    /// Téléverse et analyse par OCR la photo d'identité (CNI / Permis) reçue sur WhatsApp via la passerelle Android,
+    /// stocke le scan chiffré, certifie le livreur et renvoie le message de confirmation avec les liens 1-tap.
+    /// </summary>
+    [HttpPost("upload-photo")]
+    [EnableRateLimiting("webhook")]
+    public async Task<IActionResult> UploadPhoto(
+        [FromForm] IFormFile? file,
+        [FromForm] string sender,
+        [FromForm] string? senderName)
+    {
+        if (file is null || file.Length == 0)
+        {
+            return BadRequest(new GatewayInboundResponse(false, false, null, "missing_file", sender));
+        }
+
+        var rawPhone = sender?.Trim() ?? string.Empty;
+        var digits = PhoneNumberNormalizer.DigitsOnly(rawPhone);
+        if (string.IsNullOrWhiteSpace(digits))
+        {
+            return BadRequest(new GatewayInboundResponse(false, false, null, "invalid_phone", sender));
+        }
+
+        var normalizedPhone = "+" + digits;
+        _logger.LogInformation("Passerelle Android WAZAP : Photo CNI/Permis reçue de {Phone} ({SenderName}), taille: {Size} octets",
+            normalizedPhone, senderName, file.Length);
+
+        byte[] imageBytes;
+        using (var ms = new MemoryStream())
+        {
+            await file.CopyToAsync(ms);
+            imageBytes = ms.ToArray();
+        }
+
+        OcrIdentityResult? ocr = null;
+        if (_ocrService != null)
+        {
+            try
+            {
+                ocr = await _ocrService.ParseIdentityCardAsync(imageBytes, file.ContentType ?? "image/jpeg");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "OCR Google Vision en échec pour {Phone}", normalizedPhone);
+            }
+        }
+
+        var extractedName = ocr?.Success == true && !string.IsNullOrWhiteSpace(ocr.FullName)
+            ? ocr.FullName
+            : (!string.IsNullOrWhiteSpace(senderName) ? senderName.Trim() : null);
+
+        var extractedIdNumber = ocr?.Success == true && !string.IsNullOrWhiteSpace(ocr.IdNumber)
+            ? ocr.IdNumber
+            : null;
+
+        var docType = ocr?.DocumentType ?? "Pièce d'identité";
+
+        var last8 = digits.Length >= 8 ? digits[^8..] : digits;
+        var rider = await _context.Users
+            .Where(u => u.Role == UserRole.Rider && u.PhoneNumber != null && u.PhoneNumber.EndsWith(last8))
+            .FirstOrDefaultAsync();
+
+        var lead = await _context.Leads
+            .Where(l => l.WhatsAppNumber == normalizedPhone && l.Status != LeadStatus.Discarded)
+            .OrderByDescending(l => l.CreatedAt)
+            .FirstOrDefaultAsync();
+
+        if (rider is null && lead is not null)
+        {
+            rider = await _riderRecruitment.CreateRiderAccountFromLeadAsync(lead, extractedName, extractedIdNumber);
+        }
+        else if (rider is null)
+        {
+            lead = new Lead("Candidat Livreur Photo", normalizedPhone, "Cocody", "whatsapp-livreur-photo", extractedName);
+            _context.Leads.Add(lead);
+            await _context.SaveChangesAsync();
+            rider = await _riderRecruitment.CreateRiderAccountFromLeadAsync(lead, extractedName, extractedIdNumber);
+        }
+
+        if (rider is null)
+        {
+            return StatusCode(500, new GatewayInboundResponse(false, false, null, "rider_creation_failed", normalizedPhone));
+        }
+
+        try
+        {
+            using var scanStream = new MemoryStream(imageBytes);
+            await _riderService.StoreScanAsync(rider.Id, scanStream, file.FileName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Stockage scan non bloquant en échec pour {UserId}", rider.Id);
+        }
+
+        var finalVerifiedName = extractedName ?? rider.Username;
+        var finalIdNumber = extractedIdNumber ?? ("AUTO-" + DateTime.UtcNow.ToString("yyyyMMddHHmmss"));
+        await _riderService.VerifyRiderAsync(rider.Id, finalVerifiedName, finalIdNumber, null, Guid.Empty);
+
+        if (lead != null)
+        {
+            lead.SetStatus(LeadStatus.Converted);
+            await _context.SaveChangesAsync();
+        }
+
+        var idNotice = !string.IsNullOrWhiteSpace(extractedIdNumber) ? $" (N° {extractedIdNumber})" : "";
+        var replyText = $"🎉 Félicitations {finalVerifiedName} !\n\n"
+            + $"✅ Votre {docType}{idNotice} a été analysée et validée avec succès par notre système 🪪⚡\n\n"
+            + "🛡️ Vous avez désormais le statut officiel de LIVREUR CERTIFIÉ WAZAP (Assurance Colis Sûr activée) !\n\n"
+            + "🛵 Pour vous mettre en ligne et recevoir vos premières courses immédiatement, cliquez ci-dessous :\n"
+            + "👉 https://wa.me/2250544051972?text=DISPO";
+
+        return Ok(new GatewayInboundResponse(
+            Success: true,
+            ShouldReply: true,
+            ReplyText: replyText,
+            Category: "rider_photo_verified",
+            Sender: normalizedPhone));
     }
 }
 

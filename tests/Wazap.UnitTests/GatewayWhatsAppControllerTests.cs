@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
 using Wazap.API.Controllers;
 using Wazap.API.Services;
+using Wazap.Application.Abstractions;
 using Wazap.Application.Configuration;
 using Wazap.Application.Services;
 using Wazap.Domain.Entities;
@@ -27,7 +29,22 @@ public class GatewayWhatsAppControllerTests : IDisposable
         try { Directory.Delete(_tempDir, recursive: true); } catch { }
     }
 
-    private (GatewayWhatsAppController controller, ApplicationDbContext context) CreateController()
+    private class FakeOcrService : IOcrService
+    {
+        public Task<OcrIdentityResult> ParseIdentityCardAsync(byte[] imageBytes, string? mimeType = null, CancellationToken ct = default)
+        {
+            return Task.FromResult(new OcrIdentityResult(
+                Success: true,
+                FullName: "NIAGARE IBRAHIM",
+                IdNumber: "NIAG01-21-24209886I",
+                RawText: "REPUBLIQUE DE COTE D'IVOIRE PERMIS DE CONDUIRE NIAGARE IBRAHIM",
+                Error: null,
+                DocumentType: "Permis de Conduire"
+            ));
+        }
+    }
+
+    private (GatewayWhatsAppController controller, ApplicationDbContext context) CreateController(IOcrService? ocrService = null)
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase("gateway-" + Guid.NewGuid().ToString("N"))
@@ -55,7 +72,8 @@ public class GatewayWhatsAppControllerTests : IDisposable
             sender,
             downloader,
             config,
-            NullLogger<RiderRecruitmentService>.Instance);
+            NullLogger<RiderRecruitmentService>.Instance,
+            ocrService);
 
         var riderProgram = new RiderProgramService(
             context,
@@ -68,7 +86,8 @@ public class GatewayWhatsAppControllerTests : IDisposable
             recruitment,
             riderService,
             riderProgram,
-            NullLogger<GatewayWhatsAppController>.Instance);
+            NullLogger<GatewayWhatsAppController>.Instance,
+            ocrService);
 
         return (controller, context);
     }
@@ -248,6 +267,104 @@ public class GatewayWhatsAppControllerTests : IDisposable
         Assert.True(
             responseAlias.StatusCode == System.Net.HttpStatusCode.OK || responseAlias.StatusCode == System.Net.HttpStatusCode.NotFound,
             $"Statut inattendu: {responseAlias.StatusCode}");
+    }
+
+    [Fact]
+    public async Task UploadPhoto_AvecFichierEtOcr_CertifieLivreurEtRenvoieReponse()
+    {
+        var (controller, context) = CreateController(new FakeOcrService());
+
+        // Créer un lead préalable (étape 1 DISPO + étape 2 commune)
+        var lead = new Lead("Candidat", "+2250701020304", "Cocody", "whatsapp-livreur");
+        context.Leads.Add(lead);
+        await context.SaveChangesAsync();
+
+        var imageBytes = new byte[] { 0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46 };
+        var formFile = new FormFile(new MemoryStream(imageBytes), 0, imageBytes.Length, "file", "cni.jpg")
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = "image/jpeg"
+        };
+
+        var result = await controller.UploadPhoto(formFile, "+2250701020304", "Ibrahim") as OkObjectResult;
+        Assert.NotNull(result);
+        var resp = result.Value as GatewayInboundResponse;
+
+        Assert.NotNull(resp);
+        Assert.True(resp.Success);
+        Assert.True(resp.ShouldReply);
+        Assert.Equal("rider_photo_verified", resp.Category);
+        Assert.Contains("LIVREUR CERTIFIÉ WAZAP", resp.ReplyText);
+        Assert.Contains("NIAGARE IBRAHIM", resp.ReplyText);
+        Assert.Contains("NIAG01-21-24209886I", resp.ReplyText);
+
+        // Vérifier que le livreur est bien créé et certifié en base
+        var rider = await context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == "+2250701020304");
+        Assert.NotNull(rider);
+        Assert.Equal(UserRole.Rider, rider.Role);
+
+        var identity = await context.RiderIdentities.FirstOrDefaultAsync(i => i.UserId == rider.Id);
+        Assert.NotNull(identity);
+        Assert.Equal(RiderIdentityStatus.Verified, identity.Status);
+        Assert.Equal("NIAG01-21-24209886I", identity.IdNumber);
+    }
+
+    [Fact]
+    public async Task UploadPhoto_SansFichier_RetourneBadRequest()
+    {
+        var (controller, _) = CreateController();
+        var result = await controller.UploadPhoto(null, "+2250701020304", "Ibrahim") as BadRequestObjectResult;
+
+        Assert.NotNull(result);
+        var resp = result.Value as GatewayInboundResponse;
+        Assert.NotNull(resp);
+        Assert.False(resp.Success);
+        Assert.Equal("missing_file", resp.Category);
+    }
+
+    [Fact]
+    public async Task Process_NotificationPhotoTexte_RetournePhotoAcknowledgement()
+    {
+        var (controller, _) = CreateController();
+        var req = new GatewayInboundRequest
+        {
+            Sender = "+2250701020304",
+            Text = "📷 Photo"
+        };
+
+        var result = await controller.Process(req) as OkObjectResult;
+        Assert.NotNull(result);
+        var resp = result.Value as GatewayInboundResponse;
+
+        Assert.NotNull(resp);
+        Assert.True(resp.Success);
+        Assert.True(resp.ShouldReply);
+        Assert.Equal("photo_acknowledgement", resp.Category);
+        Assert.Contains("Photo bien reçue", resp.ReplyText);
+    }
+
+    [Fact]
+    public async Task Process_CandidatAvecSenderName_PrendEnCompteLeNomDansLeLead()
+    {
+        var (controller, context) = CreateController();
+        var req = new GatewayInboundRequest
+        {
+            Sender = "+2250755667788",
+            SenderName = "Adama Traoré",
+            Text = "DISPO"
+        };
+
+        var result = await controller.Process(req) as OkObjectResult;
+        Assert.NotNull(result);
+        var resp = result.Value as GatewayInboundResponse;
+
+        Assert.NotNull(resp);
+        Assert.True(resp.Success);
+        Assert.True(resp.ShouldReply);
+
+        var lead = await context.Leads.FirstOrDefaultAsync(l => l.WhatsAppNumber == "+2250755667788");
+        Assert.NotNull(lead);
+        Assert.Equal("Adama Traoré", lead.ContactName);
     }
 }
 

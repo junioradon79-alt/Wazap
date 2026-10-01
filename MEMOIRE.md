@@ -4049,3 +4049,34 @@ Automatisation intégrale du cycle de vie de la commande depuis la consultation 
   - Tests .NET : 833 tests réussis (100% verts, 6 tests PG réels CI).
   - Tests Front Vitest : 51/51 tests réussis (100% verts).
   - Build Web de production généré (`npm run build`) et bundle synchronisé dans `src/Wazap.API/wwwroot/app`.
+
+---
+
+## 116. Session 01/10/2026 (Après-Midi) — Automatisation Totale du Recrutement Livreur WhatsApp & Passerelle Android
+
+### 1. Diagnostic de l'Incident Signalé par l'Utilisateur
+- **Symptôme :** Lors de l'envoi de `DISPO` par un candidat sur WhatsApp Business (+225 05 44 05 19 72), aucune réponse automatique n'était émise et les photos n'étaient pas ingérées, forçant l'opérateur à enrôler manuellement les livreurs sur le dashboard web.
+- **Causes racines identifiées :**
+  1. **Blocage d'adresse réseau :** Dans `GatewayApiClient.kt`, `PRIMARY_BASE_URL` pointait sur `https://wazap.ci`, temporairement inaccessible à cause du délai DNS WiniHost, bloquant les requêtes en timeout.
+  2. **Extraction de numéro défaillante :** Dans `WazapNotificationListenerService.kt`, `title` était envoyé comme `sender`. Lorsque le contact était enregistré ou avait un pseudo WhatsApp sans chiffres (ex : « Ibrahim »), le backend recevait 0 chiffre et ignorait silencieusement le message (`category: "ignored"`).
+  3. **Absence de traitement automatique des photos :** Les notifications WhatsApp indiquent `📷 Photo` sans inclure les octets. Le backend renvoyait alors le message d'accueil universel au lieu d'ingérer l'image, empêchant l'OCR automatique.
+
+### 2. Implémentations Réalisées
+- **A. Passerelle Android Réactive & Résiliente (`android/WazapGateway`) :**
+  - **URL Principale :** `PRIMARY_BASE_URL` basculée sur `https://junioradon79gm-001-site1.jtempurl.com/api/gateway/whatsapp` (réponse < 300 ms) avec repli transparent sur `wazap.ci`.
+  - **Extraction Robuste du Numéro E.164 :** Inspection prioritaire de `notification.shortcutId` (JID WhatsApp `225XXXXXXXX@s.whatsapp.net`), `sbn.tag`, `MessagingStyle` (`person.key`/`person.uri`) et Regex sur le titre.
+  - **Filtrage des Groupes :** Rejet systématique des messages de groupes (`@g.us`) pour éviter tout spam.
+  - **Détection & Téléversement des Photos :** Recherche automatique du dernier fichier image reçu dans `/storage/emulated/0/Android/media/com.whatsapp.w4b/WhatsApp Business/Media/WhatsApp Business Images/` (dans les 3 dernières minutes) et envoi multipart vers le nouvel endpoint `POST /upload-photo`.
+  - **Maintien en Vie & Permissions :** Notification de premier plan persistante (`wazap_gateway_service_channel`) pour empêcher l'arrêt par le gestionnaire de batterie Android, et ajout des permissions `READ_MEDIA_IMAGES` / `READ_EXTERNAL_STORAGE`.
+- **B. Backend & Endpoint OCR Passerelle (`GatewayWhatsAppController.cs`) :**
+  - Nouvel endpoint `POST /api/gateway/whatsapp/upload-photo` : reçoit l'image et le numéro, exécute l'OCR Google Vision, stocke le scan chiffré via `StoreScanAsync`, certifie le livreur (`VerifyRiderAsync`), convertit le lead et retourne instantanément le message de félicitations avec les liens 1-clic `DISPO`.
+  - Message de repli dédié en cas de notification texte photo (`photo_acknowledgement`).
+  - Personnalisation automatique du nom du candidat via `senderName` dans `RiderRecruitmentService.cs`.
+- **C. Génération de l'APK Signée & Prête à l'Emploi :**
+  - Compilation Gradle validée (`assembleDebug`) $\rightarrow$ APK signée prête pour installation directe (7,5 Mo) copiée dans `src/Wazap.API/wwwroot/downloads/wazap-gateway.apk`.
+
+### 3. Validation Qualité Complète
+- **Tests .NET :** 837 tests réussis (100% verts, 0 échec, +4 nouveaux tests unitaires dédiés).
+- **Tests Vitest :** 51/51 tests réussis (100% verts).
+- **Build Web :** Bundle de production Vite compilé et synchronisé dans `src/Wazap.API/wwwroot/app`.
+

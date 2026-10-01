@@ -1,8 +1,10 @@
 package ci.wazap.gateway
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -10,8 +12,10 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.widget.ScrollView
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.switchmaterial.SwitchMaterial
@@ -26,10 +30,18 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnIgnoreBattery: MaterialButton
     private lateinit var tvApiStatus: TextView
     private lateinit var btnPingApi: MaterialButton
+    private lateinit var tvStorageStatus: TextView
+    private lateinit var btnGrantStorage: MaterialButton
     private lateinit var btnTestDispo: MaterialButton
     private lateinit var btnClearLogs: MaterialButton
     private lateinit var tvLogs: TextView
     private lateinit var scrollLogs: ScrollView
+
+    private val storagePermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) {
+        updatePermissionsStatus()
+    }
 
     private val logListener: (String) -> Unit = { logLine ->
         runOnUiThread {
@@ -75,6 +87,8 @@ class MainActivity : AppCompatActivity() {
         btnIgnoreBattery = findViewById(R.id.btnIgnoreBattery)
         tvApiStatus = findViewById(R.id.tvApiStatus)
         btnPingApi = findViewById(R.id.btnPingApi)
+        tvStorageStatus = findViewById(R.id.tvStorageStatus)
+        btnGrantStorage = findViewById(R.id.btnGrantStorage)
         btnTestDispo = findViewById(R.id.btnTestDispo)
         btnClearLogs = findViewById(R.id.btnClearLogs)
         tvLogs = findViewById(R.id.tvLogs)
@@ -118,6 +132,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        btnGrantStorage.setOnClickListener {
+            requestStoragePermissions()
+        }
+
         btnPingApi.setOnClickListener {
             doPing()
         }
@@ -128,6 +146,28 @@ class MainActivity : AppCompatActivity() {
 
         btnClearLogs.setOnClickListener {
             GatewayLogger.clear()
+        }
+    }
+
+    private fun requestStoragePermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            storagePermissionLauncher.launch(arrayOf(Manifest.permission.READ_MEDIA_IMAGES))
+        } else {
+            storagePermissionLauncher.launch(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE))
+        }
+    }
+
+    private fun hasStoragePermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_MEDIA_IMAGES
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
         }
     }
 
@@ -161,6 +201,19 @@ class MainActivity : AppCompatActivity() {
                 btnIgnoreBattery.isEnabled = true
                 btnIgnoreBattery.alpha = 1.0f
             }
+        }
+
+        // Storage / Photos WhatsApp
+        if (hasStoragePermission()) {
+            tvStorageStatus.text = "Photos WhatsApp : Autorisé 🟢"
+            tvStorageStatus.setTextColor(getColor(R.color.status_green))
+            btnGrantStorage.isEnabled = false
+            btnGrantStorage.alpha = 0.5f
+        } else {
+            tvStorageStatus.text = "Photos WhatsApp : Requis 🔴"
+            tvStorageStatus.setTextColor(getColor(R.color.status_red))
+            btnGrantStorage.isEnabled = true
+            btnGrantStorage.alpha = 1.0f
         }
     }
 

@@ -85,7 +85,7 @@ public sealed class RiderRecruitmentService
     /// <summary>
     /// Traite un message d'un candidat livreur et retourne le message texte de réponse directement (utilisé par la passerelle Android WAZAP Gateway).
     /// </summary>
-    public async Task<string?> GetCandidateResponseTextAsync(string phone, string text)
+    public async Task<string?> GetCandidateResponseTextAsync(string phone, string text, string? senderName = null)
     {
         if (string.IsNullOrWhiteSpace(phone) || string.IsNullOrWhiteSpace(text))
             return null;
@@ -102,12 +102,16 @@ public sealed class RiderRecruitmentService
                 .OrderByDescending(l => l.CreatedAt)
                 .FirstOrDefaultAsync();
 
+            var fallbackName = !string.IsNullOrWhiteSpace(senderName) && senderName.Trim().Length is >= 3 and <= 45
+                ? senderName.Trim()
+                : null;
+
             if (lead is null)
             {
                 if (!HasRiderIntent(text))
                     return null;
 
-                var name = TryCaptureName(text);
+                var name = TryCaptureName(text) ?? fallbackName;
                 var zone = CaptureZone(text);
                 var created = new Lead("Candidat livreur", normalized, zone, "whatsapp-livreur", name);
                 created.SetReferralCode(TryCaptureReferralCode(text));
@@ -138,8 +142,8 @@ public sealed class RiderRecruitmentService
                 return "✅ Votre profil livreur WAZAP est déjà actif ! Envoyez DISPO pour vous mettre en ligne et recevoir des courses 🛵";
             }
 
-            var capturedName = TryCaptureName(text);
-            if (capturedName is not null && string.IsNullOrWhiteSpace(lead.ContactName))
+            var capturedName = TryCaptureName(text) ?? fallbackName;
+            if (capturedName is not null && (string.IsNullOrWhiteSpace(lead.ContactName) || lead.ContactName == "Candidat livreur"))
                 lead.Update(lead.BusinessName, capturedName, lead.Source);
             var capturedZone = CaptureZone(text);
             if (capturedZone.Length > 0 && string.IsNullOrWhiteSpace(lead.Zone))
