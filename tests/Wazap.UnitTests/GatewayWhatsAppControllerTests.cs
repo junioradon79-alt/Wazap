@@ -366,5 +366,113 @@ public class GatewayWhatsAppControllerTests : IDisposable
         Assert.NotNull(lead);
         Assert.Equal("Adama Traoré", lead.ContactName);
     }
+
+    [Theory]
+    [InlineData("+2250708323366")]
+    [InlineData("0708323366")]
+    [InlineData("+225 07 08 32 33 66")]
+    public async Task Process_NumeroPersonnelProprietaire_EstIgnoreSansReponse(string ownerPhone)
+    {
+        var (controller, _) = CreateController();
+        var req = new GatewayInboundRequest
+        {
+            Sender = ownerPhone,
+            Text = "DISPO"
+        };
+
+        var result = await controller.Process(req) as OkObjectResult;
+        Assert.NotNull(result);
+        var resp = result.Value as GatewayInboundResponse;
+
+        Assert.NotNull(resp);
+        Assert.True(resp.Success);
+        Assert.False(resp.ShouldReply, "Le numéro personnel du propriétaire ne doit JAMAIS recevoir de réponse automatique.");
+        Assert.Equal("ignored_protected_number", resp.Category);
+        Assert.Null(resp.ReplyText);
+    }
+
+    [Theory]
+    [InlineData("+2250544051972")]
+    [InlineData("0544051972")]
+    public async Task Process_NumeroOfficielWazap_EstIgnoreSansReponse(string wazapPhone)
+    {
+        var (controller, _) = CreateController();
+        var req = new GatewayInboundRequest
+        {
+            Sender = wazapPhone,
+            Text = "COLIS"
+        };
+
+        var result = await controller.Process(req) as OkObjectResult;
+        Assert.NotNull(result);
+        var resp = result.Value as GatewayInboundResponse;
+
+        Assert.NotNull(resp);
+        Assert.True(resp.Success);
+        Assert.False(resp.ShouldReply);
+        Assert.Equal("ignored_protected_number", resp.Category);
+    }
+
+    [Fact]
+    public async Task Process_PackageNonWhatsAppBusiness_EstIgnoreSansReponse()
+    {
+        var (controller, _) = CreateController();
+        var req = new GatewayInboundRequest
+        {
+            Sender = "+2250711223344",
+            Text = "DISPO",
+            PackageName = "com.whatsapp" // WhatsApp personnel classique
+        };
+
+        var result = await controller.Process(req) as OkObjectResult;
+        Assert.NotNull(result);
+        var resp = result.Value as GatewayInboundResponse;
+
+        Assert.NotNull(resp);
+        Assert.True(resp.Success);
+        Assert.False(resp.ShouldReply, "Une notification issue d'une app autre que com.whatsapp.w4b doit être ignorée.");
+        Assert.Equal("ignored_unsupported_app", resp.Category);
+    }
+
+    [Fact]
+    public async Task Process_MessageTexteOrdinaireSansMotCle_EstIgnoreSansReponse()
+    {
+        var (controller, _) = CreateController();
+        var req = new GatewayInboundRequest
+        {
+            Sender = "+2250711223344",
+            Text = "Salut frérot, tu es où aujourd'hui ?"
+        };
+
+        var result = await controller.Process(req) as OkObjectResult;
+        Assert.NotNull(result);
+        var resp = result.Value as GatewayInboundResponse;
+
+        Assert.NotNull(resp);
+        Assert.True(resp.Success);
+        Assert.False(resp.ShouldReply, "Un message ordinaire ne doit pas déclencher d'auto-réponse WAZAP.");
+        Assert.Equal("ignored_unrecognized_message", resp.Category);
+    }
+
+    [Fact]
+    public async Task UploadPhoto_NumeroPersonnelProprietaire_EstIgnoreSansReponse()
+    {
+        var (controller, _) = CreateController(new FakeOcrService());
+        var imageBytes = new byte[] { 0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46 };
+        var formFile = new FormFile(new MemoryStream(imageBytes), 0, imageBytes.Length, "file", "cni.jpg")
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = "image/jpeg"
+        };
+
+        var result = await controller.UploadPhoto(formFile, "+2250708323366", "Propriétaire") as OkObjectResult;
+        Assert.NotNull(result);
+        var resp = result.Value as GatewayInboundResponse;
+
+        Assert.NotNull(resp);
+        Assert.True(resp.Success);
+        Assert.False(resp.ShouldReply, "La photo envoyée par le numéro du propriétaire ne doit pas créer de compte ni répondre.");
+        Assert.Equal("ignored_protected_number", resp.Category);
+    }
 }
 

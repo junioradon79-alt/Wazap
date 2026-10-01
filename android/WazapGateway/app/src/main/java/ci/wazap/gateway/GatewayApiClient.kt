@@ -91,6 +91,7 @@ object GatewayApiClient {
             put("sender", sender)
             put("senderName", senderName)
             put("text", text)
+            put("packageName", "com.whatsapp.w4b")
             put("timestamp", System.currentTimeMillis())
         }
 

@@ -33,16 +33,23 @@ class WazapNotificationListenerService : NotificationListenerService() {
         private const val CHANNEL_ID = "wazap_gateway_service_channel"
         private const val NOTIFICATION_ID = 1001
 
-        private val SUPPORTED_PACKAGES = setOf(
-            "com.whatsapp.w4b", // WhatsApp Business
-            "com.whatsapp"      // WhatsApp Standard
+        // SEUL et UNIQUE package autorisé : WhatsApp Business (Règle Canonique Inviolable)
+        private const val PACKAGE_WHATSAPP_BUSINESS = "com.whatsapp.w4b"
+
+        private val BLACKLISTED_NUMBERS = setOf(
+            "0708323366",   // Téléphone personnel du propriétaire / admin
+            "708323366",
+            "2250708323366",
+            "0544051972",   // Ligne officielle WAZAP Business (anti-boucle)
+            "544051972",
+            "2250544051972"
         )
     }
 
     override fun onListenerConnected() {
         super.onListenerConnected()
         isConnected = true
-        GatewayLogger.log("🟢 Service d'écoute WAZAP connecté et opérationnel.")
+        GatewayLogger.log("🟢 Service d'écoute WAZAP connecté (WhatsApp Business uniquement).")
         createNotificationChannel()
         showStatusNotification()
     }
@@ -58,7 +65,10 @@ class WazapNotificationListenerService : NotificationListenerService() {
         if (sbn == null) return
 
         val packageName = sbn.packageName ?: return
-        if (packageName !in SUPPORTED_PACKAGES) return
+        if (packageName != PACKAGE_WHATSAPP_BUSINESS) {
+            // STRICT : Seul WhatsApp Business est écouté. WhatsApp standard est 100% exclu.
+            return
+        }
 
         val notification = sbn.notification ?: return
 
@@ -107,6 +117,13 @@ class WazapNotificationListenerService : NotificationListenerService() {
         val senderPhone = extractSenderPhone(sbn, notification, title)
         if (senderPhone.isBlank()) {
             GatewayLogger.log("⚠️ Ignoré : numéro introuvable pour la notification [$title].")
+            return
+        }
+
+        // GARDE-FOU LOCAL : Rejet immédiat du numéro personnel du propriétaire / admin
+        val cleanPhoneDigits = senderPhone.filter { it.isDigit() }
+        if (BLACKLISTED_NUMBERS.any { cleanPhoneDigits.endsWith(it) }) {
+            GatewayLogger.log("🛑 Ignoré localement (numéro personnel/protégé exclu) : [$senderPhone]")
             return
         }
 
@@ -290,11 +307,7 @@ class WazapNotificationListenerService : NotificationListenerService() {
             File("/storage/emulated/0/Android/media/com.whatsapp.w4b/WhatsApp Business/Media/WhatsApp Business Images"),
             File("/storage/emulated/0/Android/media/com.whatsapp.w4b/WhatsApp Business/Media/WhatsApp Business Documents"),
             File("/storage/emulated/0/WhatsApp Business/Media/WhatsApp Business Images"),
-            File("/storage/emulated/0/WhatsApp Business/Media/WhatsApp Business Documents"),
-            File("/storage/emulated/0/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Images"),
-            File("/storage/emulated/0/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents"),
-            File("/storage/emulated/0/WhatsApp/Media/WhatsApp Images"),
-            File("/storage/emulated/0/WhatsApp/Media/WhatsApp Documents")
+            File("/storage/emulated/0/WhatsApp Business/Media/WhatsApp Business Documents")
         )
 
         val now = System.currentTimeMillis()

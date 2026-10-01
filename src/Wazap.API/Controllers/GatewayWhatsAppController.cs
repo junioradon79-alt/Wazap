@@ -42,6 +42,27 @@ public class GatewayWhatsAppController : ControllerBase
         _ocrService = ocrService;
     }
 
+    private static readonly string[] ProtectedNumberSuffixes = new[]
+    {
+        "0708323366", // Numéro WhatsApp personnel du propriétaire (strictement exclu de toute automatisation)
+        "708323366",
+        "0544051972", // Numéro officiel WAZAP (anti-boucle réflexive)
+        "544051972"
+    };
+
+    private static bool IsProtectedOrBlacklisted(string phoneDigits)
+    {
+        if (string.IsNullOrWhiteSpace(phoneDigits)) return true;
+        foreach (var suffix in ProtectedNumberSuffixes)
+        {
+            if (phoneDigits.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /// <summary>Ping de diagnostic pour tester la connectivité depuis l'application Android.</summary>
     [HttpGet("ping")]
     public IActionResult Ping()
@@ -75,6 +96,22 @@ public class GatewayWhatsAppController : ControllerBase
         }
 
         var normalizedPhone = "+" + digits;
+
+        // GARDE-FOU 1 : Rejet formel des applications autres que WhatsApp Business (ex: WhatsApp personnel com.whatsapp)
+        if (!string.IsNullOrWhiteSpace(request.PackageName) &&
+            !string.Equals(request.PackageName, "com.whatsapp.w4b", StringComparison.OrdinalIgnoreCase))
+        {
+            _logger.LogWarning("Passerelle Android : Rejet notification issue d'une app non autorisée : {Package}", request.PackageName);
+            return Ok(new GatewayInboundResponse(true, false, null, "ignored_unsupported_app", normalizedPhone));
+        }
+
+        // GARDE-FOU 2 : Rejet formel du numéro personnel du propriétaire / admin (+225 07 08 32 33 66)
+        if (IsProtectedOrBlacklisted(digits))
+        {
+            _logger.LogWarning("Passerelle Android : Numéro personnel protégé/propriétaire ignoré sans réponse automatique : {Phone}", normalizedPhone);
+            return Ok(new GatewayInboundResponse(true, false, null, "ignored_protected_number", normalizedPhone));
+        }
+
         var text = request.Text.Trim();
         var upper = text.ToUpperInvariant();
 
@@ -179,16 +216,31 @@ public class GatewayWhatsAppController : ControllerBase
             return Ok(new GatewayInboundResponse(true, true, photoReply, "photo_acknowledgement", normalizedPhone));
         }
 
-        // 6. Message d'accueil universel (Orientation)
-        var defaultReply = "👋 Bonjour et bienvenue sur WAZAP Abidjan ⚡\n\n"
-            + "👉 Tu es LIVREUR et veux gagner 1 000 à 2 000 F net par course (0% commission) ?\n"
-            + "➔ Envoie simplement « DISPO »\n\n"
-            + "👉 Tu es COMMERÇANT et veux expédier un colis (15 courses offertes) ?\n"
-            + "➔ Envoie simplement « COLIS »\n\n"
-            + "👉 Pour consulter la grille des prix :\n"
-            + "➔ Envoie « TARIFS »";
+        // 6. Menu d'aide et orientation - UNIQUEMENT sur demande d'assistance explicite (AIDE, MENU, INFOS, WAZAP)
+        var isExplicitHelp = upper is "AIDE" or "HELP" or "MENU" or "INFOS" or "INFO" or "WAZAP";
 
-        return Ok(new GatewayInboundResponse(true, true, defaultReply, "universal_greeting", normalizedPhone));
+        if (isExplicitHelp)
+        {
+            var defaultReply = "👋 Menu WAZAP Abidjan ⚡\n\n"
+                + "👉 Tu es LIVREUR et veux gagner 1 000 à 2 000 F net par course (0% commission) ?\n"
+                + "➔ Envoie simplement « DISPO »\n\n"
+                + "👉 Tu es COMMERÇANT et veux expédier un colis (15 courses offertes) ?\n"
+                + "➔ Envoie simplement « COLIS »\n\n"
+                + "👉 Pour consulter la grille des prix :\n"
+                + "➔ Envoie « TARIFS »";
+
+            return Ok(new GatewayInboundResponse(true, true, defaultReply, "help_menu", normalizedPhone));
+        }
+
+        // Pour tout autre message non reconnu (discussions personnelles, salutations courantes, messages ordinaires),
+        // STRICTEMENT AUCUNE réponse automatique n'est expédiée pour garantir l'absence totale d'interférence.
+        _logger.LogInformation("Passerelle Android : Message sans commande WAZAP de {Phone} ('{Text}'). Ignoré sans réponse automatique.", normalizedPhone, text);
+        return Ok(new GatewayInboundResponse(
+            Success: true,
+            ShouldReply: false,
+            ReplyText: null,
+            Category: "ignored_unrecognized_message",
+            Sender: normalizedPhone));
     }
 
     /// <summary>
@@ -215,6 +267,14 @@ public class GatewayWhatsAppController : ControllerBase
         }
 
         var normalizedPhone = "+" + digits;
+
+        // GARDE-FOU : Rejet formel du numéro personnel du propriétaire / admin (+225 07 08 32 33 66)
+        if (IsProtectedOrBlacklisted(digits))
+        {
+            _logger.LogWarning("Passerelle Android : Téléversement photo ignoré pour numéro personnel protégé/propriétaire : {Phone}", normalizedPhone);
+            return Ok(new GatewayInboundResponse(true, false, null, "ignored_protected_number", normalizedPhone));
+        }
+
         _logger.LogInformation("Passerelle Android WAZAP : Photo CNI/Permis reçue de {Phone} ({SenderName}), taille: {Size} octets",
             normalizedPhone, senderName, file.Length);
 
@@ -321,6 +381,7 @@ public sealed class GatewayInboundRequest
     public string Text { get; set; } = string.Empty;
     public string? MessageId { get; set; }
     public long? Timestamp { get; set; }
+    public string? PackageName { get; set; }
 }
 
 public record GatewayInboundResponse(
