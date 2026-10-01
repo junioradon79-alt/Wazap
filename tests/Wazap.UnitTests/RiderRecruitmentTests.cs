@@ -85,6 +85,43 @@ public class RiderRecruitmentTests
     }
 
     [Fact]
+    public async Task Candidate_1TapFlow_DispoThenClickLink_CreatesRiderAccountAndPromptsPhotoZeroText()
+    {
+        var harness = new WebhookHarness(teamPhone: "+2250500000000");
+
+        // 1. Envoi de DISPO
+        await harness.SendAsync(CandidatePhone, "DISPO");
+
+        var welcome = harness.LastMessageTo(CandidatePhone);
+        Assert.Contains("wa.me/2250544051972?text=1%20Cocody", welcome);
+        Assert.Contains("wa.me/2250544051972?text=2%20Yopougon", welcome);
+        Assert.Contains("wa.me/2250544051972?text=3%20Zone%20Sud", welcome);
+        Assert.Contains("wa.me/2250544051972?text=4%20Abobo", welcome);
+        Assert.Contains("wa.me/2250544051972?text=5%20Plateau", welcome);
+
+        // 2. Le candidat clique sur le lien wa.me Cocody (1-tap)
+        await harness.SendAsync(CandidatePhone, "1 Cocody");
+
+        var lead = await harness.Context.Leads.SingleAsync(l => l.WhatsAppNumber == CandidatePhone);
+        Assert.Equal("Cocody", lead.Zone);
+
+        var promptPhoto = harness.LastMessageTo(CandidatePhone);
+        Assert.Contains("Commune enregistrée : Cocody", promptPhoto);
+        Assert.Contains("Dernière étape (0 saisie texte)", promptPhoto);
+        Assert.Contains("Prends en PHOTO ta pièce d'identité", promptPhoto);
+
+        // 3. Envoi de la photo CNI sans avoir tapé de nom au clavier
+        await harness.SendImageAsync(CandidatePhone, "https://media.example/cni-zero-text.jpg");
+
+        var rider = await harness.Context.Users.SingleAsync(u => u.Role == UserRole.Rider);
+        Assert.Equal("Cocody", rider.Zone);
+        Assert.Equal(CandidatePhone, rider.PhoneNumber);
+
+        var identity = await harness.Context.RiderIdentities.SingleAsync();
+        Assert.Equal(RiderIdentityStatus.Pending, identity.Status);
+    }
+
+    [Fact]
     public async Task Candidate_PhotoBeforeNameZone_AsksMissingInfo_NoAccount()
     {
         var harness = new WebhookHarness();

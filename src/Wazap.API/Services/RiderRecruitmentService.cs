@@ -127,8 +127,10 @@ public sealed class RiderRecruitmentService
                     await CreateRiderAccountFromLeadAsync(created);
                     var riderName = !string.IsNullOrWhiteSpace(created.ContactName) ? $" {created.ContactName}" : "";
                     return $"🎉 Félicitations{riderName} ! Ton profil livreur WAZAP est activé à {created.Zone} !\n\n"
-                        + "Tu es désormais EN LIGNE 🟢 pour recevoir les courses.\n"
-                        + "Prends en photo ta pièce d'identité (CNI ou permis) 🪪 et envoie-la ici pour obtenir le badge Livreur Certifié et accéder aux courses Colis Sûr !";
+                        + "Tu es désormais EN LIGNE 🟢 pour recevoir les courses.\n\n"
+                        + "🪪 Dernière étape (0 saisie texte) :\n"
+                        + "Prends en PHOTO ta pièce d'identité (CNI, Permis de conduire ou Passeport) 🪪 et envoie-la directement ici.\n\n"
+                        + "⚡ Notre scanner OCR lit automatiquement ton document pour valider ton badge Livreur Certifié et activer tes courses Colis Sûr !";
                 }
 
                 return BuildAskMessage(created);
@@ -158,8 +160,10 @@ public sealed class RiderRecruitmentService
                 await CreateRiderAccountFromLeadAsync(lead);
                 var riderName = !string.IsNullOrWhiteSpace(lead.ContactName) ? $" {lead.ContactName}" : "";
                 return $"🎉 Félicitations{riderName} ! Ton profil livreur WAZAP est activé à {lead.Zone} !\n\n"
-                    + "Tu es désormais EN LIGNE 🟢 pour recevoir les courses.\n"
-                    + "Prends en photo ta pièce d'identité (CNI ou permis) 🪪 et envoie-la ici pour obtenir le badge Livreur Certifié et accéder aux courses Colis Sûr !";
+                    + "Tu es désormais EN LIGNE 🟢 pour recevoir les courses.\n\n"
+                    + "🪪 Dernière étape (0 saisie texte) :\n"
+                    + "Prends en PHOTO ta pièce d'identité (CNI, Permis de conduire ou Passeport) 🪪 et envoie-la directement ici.\n\n"
+                    + "⚡ Notre scanner OCR lit automatiquement ton document pour valider ton badge Livreur Certifié et activer tes courses Colis Sûr !";
             }
 
             return BuildAskMessage(lead);
@@ -267,8 +271,8 @@ public sealed class RiderRecruitmentService
             return true;
         }
 
-        // Photo trop tôt : on redonne les étapes (la piste, elle, n'est pas perdue).
-        if (string.IsNullOrWhiteSpace(lead.ContactName) || string.IsNullOrWhiteSpace(lead.Zone))
+        // Photo trop tôt : la zone doit d'abord être définie (via le lien 1-clic wa.me)
+        if (string.IsNullOrWhiteSpace(lead.Zone))
         {
             await ReplyAsync(normalized, BuildAskMessage(lead) + "\nEnvoyez ensuite à nouveau la photo de votre CNI 🪪.");
             return true;
@@ -285,7 +289,9 @@ public sealed class RiderRecruitmentService
         try
         {
             // Analyse OCR de la pièce d'identité (CNI, Permis de conduire ou Passeport) :
-            string resolvedName = lead.ContactName ?? "Livreur WAZAP";
+            string resolvedName = !string.IsNullOrWhiteSpace(lead.ContactName) && lead.ContactName != "Candidat livreur"
+                ? lead.ContactName
+                : "Livreur WAZAP";
             string? detectedCni = null;
             string? detectedDocType = null;
 
@@ -296,7 +302,7 @@ public sealed class RiderRecruitmentService
                     var ocr = await _ocrService.ParseIdentityCardAsync(download.Value.Content, mimeType);
                     if (ocr.Success)
                     {
-                        if (!string.IsNullOrWhiteSpace(ocr.FullName) && (string.IsNullOrWhiteSpace(lead.ContactName) || lead.ContactName == "Candidat livreur"))
+                        if (!string.IsNullOrWhiteSpace(ocr.FullName) && (string.IsNullOrWhiteSpace(lead.ContactName) || lead.ContactName == "Candidat livreur" || lead.ContactName == "Livreur WAZAP"))
                         {
                             resolvedName = ocr.FullName;
                             lead.Update(lead.BusinessName, resolvedName, lead.Source);
@@ -494,13 +500,13 @@ public sealed class RiderRecruitmentService
     {
         var trimmed = text.Trim().ToLowerInvariant();
 
-        // Raccourcis ultra-simples par numéros pour les livreurs :
-        if (trimmed is "1" or "zone_1" or "cocody") return "Cocody";
-        if (trimmed is "2" or "zone_2" or "yopougon") return "Yopougon";
-        if (trimmed is "3" or "zone_3" or "marcory") return "Marcory";
-        if (trimmed is "4" or "zone_4" or "koumassi" or "treichville") return "Marcory"; // Zone Sud
-        if (trimmed is "5" or "zone_5" or "adjame" or "adjamé" or "plateau") return "Plateau";
-        if (trimmed is "6" or "zone_6" or "abobo") return "Abobo";
+        // Liens 1-clic wa.me et raccourcis par numéros pour les livreurs :
+        if (trimmed is "1" or "zone_1" or "cocody" || trimmed.StartsWith("1 ") || trimmed.StartsWith("1-") || trimmed.StartsWith("1.")) return "Cocody";
+        if (trimmed is "2" or "zone_2" or "yopougon" || trimmed.StartsWith("2 ") || trimmed.StartsWith("2-") || trimmed.StartsWith("2.")) return "Yopougon";
+        if (trimmed is "3" or "zone_3" or "marcory" or "zone sud" or "zonesud" || trimmed.StartsWith("3 ") || trimmed.StartsWith("3-") || trimmed.StartsWith("3.")) return "Marcory";
+        if (trimmed is "4" or "zone_4" or "abobo" || trimmed.StartsWith("4 ") || trimmed.StartsWith("4-") || trimmed.StartsWith("4.")) return "Abobo";
+        if (trimmed is "5" or "zone_5" or "adjame" or "adjamé" or "plateau" || trimmed.StartsWith("5 ") || trimmed.StartsWith("5-") || trimmed.StartsWith("5.")) return "Plateau";
+        if (trimmed is "6" or "zone_6" or "koumassi" or "treichville" || trimmed.StartsWith("6 ") || trimmed.StartsWith("6-") || trimmed.StartsWith("6.")) return "Marcory";
 
         var zone = Zones.FirstOrDefault(z => trimmed.Contains(z)) ?? string.Empty;
         return zone.Length > 0 ? char.ToUpperInvariant(zone[0]) + zone[1..] : string.Empty;
@@ -535,31 +541,34 @@ public sealed class RiderRecruitmentService
 
     private static string BuildAskMessage(Lead lead)
     {
-        // Étape 1 : Si la zone n'est pas encore choisie, proposer le nom complet ou le choix direct de la commune :
+        // Étape 1 : Si la zone n'est pas encore choisie, proposer les 5 liens 1-clic wa.me par commune :
         if (string.IsNullOrWhiteSpace(lead.Zone))
         {
             return "👋 Bienvenue chez WAZAP Livreur 🛵\n"
-                + "Gagne 1 000 à 2 000 FCFA par course (0 commission) !\n\n"
-                + "Pour activer ton compte, envoie ton nom complet et choisis ta commune principale (chiffre 1 à 6) :\n"
-                + "1️⃣ Cocody (Angré, 2 Plateaux, Riviera)\n"
-                + "2️⃣ Yopougon (Maroc, Siporex, Bel Air)\n"
-                + "3️⃣ Marcory (Zone 4, Biétry)\n"
-                + "4️⃣ Koumassi / Treichville\n"
-                + "5️⃣ Plateau / Adjamé\n"
-                + "6️⃣ Abobo\n\n"
-                + "👉 Réponds simplement avec ton nom complet et le chiffre de ta commune (ex: « Ibrahim 3 ») ou juste le chiffre :";
+                + "Gagne 1 000 à 2 000 FCFA net par course (0% commission) !\n"
+                + "(0 frappe au clavier, ton nom complet sera extrait automatiquement de ta pièce)\n\n"
+                + "👉 Touche directement le lien de ta commune pour t'activer en 1 clic :\n\n"
+                + "📍 1. COCODY (Angré, 2 Plateaux, Riviera) :\n"
+                + "https://wa.me/2250544051972?text=1%20Cocody\n\n"
+                + "📍 2. YOPOUGON (Maroc, Siporex, Bel Air) :\n"
+                + "https://wa.me/2250544051972?text=2%20Yopougon\n\n"
+                + "📍 3. ZONE SUD (Marcory, Koumassi, Treichville) :\n"
+                + "https://wa.me/2250544051972?text=3%20Zone%20Sud\n\n"
+                + "📍 4. ABOBO :\n"
+                + "https://wa.me/2250544051972?text=4%20Abobo\n\n"
+                + "📍 5. PLATEAU / ADJAMÉ :\n"
+                + "https://wa.me/2250544051972?text=5%20Plateau";
         }
 
-        // Étape 2 : Nom ou pseudo
-        if (string.IsNullOrWhiteSpace(lead.ContactName))
-        {
-            return $"✅ Commune enregistrée : {lead.Zone} !\n\n"
-                + "Écris maintenant ton nom complet (prénom et nom) :";
-        }
-
-        // Étape 3 : Photo de la pièce d'identité (Garantie Colis Sûr)
-        return $"✅ Parfait {lead.ContactName} ! Dernière étape : Prends en PHOTO ta pièce d'identité (CNI, Permis de conduire ou Passeport) 🪪 et envoie-la ici.\n\n"
-            + "Dès réception de la photo, ton compte est activé et tu reçois immédiatement tes premières courses 🛵💨";
+        // Étape 2 : Zone choisie -> Demande de photo CNI directe (ZÉRO saisie de texte)
+        var riderGreeting = !string.IsNullOrWhiteSpace(lead.ContactName) && lead.ContactName != "Candidat livreur"
+            ? $" {lead.ContactName}"
+            : "";
+        return $"🎉 Félicitations{riderGreeting} ! Commune enregistrée : {lead.Zone} !\n\n"
+            + "Tu es désormais EN LIGNE 🟢 pour recevoir les courses.\n\n"
+            + "🪪 Dernière étape (0 saisie texte) :\n"
+            + "Prends en PHOTO ta pièce d'identité (CNI, Permis de conduire ou Passeport) 🪪 et envoie-la directement ici.\n\n"
+            + "⚡ Notre scanner OCR lit automatiquement ton document pour valider ton badge Livreur Certifié et activer tes courses Colis Sûr !";
     }
 
     private async Task<string> BuildUniqueUsernameAsync(string fullName)

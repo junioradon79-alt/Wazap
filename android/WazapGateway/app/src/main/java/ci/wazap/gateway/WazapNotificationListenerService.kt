@@ -150,7 +150,16 @@ class WazapNotificationListenerService : NotificationListenerService() {
             try {
                 // Si une photo est détectée, tenter la lecture et l'envoi direct au serveur OCR
                 if (isPhotoNotification) {
-                    val photoFile = findLatestWhatsAppImage()
+                    var photoFile = findLatestWhatsAppImage()
+                    if (photoFile == null) {
+                        kotlinx.coroutines.delay(600)
+                        photoFile = findLatestWhatsAppImage()
+                    }
+                    if (photoFile == null) {
+                        kotlinx.coroutines.delay(1000)
+                        photoFile = findLatestWhatsAppImage()
+                    }
+
                     if (photoFile != null) {
                         GatewayLogger.log("📸 Photo CNI/Permis détectée (${photoFile.name}), envoi OCR pour [$senderPhone]...")
                         val uploadResult = GatewayApiClient.uploadPhoto(
@@ -172,7 +181,7 @@ class WazapNotificationListenerService : NotificationListenerService() {
                             GatewayLogger.log("ℹ️ Résultat téléversement OCR : ${uploadResult.reason}")
                         }
                     } else {
-                        GatewayLogger.log("ℹ️ Notification photo détectée mais fichier non encore synchronisé sur le disque.")
+                        GatewayLogger.log("ℹ️ Notification photo détectée mais fichier non encore synchronisé sur le disque après délai.")
                     }
                 }
 
@@ -279,9 +288,13 @@ class WazapNotificationListenerService : NotificationListenerService() {
     private fun findLatestWhatsAppImage(): File? {
         val candidateDirs = listOf(
             File("/storage/emulated/0/Android/media/com.whatsapp.w4b/WhatsApp Business/Media/WhatsApp Business Images"),
+            File("/storage/emulated/0/Android/media/com.whatsapp.w4b/WhatsApp Business/Media/WhatsApp Business Documents"),
             File("/storage/emulated/0/WhatsApp Business/Media/WhatsApp Business Images"),
+            File("/storage/emulated/0/WhatsApp Business/Media/WhatsApp Business Documents"),
             File("/storage/emulated/0/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Images"),
-            File("/storage/emulated/0/WhatsApp/Media/WhatsApp Images")
+            File("/storage/emulated/0/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents"),
+            File("/storage/emulated/0/WhatsApp/Media/WhatsApp Images"),
+            File("/storage/emulated/0/WhatsApp/Media/WhatsApp Documents")
         )
 
         val now = System.currentTimeMillis()
