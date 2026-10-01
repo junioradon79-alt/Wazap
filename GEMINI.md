@@ -131,7 +131,27 @@
   4. **Publication & Déploiement :** `git add -A`, `git commit` avec message clair et `git push origin main`.
   5. **Vérification en Ligne :** Vérification de l'aboutissement du pipeline GitHub Actions (`Deploy prod`) et du statut HTTP 200 sur le serveur de production.
 
+---
 
+## 10. Règle Canonique Inviolable : ZÉRO SAISIE TEXTE / 1-TAP ABSOLU (L'Essence Fondatrice WAZAP)
 
+* **Principe Fondateur & Inviolable :**
+  * **IL EST STRICTEMENT INTERDIT D'AMENER LES USAGERS (LIVREURS, COMMERÇANTS OU CLIENTS) À TAPER DU TEXTE LIBRE AU CLAVIER DU MIEUX POSSIBLE.**
+  * C'est la force absolue et différentiatrice de WAZAP sur le terrain à Abidjan face à une cible terrain (coursiers indépendants, commerçants de quartier) qui n'a pas forcément un niveau scolaire élevé et pour qui toute saisie au clavier est une friction bloquante.
+* **Mise en Application Systématique :**
+  1. **Liens d'Action 1-Clic Pré-remplis (`wa.me`) :** Tout appel à l'action WhatsApp doit être un lien bleu direct `https://wa.me/2250544051972?text=...` (ex : `DISPO`, `INDISPO`, `ACCEPTE`, `COLIS`, `DASHBOARD`, `1 Cocody`, etc.). L'utilisateur touche le lien, le texte est déjà inséré dans sa barre d'envoi, il n'a qu'à appuyer sur la flèche verte.
+  2. **Zéro Formulaire pour l'Identité :** Le livreur envoie simplement la photo de sa pièce (CNI, Permis de Conduire ou Passeport). L'OCR Google Cloud Vision extrait automatiquement le nom complet, le numéro et la date d'expiration sans aucune saisie manuelle.
+  3. **Zéro Saisie pour le Règlement :** Le client scanne le QR Code Universel WAZAP en 1 tap avec son application Mobile Money habituelle (Wave, OM, MTN, Moov, Carte). Zéro saisie de numéro de compte, zéro manipulation d'espèces.
+  4. **Boutons 1-Clic dans le Dashboard Admin :** L'administrateur dispose de boutons directs pour envoyer en un tap les accès et liens pré-remplis aux livreurs et commerçants sans composer de message manuel.
+---
 
+## 11. Harnais d'Ingénierie & Mémoire ECC (Everything Claude Code)
+
+* **Emplacement du Framework Mutualisé :** `C:\Dev\everything-claude-code` (accessible pour WAZAP et tous les projets).
+* **Découplage de la Mémoire :**
+  * **Invariants stricts fail-closed :** [`.ecc/memory/project/invariants.md`](file:///c:/Dev/Wazap/.ecc/memory/project/invariants.md).
+  * **Handoff actif de session :** [`.ecc/memory/project/active_sprint.md`](file:///c:/Dev/Wazap/.ecc/memory/project/active_sprint.md).
+  * **Mémoire active du projet :** [`MEMOIRE.md`](file:///c:/Dev/Wazap/MEMOIRE.md) (synthétique, < 500 lignes, chantiers P0/P1 et sessions récentes).
+  * **Archives historiques :** [`docs/HISTORIQUE_SESSIONS.md`](file:///c:/Dev/Wazap/docs/HISTORIQUE_SESSIONS.md) (sessions 1 à 111 et audits).
+* **Mobilisation des Compétences & Sous-Agents :** L'agent peut s'appuyer sur les règles modulaires (`rules/common`, `rules/csharp`, `rules/react`) et les compétences d'ingénierie d'ECC (`skills/unified-memory`, `skills/verification-loop`, `skills/strategic-compact`, `skills/security-review`).
 
