@@ -277,5 +277,23 @@ public class VendorTextCommandsTests
         Assert.Equal("Cocody", parsed.Zone);
         Assert.Contains("Angré", parsed.Address);
     }
+
+    [Fact]
+    public async Task Dashboard_RenvoieTableauDeBordCommercantDansWhatsApp()
+    {
+        using var f = new Fixture();
+        f.Vendor.AddCredits(10);
+        await f.Context.SaveChangesAsync();
+
+        Assert.True(VendorTextCommands.Matches("DASHBOARD"));
+        Assert.True(VendorTextCommands.Matches("SOLDE"));
+
+        await f.Commands.HandleAsync(f.Vendor, "DASHBOARD", f.Reply);
+
+        Assert.NotEmpty(f.LastReply);
+        Assert.Contains("TABLEAU DE BORD COMMERÇANT", f.LastReply);
+        Assert.Contains("Crédits livraisons disponibles : *10*", f.LastReply);
+        Assert.Contains("/app/login?u=" + f.Vendor.Username, f.LastReply);
+    }
 }
 

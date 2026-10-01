@@ -7,6 +7,7 @@ using Wazap.Application.Exceptions;
 using Wazap.Application.Helpers;
 using Wazap.Application.Services;
 using Wazap.Domain.Entities;
+using Wazap.Domain.Enums;
 using Wazap.Infrastructure.Data;
 
 namespace Wazap.API.Services;
@@ -49,6 +50,7 @@ public sealed class VendorTextCommands
     /// </summary>
     public static bool Matches(string upperText)
         => upperText == "LIVRAISON" || upperText.StartsWith("LIVRAISON ")
+           || upperText is "DASHBOARD" or "STATS" or "STATISTIQUES" or "SOLDE" or "COMPTE" or "TABLEAU DE BORD"
            || upperText == "SINISTRE" || upperText.StartsWith("SINISTRE ")
            || upperText == "PRODUITS" || upperText.StartsWith("PRODUITS ")
            || upperText == "PRODUIT" || upperText.StartsWith("PRODUIT ")
@@ -61,6 +63,12 @@ public sealed class VendorTextCommands
     public async Task HandleAsync(User user, string command, Func<User, string, Task> reply)
     {
         var upper = command.ToUpperInvariant();
+
+        if (upper is "DASHBOARD" or "STATS" or "STATISTIQUES" or "SOLDE" or "COMPTE" or "TABLEAU DE BORD")
+        {
+            await HandleDashboardAsync(user, reply);
+            return;
+        }
 
         if (upper == "LIVRAISON" || upper.StartsWith("LIVRAISON "))
         {
@@ -279,4 +287,48 @@ public sealed class VendorTextCommands
         => string.IsNullOrEmpty(product.Emoji)
             ? $"{product.Name} — {product.Price:N0} FCFA"
             : $"{product.Emoji} {product.Name} — {product.Price:N0} FCFA";
+
+    /// <summary>
+    /// Tableau de bord conversationnel direct dans WhatsApp : solde crédits, livraisons du mois, CA et lien 1-tap.
+    /// </summary>
+    private async Task HandleDashboardAsync(User user, Func<User, string, Task> reply)
+    {
+        var now = DateTime.UtcNow;
+        var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        var orders = await _context.Orders.AsNoTracking()
+            .Where(o => o.VendorUserId == user.Id)
+            .ToListAsync();
+
+        var inProgress = orders.Count(o => o.Status != OrderStatus.Delivered && o.Status != OrderStatus.Cancelled);
+        var deliveredThisMonth = orders.Count(o => o.Status == OrderStatus.Delivered && o.DeliveredAt >= monthStart);
+        var revenueThisMonth = orders.Where(o => o.Status == OrderStatus.Delivered && o.DeliveredAt >= monthStart).Sum(o => o.Amount);
+
+        var webDashboardUrl = $"https://junioradon79gm-001-site1.jtempurl.com/app/login?u={Uri.EscapeDataString(user.Username)}";
+
+        var sb = new StringBuilder();
+        sb.AppendLine("📊 *TABLEAU DE BORD COMMERÇANT* — WAZAP");
+        sb.AppendLine("━━━━━━━━━━━━━━━━━━━━");
+        sb.AppendLine($"🏪 *{user.Username}* ({(user.PhoneNumber ?? "WhatsApp")})");
+        sb.AppendLine($"📍 Commune : {user.Zone ?? "Grand Abidjan"}");
+        sb.AppendLine($"💳 Crédits livraisons disponibles : *{user.Credits}*");
+        sb.AppendLine();
+        sb.AppendLine("📦 *ACTIVITÉ DU MOIS*");
+        sb.AppendLine($"• Courses en cours : {inProgress}");
+        sb.AppendLine($"• Livraisons réussies : {deliveredThisMonth}");
+        if (revenueThisMonth > 0)
+            sb.AppendLine($"• CA livré : {revenueThisMonth:N0} FCFA");
+        sb.AppendLine();
+        if (!string.IsNullOrWhiteSpace(user.ReferralCode))
+        {
+            sb.AppendLine($"🎁 Code parrainage : *{user.ReferralCode}* (+5 crédits offerts par filleul)");
+            sb.AppendLine();
+        }
+        sb.AppendLine("👉 *Actions 1-Clic :*");
+        sb.AppendLine("• Demander une course : Tapez « LIVRAISON article à quartier »");
+        sb.AppendLine("• Gérer votre catalogue : Tapez « PRODUITS »");
+        sb.AppendLine($"• Espace Visuel Web (1 clic) : {webDashboardUrl}");
+
+        await reply(user, sb.ToString().TrimEnd());
+    }
 }
