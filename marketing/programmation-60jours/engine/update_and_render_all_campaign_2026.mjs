@@ -1,0 +1,316 @@
+import fs from 'fs';
+import path from 'path';
+import { spawnSync } from 'child_process';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const rootDir = path.resolve(__dirname, '..');
+const templatesDir = path.join(rootDir, 'templates');
+const outFeedDir = path.join(rootDir, 'visuels', 'feed');
+const outStoryDir = path.join(rootDir, 'visuels', 'story');
+const tempDir = path.join(rootDir, 'templates', 'temp');
+
+if (!fs.existsSync(outFeedDir)) fs.mkdirSync(outFeedDir, { recursive: true });
+if (!fs.existsSync(outStoryDir)) fs.mkdirSync(outStoryDir, { recursive: true });
+if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+
+const edgePaths = [
+  'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+  'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+  'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+];
+const browserPath = edgePaths.find(p => fs.existsSync(p));
+
+if (!browserPath) {
+  console.error("❌ Aucun navigateur compatible trouvé !");
+  process.exit(1);
+}
+
+const tempUserDataDir = path.join(process.env.TEMP || 'C:\\temp', 'wazap-campaign-render-edge');
+
+// Catalogue complet des 10 visuels avec les descriptions complètes prêtes à poster
+const catalog2026 = [
+  {
+    id: "visuel_01_securite_awa",
+    theme: "securite",
+    title_line_1: "WAZAP.CI - FINI LES LIVREURS",
+    title_line_2: "QUI DISPARAISSENT AVEC",
+    title_line_3: "VOTRE ARGENT !",
+    cta_subtitle: "Envoie COLIS par WhatsApp au...",
+    phone_number: "05 44 05 19 72",
+    hero_img: "../assets/modele_visuel_commercante_1.jpg",
+    hero_alt: "Awa Joaillière Deux-Plateaux Cocody",
+    personnage: "Awa (Bijouterie & Mode Deux-Plateaux)",
+    badge_title: "🛡️ SÉCURITÉ COMMERÇANTS",
+    qr_src: "../assets/qr_colis_whatsapp.png",
+    hook: `🚨 WAZAP.CI - FINI LES LIVREURS QUI DISPARAISSENT AVEC VOTRE ARGENT !`,
+    body: `Chaque matin à Abidjan, c'est la même angoisse : confier des bijoux ou des marchandises de valeur à un coursier inconnu et prier pour qu'il ne disparaisse pas avec votre recette !\n\nSur WAZAP, la règle est limpide et inviolable : ZÉRO CASH SUR LA MARCHANDISE.\nÀ la livraison, votre client scanne simplement le QR Code Universel WAZAP (Wave, Orange Money, MTN, Moov, Carte bancaire). L'argent arrive instantanément sur VOTRE compte avant même que le coursier ne reparte.\n\n🛡️ Livreurs vérifiés CNI par IA Google Cloud Vision\n📍 Géolocalisation live sur la carte en temps réel\n🎁 15 premières livraisons offertes sans commission WAZAP !`,
+    cta: `👉 Prêt à expédier en toute sérénité ? Envoyez « COLIS » sur WhatsApp au 05 44 05 19 72 ou touchez le lien direct : https://wa.me/2250544051972?text=COLIS`,
+    hashtags: `#Wazap #LivraisonAbidjan #EcommerceCIV #VenteEnLigneCIV #Team225 #AbidjanBusiness #Cocody #Marcory #Yopougon #Plateau`,
+    comment: `💬 Avez-vous déjà été victime d'un livreur qui a disparu avec votre recette de marchandise à Abidjan ? Partagez votre expérience en commentaire.`
+  },
+  {
+    id: "visuel_02_securite_fatou",
+    theme: "securite",
+    title_line_1: "WAZAP.CI - GÂTEAUX LIVRÉS",
+    title_line_2: "100% INTACTS & RECETTE",
+    title_line_3: "PAYÉE EN DIRECT !",
+    cta_subtitle: "Envoie COLIS par WhatsApp au...",
+    phone_number: "05 44 05 19 72",
+    hero_img: "../assets/modele_visuel_commercante_2.jpg",
+    hero_alt: "Fatou Pâtissière Yopougon",
+    personnage: "Fatou (Pâtisserie & Traiteur Yopougon)",
+    badge_title: "🎂 COLIS SÛR & ASSURANCE",
+    qr_src: "../assets/qr_colis_whatsapp.png",
+    hook: `🎂 PÂTISSIÈRES & TRAITEURS D'ABIDJAN : FINI LES GÂTEAUX ÉCRASÉS ET LES REPAS RENVERSÉS !`,
+    body: `Combien d'heures passez-vous à peaufiner un gâteau d'anniversaire pour le voir ruiné au fond d'un sac de moto inadapté ?\n\nAvec WAZAP, vos livraisons délicates sont protégées :\n🔒 Assurance Colis Sûr : votre marchandise est couverte et remboursée en cas de dommage.\n🛵 Coursiers formés au maintien horizontal des plateaux.\n💳 Zéro cash marchandise : le client règle le montant exact au franc près par QR Code Universel (Wave, OM, MTN). Aucun risque de faux billet ou de vol !`,
+    cta: `📲 Pour expédier vos créations en toute confiance : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72 ou touchez 👉 https://wa.me/2250544051972?text=COLIS (15 courses offertes sans commission).`,
+    hashtags: `#Wazap #PatisserieAbidjan #GateauAbidjan #TraiteurCIV #Yopougon #Cocody #Team225`,
+    comment: `🧁 Quel a été votre pire accident de livraison sur un gâteau ou un plat à Abidjan ? Dites-le nous en commentaire !`
+  },
+  {
+    id: "visuel_03_securite_clarisse",
+    theme: "securite",
+    title_line_1: "WAZAP.CI - LIVREUR INJOIGNABLE",
+    title_line_2: "SOUS LA PLUIE ?",
+    title_line_3: "C'EST DU PASSÉ !",
+    cta_subtitle: "Envoie COLIS par WhatsApp au...",
+    phone_number: "05 44 05 19 72",
+    hero_img: "../assets/clarisse.jpg",
+    hero_alt: "Clarisse Cosmétiques Koumassi",
+    personnage: "Clarisse (Cosmétiques & Parfums Koumassi)",
+    badge_title: "🌧️ SÉRÉNITÉ SOUS LA PLUIE & GPS",
+    qr_src: "../assets/qr_colis_whatsapp.png",
+    hook: `🌧️ IL PLEUT À VERSE SUR ABIDJAN ET VOTRE COURSIER NE RÉPOND PLUS AU TÉLÉPHONE ?`,
+    body: `À Abidjan, la moindre averse paralyse les livraisons. Vos clientes s'impatientent, vous passez 15 appels sans réponse, et vos crèmes ou parfums risquent d'arriver trempés.\n\nSur WAZAP, vous gardez le contrôle de bout en bout :\n📍 Radar GPS temps réel : vous et votre cliente suivez la moto rue par rue sans avoir à appeler.\n🛡️ Sacs de livraison étanches garantis.\n💰 Le client scanne et règle en 1 tap à la porte d'entrée par Mobile Money.`,
+    cta: `📦 Expédiez vos colis beauté sans angoisse : envoyez « COLIS » au 05 44 05 19 72 ou cliquez 👉 https://wa.me/2250544051972?text=COLIS`,
+    hashtags: `#Wazap #CosmetiquesCIV #BeauteAbidjan #Koumassi #Marcory #LivraisonPluie #Team225`,
+    comment: `🌧️ Combien de commandes avez-vous déjà perdues à cause d'une journée de pluie à Abidjan ? Partagez vos réalités !`
+  },
+  {
+    id: "visuel_04_rapidite_salimata",
+    theme: "rapidite",
+    title_line_1: "WAZAP.CI - CLIENTE PRESSÉE ?",
+    title_line_2: "UN LIVREUR PRO ARRIVE",
+    title_line_3: "EN 3 MINUTES CHRONO !",
+    cta_subtitle: "Envoie COLIS par WhatsApp au...",
+    phone_number: "05 44 05 19 72",
+    hero_img: "../assets/salimata.jpg",
+    hero_alt: "Salimata Styliste Angré Cocody",
+    personnage: "Salimata (Styliste Mode & Ateliers Couture Angré)",
+    badge_title: "⚡ RAPIDITÉ ÉCLAIR < 3 MIN",
+    qr_src: "../assets/qr_colis_whatsapp.png",
+    hook: `⚡ CLIENTE PRESSÉE POUR UNE SOIRÉE ? NE PERDEZ PLUS 45 MINUTES À CHERCHER UNE MOTO !`,
+    body: `Votre robe sur-mesure est repassée, prête à partir, mais aucun livreur habituel n'est disponible ?\n\nSur WAZAP, plus besoin d'écrire dans 5 groupes WhatsApp :\nEn 3 clics, notre radar alerte les coursiers les plus proches de votre atelier.\nEn moins de 3 minutes chrono, un coursier certifié accepte et se met en route.\n\n👗 Vos tenues voyagent suspendues et protégées.\n💳 Règlement instantané par Mobile Money à l'essayage.`,
+    cta: `👉 Testez gratuitement dès aujourd'hui : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72 ou tapez 👉 https://wa.me/2250544051972?text=COLIS (15 courses offertes !)`,
+    hashtags: `#Wazap #ModeAbidjan #StylisteCIV #Couture225 #Angre #Cocody #Team225`,
+    comment: `👗 Quel est le délai le plus court qu'un client vous ait déjà demandé pour une livraison urgente ?`
+  },
+  {
+    id: "visuel_05_rapidite_momo",
+    theme: "rapidite",
+    title_line_1: "WAZAP.CI - PLATS CHAUDS LIVRÉS",
+    title_line_2: "EN 20 MIN CHRONO !",
+    title_line_3: "ZÉRO RETARD DÉJEUNER",
+    cta_subtitle: "Envoie COLIS par WhatsApp au...",
+    phone_number: "05 44 05 19 72",
+    hero_img: "../assets/momo.jpg",
+    hero_alt: "Chef Momo Grillades Treichville",
+    personnage: "Chef Momo (Restaurants, Maquis & Grillades Treichville)",
+    badge_title: "🔥 RUSH DE MIDI EN 20 MIN",
+    qr_src: "../assets/qr_colis_whatsapp.png",
+    hook: `🔥 RUSH DE MIDI À ABIDJAN : VOS GRILLADES LIVRÉES FUMANTES SANS FAIRE ATTENDRE VOS CLIENTS !`,
+    body: `À l'heure de la pause déjeuner, 10 minutes de retard suffisent pour perdre un client fidèle.\n\nAvec le réseau WAZAP :\n🍲 Les livreurs de votre quartier sont pré-positionnés autour de vos fourneaux.\n⏱️ Course assignée en un éclair, repas transporté dans des caissons isolés, livré en 20 minutes.\n💵 Fini le casse-tête de la monnaie : le client scanne le QR code Wave / Orange / MTN au centime près !`,
+    cta: `🍗 Doublez vos livraisons de midi dès maintenant : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72 ou touchez 👉 https://wa.me/2250544051972?text=COLIS`,
+    hashtags: `#Wazap #RestoAbidjan #Choukouya #FastFoodCIV #Treichville #Plateau #Team225`,
+    comment: `🍲 Vos clients préfèrent-ils être livrés au bureau à midi ou à la maison le soir ? Donnez votre avis ci-dessous !`
+  },
+  {
+    id: "visuel_06_rapidite_amara",
+    theme: "rapidite",
+    title_line_1: "WAZAP.CI - PAS DE MONNAIE",
+    title_line_2: "SUR 10.000 FCFA ?",
+    title_line_3: "PROBLÈME RÉSOLU À 100% !",
+    cta_subtitle: "Envoie COLIS par WhatsApp au...",
+    phone_number: "05 44 05 19 72",
+    hero_img: "../assets/amara.jpg",
+    hero_alt: "Amara Sneakers Marcory",
+    personnage: "Amara (Sneakers & Streetwear Marcory)",
+    badge_title: "💵 MONNAIE RÉSOLUE 0 CASH",
+    qr_src: "../assets/qr_colis_whatsapp.png",
+    hook: `💵 « CHEF, JE N'AI PAS LA MONNAIE SUR 10 000 F ! » : FINI CE REFRAIN QUI VOUS FAIT PERDRE DES VENTES !`,
+    body: `Le livreur arrive à la porte. Le client sort un gros billet de 10 000 F. Le coursier n'a pas la monnaie, il part chercher au carrefour... et perd 30 minutes pendant que le client s'agace.\n\nSur WAZAP, cette galère est éradiquée :\nLe client scanne le QR Code Universel WAZAP et règle le montant exact au franc près depuis son compte Wave, Orange Money ou MTN.\n\n🚫 Zéro manipulation de billets douteux\n⚡ Votre recette est virée à la seconde sur votre compte\n🛵 Le livreur repart immédiatement pour sa prochaine course.`,
+    cta: `👟 Modernisez vos encaissements : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72 ou touchez 👉 https://wa.me/2250544051972?text=COLIS`,
+    hashtags: `#Wazap #SneakersAbidjan #StreetwearCIV #Marcory #ZeroCash #MobileMoneyCIV #Team225`,
+    comment: `💵 Quelle est la plus grosse somme de monnaie que vous ayez déjà couru chercher pour un client ? Racontez-nous !`
+  },
+  {
+    id: "visuel_07_valeur_aicha",
+    theme: "valeur",
+    title_line_1: "WAZAP.CI - COMMERÇANTS :",
+    title_line_2: "VOS 15 PREMIÈRES COURSES",
+    title_line_3: "TOTALEMENT OFFERTES !",
+    cta_subtitle: "Envoie COLIS par WhatsApp au...",
+    phone_number: "05 44 05 19 72",
+    hero_img: "../assets/aicha.jpg",
+    hero_alt: "Tantie Aïcha Wax Adjamé",
+    personnage: "Tantie Aïcha (Wax & Boutiques de Quartier Adjamé)",
+    badge_title: "💎 15 COURSES OFFERTES PACK BOUTIQUE",
+    qr_src: "../assets/qr_colis_whatsapp.png",
+    hook: `🎁 COMMERÇANTS D'ABIDJAN : ET SI VOS 15 PROCHAINES LIVRAISONS NE VOUS COÛTAIENT STRICTEMENT RIEN EN COMMISSION ?`,
+    body: `Pourquoi continuer à payer des commissions de 20% à 30% ou des abonnements mensuels ruineux pour expédier vos ventes ?\n\nWAZAP offre à chaque boutique d'Abidjan le Pack Digital Boutique :\n✅ 15 recherches de livreurs offertes à 0 F de commission WAZAP.\n✅ Vous ne payez que le coursier à son tarif direct et équitable (1 000 F à 2 000 F net).\n✅ Zéro application lourde à télécharger : tout se pilote directement dans WhatsApp !\nTestez notre technologie en conditions réelles sans sortir un franc de votre poche.`,
+    cta: `🛍️ Activez vos 15 livraisons offertes en 30 secondes : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72 ou cliquez 👉 https://wa.me/2250544051972?text=COLIS`,
+    hashtags: `#Wazap #CommerceAbidjan #BoutiqueCIV #Adjame #Cocody #Yopougon #PromoAbidjan #Team225`,
+    comment: `🎁 Combien de colis expédiez-vous en moyenne par semaine depuis votre boutique ? Répondez ci-dessous !`
+  },
+  {
+    id: "visuel_08_valeur_bakary",
+    theme: "valeur",
+    title_line_1: "WAZAP.CI - LIVREURS INDÉPENDANTS :",
+    title_line_2: "0% COMMISSION +",
+    title_line_3: "50 SMARTPHONES NEUFS !",
+    cta_subtitle: "Envoie DISPO par WhatsApp au...",
+    phone_number: "05 44 05 19 72",
+    hero_img: "../assets/bakary.jpg",
+    hero_alt: "Bakary Livreur Leader Marcory",
+    personnage: "Bakary (Livreur Leader Indépendant Marcory)",
+    badge_title: "🛵 0% COMMISSION & DÉFI REDMI 15C",
+    qr_src: "../assets/qr_dispo_whatsapp.png",
+    hook: `🛵 LIVREURS D'ABIDJAN : POURQUOI DONNER 25% DE VOTRE SUEUR AUX APPLICATIONS ÉTRANGÈRES ?`,
+    body: `Tu allumes ta moto dès l'aube. Tu affrontes la chaleur, la pluie et les embouteillages d'Abidjan.\nPourquoi accepter qu'une plateforme te prélève des commissions abusives sur chaque course ?\n\nSur WAZAP, ta dignité est respectée :\n💰 0% commission : 100% du prix de la course reste dans TA poche.\n🛡️ Zéro cash marchandise à transporter : le client paie par QR code, zéro risque d'agression ou d'accusation de vol.\n📱 Grand Défi Trimestriel : 50 smartphones Xiaomi Redmi 15C neufs offerts aux motards réguliers !\nTout fonctionne sur WhatsApp sans application qui décharge ta batterie.`,
+    cta: `🔥 Rejoins la flotte des livreurs respectés : envoie « DISPO » par WhatsApp au 05 44 05 19 72 ou touche 👉 https://wa.me/2250544051972?text=DISPO`,
+    hashtags: `#Wazap #LivreurAbidjan #CoursierCIV #DigniteMotard #ZeroCommission #Redmi15C #Team225`,
+    comment: `💪 Combien de courses fais-tu par jour en moyenne à moto à Abidjan ? Dis-le en commentaire !`
+  },
+  {
+    id: "visuel_09_valeur_koffi",
+    theme: "valeur",
+    title_line_1: "WAZAP.CI - DIGNITÉ COURSIER :",
+    title_line_2: "1.000 FCFA MINIMUM NET",
+    title_line_3: "DÈS LE 1ER MÈTRE !",
+    cta_subtitle: "Envoie DISPO par WhatsApp au...",
+    phone_number: "05 44 05 19 72",
+    hero_img: "../assets/koffi.jpg",
+    hero_alt: "Koffi Livreur Certifié Riviera",
+    personnage: "Koffi (Livreur Certifié Riviera)",
+    badge_title: "🎯 PLANCHER 1 000 F GARANTI",
+    qr_src: "../assets/qr_dispo_whatsapp.png",
+    hook: `🛑 STOP AUX COURSES À 450 FCFA ! SUR WAZAP, C'EST 1 000 FCFA NET MINIMUM PAR COURSE.`,
+    body: `Fini de rouler à perte pour des clopinettes qui ne paient même pas le carburant et l'usure de tes pneus.\n\nSur WAZAP, la grille tarifaire est claire, juste et transparente :\n✅ 1 000 FCFA net minimum garanti dans la même commune, même pour 400 mètres.\n✅ 1 500 FCFA pour une commune voisine.\n✅ 2 000 FCFA pour les longues distances et traversées de ponts.\n✅ Paiement direct à la livraison, sans retenue de flotte arbitraire.\nSois ton propre patron en toute liberté !`,
+    cta: `🛵 Inscris-toi en 2 minutes : envoie « DISPO » sur WhatsApp au 05 44 05 19 72 ou clique 👉 https://wa.me/2250544051972?text=DISPO`,
+    hashtags: `#Wazap #LivreursAbidjan #TarifJuste #DigniteMotard #Riviera #Cocody #Team225`,
+    comment: `🤝 Quel est pour vous le tarif minimum décent pour une course de livraison à Abidjan ? Donnez votre avis !`
+  },
+  {
+    id: "visuel_10_duel_comparatif",
+    theme: "valeur",
+    title_line_1: "WAZAP.CI - ANCIENNE MÉTHODE",
+    title_line_2: "VS RÉVOLUTION WAZAP :",
+    title_line_3: "LE MATCH EST PLIÉ !",
+    cta_subtitle: "Envoie COLIS par WhatsApp au...",
+    phone_number: "05 44 05 19 72",
+    hero_img: "../assets/modele_visuel_commercante_1.jpg",
+    hero_alt: "Le Match Comparatif WAZAP",
+    personnage: "Le Match Comparatif (Ancienne Méthode vs Révolution WAZAP)",
+    badge_title: "🥊 LE DUEL CHOC DE LA LIVRAISON",
+    qr_src: "../assets/qr_colis_whatsapp.png",
+    hook: `⚖️ LE COMPARATIF SANS FILTRE : COMMENT LIVREZ-VOUS VOS CLIENTS EN 2026 À ABIDJAN ?`,
+    body: `❌ L'ANCIENNE MÉTHODE :\n- 45 minutes pour trouver un motard disponible.\n- Livreur qui disparaît avec la marchandise ou la recette cash.\n- Zéro recours ni assurance en cas de colis écrasé.\n- 20% à 30% de commission perdus sur vos ventes.\n\n🟢 LA RÉVOLUTION WAZAP :\n- Un coursier assigné en moins de 3 minutes chrono.\n- Zéro cash sur la marchandise : encaissement direct par QR Code Universel.\n- Assurance Colis Sûr protégeant chaque envoi.\n- 0% commission et 15 livraisons offertes pour tester !`,
+    cta: `👉 Le choix du bon sens : envoyez « COLIS » sur WhatsApp au 05 44 05 19 72 ou touchez 👉 https://wa.me/2250544051972?text=COLIS`,
+    hashtags: `#Wazap #LivraisonAbidjan #EcommerceCIV #VenteEnLigneCIV #Team225 #AbidjanInnovation #Cocody #Marcory`,
+    comment: `🎯 Prêt à moderniser vos livraisons pour les 60 prochains jours ? Tapez OUI en commentaire !`
+  }
+];
+
+// Sauvegarde du catalogue complet
+fs.writeFileSync(path.join(__dirname, 'visuals_catalog.json'), JSON.stringify(catalog2026, null, 2), 'utf8');
+console.log(`✅ visuals_catalog.json mis à jour avec les 10 fiches complètes et descriptions !`);
+
+// Lecture des templates officiels
+const feedTemplateStr = fs.readFileSync(path.join(templatesDir, 'poster_feed_template_2026.html'), 'utf8');
+const storyTemplateStr = fs.readFileSync(path.join(templatesDir, 'poster_story_template_2026.html'), 'utf8');
+
+function renderTemplate(templateStr, item) {
+  return templateStr
+    .replace(/\{\{TITLE_LINE_1\}\}/g, item.title_line_1)
+    .replace(/\{\{TITLE_LINE_2\}\}/g, item.title_line_2)
+    .replace(/\{\{TITLE_LINE_3\}\}/g, item.title_line_3)
+    .replace(/\{\{CTA_SUBTITLE\}\}/g, item.cta_subtitle)
+    .replace(/\{\{PHONE_NUMBER\}\}/g, item.phone_number)
+    .replace(/\{\{HERO_IMG\}\}/g, item.hero_img)
+    .replace(/\{\{HERO_ALT\}\}/g, item.hero_alt)
+    .replace(/\{\{QR_SRC\}\}/g, item.qr_src);
+}
+
+console.log(`\n================================================================`);
+console.log(`🎨 GÉNÉRATION DES 10 AFFICHES OFFICIELLES (STYLE ÉCRIN ÉMERAUDE & CRÈME)`);
+console.log(`📍 Navigateur : ${browserPath}`);
+console.log(`================================================================\n`);
+
+let count = 0;
+
+for (let i = 0; i < catalog2026.length; i++) {
+  const item = catalog2026[i];
+  console.log(`📌 [${i + 1}/10] Rendu : ${item.personnage}`);
+
+  // 1. Rendu Feed Carré (1:1 - 1080x1080 @ 2x = 2160x2160)
+  const feedHtml = renderTemplate(feedTemplateStr, item);
+  const tempFeedPath = path.join(tempDir, `render_feed_2026_${item.id}.html`);
+  fs.writeFileSync(tempFeedPath, feedHtml, 'utf8');
+
+  const outFeedPng = path.join(outFeedDir, `${item.id}_feed_square.png`);
+  if (fs.existsSync(outFeedPng)) fs.unlinkSync(outFeedPng);
+
+  spawnSync(browserPath, [
+    '--headless',
+    '--disable-gpu',
+    '--no-sandbox',
+    '--no-first-run',
+    '--hide-scrollbars',
+    '--window-size=1080,1080',
+    '--force-device-scale-factor=2',
+    '--virtual-time-budget=3000',
+    `--screenshot=${outFeedPng}`,
+    'file:///' + tempFeedPath.replace(/\\/g, '/')
+  ]);
+
+  if (fs.existsSync(outFeedPng) && fs.statSync(outFeedPng).size > 20000) {
+    const kb = Math.round(fs.statSync(outFeedPng).size / 1024);
+    console.log(`  ✅ FEED 1:1  : ${item.id}_feed_square.png (${kb} Ko - 2160×2160 HD)`);
+    count++;
+  } else {
+    console.error(`  ❌ Échec Feed pour ${item.id}`);
+  }
+
+  // 2. Rendu Story Vertical (9:16 - 1080x1920 @ 2x = 2160x3840)
+  const storyHtml = renderTemplate(storyTemplateStr, item);
+  const tempStoryPath = path.join(tempDir, `render_story_2026_${item.id}.html`);
+  fs.writeFileSync(tempStoryPath, storyHtml, 'utf8');
+
+  const outStoryPng = path.join(outStoryDir, `${item.id}_story_vertical.png`);
+  if (fs.existsSync(outStoryPng)) fs.unlinkSync(outStoryPng);
+
+  spawnSync(browserPath, [
+    '--headless',
+    '--disable-gpu',
+    '--no-sandbox',
+    '--no-first-run',
+    '--hide-scrollbars',
+    '--window-size=1080,1920',
+    '--force-device-scale-factor=2',
+    '--virtual-time-budget=3000',
+    `--screenshot=${outStoryPng}`,
+    'file:///' + tempStoryPath.replace(/\\/g, '/')
+  ]);
+
+  if (fs.existsSync(outStoryPng) && fs.statSync(outStoryPng).size > 20000) {
+    const kb = Math.round(fs.statSync(outStoryPng).size / 1024);
+    console.log(`  ✅ STORY 9:16 : ${item.id}_story_vertical.png (${kb} Ko - 2160×3840 HD)`);
+    count++;
+  } else {
+    console.error(`  ❌ Échec Story pour ${item.id}`);
+  }
+}
+
+console.log(`\n🎉 Génération terminée : ${count} affiches HD créées avec succès !`);

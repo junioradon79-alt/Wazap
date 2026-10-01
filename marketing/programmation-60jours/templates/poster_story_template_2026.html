@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Affiche Publicitaire Officielle WAZAP - Story Verticale 9:16</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Playfair+Display:wght@700;800;900&family=Plus+Jakarta+Sans:wght@600;700;800;900&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 1080px;
+      height: 1920px;
+      background: radial-gradient(circle at 50% 40%, #FFFFFF 0%, #F8F4ED 55%, #EDE4D4 100%);
+      color: #0C3823;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 110px 50px 100px;
+    }
+
+    .bg-vignette {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 50%, transparent 60%, rgba(200, 185, 160, 0.2) 100%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* 1. EN-TÊTE TITRE */
+    .header-title-box {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      max-width: 980px;
+    }
+
+    .main-title {
+      font-family: 'Cinzel', 'Playfair Display', serif;
+      font-size: 44px;
+      font-weight: 900;
+      line-height: 1.25;
+      color: #0C3823;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-shadow: 0 1px 2px rgba(12, 56, 35, 0.08);
+    }
+
+    /* 2. PERSONNAGE CENTRAL */
+    .hero-container {
+      position: relative;
+      z-index: 5;
+      width: 100%;
+      height: 1020px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .hero-img {
+      height: 100%;
+      max-width: 960px;
+      object-fit: contain;
+      display: block;
+      -webkit-mask-image: linear-gradient(to bottom, black 74%, transparent 98%);
+      mask-image: linear-gradient(to bottom, black 74%, transparent 98%);
+      filter: drop-shadow(0 20px 40px rgba(12, 56, 35, 0.14));
+    }
+
+    /* Badge WAZAP central circulaire */
+    .badge-wazap-center {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 124px;
+      height: 124px;
+      border-radius: 50%;
+      border: 5px solid #FFFFFF;
+      box-shadow: 0 12px 30px rgba(7, 59, 37, 0.25), 0 2px 8px rgba(0, 0, 0, 0.1);
+      z-index: 12;
+      background: #00A86B;
+      overflow: hidden;
+    }
+
+    .badge-wazap-center img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* 3. BLOC INFÉRIEUR : CTA & PAIEMENT */
+    .footer-container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .cta-line-top {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1A2E22;
+      letter-spacing: -0.2px;
+      text-align: center;
+    }
+
+    .cta-phone-line {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-top: -8px;
+    }
+
+    .cta-wa-icon {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cta-phone-number {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 48px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #0C3823;
+    }
+
+    .bottom-bar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 10px;
+    }
+
+    /* Pastilles Opérateurs */
+    .payment-pill-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: linear-gradient(135deg, #FBF6EE 0%, #EFE5D3 100%);
+      border: 1.5px solid #D8C7AC;
+      border-radius: 24px;
+      padding: 14px 26px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .operator-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .wave-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 22px;
+      color: #0F172A;
+    }
+
+    .wave-icon-svg {
+      width: 30px;
+      height: 30px;
+    }
+
+    .operator-divider {
+      width: 1.5px;
+      height: 32px;
+      background: #D1C0A5;
+    }
+
+    .orange-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 20px;
+      color: #0F172A;
+      line-height: 1.1;
+    }
+
+    .orange-icon-box {
+      width: 30px;
+      height: 30px;
+      background: #000;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mtn-pill {
+      background: #FFCC00;
+      color: #000;
+      font-weight: 900;
+      font-size: 17px;
+      letter-spacing: 0.5px;
+      padding: 6px 14px;
+      border-radius: 16px;
+      border: 1.5px solid #000;
+    }
+
+    /* QR Code Box */
+    .qr-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .qr-box {
+      width: 108px;
+      height: 108px;
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 8px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+      border: 1.5px solid #E2D9CC;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qr-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .qr-caption {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: #1A2E22;
+      text-align: left;
+    }
+
+    .qr-caption strong {
+      font-weight: 900;
+      color: #0C3823;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-vignette"></div>
+
+  <!-- 1. EN-TÊTE TITRE -->
+  <header class="header-title-box">
+    <h1 class="main-title">
+      {{TITLE_LINE_1}}<br>
+      {{TITLE_LINE_2}}<br>
+      {{TITLE_LINE_3}}
+    </h1>
+  </header>
+
+  <!-- 2. PERSONNAGE CENTRAL -->
+  <div class="hero-container">
+    <img class="hero-img" src="{{HERO_IMG}}" alt="{{HERO_ALT}}">
+    <div class="badge-wazap-center">
+      <img src="../assets/logo_officiel_wazap.jpg" alt="Logo Officiel WAZAP">
+    </div>
+  </div>
+
+  <!-- 3. PIED DE PAGE : CTA & PAIEMENT MULTI-OPÉRATEURS -->
+  <footer class="footer-container">
+    <div class="cta-line-top">{{CTA_SUBTITLE}}</div>
+    
+    <div class="cta-phone-line">
+      <div class="cta-wa-icon">
+        <svg viewBox="0 0 24 24" width="44" height="44" fill="#25D366">
+          <path d="M12.031 2C6.508 2 2.016 6.49 2.016 12.016c0 1.954.566 3.784 1.543 5.342L2 22.148l4.938-1.523a9.98 9.98 0 0 0 5.093 1.391c5.523 0 10.016-4.49 10.016-10.016C22.047 6.49 17.555 2 12.031 2zm0 18.258a8.216 8.216 0 0 1-4.22-1.164l-.304-.18-2.93.906.906-2.859-.196-.313a8.225 8.225 0 0 1-1.258-4.383c0-4.547 3.7-8.25 8.25-8.25 4.547 0 8.25 3.703 8.25 8.25 0 4.555-3.703 8.258-8.25 8.258zm4.516-6.18c-.25-.125-1.469-.727-1.696-.812-.226-.086-.39-.125-.554.125-.164.25-.64.812-.782.977-.148.164-.297.188-.547.062-.25-.125-1.055-.39-2.01-1.242-.741-.664-1.242-1.484-1.39-1.734-.148-.25-.015-.383.109-.508.11-.11.25-.281.375-.422.125-.14.164-.234.25-.39.086-.157.04-.297-.023-.423-.063-.125-.555-1.336-.766-1.836-.203-.484-.414-.422-.563-.43-.148-.008-.313-.008-.477-.008-.164 0-.437.062-.664.312-.227.25-.867.852-.867 2.07 0 1.219.89 2.399 1.016 2.563.125.164 1.742 2.664 4.226 3.734.594.258 1.055.414 1.414.531.594.188 1.133.164 1.563.098.484-.07 1.468-.601 1.679-1.18.211-.578.211-1.078.148-1.18-.062-.101-.226-.164-.476-.289z"/>
+        </svg>
+      </div>
+      <div class="cta-phone-number">{{PHONE_NUMBER}}</div>
+    </div>
+
+    <div class="bottom-bar">
+      <!-- Pastilles Opérateurs -->
+      <div class="payment-pill-card">
+        <div class="operator-item wave-badge">
+          <svg class="wave-icon-svg" viewBox="0 0 32 32">
+            <path fill="#1BA0E1" d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2z"/>
+            <path fill="#FFF" d="M9 18.5c2-4 5-4 7 0 2 4 5 4 7 0" stroke="#FFF" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          </svg>
+          Wave
+        </div>
+
+        <div class="operator-divider"></div>
+
+        <div class="operator-item orange-badge">
+          <div class="orange-icon-box">
+            <svg viewBox="0 0 24 24" width="18" height="18">
+              <path fill="#FF7900" d="M4 4h16v16H4z"/>
+              <path fill="#000" d="M7 14l5-5 5 5H7z"/>
+            </svg>
+          </div>
+          <div>Orange<br><span style="font-size:16px; color:#475569;">Money</span></div>
+        </div>
+
+        <div class="operator-divider"></div>
+
+        <div class="operator-item">
+          <div class="mtn-pill">MTN</div>
+        </div>
+      </div>
+
+      <!-- QR Code Scannable -->
+      <div class="qr-group">
+        <div class="qr-box">
+          <img src="{{QR_SRC}}" alt="QR Code WhatsApp WAZAP">
+        </div>
+        <div class="qr-caption">
+          <strong>Scannez pour</strong><br>ouvrir WhatsApp
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

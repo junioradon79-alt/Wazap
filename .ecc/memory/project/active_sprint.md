@@ -18,3 +18,6 @@
 - **Session 115 :** Sécurisation résiliente multi-domaines (CORS et URLs) face au blocage WiniHost.
 - **Session 116 :** Espace Livreur connecté (`/app/riders/dashboard`), bascule dispo 1-tap, sélecteur de commune, KPI gains nets, auth 1-clic.
 - **Session 117 :** Intégration du Framework ECC (`C:\Dev\everything-claude-code`), restructuration de la mémoire active et archivage de l'historique (Sessions 1 à 111 dans `docs/HISTORIQUE_SESSIONS.md`).
+- **Session 118 :** Intégration des deux modèles visuels commerçants officiels (*« WAZAP.CI - FINI LES LIVREURS QUI DISPARAISSENT AVEC VOTRE ARGENT ! »*), génération HD 1:1 Feed & 9:16 Story, mise à jour intégrale de la campagne 60 jours multi-canaux (Facebook, WhatsApp, TikTok).
+- **Session 119 :** Généralisation de la nouvelle charte graphique 2026 à tous les 10 visuels (fond lin champagne, typographie émeraude, fondu), rendu des 20 visuels HD (Feed & Story), intégration systématique des descriptions complètes prêtes à poster (Hook, Body, CTA 1-tap `05 44 05 19 72`, Hashtags, 1er commentaire épinglé), régénération du calendrier 60 jours (180 posts), CSV Meta et nouvelle galerie interactive `galerie_preview_60jours.html`.
+
