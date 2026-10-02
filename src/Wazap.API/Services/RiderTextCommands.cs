@@ -136,7 +136,7 @@ public sealed class RiderTextCommands
     {
         var progress = await _riderProgram.BuildProgressAsync(user.Id);
 
-        var zone = string.IsNullOrWhiteSpace(user.Zone) ? "Non définie (tapez ZONE <quartier>)" : user.Zone;
+        var zone = string.IsNullOrWhiteSpace(user.Zone) ? "Grand Abidjan" : user.Zone;
         var status = user.IsAvailable ? "🟢 EN LIGNE (DISPO)" : "🔴 HORS LIGNE (INDISPO)";
         var certified = progress?.Certified == true ? "✅ Identité CNI vérifiée" : "⏳ Non certifié (envoyez photo CNI)";
         var ratingText = progress?.AverageRating is { } r ? $"★ {r:0.0}/5" : "Nouveau livreur";

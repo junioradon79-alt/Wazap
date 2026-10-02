@@ -261,7 +261,7 @@ public sealed class VendorTextCommands
         {
             await reply(user,
                 $"ℹ️ {extraction.Products.Count} article(s) détecté(s), mais ils existent déjà dans votre catalogue WAZAP.\n" +
-                "Tapez PRODUITS pour afficher votre catalogue.");
+                "👉 Voir mon catalogue (1 clic) :\nhttps://wa.me/2250544051972?text=PRODUITS");
             return;
         }
 
@@ -275,7 +275,7 @@ public sealed class VendorTextCommands
             sb.AppendLine($"{i + 1}. {emoji} *{p.Name}* — {priceFormatted} FCFA");
         }
         sb.AppendLine("\n🟢 Vos clients peuvent commander dès maintenant en tapant simplement le numéro d'un article sur votre WhatsApp !");
-        sb.AppendLine("Tapez *PRODUITS* pour voir tout votre catalogue.");
+        sb.AppendLine("👉 Voir mon catalogue (1 clic) :\nhttps://wa.me/2250544051972?text=PRODUITS");
 
         await reply(user, sb.ToString().TrimEnd());
     }
