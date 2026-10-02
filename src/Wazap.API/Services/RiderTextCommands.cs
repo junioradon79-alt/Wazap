@@ -48,8 +48,13 @@ public sealed class RiderTextCommands
     public static bool Matches(string upperText, string rawText)
         => upperText is "DISPO" or "INDISPO"
            || upperText.Contains("DISPO")
+           || upperText.Contains("INDISPO")
            || upperText is "DASHBOARD" or "STATS" or "STATISTIQUES" or "SOLDE" or "COMPTE" or "TABLEAU DE BORD"
-           || upperText is "PROGRAMME" or "MA PROGRAMME" or "AMBASSADEUR" or "RECOMPENSE"
+           || upperText is "PROGRAMME" or "MA PROGRAMME" or "AMBASSADEUR" or "RECOMPENSE" or "CADEAU"
+           || upperText is "1" or "1️⃣" or "🟢"
+           || upperText is "2" or "2️⃣" or "🔴"
+           || upperText is "3" or "3️⃣" or "💰"
+           || upperText is "4" or "4️⃣" or "📱"
            || RiderRatingService.IsMyRatingsCommand(rawText)
            || RiderRatingService.IsReplyCommand(rawText);
 
@@ -58,23 +63,35 @@ public sealed class RiderTextCommands
     {
         var upper = rawText.Trim().ToUpperInvariant();
 
-        if (upper is "DASHBOARD" or "STATS" or "STATISTIQUES" or "SOLDE" or "COMPTE" or "TABLEAU DE BORD")
+        if (upper is "DASHBOARD" or "STATS" or "STATISTIQUES" or "SOLDE" or "COMPTE" or "TABLEAU DE BORD" or "3" or "3️⃣" or "💰" or "GAINS" or "ARGENT")
         {
             await reply(user, await BuildDashboardTextAsync(user));
             return;
         }
 
-        if (upper == "INDISPO" || upper.Contains("INDISPO") || upper.Contains("HORS LIGNE"))
+        if (upper == "INDISPO" || upper.Contains("INDISPO") || upper.Contains("HORS LIGNE") || upper.Contains("PAUSE") || upper is "2" or "2️⃣" or "🔴")
         {
             await _riderService.SetAvailabilityAsync(user.Id, false);
-            await reply(user, "🚫 Vous êtes hors ligne.");
+            var replyText = "🔴 WAZAP : Tu es désormais hors ligne (en pause).\n"
+                + "Tu ne recevras pas de courses pendant ta pause.\n\n"
+                + "👉 Liens 1-clic rapides :\n"
+                + "🟢 Reprendre les courses :\nhttps://wa.me/2250544051972?text=DISPO\n\n"
+                + "💰 Voir mon argent :\nhttps://wa.me/2250544051972?text=SOLDE";
+            await reply(user, replyText);
             return;
         }
 
-        if (upper == "DISPO" || upper.Contains("DISPO"))
+        if (upper == "DISPO" || upper.Contains("DISPO") || upper.Contains("EN LIGNE") || upper is "1" or "1️⃣" or "🟢")
         {
             await _riderService.SetAvailabilityAsync(user.Id, true);
-            await reply(user, "✅ Vous êtes en ligne ! Vos courses dans votre commune vont commencer à arriver. 🛵💨");
+            var zoneName = !string.IsNullOrWhiteSpace(user.Zone) ? $" à {user.Zone}" : "";
+            var replyText = $"🟢 WAZAP : Tu es désormais en ligne{zoneName} !\n"
+                + "Tes courses vont arriver ici directement 🛵💨\n\n"
+                + "👉 Liens 1-clic rapides :\n"
+                + "🔴 Me mettre en pause :\nhttps://wa.me/2250544051972?text=INDISPO\n\n"
+                + "💰 Voir mon argent :\nhttps://wa.me/2250544051972?text=SOLDE\n\n"
+                + "🏆 Mon smartphone cadeau :\nhttps://wa.me/2250544051972?text=PROGRAMME";
+            await reply(user, replyText);
             return;
         }
 
@@ -101,10 +118,18 @@ public sealed class RiderTextCommands
         }
 
         // Programme « Ambassadeur WAZAP » : le livreur consulte sa progression.
-        var progress = await _riderProgram.BuildProgressAsync(user.Id);
-        await reply(user, progress is null
-            ? "ℹ️ Le programme Ambassadeur n'est pas actif pour le moment."
-            : RiderProgramService.BuildProgressText(progress));
+        if (upper is "PROGRAMME" or "MA PROGRAMME" or "AMBASSADEUR" or "RECOMPENSE" or "CADEAU" or "4" or "4️⃣" or "📱")
+        {
+            var progress = await _riderProgram.BuildProgressAsync(user.Id);
+            var progText = progress is null
+                ? "ℹ️ Le programme Ambassadeur n'est pas actif pour le moment."
+                : RiderProgramService.BuildProgressText(progress);
+            var withLinks = progText + "\n\n👉 Liens 1-clic rapides :\n"
+                + "🟢 Me mettre en ligne :\nhttps://wa.me/2250544051972?text=DISPO\n\n"
+                + "💰 Voir mon argent :\nhttps://wa.me/2250544051972?text=SOLDE";
+            await reply(user, withLinks);
+            return;
+        }
     }
 
     private async Task<string> BuildDashboardTextAsync(User user)
@@ -179,11 +204,18 @@ public sealed class RiderTextCommands
         }
 
         sb.AppendLine();
-        sb.AppendLine("⚡ *ACTIONS RAPIDES*");
-        sb.AppendLine("• DISPO / INDISPO : se connecter / se déconnecter");
-        sb.AppendLine("• ZONE <quartier> : changer de commune");
-        sb.AppendLine("• AVIS : lire vos notes et commentaires");
-        sb.AppendLine("• AIDE : menu complet");
+        sb.AppendLine("⚡ *ACTIONS RAPIDES (Toucher pour agir en 1 Clic) :*");
+        sb.AppendLine("🟢 Me mettre EN LIGNE :");
+        sb.AppendLine("https://wa.me/2250544051972?text=DISPO");
+        sb.AppendLine();
+        sb.AppendLine("🔴 Me mettre en PAUSE :");
+        sb.AppendLine("https://wa.me/2250544051972?text=INDISPO");
+        sb.AppendLine();
+        sb.AppendLine("💰 Actualiser mon SOLDE :");
+        sb.AppendLine("https://wa.me/2250544051972?text=SOLDE");
+        sb.AppendLine();
+        sb.AppendLine("🏆 Mon Défi SMARTPHONE :");
+        sb.AppendLine("https://wa.me/2250544051972?text=PROGRAMME");
 
         return sb.ToString().TrimEnd();
     }

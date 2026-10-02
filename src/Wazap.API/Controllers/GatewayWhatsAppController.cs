@@ -137,22 +137,30 @@ public class GatewayWhatsAppController : ControllerBase
 
         if (rider is not null && PhoneNumberNormalizer.SameSubscriber(rider.PhoneNumber, normalizedPhone))
         {
-            if (upper is "INDISPO" || upper.Contains("INDISPO") || upper.Contains("HORS LIGNE") || upper.Contains("PAUSE"))
+            if (upper is "INDISPO" || upper.Contains("INDISPO") || upper.Contains("HORS LIGNE") || upper.Contains("PAUSE") || upper is "2" or "2️⃣" or "🔴")
             {
                 await _riderService.SetAvailabilityAsync(rider.Id, false);
-                var reply = "🔴 WAZAP : Vous êtes désormais HORS LIGNE. Envoyez DISPO dès que vous souhaitez reprendre les livraisons.";
+                var reply = "🔴 WAZAP : Tu es désormais HORS LIGNE (en pause).\n\n"
+                    + "👉 Liens 1-clic rapides :\n"
+                    + "🟢 Reprendre les courses :\nhttps://wa.me/2250544051972?text=DISPO\n\n"
+                    + "💰 Voir mon argent :\nhttps://wa.me/2250544051972?text=SOLDE";
                 return Ok(new GatewayInboundResponse(true, true, reply, "rider_status", normalizedPhone));
             }
 
-            if (upper is "DISPO" || upper.Contains("DISPO") || upper.Contains("EN LIGNE"))
+            if (upper is "DISPO" || upper.Contains("DISPO") || upper.Contains("EN LIGNE") || upper is "1" or "1️⃣" or "🟢")
             {
                 await _riderService.SetAvailabilityAsync(rider.Id, true);
                 var zoneName = !string.IsNullOrWhiteSpace(rider.Zone) ? $" à {rider.Zone}" : "";
-                var reply = $"🟢 WAZAP : Vous êtes désormais EN LIGNE{zoneName} ! Vous recevrez les courses à proximité en temps réel 🛵💨";
+                var reply = $"🟢 WAZAP : Vous êtes désormais EN LIGNE{zoneName} !\n"
+                    + "Tes courses vont arriver ici directement 🛵💨\n\n"
+                    + "👉 Liens 1-clic rapides :\n"
+                    + "🔴 Me mettre en pause :\nhttps://wa.me/2250544051972?text=INDISPO\n\n"
+                    + "💰 Voir mon argent :\nhttps://wa.me/2250544051972?text=SOLDE\n\n"
+                    + "🏆 Mon smartphone cadeau :\nhttps://wa.me/2250544051972?text=PROGRAMME";
                 return Ok(new GatewayInboundResponse(true, true, reply, "rider_status", normalizedPhone));
             }
 
-            if (upper is "PROGRAMME" or "AMBASSADEUR" or "REDMI" or "CHALLENGE" or "SMARTPHONE")
+            if (upper is "PROGRAMME" or "AMBASSADEUR" or "REDMI" or "CHALLENGE" or "SMARTPHONE" or "4" or "4️⃣" or "📱" or "CADEAU")
             {
                 var progress = await _riderProgram.BuildProgressAsync(rider.Id);
                 var deliveries = progress?.Deliveries ?? 0;
@@ -165,11 +173,13 @@ public class GatewayWhatsAppController : ControllerBase
                     + $"• Livraisons : {deliveries} / {targetDeliveries} courses\n"
                     + $"• Filleuls actifs : {referrals} / {targetReferrals} livreurs parrainés\n"
                     + $"• Statut : {(isEligible ? "🎉 CHALLENGE REMPORTÉ ! Contactez l'équipe WAZAP pour votre smartphone." : "⏳ En cours d'accomplissement")}\n\n"
-                    + "Continuez de livrer pour remporter votre Redmi 15C neuf ! 🛵📱";
+                    + "👉 Liens 1-clic rapides :\n"
+                    + "🟢 Me mettre en ligne :\nhttps://wa.me/2250544051972?text=DISPO\n\n"
+                    + "💰 Voir mon argent :\nhttps://wa.me/2250544051972?text=SOLDE";
                 return Ok(new GatewayInboundResponse(true, true, reply, "rider_program", normalizedPhone));
             }
 
-            if (upper is "DASHBOARD" or "STATS" or "SOLDE")
+            if (upper is "DASHBOARD" or "STATS" or "SOLDE" or "3" or "3️⃣" or "💰" or "GAINS" or "ARGENT")
             {
                 var zoneName = rider.Zone ?? "Non définie";
                 var isOnline = rider.IsAvailable ? "🟢 En ligne" : "🔴 Hors ligne";
@@ -179,7 +189,10 @@ public class GatewayWhatsAppController : ControllerBase
                     + $"• Statut : {isOnline}\n"
                     + $"• Zone principale : {zoneName}\n"
                     + $"• Courses terminées : {completedCount}\n\n"
-                    + "Commandes rapides : DISPO (en ligne), INDISPO (hors ligne), PROGRAMME (défi smartphone).";
+                    + "👉 Liens 1-clic rapides :\n"
+                    + "🟢 Me mettre en ligne :\nhttps://wa.me/2250544051972?text=DISPO\n\n"
+                    + "🔴 Me mettre en pause :\nhttps://wa.me/2250544051972?text=INDISPO\n\n"
+                    + "🏆 Mon smartphone cadeau :\nhttps://wa.me/2250544051972?text=PROGRAMME";
                 return Ok(new GatewayInboundResponse(true, true, reply, "rider_dashboard", normalizedPhone));
             }
         }
@@ -188,10 +201,12 @@ public class GatewayWhatsAppController : ControllerBase
         if (upper is "COLIS" or "EXPEDIER" or "VENDEUR" or "BOUTIQUE" or "COMMERCANT" or "LIVRAISON")
         {
             var reply = "🏪 Bienvenue sur WAZAP Commerçant !\n\n"
-                + "🎁 Vos 15 premières livraisons sont OFFERTES (0 FCFA de commission de mise en relation).\n\n"
-                + "Pour expédier un colis immédiatement :\n"
-                + "👉 https://wazap.ci/app/vente\n\n"
-                + "Ou écrivez directement ici les informations de votre commande (Quartier départ, Quartier arrivée, Article, Prix). Un coursier certifié vous sera assigné en 3 minutes ! ⚡";
+                + "🎁 Vos 15 premières livraisons sont OFFERTES (0% commission).\n\n"
+                + "👉 Touchez le lien pour expédier un colis en 1 clic :\n"
+                + "https://wa.me/2250544051972?text=LIVRAISON\n\n"
+                + "💰 Consulter la grille des tarifs :\n"
+                + "https://wa.me/2250544051972?text=TARIFS\n\n"
+                + "🎙️ Astuce : Vous pouvez aussi nous envoyer directement une NOTE VOCALE avec le lieu de retrait et de livraison !";
             return Ok(new GatewayInboundResponse(true, true, reply, "merchant_welcome", normalizedPhone));
         }
 
@@ -210,9 +225,8 @@ public class GatewayWhatsAppController : ControllerBase
         // 5. Message de secours si notification photo reçue sous forme texte
         if (text.Contains("photo", StringComparison.OrdinalIgnoreCase) || text.Contains("📷") || text.Contains("image", StringComparison.OrdinalIgnoreCase))
         {
-            var photoReply = "📸 Photo bien reçue ! Notre système vérifie votre pièce d'identité 🪪⚡\n\n"
-                + "Dès validation, votre compte passera Livreur Certifié Colis Sûr.\n"
-                + "👉 Pour voir vos courses en attente, tape : DISPO";
+            var photoReply = "📸 Photo bien reçue ! Notre système vérifie votre document 🪪⚡\n\n"
+                + "👉 Pour voir vos courses en direct : https://wa.me/2250544051972?text=DISPO";
             return Ok(new GatewayInboundResponse(true, true, photoReply, "photo_acknowledgement", normalizedPhone));
         }
 
@@ -222,12 +236,13 @@ public class GatewayWhatsAppController : ControllerBase
         if (isExplicitHelp)
         {
             var defaultReply = "👋 Menu WAZAP Abidjan ⚡\n\n"
-                + "👉 Tu es LIVREUR et veux gagner 1 000 à 2 000 F net par course (0% commission) ?\n"
-                + "➔ Envoie simplement « DISPO »\n\n"
-                + "👉 Tu es COMMERÇANT et veux expédier un colis (15 courses offertes) ?\n"
-                + "➔ Envoie simplement « COLIS »\n\n"
-                + "👉 Pour consulter la grille des prix :\n"
-                + "➔ Envoie « TARIFS »";
+                + "🛵 ESPACE LIVREURS (0% commission) :\n"
+                + "• Me mettre en ligne ➔ https://wa.me/2250544051972?text=DISPO\n"
+                + "• Me mettre en pause ➔ https://wa.me/2250544051972?text=INDISPO\n"
+                + "• Voir mes gains ➔ https://wa.me/2250544051972?text=SOLDE\n\n"
+                + "🏪 ESPACE COMMERÇANTS (15 courses offertes) :\n"
+                + "• Expédier un colis ➔ https://wa.me/2250544051972?text=COLIS\n"
+                + "• Grille des tarifs ➔ https://wa.me/2250544051972?text=TARIFS";
 
             return Ok(new GatewayInboundResponse(true, true, defaultReply, "help_menu", normalizedPhone));
         }

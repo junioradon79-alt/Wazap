@@ -293,7 +293,7 @@ public class VendorTextCommandsTests
         Assert.NotEmpty(f.LastReply);
         Assert.Contains("TABLEAU DE BORD COMMERÇANT", f.LastReply);
         Assert.Contains("Crédits livraisons disponibles : *10*", f.LastReply);
-        Assert.Contains("/app/login?u=" + f.Vendor.Username, f.LastReply);
+        Assert.Contains("wa.me/2250544051972?text=LIVRAISON", f.LastReply);
     }
 }
 

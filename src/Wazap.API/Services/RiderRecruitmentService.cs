@@ -350,16 +350,19 @@ public sealed class RiderRecruitmentService
             lead.SetStatus(LeadStatus.Converted);
             await _context.SaveChangesAsync();
 
-            var cniNotice = !string.IsNullOrWhiteSpace(detectedCni) ? $"\n🪪 {detectedDocType ?? "Pièce d'identité"} reconnue : {detectedCni}" : "";
-            var riderDashboardUrl = $"https://junioradon79gm-001-site1.jtempurl.com/app/login?u={Uri.EscapeDataString(username)}&p={Uri.EscapeDataString(tempPassword)}";
-            var welcomeText = $"🎉 Félicitations {resolvedName} ! Ton profil livreur WAZAP est créé !{cniNotice}\n\n"
-                + $"📍 Commune active : {lead.Zone}\n"
-                + $"• Identifiant : {username}\n"
-                + $"• Mot de passe : {tempPassword}\n\n"
-                + "📊 Ton Cockpit Livreur en direct (1 clic sans rien taper) :\n"
-                + $"{riderDashboardUrl}\n\n"
-                + "🛡️ Pièce d'identité enregistrée en sécurité (Assurance Colis Sûr).\n\n"
-                + "👉 Pour commencer à recevoir les courses maintenant, clique sur le bouton ci-dessous :";
+            var cniNotice = !string.IsNullOrWhiteSpace(detectedCni) ? $"\n🪪 {detectedDocType ?? "Pièce d'identité"} vérifiée : {detectedCni}" : "";
+            var welcomeText = $"🎉 Félicitations {resolvedName} ! Ton profil livreur WAZAP est activé à {lead.Zone} ! 🛵💨{cniNotice}\n\n"
+                + "Ici sur WhatsApp, 0 texte à taper ! Touche simplement le lien de ton choix :\n\n"
+                + "🟢 1. ME METTRE EN LIGNE (Recevoir les courses) :\n"
+                + "https://wa.me/2250544051972?text=DISPO\n\n"
+                + "🔴 2. ME METTRE EN PAUSE (Ne pas être dérangé) :\n"
+                + "https://wa.me/2250544051972?text=INDISPO\n\n"
+                + "💰 3. VOIR MON ARGENT (Mes gains du jour) :\n"
+                + "https://wa.me/2250544051972?text=SOLDE\n\n"
+                + "🏆 4. MON CADEAU (Défi Smartphone Redmi 15C) :\n"
+                + "https://wa.me/2250544051972?text=PROGRAMME\n\n"
+                + "🛡️ Garantie Colis Sûr : 0 FCFA d'espèces sur les colis, tes gains te sont versés directement par Mobile Money.\n\n"
+                + "👉 Touche le premier lien ci-dessus pour te mettre en ligne tout de suite !";
 
             await ReplyInteractiveAsync(
                 normalized,

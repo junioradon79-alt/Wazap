@@ -67,9 +67,11 @@ public class RiderRecruitmentTests
         // Lead converti, identifiants envoyés, équipe alertée pour la certification.
         Assert.Equal(LeadStatus.Converted, (await harness.Context.Leads.SingleAsync()).Status);
         var welcome = harness.LastMessageTo(CandidatePhone);
-        Assert.Contains("Identifiant", welcome);
-        Assert.Contains("ibrahimkone", welcome);
-        Assert.Contains("Mot de passe", welcome);
+        Assert.Contains("profil livreur WAZAP est activé", welcome);
+        Assert.Contains("wa.me/2250544051972?text=DISPO", welcome);
+        Assert.Contains("wa.me/2250544051972?text=INDISPO", welcome);
+        Assert.Contains("wa.me/2250544051972?text=SOLDE", welcome);
+        Assert.Contains("wa.me/2250544051972?text=PROGRAMME", welcome);
         Assert.Contains(harness.Sender.TextMessages,
             m => m.Phone == "+2250500000000" && m.Message.Contains("Candidature livreur COMPLÈTE"));
 

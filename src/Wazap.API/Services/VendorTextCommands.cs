@@ -324,10 +324,15 @@ public sealed class VendorTextCommands
             sb.AppendLine($"🎁 Code parrainage : *{user.ReferralCode}* (+5 crédits offerts par filleul)");
             sb.AppendLine();
         }
-        sb.AppendLine("👉 *Actions 1-Clic :*");
-        sb.AppendLine("• Demander une course : Tapez « LIVRAISON article à quartier »");
-        sb.AppendLine("• Gérer votre catalogue : Tapez « PRODUITS »");
-        sb.AppendLine($"• Espace Visuel Web (1 clic) : {webDashboardUrl}");
+        sb.AppendLine("👉 *TOUCHER POUR AGIR (1 Clic) :*");
+        sb.AppendLine("🚀 Expédier un colis :");
+        sb.AppendLine("https://wa.me/2250544051972?text=LIVRAISON");
+        sb.AppendLine();
+        sb.AppendLine("📦 Mon Catalogue d'articles :");
+        sb.AppendLine("https://wa.me/2250544051972?text=PRODUITS");
+        sb.AppendLine();
+        sb.AppendLine("📋 Grille Tarifaire Abidjan :");
+        sb.AppendLine("https://wa.me/2250544051972?text=TARIFS");
 
         await reply(user, sb.ToString().TrimEnd());
     }
