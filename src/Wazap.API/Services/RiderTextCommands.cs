@@ -198,8 +198,10 @@ public sealed class RiderTextCommands
             sb.AppendLine($"• Récompense : 📱 {progress.RewardLabel}");
             if (!string.IsNullOrWhiteSpace(user.ReferralCode))
             {
-                sb.AppendLine($"• Code parrainage : *{user.ReferralCode}*");
-                sb.AppendLine("_(Partagez ce code à d'autres livreurs pour débloquer votre smartphone !)_");
+                sb.AppendLine();
+                sb.AppendLine("📲 *Ton Lien Parrain à transférer à tes collègues (1 Clic) :*");
+                sb.AppendLine($"https://wa.me/2250544051972?text=DISPO%20{user.ReferralCode}");
+                sb.AppendLine("_(Ton collègue touche le lien et envoie : il est automatiquement lié à toi !)_");
             }
         }
 

@@ -172,8 +172,16 @@ public class GatewayWhatsAppController : ControllerBase
                 var reply = $"🏆 Challenge Ambassadeur WAZAP (Xiaomi Redmi 15C) :\n\n"
                     + $"• Livraisons : {deliveries} / {targetDeliveries} courses\n"
                     + $"• Filleuls actifs : {referrals} / {targetReferrals} livreurs parrainés\n"
-                    + $"• Statut : {(isEligible ? "🎉 CHALLENGE REMPORTÉ ! Contactez l'équipe WAZAP pour votre smartphone." : "⏳ En cours d'accomplissement")}\n\n"
-                    + "👉 Liens 1-clic rapides :\n"
+                    + $"• Statut : {(isEligible ? "🎉 CHALLENGE REMPORTÉ ! Contactez l'équipe WAZAP pour votre smartphone." : "⏳ En cours d'accomplissement")}\n\n";
+
+                if (!string.IsNullOrWhiteSpace(rider.ReferralCode))
+                {
+                    reply += "📲 *Ton Lien Parrain à transférer à tes collègues (1 Clic) :*\n"
+                        + $"https://wa.me/2250544051972?text=DISPO%20{rider.ReferralCode}\n"
+                        + "_(Ton collègue touche le lien et envoie : il est automatiquement lié à toi !)_\n\n";
+                }
+
+                reply += "👉 Liens 1-clic rapides :\n"
                     + "🟢 Me mettre en ligne :\nhttps://wa.me/2250544051972?text=DISPO\n\n"
                     + "💰 Voir mon argent :\nhttps://wa.me/2250544051972?text=SOLDE";
                 return Ok(new GatewayInboundResponse(true, true, reply, "rider_program", normalizedPhone));

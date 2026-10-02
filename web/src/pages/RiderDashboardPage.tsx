@@ -73,14 +73,15 @@ export default function RiderDashboardPage() {
 
   const copyReferral = () => {
     if (!dash) return
-    void navigator.clipboard.writeText(dash.referralCode)
+    const link = `https://wa.me/2250544051972?text=DISPO%20${dash.referralCode}`
+    void navigator.clipboard.writeText(link)
     setCopied(true)
     setTimeout(() => setCopied(false), 2500)
   }
 
   const referralShareUrl = dash
     ? `https://wa.me/?text=${encodeURIComponent(
-        `Salut confrère livreur ! Rejoins le réseau WAZAP avec mon code parrain *${dash.referralCode}*. 0% de commission sur tes courses, 1 000 à 2 000 FCFA net direct pour toi et un smartphone neuf à gagner ! Inscris-toi ici : https://junioradon79gm-001-site1.jtempurl.com/app/livreurs`,
+        `Salut confrère livreur ! Rejoins le réseau WAZAP avec mon lien parrain (0% commission, 1 000 à 2 000 FCFA net par course et smartphone Redmi 15C neuf à gagner) : https://wa.me/2250544051972?text=DISPO%20${dash.referralCode}`,
       )}`
     : '#'
 
@@ -403,7 +404,7 @@ export default function RiderDashboardPage() {
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button className="rd-pill" onClick={copyReferral}>
-                {copied ? '✅ Copié !' : '📋 Copier mon code'}
+                {copied ? '✅ Lien copié !' : '📋 Copier mon lien parrain'}
               </button>
               <a
                 href={referralShareUrl}

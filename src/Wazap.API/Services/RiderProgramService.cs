@@ -42,12 +42,12 @@ public sealed class RiderProgramService
 
         var rider = await _context.Users.AsNoTracking()
             .Where(u => u.Id == riderId && u.Role == UserRole.Rider)
-            .Select(u => new { u.Id, u.Username, u.PhoneNumber })
+            .Select(u => new { u.Id, u.Username, u.PhoneNumber, u.ReferralCode })
             .FirstOrDefaultAsync(ct);
 
         return rider is null
             ? null
-            : await BuildForAsync(rider.Id, rider.Username, rider.PhoneNumber, ct);
+            : await BuildForAsync(rider.Id, rider.Username, rider.PhoneNumber, rider.ReferralCode, ct);
     }
 
     /// <summary>Progression de tous les livreurs (page admin), classée par conditions remplies.</summary>
@@ -58,12 +58,12 @@ public sealed class RiderProgramService
 
         var riders = await _context.Users.AsNoTracking()
             .Where(u => u.Role == UserRole.Rider)
-            .Select(u => new { u.Id, u.Username, u.PhoneNumber })
+            .Select(u => new { u.Id, u.Username, u.PhoneNumber, u.ReferralCode })
             .ToListAsync(ct);
 
         var result = new List<RiderProgramProgress>(riders.Count);
         foreach (var r in riders)
-            result.Add(await BuildForAsync(r.Id, r.Username, r.PhoneNumber, ct));
+            result.Add(await BuildForAsync(r.Id, r.Username, r.PhoneNumber, r.ReferralCode, ct));
 
         return result
             .OrderByDescending(p => p.RewardUnlocked)
@@ -72,7 +72,7 @@ public sealed class RiderProgramService
             .ToList();
     }
 
-    private async Task<RiderProgramProgress> BuildForAsync(Guid riderId, string username, string? phone, CancellationToken ct)
+    private async Task<RiderProgramProgress> BuildForAsync(Guid riderId, string username, string? phone, string? referralCode, CancellationToken ct)
     {
         var deliveries = await _context.Orders.AsNoTracking()
             .CountAsync(o => o.RiderUserId == riderId && o.Status == OrderStatus.Delivered, ct);
@@ -113,7 +113,7 @@ public sealed class RiderProgramService
             riderId, username, phone,
             deliveries, _options.DeliveriesTarget,
             validatedReferrals, _options.ReferralsTarget,
-            average, certified, ratingMet, _options.RewardLabel);
+            average, certified, ratingMet, _options.RewardLabel, referralCode);
     }
 
     /// <summary>Message WhatsApp de progression (réponse à la commande « PROGRAMME »).</summary>
@@ -127,6 +127,13 @@ public sealed class RiderProgramService
         sb.AppendLine($"3️⃣ Filleuls validés : {p.ValidatedReferrals}/{p.ReferralsTarget} {(p.ReferralsMet ? "✅" : "⏳")}");
         sb.AppendLine();
         sb.AppendLine($"🎁 Récompense : {p.RewardLabel}");
+        if (!string.IsNullOrWhiteSpace(p.ReferralCode))
+        {
+            sb.AppendLine();
+            sb.AppendLine("📲 *Ton Lien Parrain à transférer à tes collègues (1 Clic) :*");
+            sb.AppendLine($"https://wa.me/2250544051972?text=DISPO%20{p.ReferralCode}");
+            sb.AppendLine("_(Ton collègue touche le lien et envoie : il est automatiquement lié à toi !)_");
+        }
         sb.AppendLine();
         sb.Append(p.RewardUnlocked
             ? "🎉 Les 3 conditions sont remplies ! L'équipe WAZAP vous contacte pour la remise."
@@ -211,7 +218,8 @@ public sealed record RiderProgramProgress(
     double? AverageRating,
     bool Certified,
     bool RatingMet,
-    string RewardLabel)
+    string RewardLabel,
+    string? ReferralCode = null)
 {
     /// <summary>Condition 1 — compte enrôlé ET dossier d'identité vérifié.</summary>
     public bool EnrolledMet => Certified;
