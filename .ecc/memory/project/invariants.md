@@ -19,12 +19,14 @@
 - **Règlement 100% digital à la livraison :** Scan du QR Code Universel WAZAP (compatible Wave, Orange Money, MTN MoMo, Moov Money, Carte bancaire).
 - **Zéro manipulation d'espèces :** Le livreur ne transporte ni n'encaisse d'espèces pour le commerçant. Zéro exception cash.
 
-## 5. Zéro Saisie Texte / 1-Tap Absolu
+## 5. Zéro Saisie Texte / 1-Tap Absolu (Zéro Mot de Passe)
 - **Interdiction des formulaires et de la frappe au clavier :** Pour les livreurs, commerçants et clients, privilégier à 100% :
-  - Liens bleus pré-remplis `wa.me`.
-  - Authentification 1-clic par URL : `?u=...`.
+  - Liens bleus pré-remplis `wa.me` (ex: `wa.me/2250544051972?text=DISPO`).
+  - Liens de parrainage 1-clic prêts à transférer (ex: `wa.me/2250544051972?text=DISPO%20{Code}`).
+  - Commandes ultra-courtes à 1 chiffre (`1`, `2`, `3`, `4`) ou emojis (`🟢`, `🔴`, `💰`, `📱`).
+  - Zéro identifiant / zéro mot de passe transmis sur WhatsApp aux livreurs.
   - Scan de pièces par OCR Google Vision (CNI, Permis de conduire, Passeport).
-  - Boutons de bascule d'état (ex: `🟢 DISPO` / `⚪ INDISPO`).
+  - Notes vocales acceptées pour les commandes commerçants.
 
 ## 6. Déploiement Continu Systématique en Production
 - Tout travail validé doit être testé (`dotnet test` + `npm test`), buildé (`npm run build`), synchronisé dans `Wazap.API/wwwroot/app`, committé et poussé sur `main` (`git push origin main`).
