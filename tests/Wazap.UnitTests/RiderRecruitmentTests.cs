@@ -122,6 +122,35 @@ public class RiderRecruitmentTests
     }
 
     [Fact]
+    public async Task Candidate_1TapFlow_DispoThenSingleDigit_CreatesRiderAccountAndPromptsPhoto()
+    {
+        var harness = new WebhookHarness(teamPhone: "+2250500000000");
+
+        // 1. Candidat envoie DISPO
+        await harness.SendAsync(CandidatePhone, "DISPO");
+
+        var welcome = harness.LastMessageTo(CandidatePhone);
+        Assert.Contains("1, 2, 3, 4 ou 5", welcome);
+
+        // 2. Le candidat tape simplement le chiffre 1 (Cocody)
+        await harness.SendAsync(CandidatePhone, "1");
+
+        var lead = await harness.Context.Leads.SingleAsync(l => l.WhatsAppNumber == CandidatePhone);
+        Assert.Equal("Cocody", lead.Zone);
+
+        var promptPhoto = harness.LastMessageTo(CandidatePhone);
+        Assert.Contains("Commune enregistrée : Cocody", promptPhoto);
+        Assert.Contains("Prends en PHOTO ta pièce d'identité", promptPhoto);
+
+        // 3. Envoi de la photo
+        await harness.SendImageAsync(CandidatePhone, "https://media.example/cni-digit-1.jpg");
+
+        var rider = await harness.Context.Users.SingleAsync(u => u.Role == UserRole.Rider);
+        Assert.Equal("Cocody", rider.Zone);
+        Assert.Equal(CandidatePhone, rider.PhoneNumber);
+    }
+
+    [Fact]
     public async Task Candidate_PhotoBeforeNameZone_AsksMissingInfo_NoAccount()
     {
         var harness = new WebhookHarness();

@@ -148,7 +148,7 @@ public sealed class RiderRecruitmentService
             if (capturedName is not null && (string.IsNullOrWhiteSpace(lead.ContactName) || lead.ContactName == "Candidat livreur"))
                 lead.Update(lead.BusinessName, capturedName, lead.Source);
             var capturedZone = CaptureZone(text);
-            if (capturedZone.Length > 0 && string.IsNullOrWhiteSpace(lead.Zone))
+            if (capturedZone.Length > 0)
                 lead.SetZone(capturedZone);
             if (string.IsNullOrWhiteSpace(lead.ReferralCode))
                 lead.SetReferralCode(TryCaptureReferralCode(text));
@@ -226,7 +226,7 @@ public sealed class RiderRecruitmentService
         if (capturedName is not null && string.IsNullOrWhiteSpace(lead.ContactName))
             lead.Update(lead.BusinessName, capturedName, lead.Source);
         var capturedZone = CaptureZone(text);
-        if (capturedZone.Length > 0 && string.IsNullOrWhiteSpace(lead.Zone))
+        if (capturedZone.Length > 0)
             lead.SetZone(capturedZone);
         // Code parrain (« WA-XXXX ») : rattaché au dossier, appliqué à la création du compte.
         if (string.IsNullOrWhiteSpace(lead.ReferralCode))
@@ -503,15 +503,32 @@ public sealed class RiderRecruitmentService
     {
         var trimmed = text.Trim().ToLowerInvariant();
 
-        // Liens 1-clic wa.me et raccourcis par numéros pour les livreurs :
-        if (trimmed is "1" or "zone_1" or "cocody" || trimmed.StartsWith("1 ") || trimmed.StartsWith("1-") || trimmed.StartsWith("1.")) return "Cocody";
-        if (trimmed is "2" or "zone_2" or "yopougon" || trimmed.StartsWith("2 ") || trimmed.StartsWith("2-") || trimmed.StartsWith("2.")) return "Yopougon";
-        if (trimmed is "3" or "zone_3" or "marcory" or "zone sud" or "zonesud" || trimmed.StartsWith("3 ") || trimmed.StartsWith("3-") || trimmed.StartsWith("3.")) return "Marcory";
-        if (trimmed is "4" or "zone_4" or "abobo" || trimmed.StartsWith("4 ") || trimmed.StartsWith("4-") || trimmed.StartsWith("4.")) return "Abobo";
-        if (trimmed is "5" or "zone_5" or "adjame" or "adjamé" or "plateau" || trimmed.StartsWith("5 ") || trimmed.StartsWith("5-") || trimmed.StartsWith("5.")) return "Plateau";
-        if (trimmed is "6" or "zone_6" or "koumassi" or "treichville" || trimmed.StartsWith("6 ") || trimmed.StartsWith("6-") || trimmed.StartsWith("6.")) return "Marcory";
+        // Normalisation préfixes courants (ex: "choix 1", "#1", "n° 1", "numéro 1", "zone 1", "le 1", "c'est le 1")
+        var normalized = trimmed;
+        foreach (var prefix in new[] { "choix ", "option ", "zone ", "numero ", "numéro ", "n°", "#", "c'est le ", "c'est la ", "c'est ", "le " })
+        {
+            if (normalized.StartsWith(prefix))
+            {
+                normalized = normalized[prefix.Length..].Trim();
+                break;
+            }
+        }
 
-        var zone = Zones.FirstOrDefault(z => trimmed.Contains(z)) ?? string.Empty;
+        // Liens 1-clic wa.me et raccourcis par numéros pour les livreurs (chiffres standards ou emojis) :
+        if (normalized is "1" or "1️⃣" or "zone_1" or "cocody" || normalized.StartsWith("1 ") || normalized.StartsWith("1-") || normalized.StartsWith("1.") || normalized.StartsWith("1️⃣")) return "Cocody";
+        if (normalized is "2" or "2️⃣" or "zone_2" or "yopougon" || normalized.StartsWith("2 ") || normalized.StartsWith("2-") || normalized.StartsWith("2.") || normalized.StartsWith("2️⃣")) return "Yopougon";
+        if (normalized is "3" or "3️⃣" or "zone_3" or "marcory" or "zone sud" or "zonesud" || normalized.StartsWith("3 ") || normalized.StartsWith("3-") || normalized.StartsWith("3.") || normalized.StartsWith("3️⃣")) return "Marcory";
+        if (normalized is "4" or "4️⃣" or "zone_4" or "abobo" || normalized.StartsWith("4 ") || normalized.StartsWith("4-") || normalized.StartsWith("4.") || normalized.StartsWith("4️⃣")) return "Abobo";
+        if (normalized is "5" or "5️⃣" or "zone_5" or "adjame" or "adjamé" or "plateau" || normalized.StartsWith("5 ") || normalized.StartsWith("5-") || normalized.StartsWith("5.") || normalized.StartsWith("5️⃣")) return "Plateau";
+        if (normalized is "6" or "6️⃣" or "zone_6" or "koumassi" or "treichville" || normalized.StartsWith("6 ") || normalized.StartsWith("6-") || normalized.StartsWith("6.") || normalized.StartsWith("6️⃣")) return "Marcory";
+
+        // Détection par sous-quartiers connus du Grand Abidjan :
+        if (normalized.Contains("angre") || normalized.Contains("angré") || normalized.Contains("riviera") || normalized.Contains("plateaux")) return "Cocody";
+        if (normalized.Contains("maroc") || normalized.Contains("siporex") || normalized.Contains("bel air") || normalized.Contains("niangon") || normalized.Contains("toits rouges") || normalized.Contains("selmer")) return "Yopougon";
+        if (normalized.Contains("bietry") || normalized.Contains("biétry") || normalized.Contains("zone 4") || normalized.Contains("zone 3") || normalized.Contains("anoumabo") || normalized.Contains("camp militaire")) return "Marcory";
+        if (normalized.Contains("anador") || normalized.Contains("abobo baoulé") || normalized.Contains("pk18") || normalized.Contains("samaké") || normalized.Contains("avocatier") || normalized.Contains("agban")) return "Abobo";
+
+        var zone = Zones.FirstOrDefault(z => normalized.Contains(z) || trimmed.Contains(z)) ?? string.Empty;
         return zone.Length > 0 ? char.ToUpperInvariant(zone[0]) + zone[1..] : string.Empty;
     }
 
@@ -550,7 +567,7 @@ public sealed class RiderRecruitmentService
             return "👋 Bienvenue chez WAZAP Livreur 🛵\n"
                 + "Gagne 1 000 à 2 000 FCFA net par course (0% commission) !\n"
                 + "(0 frappe au clavier, ton nom complet sera extrait automatiquement de ta pièce)\n\n"
-                + "👉 Touche directement le lien de ta commune pour t'activer en 1 clic :\n\n"
+                + "👉 Réponds directement avec le chiffre (1, 2, 3, 4 ou 5) ou touche le lien de ta commune :\n\n"
                 + "📍 1. COCODY (Angré, 2 Plateaux, Riviera) :\n"
                 + "https://wa.me/2250544051972?text=1%20Cocody\n\n"
                 + "📍 2. YOPOUGON (Maroc, Siporex, Bel Air) :\n"
@@ -560,7 +577,8 @@ public sealed class RiderRecruitmentService
                 + "📍 4. ABOBO :\n"
                 + "https://wa.me/2250544051972?text=4%20Abobo\n\n"
                 + "📍 5. PLATEAU / ADJAMÉ :\n"
-                + "https://wa.me/2250544051972?text=5%20Plateau";
+                + "https://wa.me/2250544051972?text=5%20Plateau\n\n"
+                + "⚡ Tape simplement 1, 2, 3, 4 ou 5 pour démarrer immédiatement !";
         }
 
         // Étape 2 : Zone choisie -> Demande de photo CNI directe (ZÉRO saisie de texte)

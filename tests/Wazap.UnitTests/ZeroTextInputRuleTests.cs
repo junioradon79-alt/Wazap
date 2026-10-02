@@ -57,6 +57,18 @@ public class ZeroTextInputRuleTests
     [InlineData("3 Zone Sud", "Marcory")]
     [InlineData("4 Abobo", "Abobo")]
     [InlineData("5 Plateau", "Plateau")]
+    [InlineData("1", "Cocody")]
+    [InlineData("2", "Yopougon")]
+    [InlineData("3", "Marcory")]
+    [InlineData("4", "Abobo")]
+    [InlineData("5", "Plateau")]
+    [InlineData("1️⃣", "Cocody")]
+    [InlineData("2️⃣", "Yopougon")]
+    [InlineData("#1", "Cocody")]
+    [InlineData("Choix 2", "Yopougon")]
+    [InlineData("Angré", "Cocody")]
+    [InlineData("Maroc", "Yopougon")]
+    [InlineData("Biétry", "Marcory")]
     public async Task ChoixCommune_EnregistreDirectement_EtDemandePhotoSansExigerNom(string linkInput, string expectedZone)
     {
         var harness = new WebhookHarness();
