@@ -1,10 +1,10 @@
 # [SPRINT ACTIF & HANDOFF DE SESSION WAZAP]
-<!-- ecc.memory.v1 scope:project type:handoff status:active updated:2026-10-01 -->
+<!-- ecc.memory.v1 scope:project type:handoff status:active updated:2026-10-02 -->
 
 ## 1. État Actuel du Système
-- **Backend .NET :** 861 tests (855 réussis localement + 6 sur PostgreSQL réel en CI) - 0 échec.
+- **Backend .NET :** 867 tests (861 réussis localement + 6 sur PostgreSQL réel en CI) - 0 échec.
 - **Frontend Vitest :** 57/57 tests réussis (100%).
-- **Production :** En ligne sur `https://junioradon79gm-001-site1.jtempurl.com` (HTTP 200 Healthy, Commit `95f86a4`).
+- **Production :** En ligne sur `https://junioradon79gm-001-site1.jtempurl.com` (HTTP 200 Healthy).
 - **Passerelle Android WAZAP Gateway :** v1.1 déployée avec succès sur le smartphone `TECNO CM6` via USB (`Success`), service d'écoute lié et actif (`com.whatsapp.w4b` uniquement).
 - **Architecture :** .NET 8 / EF Core / PostgreSQL (SmarterASP) + React 18 / Vite / TypeScript + YCloud API + WAZAP Gateway Android.
 
@@ -17,3 +17,4 @@
 ## 3. Livrables Récents
 - **Session 120 :** Espace Marchand & Livreur dans WhatsApp : commandes textuelles directes `DASHBOARD` et `SOLDE` pour les vendeurs (`VendorTextCommands`), URLs d'accès 1-clic directes dans les notifications WhatsApp de certification livreur et validation boutique, 847 tests réussis.
 - **Session 121 (Incident P0 & Résolution) :** Neutralisation immédiate de l'interférence avec WhatsApp Personnel. Isolation étanche de la passerelle Android WAZAP Gateway (`ci.wazap.gateway`) restreinte strictement à `com.whatsapp.w4b` (WhatsApp Business). Blacklist locale et serveur du numéro personnel du propriétaire (`+225 07 08 32 33 66`) et de la ligne officielle (`05 44 05 19 72`). Suppression de l'auto-réponse universelle intrusive sur messages ordinaires. Compilation de l'APK v1.1 signée et déploiement avec succès sur le smartphone `TECNO CM6` via ADB USB (`Success`, service actif et lié). Ajout de 8 tests unitaires de sécurité (861 tests passants).
+- **Session 122 :** Test de bout en bout du Cockpit Livreur (`RiderDashboardPage.tsx` & `RidersController`). Création d'une suite complète de 6 tests d'intégration backend (`RidersControllerDashboardTests.cs` : chargement dashboard, bascule dispo 1-tap, sélecteur de commune 1-tap, étanchéité EnsureOwnership, accès admin). Validation des 6 tests Vitest frontend (100% verts). Bundle de production compilé et synchronisé. Vérification HTTP 200 sur le serveur live. 867 tests .NET (861 locaux + 6 PG réels CI) au vert.
