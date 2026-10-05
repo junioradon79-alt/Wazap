@@ -1,0 +1,982 @@
+# -*- coding: utf-8 -*-
+"""
+Générateur du tableau exhaustif des fonctionnalités WAZAP pour les livreurs (coursiers à moto).
+Produit :
+  1. FONCTIONNALITES_LIVREURS_WAZAP.xlsx (Excel enrichi avec styles émeraude WAZAP)
+  2. FONCTIONNALITES_LIVREURS_WAZAP.csv (CSV UTF-8 BOM compatible Excel français)
+  3. tableau_fonctionnalites_livreurs.html (Tableau interactif HTML avec recherche, filtres et téléchargement)
+"""
+
+import csv
+import json
+import os
+import sys
+import openpyxl
+
+if sys.stdout.encoding != 'utf-8':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+
+# Données exhaustives des fonctionnalités livreurs WAZAP
+DATA = [
+    # ── 1. RÉMUNÉRATION NETTE & TARIFS ÉQUITABLES (0% COMMISSION) ──
+    {
+        "id": 1,
+        "categorie": "1. Rémunération Nette & Tarifs Équitables",
+        "nom": "0% de Commission sur les Frais de Course",
+        "description": "WAZAP ne prélève strictement aucun pourcentage sur le prix de livraison. Les frais de course payés par le client ou le commerçant reviennent à 100% au livreur.",
+        "valeur_ajoutee": "Gains nets maximaux pour le livreur (100% dans sa poche), contrairement aux plateformes concurrentes qui prélèvent de 20% à 30% par course.",
+        "canal": "Modèle Économique WAZAP / Invariant",
+        "reference_code": "marketing/POLITIQUE_COMMERCIALE_ET_POSITIONNEMENT.md",
+        "statut": "Actif en Production"
+    },
+    {
+        "id": 2,
+        "categorie": "1. Rémunération Nette & Tarifs Équitables",
+        "nom": "Plancher Garanti à 1 000 FCFA Net dès le 1er mètre",
+        "description": "Tarif minimum garanti de 1 000 FCFA même pour une course courte de 300 à 500 mètres dans le même quartier.",
+        "valeur_ajoutee": "Fin des courses dérisoires à 500 F ou 700 F qui ne remboursent même pas le carburant. Chaque déplacement est rentable et digne.",
+        "canal": "Moteur de tarification & Validation de commande",
+        "reference_code": "src/Wazap.API/Services/VendorTextCommands.cs",
+        "statut": "Actif en Production"
+    },
+    {
+        "id": 3,
+        "categorie": "1. Rémunération Nette & Tarifs Équitables",
+        "nom": "Grille Tarifaire Fixe & Transparente Grand Abidjan",
+        "description": "Barème par paliers clairs : 1 000 F (intra-commune), 1 500 F (communes voisines), 2 000 F (traversée de pont), 2 500 F (périphérie).",
+        "valeur_ajoutee": "Fin du marchandage épuisant avec les clients ou commerçants. Le prix est connu et validé d'avance avant le départ.",
+        "canal": "WhatsApp (/tarifs) & Cockpit Livreur",
+        "reference_code": "web/src/pages/LivreurPage.tsx",
+        "statut": "Actif en Production"
+    },
+    {
+        "id": 4,
+        "categorie": "1. Rémunération Nette & Tarifs Équitables",
+        "nom": "Paiement Immédiat & Zéro Délai de Reversement",
+        "description": "Règlement des frais de livraison perçu immédiatement dès la fin de course (via Mobile Money direct ou transfert en 1 clic).",
+        "valeur_ajoutee": "Pas de blocage de trésorerie sur un solde virtuel bloqué 15 jours. L'argent est disponible le jour même pour le carburant et la famille.",
+        "canal": "Wave / Orange Money / MTN MoMo direct",
+        "reference_code": "src/Wazap.Application/Services/PaymentSplitService.cs",
+        "statut": "Actif en Production"
+    },
+    {
+        "id": 5,
+        "categorie": "1. Rémunération Nette & Tarifs Équitables",
+        "nom": "Consultation Instantanée des Gains en 1 Clic",
+        "description": "Commande WhatsApp « SOLDE », « GAINS » ou raccourci « 3 » renvoyant le montant total cumulé et le nombre de courses effectuées.",
+        "valeur_ajoutee": "Suivi limpide de sa rentabilité journalière et mensuelle sans calcul manuel ni carnet papier.",
+        "canal": "WhatsApp Bot (05 44 05 19 72) & Dashboard",
+        "reference_code": "src/Wazap.API/Services/RiderTextCommands.cs",
+        "statut": "Actif en Production"
+    },
+
+    # ── 2. SÉCURITÉ PHYSIQUE, DIGNITÉ & BOUCLIER ZÉRO CASH ──
+    {
+        "id": 6,
+        "categorie": "2. Sécurité Physique & Bouclier Zéro Cash",
+        "nom": "Bouclier Fondateur « Zéro Cash Marchandise »",
+        "description": "Le livreur ne transporte ni n'encaisse les espèces des commerçants (aucune recette de 20 000 F, 50 000 F ou 100 000 F dans ses poches).",
+        "valeur_ajoutee": "Élimination intégrale du risque de braquage à moto, d'agression nocturne et de vol de recette. Sérénité totale sur les routes d'Abidjan.",
+        "canal": "Règle Canonique Inviolable WAZAP",
+        "reference_code": ".ecc/memory/project/invariants.md",
+        "statut": "Actif en Production"
+    },
+    {
+        "id": 7,
+        "categorie": "2. Sécurité Physique & Bouclier Zéro Cash",
+        "nom": "Encaissement 100% Digital par QR Code Universel",
+        "description": "À la livraison, le livreur présente son QR Code WAZAP au client qui le scanne avec Wave, Orange Money, MTN, Moov ou Carte Bancaire.",
+        "valeur_ajoutee": "L'argent de la marchandise va directement au commerçant. Zéro manipulation de fausse monnaie, zéro problème de rendu de monnaie.",
+        "canal": "QR Code Universel WAZAP (physique ou smartphone)",
+        "reference_code": "src/Wazap.API/Controllers/ClientOrdersController.cs",
+        "statut": "Actif en Production"
+    },
+    {
+        "id": 8,
+        "categorie": "2. Sécurité Physique & Bouclier Zéro Cash",
+        "nom": "Preuve de Livraison Inviolable par Code PIN Client",
+        "description": "Clôture de course sécurisée par code confidentiel à 4 chiffres fourni par le client destinataire (« LIVRE <code> CODE 1234 » ou simple PIN).",
+        "valeur_ajoutee": "Protection infaillible du coursier contre les clients de mauvaise foi qui prétendent n'avoir jamais reçu leur colis.",
+        "canal": "WhatsApp Bot & Page de suivi client PWA",
+        "reference_code": "src/Wazap.API/Services/RiderDeliveryCommands.cs",
+        "statut": "Actif en Production"
+    },
+    {
+        "id": 9,
+        "categorie": "2. Sécurité Physique & Bouclier Zéro Cash",
+        "nom": "Protection Intégrale contre les Accusations de Vol",
+        "description": "Grâce au scellé numéroté Colis Sûr et à la déclaration de sinistre intégrée, le livreur est juridiquement couvert en cas de litige.",
+        "valeur_ajoutee": "Fin du risque d'être accusé arbitrairement par un commerçant ou poursuivi pour un colis endommagé ou perdu en route.",
+        "canal": "Assurance Colis Sûr WAZAP",
+        "reference_code": "src/Wazap.Application/Services/ColisSurService.cs",
+        "statut": "Actif en Production"
+    },
+    {
+        "id": 10,
+        "categorie": "2. Sécurité Physique & Bouclier Zéro Cash",
+        "nom": "Badge Officiel « Coursier Professionnel Certifié »",
+        "description": "Attribution du badge officiel « 🛡️ CERTIFIÉ WAZAP » après contrôle OCR de la pièce d'identité (CNI ou Permis).",
+        "valeur_ajoutee": "Dignité professionnelle et respect accrus : le coursier est reconnu comme un professionnel de confiance certifié, non un coursier informel.",
+        "canal": "Profil Livreur, Badge Web & WhatsApp",
+        "reference_code": "web/src/pages/RiderDashboardPage.tsx",
+        "statut": "Actif en Production"
+    },
+
+    # ── 3. LOGISTIQUE 1-TAP & ZÉRO FRICTION (100% WHATSAPP) ──
+    {
+        "id": 11,
+        "categorie": "3. Logistique 1-Tap (100% WhatsApp)",
+        "nom": "Zéro Application Lourde à Télécharger",
+        "description": "Aucune application de 100 Mo qui chauffe le smartphone, vide la batterie sous le soleil ou consomme le forfait internet du coursier.",
+        "valeur_ajoutee": "Fonctionne sur 100% des smartphones avec l'application WhatsApp déjà installée. Économie de batterie et de forfait data.",
+        "canal": "WhatsApp Business (+225 05 44 05 19 72)",
+        "reference_code": "web/src/pages/LivreurPage.tsx",
+        "statut": "Actif en Production"
+    },
+    {
+        "id": 12,
+        "categorie": "3. Logistique 1-Tap (100% WhatsApp)",
+        "nom": "Bascule de Disponibilité 1-Tap (« DISPO » / « INDISPO »)",
+        "description": "Mise en ligne instantanée par le mot « DISPO » (ou « 1 » ou bouton vert) et mise en pause par « INDISPO » (ou « 2 » ou bouton rouge).",
+        "valeur_ajoutee": "Zéro alerte intempestive pendant la pause déjeuner, les pannes mécaniques ou la pluie. Maîtrise totale de son temps de travail.",
+        "canal": "WhatsApp Bot & Cockpit Livreur",
+        "reference_code": "src/Wazap.API/Services/RiderTextCommands.cs",
+        "statut": "Actif en Production"
+    },
+    {
+        "id": 13,
+        "categorie": "3. Logistique 1-Tap (100% WhatsApp)",
+        "nom": "Sélecteur Rapide de Commune (Proximité Immédiate)",
+        "description": "Choix de sa zone d'intervention en 1 tap parmi 10 communes du Grand Abidjan (Cocody, Yopougon, Marcory, Plateau, Koumassi...).",
+        "valeur_ajoutee": "Le livreur ne reçoit que des courses à proximité de son emplacement. Zéro kilomètre inutile à tourner à vide dans les embouteillages.",
+        "canal": "Cockpit Web & Commande WhatsApp « ZONE »",
+        "reference_code": "web/src/pages/RiderDashboardPage.tsx",
+        "statut": "Actif en Production"
+    },
+    {
+        "id": 14,
+        "categorie": "3. Logistique 1-Tap (100% WhatsApp)",
+        "nom": "Alertes de Courses Ultra-Détaillées en 1 Tap",
+        "description": "Notification WhatsApp complète à chaque course : Boutique de retrait, destination client, marchandise, et frais nets garantis.",
+        "valeur_ajoutee": "Toutes les informations nécessaires avant d'accepter. Acceptation en 1 clic sans hésitation ni mauvaise surprise.",
+        "canal": "Notification WhatsApp Push (YCloud)",
+        "reference_code": "src/Wazap.Application/Services/DeliveryOfferService.cs",
+        "statut": "Actif en Production"
+    },
+    {
+        "id": 15,
+        "categorie": "3. Logistique 1-Tap (100% WhatsApp)",
+        "nom": "Bouton Itinéraire GPS 1-Tap (Google Maps)",
+        "description": "Lien direct dans le cockpit web qui ouvre l'itinéraire Google Maps vers l'adresse exacte du client d'un seul toucher.",
+        "valeur_ajoutee": "Navigation GPS fluide sans avoir à retaper ou chercher les noms de rues et quartiers compliqués d'Abidjan.",
+        "canal": "Cockpit Livreur (/app/rider/dashboard)",
+        "reference_code": "web/src/pages/RiderDashboardPage.tsx",
+        "statut": "Actif en Production"
+    },
+    {
+        "id": 16,
+        "categorie": "3. Logistique 1-Tap (100% WhatsApp)",
+        "nom": "Contact Direct Vendeur & Client en 1 Clic",
+        "description": "Boutons intégrés pour appeler (« tel: ») ou ouvrir une conversation WhatsApp pré-remplie (« wa.me ») avec le commerçant ou le client.",
+        "valeur_ajoutee": "Communication ultra-rapide sans enregistrer de numéros dans son répertoire téléphonique personnel.",
+        "canal": "Cockpit Livreur & Alertes WhatsApp",
+        "reference_code": "web/src/pages/RiderDashboardPage.tsx",
+        "statut": "Actif en Production"
+    },
+    {
+        "id": 17,
+        "categorie": "3. Logistique 1-Tap (100% WhatsApp)",
+        "nom": "Commandes de Course Ultra-Courtes (« RECU », « LIVRE »)",
+        "description": "Mise à jour du statut par des mots clés courts ou des chiffres uniques : « RECU » (colis pris en charge), « LIVRE » ou code PIN 4 chiffres.",
+        "valeur_ajoutee": "Pilotage facile à une main avec les gants de moto sans devoir rédiger de longs messages textuels.",
+        "canal": "WhatsApp Business (+225 05 44 05 19 72)",
+        "reference_code": "src/Wazap.API/Services/RiderDeliveryCommands.cs",
+        "statut": "Actif en Production"
+    },
+
+    # ── 4. RECRUTEMENT EXPRESS & OCR PIÈCE D'IDENTITÉ ──
+    {
+        "id": 18,
+        "categorie": "4. Recrutement Express & OCR Pièce",
+        "nom": "Enrôlement 1-Tap par Chiffres ou Sous-Quartiers",
+        "description": "Envoi de « DISPO » suivi d'un simple chiffre (1 à 5) ou nom de quartier (Angré, Maroc, Biétry...) pour s'inscrire.",
+        "valeur_ajoutee": "Inscription accessible même aux coursiers peu scolarisés, sans aucun questionnaire complexe à remplir.",
+        "canal": "WhatsApp Business (+225 05 44 05 19 72)",
+        "reference_code": "src/Wazap.API/Services/RiderRecruitmentService.cs",
+        "statut": "Actif en Production"
+    },
+    {
+        "id": 19,
+        "categorie": "4. Recrutement Express & OCR Pièce",
+        "nom": "Extraction Magique de la CNI / Permis par OCR (Google Vision)",
+        "description": "Le livreur envoie simplement la photo de sa CNI ou de son permis Quipux sur WhatsApp : le robot extrait automatiquement nom, numéro et validité.",
+        "valeur_ajoutee": "Zéro frappe au clavier de son identité administrative. Activation ultra-rapide en moins d'une minute.",
+        "canal": "WhatsApp Media / Google Cloud Vision OCR",
+        "reference_code": "src/Wazap.Infrastructure/Services/GoogleVisionOcrService.cs",
+        "statut": "Actif en Production"
+    },
+    {
+        "id": 20,
+        "categorie": "4. Recrutement Express & OCR Pièce",
+        "nom": "Zéro Mot de Passe à Mémoriser (Authentification 1-Clic)",
+        "description": "Accès direct à son cockpit livreur par liens cliquables WhatsApp pré-remplis (wa.me) ou paramètre URL sécurisé (?u=...&p=...).",
+        "valeur_ajoutee": "Fin des blocages de comptes par mot de passe oublié. Accès instantané à son tableau de bord en 1 tap.",
+        "canal": "Lien URL sécurisé WhatsApp",
+        "reference_code": "web/src/pages/LoginPage.tsx",
+        "statut": "Actif en Production"
+    },
+
+    # ── 5. CARRIÈRE, RÉPUTATION & DÉFI SMARTPHONE NEUF ──
+    {
+        "id": 21,
+        "categorie": "5. Carrière, Réputation & Smartphone",
+        "nom": "Défi Ambassadeur : Smartphone Xiaomi Redmi 15C Neuf Offert",
+        "description": "Programme trimestriel récompensant les coursiers réguliers et actifs : remise en main propre d'un smartphone neuf scellé.",
+        "valeur_ajoutee": "Opportunité concrète de renouveler son outil de travail gratuitement grâce à son travail sur le terrain.",
+        "canal": "Programme Ambassadeur WAZAP",
+        "reference_code": "src/Wazap.API/Services/RiderProgramService.cs",
+        "statut": "Actif en Production"
+    },
+    {
+        "id": 22,
+        "categorie": "5. Carrière, Réputation & Smartphone",
+        "nom": "Suivi Visuel de Progression vers le Smartphone (Jauges)",
+        "description": "Cartes de progression dans le cockpit web et sur WhatsApp montrant l'avancement des livraisons et des filleuls validés.",
+        "valeur_ajoutee": "Motivation permanente et transparence totale : le livreur sait exactement combien de courses lui restent pour débloquer son téléphone.",
+        "canal": "Cockpit Livreur & Commande « PROGRAMME »",
+        "reference_code": "web/src/pages/RiderDashboardPage.tsx",
+        "statut": "Actif en Production"
+    },
+    {
+        "id": 23,
+        "categorie": "5. Carrière, Réputation & Smartphone",
+        "nom": "Parrainage Confrère 1-Clic Pré-rempli",
+        "description": "Lien d'invitation personnalisé « wa.me/2250544051972?text=DISPO {Code} » à partager directement sur WhatsApp à ses collègues motards.",
+        "valeur_ajoutee": "Le collègue clique sur le lien et est automatiquement rattaché en filleul. Accélération de l'obtention du smartphone cadeau.",
+        "canal": "Bouton WhatsApp Partager 1-tap",
+        "reference_code": "web/src/pages/RiderDashboardPage.tsx",
+        "statut": "Actif en Production"
+    },
+    {
+        "id": 24,
+        "categorie": "5. Carrière, Réputation & Smartphone",
+        "nom": "Système de Réputation & Avis Clients Évalués",
+        "description": "Note sur 5 étoiles attribuée par les clients après chaque livraison, commande « AVIS » pour consulter ses retours et « REPONDRE ».",
+        "valeur_ajoutee": "Valorisation des livreurs les plus polis, soignés et rapides. Les meilleurs profils obtiennent plus de courses et de pourboires.",
+        "canal": "WhatsApp Bot (« AVIS ») & Cockpit",
+        "reference_code": "src/Wazap.API/Services/RiderRatingService.cs",
+        "statut": "Actif en Production"
+    },
+    {
+        "id": 25,
+        "categorie": "5. Carrière, Réputation & Smartphone",
+        "nom": "Alertes Prioritaires (Packs Priorité Vague 1)",
+        "description": "Option permettant de recevoir les propositions de livraisons 30 secondes avant les autres livreurs de son secteur.",
+        "valeur_ajoutee": "Choix des meilleures courses les plus rémunératrices et rentabilisation maximale de sa journée de travail.",
+        "canal": "Moteur de Dispatch & Packs Priorité",
+        "reference_code": "src/Wazap.API/Services/RiderPriorityService.cs",
+        "statut": "Actif en Production"
+    }
+]
+
+def generate_csv(output_path):
+    """Génère le fichier CSV UTF-8 avec BOM pour une compatibilité native parfaite avec Excel."""
+    with open(output_path, "w", encoding="utf-8-sig", newline="") as f:
+        writer = csv.writer(f, delimiter=";", quoting=csv.QUOTE_MINIMAL)
+        writer.writerow([
+            "N°",
+            "Catégorie / Pilier",
+            "Fonctionnalité WAZAP Livreur",
+            "Description & Fonctionnement",
+            "Valeur Ajoutée pour le Livreur",
+            "Canal d'Utilisation",
+            "Référence Code / Module",
+            "Statut"
+        ])
+        for row in DATA:
+            writer.writerow([
+                row["id"],
+                row["categorie"],
+                row["nom"],
+                row["description"],
+                row["valeur_ajoutee"],
+                row["canal"],
+                row["reference_code"],
+                row["statut"]
+            ])
+    print(f"✅ CSV livreurs généré : {output_path}")
+
+def generate_excel(output_path):
+    """Génère un classeur Excel professionnel aux couleurs émeraude WAZAP."""
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Fonctionnalités Livreurs"
+    ws.views.sheetView[0].showGridLines = True
+
+    # Couleurs WAZAP
+    EMERALD_DARK = "075E54"
+    EMERALD_LIGHT = "F0FDF4"
+    WHITE = "FFFFFF"
+    GRAY_TEXT = "4A5568"
+    DARK_TEXT = "1A202C"
+
+    # En-tête titre principal
+    ws.merge_cells("A1:H1")
+    title_cell = ws["A1"]
+    title_cell.value = "WAZAP — CATALOGUE EXHAUSTIF DES FONCTIONNALITÉS LIVREURS"
+    title_cell.font = Font(name="Calibri", size=15, bold=True, color=WHITE)
+    title_cell.fill = PatternFill(start_color=EMERALD_DARK, end_color=EMERALD_DARK, fill_type="solid")
+    title_cell.alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[1].height = 40
+
+    # Sous-titre
+    ws.merge_cells("A2:H2")
+    sub_cell = ws["A2"]
+    sub_cell.value = "25 fonctionnalités concrètes à forte valeur ajoutée pour les livreurs d'Abidjan · 0% Commission · Zéro Cash · Smartphone Offert"
+    sub_cell.font = Font(name="Calibri", size=11, italic=True, color=WHITE)
+    sub_cell.fill = PatternFill(start_color="0A7C6E", end_color="0A7C6E", fill_type="solid")
+    sub_cell.alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[2].height = 24
+
+    # En-têtes de colonnes
+    headers = [
+        "N°",
+        "Catégorie / Pilier",
+        "Fonctionnalité WAZAP Livreur",
+        "Description & Fonctionnement",
+        "Valeur Ajoutée pour le Livreur",
+        "Canal d'Utilisation",
+        "Référence Code / Module",
+        "Statut"
+    ]
+
+    ws.row_dimensions[3].height = 28
+    thin_border = Border(
+        left=Side(style='thin', color="CBD5E0"),
+        right=Side(style='thin', color="CBD5E0"),
+        top=Side(style='thin', color="CBD5E0"),
+        bottom=Side(style='thin', color="CBD5E0")
+    )
+
+    for col_idx, header in enumerate(headers, 1):
+        cell = ws.cell(row=3, column=col_idx, value=header)
+        cell.font = Font(name="Calibri", size=11, bold=True, color=WHITE)
+        cell.fill = PatternFill(start_color=EMERALD_DARK, end_color=EMERALD_DARK, fill_type="solid")
+        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        cell.border = thin_border
+
+    # Remplissage des données
+    current_row = 4
+    for item in DATA:
+        is_even = (current_row % 2 == 0)
+        row_fill = PatternFill(
+            start_color=EMERALD_LIGHT if is_even else WHITE,
+            end_color=EMERALD_LIGHT if is_even else WHITE,
+            fill_type="solid"
+        )
+
+        ws.cell(row=current_row, column=1, value=item["id"]).alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(row=current_row, column=2, value=item["categorie"]).alignment = Alignment(horizontal="left", vertical="center")
+        ws.cell(row=current_row, column=3, value=item["nom"]).font = Font(name="Calibri", size=11, bold=True, color=DARK_TEXT)
+        ws.cell(row=current_row, column=4, value=item["description"]).alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
+        ws.cell(row=current_row, column=5, value=item["valeur_ajoutee"]).alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
+        ws.cell(row=current_row, column=6, value=item["canal"]).alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
+        ws.cell(row=current_row, column=7, value=item["reference_code"]).font = Font(name="Consolas", size=9, color=GRAY_TEXT)
+        ws.cell(row=current_row, column=8, value=item["statut"]).alignment = Alignment(horizontal="center", vertical="center")
+
+        for col_idx in range(1, 9):
+            c = ws.cell(row=current_row, column=col_idx)
+            c.fill = row_fill
+            c.border = thin_border
+            if col_idx not in (1, 3, 7):
+                c.font = Font(name="Calibri", size=10, color=DARK_TEXT)
+
+        ws.row_dimensions[current_row].height = 45
+        current_row += 1
+
+    # Largeurs de colonnes optimisées
+    col_widths = {
+        "A": 6,   # N°
+        "B": 26,  # Catégorie
+        "C": 34,  # Nom
+        "D": 45,  # Description
+        "E": 52,  # Valeur ajoutée
+        "F": 30,  # Canal
+        "G": 38,  # Réf Code
+        "H": 18   # Statut
+    }
+
+    for col_letter, width in col_widths.items():
+        ws.column_dimensions[col_letter].width = width
+
+    # Filtre automatique
+    ws.auto_filter.ref = f"A3:H{current_row - 1}"
+
+    wb.save(output_path)
+    print(f"✅ Excel livreurs généré : {output_path}")
+
+def generate_html(output_path):
+    """Génère une page web interactive avec tableau dynamique, recherche en direct et boutons de téléchargement."""
+    json_data = json.dumps(DATA, ensure_ascii=False)
+    html_content = f"""<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WAZAP — Tableau Exhaustif des Fonctionnalités Livreurs</title>
+  <link rel="icon" type="image/jpeg" href="../../web/public/logo-officiel-2026.jpg">
+  <style>
+    :root {{
+      --emerald: #00A86B;
+      --emerald-dark: #075E54;
+      --emerald-light: #E8F8F2;
+      --emerald-glow: rgba(0, 168, 107, 0.15);
+      --bg: #0F172A;
+      --surface: #1E293B;
+      --surface-border: #334155;
+      --text: #F8FAFC;
+      --text-muted: #94A3B8;
+      --amber: #F59E0B;
+    }}
+
+    * {{
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }}
+
+    body {{
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 24px;
+    }}
+
+    .container {{
+      max-width: 1440px;
+      margin: 0 auto;
+    }}
+
+    /* HEADER */
+    .header {{
+      background: linear-gradient(135deg, rgba(7, 94, 84, 0.95), rgba(15, 23, 42, 0.95));
+      border: 1px solid var(--surface-border);
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }}
+
+    .header-left {{
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }}
+
+    .logo-badge {{
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--emerald-dark);
+      border: 3px solid var(--emerald);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px var(--emerald-glow);
+      overflow: hidden;
+    }}
+
+    .logo-badge img {{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }}
+
+    .header-title h1 {{
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #fff;
+    }}
+
+    .header-title p {{
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-top: 4px;
+    }}
+
+    .actions-bar {{
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }}
+
+    .btn {{
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+    }}
+
+    .btn-emerald {{
+      background: var(--emerald);
+      color: #000;
+    }}
+
+    .btn-emerald:hover {{
+      background: #00C87E;
+      transform: translateY(-1px);
+    }}
+
+    .btn-outline {{
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      border: 1px solid var(--surface-border);
+    }}
+
+    .btn-outline:hover {{
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-1px);
+    }}
+
+    /* STATS STRIP */
+    .stats-strip {{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }}
+
+    .stat-card {{
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px;
+      padding: 16px 20px;
+    }}
+
+    .stat-label {{
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }}
+
+    .stat-value {{
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--emerald);
+      margin-top: 4px;
+    }}
+
+    .stat-sub {{
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }}
+
+    /* FILTERS & SEARCH */
+    .controls {{
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: space-between;
+      align-items: center;
+    }}
+
+    .search-box {{
+      flex: 1;
+      min-width: 280px;
+      position: relative;
+    }}
+
+    .search-input {{
+      width: 100%;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--surface-border);
+      border-radius: 8px;
+      padding: 10px 14px 10px 38px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+    }}
+
+    .search-input:focus {{
+      border-color: var(--emerald);
+      box-shadow: 0 0 0 2px var(--emerald-glow);
+    }}
+
+    .search-icon {{
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      color: var(--text-muted);
+    }}
+
+    .category-pills {{
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }}
+
+    .pill {{
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      border: 1px solid var(--surface-border);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }}
+
+    .pill:hover, .pill.active {{
+      background: var(--emerald);
+      color: #000;
+      border-color: var(--emerald);
+    }}
+
+    /* TABLE */
+    .table-container {{
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px;
+      overflow-x: auto;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    }}
+
+    table {{
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }}
+
+    th {{
+      background: #0B132B;
+      color: #CBD5E1;
+      padding: 14px 16px;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid var(--emerald);
+      white-space: nowrap;
+    }}
+
+    td {{
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--surface-border);
+      vertical-align: top;
+    }}
+
+    tr:hover td {{
+      background: rgba(0, 168, 107, 0.04);
+    }}
+
+    .badge-cat {{
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(0, 168, 107, 0.15);
+      color: var(--emerald);
+      border: 1px solid rgba(0, 168, 107, 0.3);
+      white-space: nowrap;
+    }}
+
+    .feature-name {{
+      font-weight: 700;
+      color: #fff;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }}
+
+    .benefit-box {{
+      color: #A7F3D0;
+      background: rgba(16, 185, 129, 0.08);
+      border-left: 3px solid var(--emerald);
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+    }}
+
+    .code-ref {{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+      color: #94A3B8;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 2px 6px;
+      border-radius: 4px;
+      word-break: break-all;
+    }}
+
+    .badge-active {{
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #34D399;
+      background: rgba(16, 185, 129, 0.15);
+      padding: 3px 8px;
+      border-radius: 12px;
+      white-space: nowrap;
+    }}
+
+    .badge-active::before {{
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #34D399;
+    }}
+
+    /* FOOTER */
+    .footer {{
+      margin-top: 32px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--surface-border);
+      padding-top: 20px;
+    }}
+
+    @media print {{
+      body {{
+        background: #fff;
+        color: #000;
+        padding: 0;
+      }}
+      .controls, .actions-bar, .footer {{
+        display: none;
+      }}
+      .header {{
+        background: none;
+        color: #000;
+        border: none;
+        padding: 0 0 20px 0;
+      }}
+      .header-title h1 {{
+        color: #075E54;
+      }}
+      th {{
+        background: #075E54 !important;
+        color: #fff !important;
+        -webkit-print-color-adjust: exact;
+      }}
+      td {{
+        color: #000;
+        border-color: #ddd;
+      }}
+      .benefit-box {{
+        background: #f0fdf4;
+        color: #065f46;
+      }}
+    }}
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo-badge">
+          <img src="../../marketing/visuels/logo_officiel_wazap.jpg" alt="WAZAP" onerror="this.src='../../web/public/logo-officiel-2026.jpg'">
+        </div>
+        <div class="header-title">
+          <h1>Catalogue des Fonctionnalités Livreurs WAZAP</h1>
+          <p>Le réseau d'artisans coursiers d'Abidjan · 0% Commission · Zéro Cash · 1 000 F minimum garanti</p>
+        </div>
+      </div>
+      <div class="actions-bar">
+        <a href="FONCTIONNALITES_LIVREURS_WAZAP.xlsx" download class="btn btn-emerald" id="btn-dl-xlsx">
+          📥 Télécharger Excel (.xlsx)
+        </a>
+        <a href="FONCTIONNALITES_LIVREURS_WAZAP.csv" download class="btn btn-outline" id="btn-dl-csv">
+          📄 Télécharger CSV (.csv)
+        </a>
+        <button onclick="window.print()" class="btn btn-outline">
+          🖨️ Imprimer / PDF
+        </button>
+      </div>
+    </header>
+
+    <!-- STATS STRIP -->
+    <div class="stats-strip">
+      <div class="stat-card">
+        <div class="stat-label">Total Fonctionnalités</div>
+        <div class="stat-value">25</div>
+        <div class="stat-sub">100% pensées pour le coursier moto</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Commission Prélevée</div>
+        <div class="stat-value">0%</div>
+        <div class="stat-sub">100% des frais de course au livreur</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Plancher Garanti</div>
+        <div class="stat-value">1 000 F</div>
+        <div class="stat-sub">Dès le 1er mètre de course</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Défi Ambassadeur</div>
+        <div class="stat-value">Redmi 15C</div>
+        <div class="stat-sub">50 smartphones neufs offerts</div>
+      </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="controls">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" class="search-input" placeholder="Rechercher une fonctionnalité, mot-clé, code...">
+      </div>
+      <div class="category-pills" id="categoryPills">
+        <button class="pill active" data-category="all">Toutes (25)</button>
+        <button class="pill" data-category="1. Rémunération Nette & Tarifs Équitables">Rémunération & Tarifs (5)</button>
+        <button class="pill" data-category="2. Sécurité Physique & Bouclier Zéro Cash">Sécurité & Zéro Cash (5)</button>
+        <button class="pill" data-category="3. Logistique 1-Tap (100% WhatsApp)">Logistique 1-Tap (7)</button>
+        <button class="pill" data-category="4. Recrutement Express & OCR Pièce">Recrutement & OCR (3)</button>
+        <button class="pill" data-category="5. Carrière, Réputation & Smartphone">Carrière & Smartphone (5)</button>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-container">
+      <table id="featuresTable">
+        <thead>
+          <tr>
+            <th style="width: 40px; text-align: center;">N°</th>
+            <th style="width: 180px;">Pilier</th>
+            <th style="width: 240px;">Fonctionnalité WAZAP Livreur</th>
+            <th style="width: 300px;">Description & Fonctionnement</th>
+            <th>Valeur Ajoutée pour le Livreur</th>
+            <th style="width: 180px;">Canal</th>
+            <th style="width: 200px;">Fichier / Réf. Code</th>
+            <th style="width: 120px; text-align: center;">Statut</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <!-- Injecté dynamiquement par JavaScript -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <p>WAZAP Côte d'Ivoire · Recrutement & Support Livreurs WhatsApp : <strong>+225 05 44 05 19 72</strong> · Plateforme de Production Active</p>
+      <p style="margin-top: 4px;">Fichier généré le 05 Octobre 2026 · Documentation Officielle WAZAP</p>
+    </footer>
+  </div>
+
+  <script>
+    const features = {json_data};
+    let activeCategory = "all";
+    let searchTerm = "";
+
+    function renderTable() {{
+      const tbody = document.getElementById("tableBody");
+      const filtered = features.filter(item => {{
+        const matchesCategory = activeCategory === "all" || item.categorie === activeCategory;
+        const matchesSearch = !searchTerm || 
+          item.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.valeur_ajoutee.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.canal.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.reference_code.toLowerCase().includes(searchTerm.toLowerCase());
+        return matchesCategory && matchesSearch;
+      }});
+
+      if (filtered.length === 0) {{
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 40px; color: #94A3B8;">
+          Aucune fonctionnalité ne correspond à votre recherche.
+        </td></tr>`;
+        return;
+      }}
+
+      tbody.innerHTML = filtered.map(item => `
+        <tr>
+          <td style="text-align: center; font-weight: 700; color: #94A3B8;">${{item.id}}</td>
+          <td><span class="badge-cat">${{item.categorie}}</span></td>
+          <td>
+            <div class="feature-name">${{item.nom}}</div>
+          </td>
+          <td style="color: #CBD5E1;">${{item.description}}</td>
+          <td>
+            <div class="benefit-box">
+              <strong>Impact Livreur :</strong> ${{item.valeur_ajoutee}}
+            </div>
+          </td>
+          <td style="color: #94A3B8; font-size: 12px;">${{item.canal}}</td>
+          <td><span class="code-ref">${{item.reference_code}}</span></td>
+          <td style="text-align: center;"><span class="badge-active">${{item.statut}}</span></td>
+        </tr>
+      `).join("");
+    }}
+
+    // Recherche
+    document.getElementById("searchInput").addEventListener("input", (e) => {{
+      searchTerm = e.target.value.trim();
+      renderTable();
+    }});
+
+    // Filtres Catégories
+    document.getElementById("categoryPills").addEventListener("click", (e) => {{
+      if (e.target.classList.contains("pill")) {{
+        document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+        e.target.classList.add("active");
+        activeCategory = e.target.getAttribute("data-category");
+        renderTable();
+      }}
+    }});
+
+    // Initial render
+    renderTable();
+  </script>
+</body>
+</html>
+"""
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(html_content)
+    print(f"✅ HTML interactif livreurs généré : {output_path}")
+
+if __name__ == "__main__":
+    out_dir = r"c:\Dev\Wazap\WazapSln\marketing\livreurs"
+    os.makedirs(out_dir, exist_ok=True)
+
+    csv_path = os.path.join(out_dir, "FONCTIONNALITES_LIVREURS_WAZAP.csv")
+    xlsx_path = os.path.join(out_dir, "FONCTIONNALITES_LIVREURS_WAZAP.xlsx")
+    html_path = os.path.join(out_dir, "tableau_fonctionnalites_livreurs.html")
+
+    generate_csv(csv_path)
+    generate_excel(xlsx_path)
+    generate_html(html_path)
