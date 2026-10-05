@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>WAZAP — Moteur Motion Design 30s (TikTok 9:16)</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background: #03070b;
+      color: #fff;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .motion-wrapper {
+      position: relative;
+      width: 100vw;
+      max-width: 480px;
+      height: calc(100vw * 16 / 9);
+      max-height: 853px;
+      box-shadow: 0 0 60px rgba(0, 168, 107, 0.35), 0 20px 50px rgba(0, 0, 0, 0.95);
+      border-radius: 20px;
+      overflow: hidden;
+      background: #000;
+    }
+
+    canvas#stage {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="motion-wrapper">
+    <canvas id="stage" width="1080" height="1920"></canvas>
+  </div>
+
+  <script>
+    const TOTAL_DURATION = 30.0; // secondes exactes
+    const FPS = 30;
+    const TOTAL_FRAMES = Math.round(TOTAL_DURATION * FPS); // 900 frames
+    const WIDTH = 1080;
+    const HEIGHT = 1920;
+
+    const canvas = document.getElementById('stage');
+    const ctx = canvas.getContext('2d', { alpha: false });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const themeId = urlParams.get('theme') || '01';
+    const isHeadless = urlParams.get('headless') === 'true';
+
+    // Définition exhaustive des 6 scénarios de problème / solution
+    const THEMES = {
+      '01': {
+        target: 'commercant',
+        charName: 'Awa',
+        charSub: 'Bijouterie & Mode • Deux-Plateaux Cocody',
+        charImgSrc: '../programmation-60jours/assets/awa.jpg',
+        topBadge: '⚠️ COMMERÇANTS D\'ABIDJAN • SÉCURITÉ ROYALE',
+        problemHook: 'LE LIVREUR S\'EST ENVOLÉ',
+        problemHook2: 'AVEC VOTRE RECETTE ?',
+        problemCardTitle: 'LE RISQUE DU CASH À LA LIVRAISON',
+        problemCardDesc: 'Livreurs injoignables • Espèces non reversées',
+        problemIcon: '💸 🏃💨',
+        solutionTitle: 'LE SCAN QR CODE UNIVERSEL',
+        solutionSubtitle: 'Crédité en temps réel sur votre compte Wave ou MoMo !',
+        benefits: [
+          '🛡️ Zéro cash sur la marchandise',
+          '⚡ Crédit instantané sur votre compte',
+          '🎁 15 COURSES OFFERTES pour démarrer'
+        ],
+        ctaText: '🏪 COMMERÇANTS ➔ Tape COLIS'
+      },
+      '02': {
+        target: 'commercant',
+        charName: 'Fatou',
+        charSub: 'Pâtisserie & Traiteur • Yopougon Maroc',
+        charImgSrc: '../programmation-60jours/assets/fatou.jpg',
+        topBadge: '⏱️ VITESSE ÉCLAIR • COMMERCE D\'ABIDJAN',
+        problemHook: '1 HEURE D\'APPELS POUR',
+        problemHook2: 'TROUVER 1 SEUL LIVREUR ?',
+        problemCardTitle: 'L\'ANGOISSE DES COMMANDES ANNULÉES',
+        problemCardDesc: '« Je suis loin » • « Il pleut » • Clients perdus',
+        problemIcon: '⏳ 📞 ❌',
+        solutionTitle: 'UN LIVREUR EN 3 MINUTES CHRONO',
+        solutionSubtitle: 'Affecté immédiatement dans votre commune en 1 tap !',
+        benefits: [
+          '⚡ Livreur certifié à votre porte en 3 min',
+          '📍 Disponible dans votre quartier',
+          '🎁 15 COURSES OFFERTES sans engagement'
+        ],
+        ctaText: '🏪 COMMERÇANTS ➔ Tape COLIS'
+      },
+      '03': {
+        target: 'commercant',
+        charName: 'Clarisse',
+        charSub: 'Cosmétiques & Parfums • Koumassi Remblais',
+        charImgSrc: '../programmation-60jours/assets/clarisse.jpg',
+        topBadge: '🛡️ SÉCURITÉ SCELLÉ COLIS SÛR WAZAP',
+        problemHook: 'MARRE DES COLIS ABÎMÉS',
+        problemHook2: 'OU OUVERTS EN ROUTE ?',
+        problemCardTitle: 'LES APPLICATIONS LOURDES & LES LITIGES',
+        problemCardDesc: 'Téléchargements pénibles • Marchandise abîmée',
+        problemIcon: '📦 💥 😡',
+        solutionTitle: '100% WHATSAPP & COLIS SÛR',
+        solutionSubtitle: 'Zéro application à installer • Scellé inviolable actif !',
+        benefits: [
+          '📲 Zéro application à télécharger',
+          '🛡️ Scellé infalsifiable avec code PIN',
+          '🎁 Pack Digital Boutique offert'
+        ],
+        ctaText: '🏪 COMMERÇANTS ➔ Tape COLIS'
+      },
+      '04': {
+        target: 'livreur',
+        charName: 'Bakary',
+        charSub: 'Livreur Leader Indépendant • Marcory Zone 4',
+        charImgSrc: '../programmation-60jours/assets/bakary.jpg',
+        topBadge: '🛵 RÉVOLUTION LIVREURS • GRAND ABIDJAN',
+        problemHook: '20% DE COMMISSION VOLÉS',
+        problemHook2: 'SUR VOTRE SUEUR ?',
+        problemCardTitle: 'LES PLATEFORMES ÉTOUFFANTES',
+        problemCardDesc: 'Commissions abusives • Travailler dur pour des miettes',
+        problemIcon: '⛽ 💸 📉',
+        solutionTitle: '0% COMMISSION • 100% DANS VOTRE POCHE',
+        solutionSubtitle: '1 000 F en local • 1 500 F voisine • 2 000 F pont !',
+        benefits: [
+          '💰 0% de commission sur vos courses',
+          '🛵 100% de vos tarifs nets pour vous',
+          '📱 Défi 50 Smartphones neufs tous les 3 mois'
+        ],
+        ctaText: '🛵 LIVREURS ➔ Tape DISPO'
+      },
+      '05': {
+        target: 'livreur',
+        charName: 'Koffi',
+        charSub: 'Livreur Certifié • Cocody Angré',
+        charImgSrc: '../programmation-60jours/assets/koffi.jpg',
+        topBadge: '🛡️ SÉCURITÉ & DIGNITÉ DU LIVREUR',
+        problemHook: 'ROULER AVEC DU CASH LIQUIDE :',
+        problemHook2: 'UN DANGER PERMANENT !',
+        problemCardTitle: 'RISQUE D\'AGRESSION & MÉFIANCE',
+        problemCardDesc: 'Braquages dans les ruelles • Soupçons blessants',
+        problemIcon: '⚠️ 🚨 🛡️',
+        solutionTitle: 'ZÉRO CASH SUR LA MARCHANDISE',
+        solutionSubtitle: 'Le client scanne le QR code • Vous touchez vos frais nets !',
+        benefits: [
+          '🛡️ Plus aucun risque de vol ou braquage',
+          '🎖️ Badge officiel Livreur Certifié',
+          '🤝 Respect et confiance totale des vendeurs'
+        ],
+        ctaText: '🛵 LIVREURS ➔ Tape DISPO'
+      },
+      '06': {
+        target: 'livreur',
+        charName: 'Mamadou',
+        charSub: 'Ambassadeur WAZAP • Défi 50 Smartphones',
+        charImgSrc: '../programmation-60jours/assets/livreur_cadeau_redmi15c.jpg',
+        topBadge: '🏆 DÉFI AMBASSADEUR • 50 REDMI 15C NEUFS',
+        problemHook: 'TOURNER À VIDE EN VILLE',
+        problemHook2: 'AVEC UN TÉLÉPHONE CASSÉ ?',
+        problemCardTitle: 'LA GALÈRE DU MATÉRIEL OBSOLÈTE',
+        problemCardDesc: 'Batterie à plat • Courses introuvables • Carburant gaspillé',
+        problemIcon: '🪫 📱 💨',
+        solutionTitle: 'COURSES PROXIMITÉ & SMARTPHONE OFFERT',
+        solutionSubtitle: 'Livrez dans votre commune + Smartphone neuf gagné !',
+        benefits: [
+          '📍 Courses ciblées dans votre commune',
+          '📱 50 Smartphones Redmi 15C neufs tous les 3 mois',
+          '⚡ 0% commission sur toutes vos livraisons'
+        ],
+        ctaText: '🛵 LIVREURS ➔ Tape DISPO'
+      }
+    };
+
+    const currentTheme = THEMES[themeId] || THEMES['01'];
+
+    // Chargement des images clés
+    const assets = {
+      logo: new Image(),
+      qrCode: new Image(),
+      character: new Image()
+    };
+
+    assets.logo.src = '../visuels/logo_officiel_transparent.png';
+    assets.qrCode.src = '../programmation-60jours/assets/qr_universel_wazap.png';
+    assets.character.src = currentTheme.charImgSrc;
+
+    let assetsLoaded = false;
+    let loadedCount = 0;
+    const totalAssets = 3;
+
+    function onAssetLoad() {
+      loadedCount++;
+      if (loadedCount >= totalAssets) {
+        assetsLoaded = true;
+        renderFrame(0);
+        if (isHeadless && window.startHeadlessRender) {
+          window.startHeadlessRender();
+        }
+      }
+    }
+
+    assets.logo.onload = onAssetLoad;
+    assets.qrCode.onload = onAssetLoad;
+    assets.character.onload = onAssetLoad;
+    assets.logo.onerror = onAssetLoad;
+    assets.qrCode.onerror = onAssetLoad;
+    assets.character.onerror = onAssetLoad;
+
+    // Fonctions d'Easing
+    function clamp(v, min = 0, max = 1) { return Math.max(min, Math.min(max, v)); }
+    function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+    function easeInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+    function easeOutBack(t) {
+      const c1 = 1.70158;
+      const c3 = c1 + 1;
+      return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+    }
+
+    // Particules décoratives
+    const particles = [];
+    for (let i = 0; i < 50; i++) {
+      particles.push({
+        x: Math.random() * WIDTH,
+        y: Math.random() * HEIGHT,
+        size: 2 + Math.random() * 6,
+        speedY: -1 - Math.random() * 2.5,
+        speedX: (Math.random() - 0.5) * 2,
+        alpha: 0.2 + Math.random() * 0.7,
+        color: i % 3 === 0 ? '#00FF9D' : (i % 3 === 1 ? '#00A86B' : '#FBBF24')
+      });
+    }
+
+    // =========================================================================
+    // DESSIN DU MOTION DESIGN 30 SECONDES (4 ACTES CINÉMATIQUES)
+    // =========================================================================
+    function drawMotionDesign(t, f) {
+      ctx.fillStyle = '#060B11';
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+      // Fond dynamique & Grille Cyber
+      drawDynamicBackground(t);
+
+      // Acte 1 : 0.0s – 7.5s (Le Problème & Le Personnage)
+      if (t >= 0.0 && t < 7.5) {
+        drawAct1_Problem(t);
+      }
+      // Acte 2 : 7.5s – 16.5s (La Révolution WAZAP & La Solution Démo)
+      else if (t >= 7.5 && t < 16.5) {
+        drawAct2_Solution(t);
+      }
+      // Acte 3 : 16.5s – 24.5s (Les Bénéfices Concrets Chiffrés)
+      else if (t >= 16.5 && t < 24.5) {
+        drawAct3_Benefits(t);
+      }
+      // Acte 4 : 24.5s – 30.0s (Outro Canonique & Call To Action)
+      else {
+        drawAct4_Outro(t);
+      }
+
+      // Flashs de transitions entre actes (7.5s, 16.5s, 24.5s)
+      drawTransitions(t);
+
+      // Filigrane supérieur
+      drawGlobalHeader(t);
+    }
+
+    function drawDynamicBackground(t) {
+      ctx.save();
+      const pulse = Math.sin(t * 3) * 0.15 + 0.85;
+      const isRider = currentTheme.target === 'livreur';
+      const mainColor = isRider ? 'rgba(56, 189, 248, ' : 'rgba(0, 168, 107, ';
+
+      const bgGrad = ctx.createRadialGradient(WIDTH / 2, HEIGHT * 0.45, 50, WIDTH / 2, HEIGHT * 0.45, 900);
+      bgGrad.addColorStop(0, mainColor + (0.35 * pulse) + ')');
+      bgGrad.addColorStop(0.5, 'rgba(4, 20, 18, 0.4)');
+      bgGrad.addColorStop(1, 'rgba(6, 11, 17, 1)');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+      // Grille tech
+      ctx.strokeStyle = 'rgba(0, 168, 107, 0.05)';
+      ctx.lineWidth = 1.5;
+      const gridSize = 60;
+      const offsetY = (t * 40) % gridSize;
+      for (let y = offsetY; y < HEIGHT; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(WIDTH, y);
+        ctx.stroke();
+      }
+      for (let x = 0; x < WIDTH; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, HEIGHT);
+        ctx.stroke();
+      }
+
+      // Particules flottantes
+      particles.forEach((p, idx) => {
+        const py = (p.y + p.speedY * t * 30) % HEIGHT;
+        const finalY = py < 0 ? py + HEIGHT : py;
+        const px = (p.x + p.speedX * t * 30 + Math.sin(t * 2 + idx) * 20) % WIDTH;
+        const finalX = px < 0 ? px + WIDTH : px;
+
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.alpha * (0.5 + 0.5 * Math.sin(t * 4 + idx));
+        ctx.beginPath();
+        ctx.arc(finalX, finalY, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1.0;
+      ctx.restore();
+    }
+
+    // -------------------------------------------------------------------------
+    // ACTE 1 (0.0s – 7.5s) : LE PROBLÈME RÉEL & LE PERSONNAGE
+    // -------------------------------------------------------------------------
+    function drawAct1_Problem(t) {
+      ctx.save();
+      const localT = t;
+
+      // 1. Badge d'urgence
+      const p1 = clamp(localT / 0.4);
+      if (p1 > 0) {
+        ctx.save();
+        ctx.translate(WIDTH / 2, 180);
+        ctx.scale(easeOutBack(p1), easeOutBack(p1));
+        drawPillBadge(currentTheme.topBadge, '#EF4444', '#7F1D1D');
+        ctx.restore();
+      }
+
+      // 2. Kinetic Headline
+      const p2 = clamp((localT - 0.2) / 0.4);
+      if (p2 > 0) {
+        ctx.save();
+        ctx.globalAlpha = p2;
+        ctx.textAlign = 'center';
+        ctx.font = '900 68px "Plus Jakarta Sans", sans-serif';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText(currentTheme.problemHook, WIDTH / 2, 290);
+
+        ctx.font = '900 76px "Plus Jakarta Sans", sans-serif';
+        ctx.fillStyle = '#F87171';
+        ctx.shadowColor = 'rgba(239, 68, 68, 0.8)';
+        ctx.shadowBlur = 30;
+        ctx.fillText(currentTheme.problemHook2, WIDTH / 2, 380);
+        ctx.restore();
+      }
+
+      // 3. Vignette Ronde du Personnage Réel d'Abidjan (0.6s)
+      const pChar = clamp((localT - 0.6) / 0.5);
+      if (pChar > 0) {
+        const charScale = easeOutBack(pChar);
+        ctx.save();
+        ctx.translate(WIDTH / 2, 690);
+        ctx.scale(charScale, charScale);
+
+        // Lueur rouge / ambre d'angoisse
+        ctx.strokeStyle = '#EF4444';
+        ctx.lineWidth = 10;
+        ctx.shadowColor = 'rgba(239, 68, 68, 0.6)';
+        ctx.shadowBlur = 40;
+        ctx.beginPath();
+        ctx.arc(0, 0, 190, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Masque circulaire pour la photo réelle du personnage
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(0, 0, 180, 0, Math.PI * 2);
+        ctx.clip();
+        if (assets.character.complete && assets.character.naturalWidth > 0) {
+          ctx.drawImage(assets.character, -220, -220, 440, 440);
+        } else {
+          ctx.fillStyle = '#1E293B';
+          ctx.fillRect(-200, -200, 400, 400);
+        }
+        ctx.restore();
+
+        // Pilule d'identification du personnage
+        ctx.save();
+        ctx.translate(0, 180);
+        ctx.fillStyle = '#0F172A';
+        ctx.strokeStyle = '#FBBF24';
+        ctx.lineWidth = 3;
+        drawRoundRect(ctx, -260, -32, 520, 64, 32);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '800 26px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${currentTheme.charName} • ${currentTheme.charSub}`, 0, 8);
+        ctx.restore();
+
+        ctx.restore();
+      }
+
+      // 4. Carte Graphique du Problème (1.4s)
+      const pCard = clamp((localT - 1.4) / 0.5);
+      if (pCard > 0) {
+        ctx.save();
+        ctx.translate(WIDTH / 2, 1260);
+        ctx.scale(easeOutBack(pCard), easeOutBack(pCard));
+
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        ctx.strokeStyle = '#EF4444';
+        ctx.lineWidth = 4;
+        ctx.shadowColor = 'rgba(239, 68, 68, 0.4)';
+        ctx.shadowBlur = 30;
+        drawRoundRect(ctx, -450, -180, 900, 360, 32);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.textAlign = 'center';
+        ctx.font = '900 100px sans-serif';
+        ctx.fillText(currentTheme.problemIcon, 0, -40);
+
+        ctx.font = '900 42px "Plus Jakarta Sans", sans-serif';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText(currentTheme.problemCardTitle, 0, 60);
+
+        ctx.font = '700 30px "Plus Jakarta Sans", sans-serif';
+        ctx.fillStyle = '#F87171';
+        ctx.fillText(currentTheme.problemCardDesc, 0, 115);
+
+        ctx.restore();
+      }
+
+      // 5. Message d'espoir inférieur
+      const pHope = clamp((localT - 2.5) / 0.4);
+      if (pHope > 0) {
+        ctx.save();
+        ctx.globalAlpha = pHope;
+        ctx.textAlign = 'center';
+        ctx.font = '800 36px "Plus Jakarta Sans", sans-serif';
+        ctx.fillStyle = '#00FF9D';
+        ctx.shadowColor = 'rgba(0, 255, 157, 0.8)';
+        ctx.shadowBlur = 25;
+        ctx.fillText('VOICI LA RÉPONSE OFFICIELLE WAZAP 👇', WIDTH / 2, 1620);
+        ctx.restore();
+      }
+
+      ctx.restore();
+    }
+
+    // -------------------------------------------------------------------------
+    // ACTE 2 (7.5s – 16.5s) : LA RÉVOLUTION WAZAP & LA DÉMONSTRATION EN ACTION
+    // -------------------------------------------------------------------------
+    function drawAct2_Solution(t) {
+      ctx.save();
+      const localT = t - 7.5; // 0.0 à 9.0s
+
+      // 1. Badge d'autorité
+      const p1 = clamp(localT / 0.4);
+      if (p1 > 0) {
+        ctx.save();
+        ctx.translate(WIDTH / 2, 160);
+        ctx.scale(easeOutBack(p1), easeOutBack(p1));
+        drawPillBadge('⚡ LA SOLUTION OFFICIELLE WAZAP', '#00FF9D', '#064E3B');
+        ctx.restore();
+      }
+
+      // 2. Révélation Logo WAZAP Canonique 3D (0.2s)
+      const pLogo = clamp((localT - 0.2) / 0.5);
+      if (pLogo > 0) {
+        ctx.save();
+        ctx.translate(WIDTH / 2, 340);
+        ctx.scale(easeOutBack(pLogo), easeOutBack(pLogo));
+
+        // Anneau pulsant
+        const aura = ctx.createRadialGradient(0, 0, 40, 0, 0, 180);
+        aura.addColorStop(0, 'rgba(0, 255, 157, 0.5)');
+        aura.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = aura;
+        ctx.beginPath();
+        ctx.arc(0, 0, 180, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (assets.logo.complete && assets.logo.naturalWidth > 0) {
+          ctx.drawImage(assets.logo, -130, -130, 260, 260);
+        } else {
+          ctx.fillStyle = '#00A86B';
+          ctx.beginPath();
+          ctx.arc(0, 0, 100, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      // 3. Titre de la Solution
+      const pTitle = clamp((localT - 0.6) / 0.4);
+      if (pTitle > 0) {
+        ctx.save();
+        ctx.globalAlpha = pTitle;
+        ctx.textAlign = 'center';
+        ctx.font = '900 60px "Plus Jakarta Sans", sans-serif';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText(currentTheme.solutionTitle, WIDTH / 2, 540);
+
+        ctx.font = '700 32px "Plus Jakarta Sans", sans-serif';
+        ctx.fillStyle = '#00FF9D';
+        ctx.fillText(currentTheme.solutionSubtitle, WIDTH / 2, 600);
+        ctx.restore();
+      }
+
+      // 4. Smartphone / Démonstration Réelle selon le scénario (1.2s à 9.0s)
+      const pDemo = clamp((localT - 1.0) / 0.5);
+      if (pDemo > 0) {
+        ctx.save();
+        ctx.translate(WIDTH / 2, 1140);
+        ctx.scale(easeOutBack(pDemo), easeOutBack(pDemo));
+
+        // Boîtier smartphone ou panneau interactif
+        ctx.fillStyle = '#0F172A';
+        ctx.strokeStyle = '#00A86B';
+        ctx.lineWidth = 6;
+        ctx.shadowColor = 'rgba(0, 168, 107, 0.4)';
+        ctx.shadowBlur = 40;
+        drawRoundRect(ctx, -420, -420, 840, 840, 40);
+        ctx.fill();
+        ctx.stroke();
+
+        // En-tête WhatsApp vert émeraude
+        ctx.fillStyle = '#075E54';
+        drawRoundRect(ctx, -414, -414, 828, 120, 36);
+        ctx.fill();
+
+        ctx.fillStyle = '#25D366';
+        ctx.beginPath();
+        ctx.arc(-330, -354, 32, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '900 34px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('WAZAP Officiel 🟢', -270, -362);
+        ctx.font = '600 24px "Plus Jakarta Sans", sans-serif';
+        ctx.fillStyle = '#A7F3D0';
+        ctx.fillText('+225 05 44 05 19 72 • En direct', -270, -330);
+
+        // Contenu central interactif selon le scénario
+        if (themeId === '01') {
+          // Scénario Anti-Vol QR Code Universel
+          if (assets.qrCode.complete && assets.qrCode.naturalWidth > 0) {
+            ctx.fillStyle = '#FFFFFF';
+            drawRoundRect(ctx, -140, -250, 280, 280, 24);
+            ctx.fill();
+            ctx.drawImage(assets.qrCode, -120, -230, 240, 240);
+          }
+
+          // Ligne laser animée
+          const laserY = -230 + ((localT * 4) % 1) * 240;
+          ctx.strokeStyle = '#00FF9D';
+          ctx.lineWidth = 6;
+          ctx.shadowColor = '#00FF9D';
+          ctx.shadowBlur = 20;
+          ctx.beginPath();
+          ctx.moveTo(-130, laserY);
+          ctx.lineTo(130, laserY);
+          ctx.stroke();
+
+          // Notification de crédit
+          ctx.fillStyle = '#005C4B';
+          drawRoundRect(ctx, -380, 80, 760, 130, 24);
+          ctx.fill();
+
+          ctx.textAlign = 'left';
+          ctx.fillStyle = '#FFD700';
+          ctx.font = '800 28px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText('💰 CRÉDIT IMMÉDIAT ENCAISSÉ !', -350, 130);
+          ctx.fillStyle = '#FFFFFF';
+          ctx.font = '600 24px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText('Le client a scanné : fonds reversés à 100% sur votre compte.', -350, 175);
+
+          // Pilule zéros cash
+          ctx.save();
+          ctx.translate(0, 280);
+          drawPillFeature(0, 0, '🛡️ ZÉRO CASH SUR LA MARCHANDISE', '#00FF9D');
+          ctx.restore();
+        } else if (themeId === '02') {
+          // Scénario Rapidité 3 minutes
+          ctx.fillStyle = '#005C4B';
+          drawRoundRect(ctx, -380, -240, 760, 130, 24);
+          ctx.fill();
+
+          ctx.textAlign = 'left';
+          ctx.fillStyle = '#FFFFFF';
+          ctx.font = '700 28px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText('🚀 Course attribuée en 1 tap !', -350, -190);
+          ctx.font = '500 24px "Plus Jakarta Sans", sans-serif';
+          ctx.fillStyle = '#D1FAE5';
+          ctx.fillText('Livreur certifié en approche de votre boutique.', -350, -150);
+
+          // Compteur 3 minutes chrono géant
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#00FF9D';
+          ctx.font = '900 120px "Plus Jakarta Sans", sans-serif';
+          ctx.shadowColor = '#00FF9D';
+          ctx.shadowBlur = 30;
+          ctx.fillText('03:00', 0, 40);
+
+          ctx.font = '800 32px "Plus Jakarta Sans", sans-serif';
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillText('⚡ LIVREUR DEVANT VOTRE BOUTIQUE', 0, 110);
+
+          ctx.save();
+          ctx.translate(0, 240);
+          drawPillFeature(0, 0, '📍 COURSES DE PROXIMITÉ PAR COMMUNE', '#38BDF8');
+          ctx.restore();
+        } else if (themeId === '04') {
+          // Scénario 0% commission livreur
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#FBBF24';
+          ctx.font = '900 130px "Plus Jakarta Sans", sans-serif';
+          ctx.shadowColor = '#FBBF24';
+          ctx.shadowBlur = 30;
+          ctx.fillText('0%', 0, -80);
+
+          ctx.font = '900 48px "Plus Jakarta Sans", sans-serif';
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillText('DE COMMISSION WAZAP', 0, -10);
+
+          // Grille tarifs clairs
+          ctx.fillStyle = 'rgba(30, 41, 59, 0.9)';
+          drawRoundRect(ctx, -380, 60, 760, 190, 24);
+          ctx.fill();
+
+          ctx.font = '800 28px "Plus Jakarta Sans", sans-serif';
+          ctx.fillStyle = '#00FF9D';
+          ctx.fillText('🛵 1 000 F Net (Même commune)', 0, 110);
+          ctx.fillText('🛵 1 500 F Net (Commune voisine)', 0, 160);
+          ctx.fillText('🛵 2 000 F Net (Pont & Longue distance)', 0, 210);
+
+          ctx.save();
+          ctx.translate(0, 310);
+          drawPillFeature(0, 0, '💰 100% DES FRAIS DE COURSE DANS VOTRE POCHE', '#00FF9D');
+          ctx.restore();
+        } else {
+          // Scénarios 3, 5, 6 génériques premium
+          ctx.textAlign = 'center';
+          ctx.font = '900 130px sans-serif';
+          ctx.fillText(currentTheme.problemIcon, 0, -90);
+
+          ctx.font = '900 44px "Plus Jakarta Sans", sans-serif';
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillText(currentTheme.solutionTitle, 0, 20);
+
+          ctx.fillStyle = 'rgba(30, 41, 59, 0.9)';
+          drawRoundRect(ctx, -380, 80, 760, 160, 24);
+          ctx.fill();
+
+          ctx.font = '700 28px "Plus Jakarta Sans", sans-serif';
+          ctx.fillStyle = '#00FF9D';
+          ctx.fillText(currentTheme.benefits[0], 0, 140);
+          ctx.fillText(currentTheme.benefits[1], 0, 190);
+
+          ctx.save();
+          ctx.translate(0, 300);
+          drawPillFeature(0, 0, '⚡ SÉCURITÉ GARANTIE PAR WAZAP', '#FBBF24');
+          ctx.restore();
+        }
+
+        ctx.restore();
+      }
+
+      ctx.restore();
+    }
+
+    // -------------------------------------------------------------------------
+    // ACTE 3 (16.5s – 24.5s) : LES BÉNÉFICES CLÉS & L'OFFRE SPÉCIALE
+    // -------------------------------------------------------------------------
+    function drawAct3_Benefits(t) {
+      ctx.save();
+      const localT = t - 16.5; // 0.0 à 8.0s
+
+      // 1. Badge d'accroche
+      const p1 = clamp(localT / 0.4);
+      if (p1 > 0) {
+        ctx.save();
+        ctx.translate(WIDTH / 2, 180);
+        ctx.scale(easeOutBack(p1), easeOutBack(p1));
+        drawPillBadge('🎁 LES AVANTAGES EXCLUSIFS DU RÉSEAU', '#FFD700', '#78350F');
+        ctx.restore();
+      }
+
+      // 2. Titre imposant
+      const pTitle = clamp((localT - 0.2) / 0.4);
+      if (pTitle > 0) {
+        ctx.save();
+        ctx.globalAlpha = pTitle;
+        ctx.textAlign = 'center';
+        ctx.font = '900 68px "Plus Jakarta Sans", sans-serif';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText('POURQUOI CHOISIR WAZAP ?', WIDTH / 2, 300);
+        ctx.restore();
+      }
+
+      // 3. Les 3 Cartes de Bénéfices (Staggered 0.5s, 1.2s, 1.9s)
+      currentTheme.benefits.forEach((benefit, idx) => {
+        const pCard = clamp((localT - (0.5 + idx * 0.7)) / 0.5);
+        if (pCard > 0) {
+          const offY = (1 - easeOutCubic(pCard)) * 80;
+          ctx.save();
+          ctx.translate(WIDTH / 2, 520 + idx * 240 + offY);
+          ctx.scale(easeOutBack(pCard), easeOutBack(pCard));
+
+          // Carte verre dépoli émeraude
+          const grad = ctx.createLinearGradient(-440, -90, 440, 90);
+          grad.addColorStop(0, 'rgba(6, 78, 59, 0.95)');
+          grad.addColorStop(1, 'rgba(15, 23, 42, 0.95)');
+          ctx.fillStyle = grad;
+          ctx.strokeStyle = idx === 0 ? '#00FF9D' : (idx === 1 ? '#38BDF8' : '#FBBF24');
+          ctx.lineWidth = 4;
+          ctx.shadowColor = ctx.strokeStyle;
+          ctx.shadowBlur = 25;
+          drawRoundRect(ctx, -440, -90, 880, 180, 28);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#FFFFFF';
+          ctx.font = '900 42px "Plus Jakarta Sans", sans-serif';
+          ctx.fillText(benefit, 0, 15);
+
+          ctx.restore();
+        }
+      });
+
+      // 4. Mention d'engagement
+      const pFooter = clamp((localT - 2.8) / 0.4);
+      if (pFooter > 0) {
+        ctx.save();
+        ctx.globalAlpha = pFooter;
+        ctx.textAlign = 'center';
+        ctx.font = '800 36px "Plus Jakarta Sans", sans-serif';
+        ctx.fillStyle = '#00FF9D';
+        ctx.shadowColor = 'rgba(0, 255, 157, 0.8)';
+        ctx.shadowBlur = 20;
+        ctx.fillText('REJOIGNEZ LE RÉSEAU EN 1 TAP SUR WHATSAPP 👇', WIDTH / 2, 1420);
+        ctx.restore();
+      }
+
+      ctx.restore();
+    }
+
+    // -------------------------------------------------------------------------
+    // ACTE 4 (24.5s – 30.0s) : OUTRO CANONIQUE & CALL TO ACTION
+    // -------------------------------------------------------------------------
+    function drawAct4_Outro(t) {
+      ctx.save();
+      const localT = t - 24.5; // 0.0 à 5.5s
+
+      // 1. Logo WAZAP Canonique avec anneaux de vitesse rotatifs
+      const pLogo = clamp(localT / 0.5);
+      if (pLogo > 0) {
+        const scale = easeOutBack(pLogo);
+        ctx.save();
+        ctx.translate(WIDTH / 2, 420);
+        ctx.scale(scale, scale);
+
+        const rot = localT * 2;
+        ctx.save();
+        ctx.rotate(rot);
+        ctx.strokeStyle = 'rgba(0, 255, 157, 0.4)';
+        ctx.lineWidth = 6;
+        ctx.setLineDash([40, 25]);
+        ctx.beginPath();
+        ctx.arc(0, 0, 190, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+
+        if (assets.logo.complete && assets.logo.naturalWidth > 0) {
+          ctx.drawImage(assets.logo, -150, -150, 300, 300);
+        } else {
+          ctx.fillStyle = '#00A86B';
+          ctx.beginPath();
+          ctx.arc(0, 0, 140, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      // 2. Punchline
+      const pSub = clamp((localT - 0.2) / 0.4);
+      if (pSub > 0) {
+        ctx.save();
+        ctx.globalAlpha = pSub;
+        ctx.textAlign = 'center';
+        ctx.font = '900 50px "Plus Jakarta Sans", sans-serif';
+        ctx.fillStyle = '#00FF9D';
+        ctx.shadowColor = 'rgba(0, 255, 157, 0.8)';
+        ctx.shadowBlur = 25;
+        ctx.fillText('LA LIVRAISON EN DIRECT À ABIDJAN', WIDTH / 2, 680);
+        ctx.restore();
+      }
+
+      // 3. Bannière WhatsApp Officielle
+      const pNum = clamp((localT - 0.5) / 0.4);
+      if (pNum > 0) {
+        ctx.save();
+        ctx.translate(WIDTH / 2, 880);
+        ctx.scale(easeOutBack(pNum), easeOutBack(pNum));
+
+        ctx.fillStyle = '#075E54';
+        ctx.strokeStyle = '#00FF9D';
+        ctx.lineWidth = 6;
+        ctx.shadowColor = 'rgba(0, 255, 157, 0.6)';
+        ctx.shadowBlur = 40;
+        drawRoundRect(ctx, -460, -100, 920, 200, 36);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '800 32px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('WHATSAPP BUSINESS OFFICIEL', 0, -35);
+
+        ctx.font = '900 78px "Plus Jakarta Sans", sans-serif';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText('05 44 05 19 72', 0, 48);
+
+        ctx.restore();
+      }
+
+      // 4. Bouton 1-Tap ciblé du scénario
+      const pBtn = clamp((localT - 0.9) / 0.4);
+      if (pBtn > 0) {
+        ctx.save();
+        ctx.translate(WIDTH / 2, 1160);
+        ctx.scale(easeOutBack(pBtn), easeOutBack(pBtn));
+
+        const isRider = currentTheme.target === 'livreur';
+        ctx.fillStyle = isRider ? '#1E293B' : '#00A86B';
+        ctx.strokeStyle = isRider ? '#FBBF24' : '#FFF';
+        ctx.lineWidth = 4;
+        drawRoundRect(ctx, -450, -60, 900, 120, 30);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.textAlign = 'center';
+        ctx.fillStyle = isRider ? '#FBBF24' : '#FFFFFF';
+        ctx.font = '900 40px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(currentTheme.ctaText, 0, 14);
+        ctx.restore();
+      }
+
+      // 5. Appel à l'action TikTok
+      const pCta = clamp((localT - 1.4) / 0.4);
+      if (pCta > 0) {
+        ctx.save();
+        ctx.globalAlpha = pCta;
+        ctx.textAlign = 'center';
+
+        ctx.font = '900 44px "Plus Jakarta Sans", sans-serif';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+        ctx.shadowBlur = 20;
+        ctx.fillText('👉 LIEN DIRECT DANS LA BIO TIKTOK', WIDTH / 2, 1480);
+
+        ctx.font = '700 32px "Plus Jakarta Sans", sans-serif';
+        ctx.fillStyle = '#94A3B8';
+        ctx.fillText('www.wazap.ci • Grand Abidjan', WIDTH / 2, 1550);
+        ctx.restore();
+      }
+
+      // Fondu final au noir (29.2s à 30.0s)
+      if (t >= 29.2) {
+        const fade = (t - 29.2) / 0.8;
+        ctx.fillStyle = `rgba(3, 7, 11, ${fade})`;
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+      }
+
+      ctx.restore();
+    }
+
+    // -------------------------------------------------------------------------
+    // HELPERS GRAPHIQUES
+    // -------------------------------------------------------------------------
+    function drawPillBadge(text, strokeColor, fillColor) {
+      ctx.save();
+      ctx.font = '800 28px "Plus Jakarta Sans", sans-serif';
+      const textWidth = ctx.measureText(text).width;
+      const padX = 36;
+      const h = 64;
+      const w = textWidth + padX * 2;
+
+      ctx.fillStyle = fillColor;
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = 3;
+      ctx.shadowColor = strokeColor;
+      ctx.shadowBlur = 20;
+      drawRoundRect(ctx, -w / 2, -h / 2, w, h, h / 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.textAlign = 'center';
+      ctx.fillStyle = strokeColor;
+      ctx.fillText(text, 0, 10);
+      ctx.restore();
+    }
+
+    function drawPillFeature(x, y, text, color) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      drawRoundRect(ctx, -320, -32, 640, 64, 32);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      ctx.font = '800 24px "Plus Jakarta Sans", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(text, 0, 8);
+      ctx.restore();
+    }
+
+    function drawRoundRect(context, x, y, width, height, radius) {
+      context.beginPath();
+      context.moveTo(x + radius, y);
+      context.lineTo(x + width - radius, y);
+      context.quadraticCurveTo(x + width, y, x + width, y + radius);
+      context.lineTo(x + width, y + height - radius);
+      context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      context.lineTo(x + radius, y + height);
+      context.quadraticCurveTo(x, y + height, x, y + height - radius);
+      context.lineTo(x, y + radius);
+      context.quadraticCurveTo(x, y, x + radius, y);
+      context.closePath();
+    }
+
+    function drawTransitions(t) {
+      const flashPoints = [7.5, 16.5, 24.5];
+      flashPoints.forEach(pt => {
+        if (t >= pt && t < pt + 0.35) {
+          const alpha = 1 - (t - pt) / 0.35;
+          ctx.fillStyle = `rgba(0, 255, 157, ${alpha * 0.35})`;
+          ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        }
+      });
+    }
+
+    function drawGlobalHeader(t) {
+      ctx.save();
+      ctx.font = '700 22px "Plus Jakarta Sans", sans-serif';
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.4)';
+      ctx.textAlign = 'center';
+      ctx.fillText('WAZAP.CI • SOLUTION OFFICIELLE DE LIVRAISON', WIDTH / 2, 70);
+      ctx.restore();
+    }
+
+    function renderFrame(frameIndex) {
+      const f = Math.max(0, Math.min(TOTAL_FRAMES - 1, frameIndex));
+      const t = f / FPS;
+      drawMotionDesign(t, f);
+    }
+
+    window.renderFrame = renderFrame;
+
+    // Rendu automatique mode Headless
+    window.startHeadlessRender = async function() {
+      console.log(`[HEADLESS] Rendu de 900 frames pour thème ${themeId}...`);
+      for (let f = 0; f < TOTAL_FRAMES; f++) {
+        renderFrame(f);
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.94));
+        await fetch('/upload-frame?frame=' + f + '&theme=' + themeId, { method: 'POST', body: blob });
+      }
+      await fetch('/render-complete?theme=' + themeId);
+    };
+
+    window.onload = () => {
+      if (assetsLoaded) {
+        renderFrame(0);
+      }
+    };
+  </script>
+</body>
+</html>
