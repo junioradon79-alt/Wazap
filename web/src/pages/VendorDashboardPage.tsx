@@ -95,6 +95,7 @@ export default function VendorDashboardPage() {
   /* Order confirmation */
   const [confirmingId, setConfirmingId] = useState<string | null>(null)
   const [confirmMsg, setConfirmMsg] = useState<string | null>(null)
+  const [handingOverId, setHandingOverId] = useState<string | null>(null)
 
   /* New order */
   const [orderForm, setOrderForm] = useState<NewOrderForm>(EMPTY_ORDER_FORM)
@@ -151,6 +152,22 @@ export default function VendorDashboardPage() {
       setError(err instanceof Error ? err.message : 'Erreur lors de la confirmation.')
     } finally {
       setConfirmingId(null)
+    }
+  }
+
+  /* ─── Handover order ─────────────────────────────────── */
+  const handoverOrder = async (orderId: string) => {
+    setHandingOverId(orderId)
+    setError('')
+    try {
+      const res = await api.post<{ message: string }>(`/vendors/orders/${orderId}/handover`, {})
+      setConfirmMsg(res.message || 'Colis remis au livreur avec succès ! Livraison en cours.')
+      await load()
+      setTimeout(() => setConfirmMsg(null), 5000)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors de la remise du colis.')
+    } finally {
+      setHandingOverId(null)
     }
   }
 
@@ -534,6 +551,20 @@ export default function VendorDashboardPage() {
                                 onClick={() => void confirmOrder(o.id)}
                               >
                                 {confirmingId === o.id ? '…' : '⚡ Confirmer'}
+                              </button>
+                            )}
+
+                            {/* 📦 Colis remis au livreur (1-click) */}
+                            {(o.status === 'RiderAssigned' || o.status === 'ReadyForPickup' || o.status === 'PickedUp') && (
+                              <button
+                                type="button"
+                                className="vd-btn vd-btn--sm"
+                                style={{ background: '#2563eb', color: '#fff', fontWeight: 800 }}
+                                title="Confirmer la remise du colis au livreur et déclencher le suivi GPS"
+                                disabled={handingOverId === o.id}
+                                onClick={() => void handoverOrder(o.id)}
+                              >
+                                {handingOverId === o.id ? '…' : '📦 Colis remis'}
                               </button>
                             )}
 

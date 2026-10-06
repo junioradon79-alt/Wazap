@@ -434,6 +434,66 @@ public class VendorsController : ControllerBase
         });
     }
 
+    // POST: api/vendors/orders/{id}/handover — confirmation par le vendeur de la remise du colis au livreur
+    [HttpPost("orders/{id:guid}/handover")]
+    public async Task<IActionResult> HandoverOrder(Guid id)
+    {
+        var vendor = await _context.Users.FirstOrDefaultAsync(u => u.Id == _currentUser.Id && u.Role == UserRole.Vendor);
+        if (vendor is null && _currentUser.Role != UserRole.Admin)
+            return Forbid();
+
+        var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id);
+        if (order is null)
+            return NotFound();
+
+        var isOwner = (vendor is not null && order.VendorUserId == vendor.Id)
+            || (vendor is not null && !string.IsNullOrWhiteSpace(vendor.PhoneNumber) && PhoneNumberNormalizer.SameSubscriber(order.VendorWhatsAppNumber, vendor.PhoneNumber));
+
+        if (!isOwner && _currentUser.Role != UserRole.Admin)
+            return Forbid();
+
+        if (order.Status == OrderStatus.InTransit)
+            return Ok(new { status = order.Status.ToString(), message = "Colis déjà en cours d'acheminement." });
+
+        if (order.Status is not (OrderStatus.RiderAssigned or OrderStatus.ReadyForPickup or OrderStatus.PickedUp))
+            return BadRequest(new { message = $"Impossible de marquer le colis remis en statut {order.Status}." });
+
+        if (order.Status == OrderStatus.RiderAssigned)
+            order.MarkReadyForPickup();
+        if (order.Status == OrderStatus.ReadyForPickup)
+            order.MarkPickedUp();
+        if (order.Status == OrderStatus.PickedUp)
+            order.MarkInTransit();
+
+        await _context.SaveChangesAsync();
+
+        var orderCode = order.Id.ToString("N")[..8].ToUpperInvariant();
+
+        if (_whatsApp is not null)
+        {
+            var trackingUrl = $"https://wazap.ci/app/suivi/{order.Id}";
+            var rider = order.RiderUserId.HasValue
+                ? await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == order.RiderUserId.Value)
+                : null;
+
+            try
+            {
+                await _whatsApp.SendInTransitNotificationAsync(order, rider, trackingUrl);
+            }
+            catch
+            {
+                // Best effort
+            }
+        }
+
+        return Ok(new
+        {
+            status = order.Status.ToString(),
+            message = $"Colis #{orderCode} remis au livreur avec succès ! La livraison est en cours.",
+            code = orderCode
+        });
+    }
+
     private void EnsureCanManage(Guid vendorId)
     {
         if (_currentUser.Role == UserRole.Admin)

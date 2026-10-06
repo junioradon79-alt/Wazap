@@ -234,7 +234,8 @@ namespace Wazap.Application.Services
 
             // Vendeur : préparez le colis
             var vendorText = $"🛵 {riderName} a accepté la commande #{orderCode} de {order.ClientName}. Il arrive pour récupérer le colis."
-                + (string.IsNullOrWhiteSpace(riderProfileLine) ? string.Empty : $"\n{riderProfileLine}");
+                + (string.IsNullOrWhiteSpace(riderProfileLine) ? string.Empty : $"\n{riderProfileLine}")
+                + $"\n\n👉 Colis remis au livreur ? Touchez ici :\nhttps://wa.me/2250544051972?text=REMIS%20{orderCode}";
             // Template Meta approuvé « Le livreur {{1}} a accepté la commande #{{3}} de {{2}} »
             // → 1 = livreur, 2 = client, 3 = code court de commande.
             await SendStatusAsync(order.VendorWhatsAppNumber, _whatsAppOptions.TemplateRiderAssignedVendor,

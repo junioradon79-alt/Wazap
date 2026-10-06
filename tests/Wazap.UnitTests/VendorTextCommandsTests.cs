@@ -94,12 +94,18 @@ public class VendorTextCommandsTests
     [Theory]
     [InlineData("LIVRAISON", true)]
     [InlineData("LIVRAISON 2 poulets à Marcory", true)]
+    [InlineData("REMIS", true)]
+    [InlineData("REMIS A1B2C3D4", true)]
+    [InlineData("PARTI", true)]
+    [InlineData("COLIS REMIS", true)]
     [InlineData("SINISTRE", true)]
     [InlineData("SINISTRE A1B2C3D4", true)]
     [InlineData("PRODUITS", true)]
     [InlineData("PRODUIT Poulet | 2500", true)]
     [InlineData("SUPPRIMER PRODUIT 1", true)]
     [InlineData("LIVRAISONNE", false)]
+    [InlineData("REMISSIBLE", false)]
+    [InlineData("PARTIR", false)]
     [InlineData("SINISTREUR", false)]
     [InlineData("PRODUITeur", false)]
     [InlineData("", false)]
@@ -294,6 +300,66 @@ public class VendorTextCommandsTests
         Assert.Contains("TABLEAU DE BORD COMMERÇANT", f.LastReply);
         Assert.Contains("Crédits livraisons disponibles : *10*", f.LastReply);
         Assert.Contains("wa.me/2250544051972?text=LIVRAISON", f.LastReply);
+    }
+
+    [Fact]
+    public async Task Remis_SansCommandeEnAttente_RepondAucunColisEnAttente()
+    {
+        using var f = new Fixture();
+
+        await f.Commands.HandleAsync(f.Vendor, "REMIS", f.Reply);
+
+        Assert.Contains("Aucun colis en attente de remise", f.LastReply);
+    }
+
+    [Fact]
+    public async Task Remis_AvecCommandeAssignee_PasseEnTransitEtNotifie()
+    {
+        using var f = new Fixture();
+
+        var order = new Order("Client Test", "+2250700000099", f.Vendor.PhoneNumber!, "Colis VIP", 15000m);
+        order.LinkVendor(f.Vendor.Id);
+        order.ConfirmByVendor();
+        order.AwaitRiderAcceptance();
+        order.AssignRider("+2250700000088");
+        order.LinkRider(Guid.NewGuid());
+        f.Context.Orders.Add(order);
+        await f.Context.SaveChangesAsync();
+
+        await f.Commands.HandleAsync(f.Vendor, "REMIS", f.Reply);
+
+        Assert.Equal(OrderStatus.InTransit, order.Status);
+        Assert.Contains("remis au livreur", f.LastReply);
+        Assert.Contains(order.Id.ToString("N")[..8].ToUpperInvariant(), f.LastReply);
+    }
+
+    [Fact]
+    public async Task Remis_AvecCodeSpecifique_PasseLaBonneCommandeEnTransit()
+    {
+        using var f = new Fixture();
+
+        var order1 = new Order("Client 1", "+2250700000091", f.Vendor.PhoneNumber!, "Colis 1", 10000m);
+        order1.LinkVendor(f.Vendor.Id);
+        order1.ConfirmByVendor();
+        order1.AwaitRiderAcceptance();
+        order1.AssignRider("+2250700000088");
+        f.Context.Orders.Add(order1);
+
+        var order2 = new Order("Client 2", "+2250700000092", f.Vendor.PhoneNumber!, "Colis 2", 20000m);
+        order2.LinkVendor(f.Vendor.Id);
+        order2.ConfirmByVendor();
+        order2.AwaitRiderAcceptance();
+        order2.AssignRider("+2250700000088");
+        f.Context.Orders.Add(order2);
+
+        await f.Context.SaveChangesAsync();
+
+        var code1 = order1.Id.ToString("N")[..8].ToUpperInvariant();
+        await f.Commands.HandleAsync(f.Vendor, $"REMIS {code1}", f.Reply);
+
+        Assert.Equal(OrderStatus.InTransit, order1.Status);
+        Assert.Equal(OrderStatus.RiderAssigned, order2.Status);
+        Assert.Contains($"#{code1} remis au livreur", f.LastReply);
     }
 }
 

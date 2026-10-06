@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Wazap.Application.Abstractions;
+using Wazap.Application.Configuration;
 using Wazap.Application.Dtos;
 using Wazap.Application.Exceptions;
 using Wazap.Application.Helpers;
@@ -17,6 +18,7 @@ namespace Wazap.API.Services;
 ///
 ///  - <c>LIVRAISON &lt;détail&gt; à &lt;adresse&gt;</c> : demande de course à la demande — <b>consomme
 ///    un crédit</b> et diffuse immédiatement aux livreurs proches ;
+///  - <c>REMIS [code]</c> / <c>PARTI [code]</c> : confirmation par le commerçant de la remise du colis au livreur ;
 ///  - <c>SINISTRE &lt;code&gt;</c> : déclaration de colis perdu/volé (Garantie Colis Sûr) ;
 ///  - <c>PRODUITS</c> / <c>PRODUIT &lt;nom&gt; | &lt;prix&gt; [| &lt;emoji&gt;]</c> /
 ///    <c>SUPPRIMER PRODUIT &lt;n°&gt;</c> : catalogue qui alimente le menu numéroté du bot client ;
@@ -29,19 +31,28 @@ public sealed class VendorTextCommands
     private readonly VendorProductService _products;
     private readonly ColisSurService _colisSur;
     private readonly ICatalogAiExtractorService? _catalogAi;
+    private readonly WhatsAppOrchestrationService? _whatsApp;
+    private readonly IWhatsAppSender? _whatsAppSender;
+    private readonly ClientOptions _clientOptions;
 
     public VendorTextCommands(
         ApplicationDbContext context,
         OrderService orderService,
         VendorProductService products,
         ColisSurService colisSur,
-        ICatalogAiExtractorService? catalogAi = null)
+        ICatalogAiExtractorService? catalogAi = null,
+        WhatsAppOrchestrationService? whatsApp = null,
+        IWhatsAppSender? whatsAppSender = null,
+        ClientOptions? clientOptions = null)
     {
         _context = context;
         _orderService = orderService;
         _products = products;
         _colisSur = colisSur;
         _catalogAi = catalogAi;
+        _whatsApp = whatsApp;
+        _whatsAppSender = whatsAppSender;
+        _clientOptions = clientOptions ?? new ClientOptions();
     }
 
     /// <summary>
@@ -51,6 +62,9 @@ public sealed class VendorTextCommands
     public static bool Matches(string upperText)
         => upperText == "LIVRAISON" || upperText.StartsWith("LIVRAISON ")
            || upperText is "DASHBOARD" or "STATS" or "STATISTIQUES" or "SOLDE" or "COMPTE" or "TABLEAU DE BORD"
+           || upperText == "REMIS" || upperText.StartsWith("REMIS ")
+           || upperText == "PARTI" || upperText.StartsWith("PARTI ")
+           || upperText == "COLIS REMIS" || upperText.StartsWith("COLIS REMIS")
            || upperText == "SINISTRE" || upperText.StartsWith("SINISTRE ")
            || upperText == "PRODUITS" || upperText.StartsWith("PRODUITS ")
            || upperText == "PRODUIT" || upperText.StartsWith("PRODUIT ")
@@ -73,6 +87,14 @@ public sealed class VendorTextCommands
         if (upper == "LIVRAISON" || upper.StartsWith("LIVRAISON "))
         {
             await HandleDispatchAsync(user, command, reply);
+            return;
+        }
+
+        if (upper == "REMIS" || upper.StartsWith("REMIS ")
+            || upper == "PARTI" || upper.StartsWith("PARTI ")
+            || upper == "COLIS REMIS" || upper.StartsWith("COLIS REMIS"))
+        {
+            await HandleHandoverAsync(user, command, reply);
             return;
         }
 
@@ -335,5 +357,115 @@ public sealed class VendorTextCommands
         sb.AppendLine("https://wa.me/2250544051972?text=TARIFS");
 
         await reply(user, sb.ToString().TrimEnd());
+    }
+
+    /// <summary>
+    /// « REMIS [code] », « PARTI [code] » ou « COLIS REMIS [code] » :
+    /// Le commerçant confirme la remise du colis au livreur venu le récupérer.
+    /// Fait basculer la course en transit (InTransit), déclenche le suivi GPS client et alerte le livreur.
+    /// </summary>
+    private async Task HandleHandoverAsync(User user, string command, Func<User, string, Task> reply)
+    {
+        var upper = command.Trim().ToUpperInvariant();
+        string prefix = upper.StartsWith("COLIS REMIS") ? "COLIS REMIS"
+            : upper.StartsWith("PARTI") ? "PARTI"
+            : "REMIS";
+
+        var code = command.Trim().Length > prefix.Length ? command.Trim()[prefix.Length..].Trim() : string.Empty;
+
+        // Commandes prêtes ou assignées à un coursier
+        var pendingStatuses = new[] { OrderStatus.RiderAssigned, OrderStatus.ReadyForPickup, OrderStatus.PickedUp };
+
+        var orders = await _context.Orders
+            .Where(o => (o.VendorUserId == user.Id
+                         || (user.PhoneNumber != null && o.VendorWhatsAppNumber != null && o.VendorWhatsAppNumber == user.PhoneNumber))
+                        && pendingStatuses.Contains(o.Status))
+            .ToListAsync();
+
+        if (!string.IsNullOrWhiteSpace(code))
+        {
+            orders = orders.Where(o => o.Id.ToString("N").StartsWith(code, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+
+        if (orders.Count == 0)
+        {
+            var inTransit = await _context.Orders.AnyAsync(o =>
+                (o.VendorUserId == user.Id || (user.PhoneNumber != null && o.VendorWhatsAppNumber != null && o.VendorWhatsAppNumber == user.PhoneNumber))
+                && o.Status == OrderStatus.InTransit);
+
+            if (inTransit)
+            {
+                await reply(user, "ℹ️ Votre livraison est déjà en cours d'acheminement vers le client.");
+                return;
+            }
+
+            await reply(user, "ℹ️ Aucun colis en attente de remise à un livreur pour le moment.");
+            return;
+        }
+
+        if (orders.Count > 1 && string.IsNullOrWhiteSpace(code))
+        {
+            var sb = new StringBuilder("ℹ️ Vous avez plusieurs colis en attente de remise :\n");
+            foreach (var o in orders)
+            {
+                var shortCode = o.Id.ToString("N")[..8].ToUpperInvariant();
+                sb.AppendLine($"• #{shortCode} ({o.ClientName}) : https://wa.me/2250544051972?text=REMIS%20{shortCode}");
+            }
+            sb.Append("Touchez le lien de la commande remise pour confirmer son départ.");
+            await reply(user, sb.ToString());
+            return;
+        }
+
+        var targetOrder = orders[0];
+        var orderCode = targetOrder.Id.ToString("N")[..8].ToUpperInvariant();
+
+        if (targetOrder.Status == OrderStatus.RiderAssigned)
+            targetOrder.MarkReadyForPickup();
+        if (targetOrder.Status == OrderStatus.ReadyForPickup)
+            targetOrder.MarkPickedUp();
+        if (targetOrder.Status == OrderStatus.PickedUp)
+            targetOrder.MarkInTransit();
+
+        await _context.SaveChangesAsync();
+
+        // 1) Notifier Client et Vendeur (suivi GPS en temps réel)
+        if (_whatsApp != null)
+        {
+            var trackingUrl = $"{_clientOptions.TrackingBaseUrl.TrimEnd('/')}/{targetOrder.Id}";
+            var rider = targetOrder.RiderUserId.HasValue
+                ? await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == targetOrder.RiderUserId.Value)
+                : null;
+
+            try
+            {
+                await _whatsApp.SendInTransitNotificationAsync(targetOrder, rider, trackingUrl);
+            }
+            catch
+            {
+                // Best effort
+            }
+
+            // 2) Alerter le coursier sur WhatsApp
+            if (_whatsAppSender != null && rider != null && !string.IsNullOrWhiteSpace(rider.PhoneNumber))
+            {
+                var riderMsg = $"📦 Le commerçant a confirmé la remise du colis #{orderCode} ({targetOrder.Description}). Vous pouvez démarrer la livraison vers {targetOrder.ClientName} !";
+                if (targetOrder.ClientLatitude.HasValue && targetOrder.ClientLongitude.HasValue)
+                {
+                    var lat = targetOrder.ClientLatitude.Value.ToString("F6", CultureInfo.InvariantCulture);
+                    var lng = targetOrder.ClientLongitude.Value.ToString("F6", CultureInfo.InvariantCulture);
+                    riderMsg += $"\n🗺️ Itinéraire client : https://www.google.com/maps/search/?api=1&query={lat},{lng}";
+                }
+                try
+                {
+                    await _whatsAppSender.SendTextMessageAsync(rider.PhoneNumber, riderMsg);
+                }
+                catch
+                {
+                    // Best effort
+                }
+            }
+        }
+
+        await reply(user, $"✅ Colis #{orderCode} remis au livreur ! Le client a été notifié et suit l'arrivée de son colis en direct. 🚀");
     }
 }
