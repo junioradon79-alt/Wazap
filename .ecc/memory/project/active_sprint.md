@@ -1,9 +1,9 @@
 # [SPRINT ACTIF & HANDOFF DE SESSION WAZAP]
-<!-- ecc.memory.v1 scope:project type:handoff status:active updated:2026-10-02 -->
+<!-- ecc.memory.v1 scope:project type:handoff status:active updated:2026-10-06 -->
 
 ## 1. État Actuel du Système
-- **Backend .NET :** 880 tests (874 réussis localement + 6 sur PostgreSQL réel en CI) - 0 échec.
-- **Frontend Vitest :** 57/57 tests réussis (100%).
+- **Backend .NET :** 883 tests (877 réussis localement + 6 sur PostgreSQL réel en CI) - 0 échec.
+- **Frontend Vitest :** 61/61 tests réussis (100%).
 - **Production :** En ligne sur `https://junioradon79gm-001-site1.jtempurl.com` (HTTP 200 Healthy).
 - **Passerelle Android WAZAP Gateway :** v1.1 déployée avec succès sur le smartphone `TECNO CM6` via USB (`Success`), service d'écoute lié et actif (`com.whatsapp.w4b` uniquement).
 - **Architecture :** .NET 8 / EF Core / PostgreSQL (SmarterASP) + React 18 / Vite / TypeScript + YCloud API + WAZAP Gateway Android.
@@ -20,4 +20,5 @@
 - **Session 122 :** Test de bout en bout du Cockpit Livreur (`RiderDashboardPage.tsx` & `RidersController`). Création d'une suite complète de 6 tests d'intégration backend (`RidersControllerDashboardTests.cs` : chargement dashboard, bascule dispo 1-tap, sélecteur de commune 1-tap, étanchéité EnsureOwnership, accès admin). Validation des 6 tests Vitest frontend (100% verts). Bundle de production compilé et synchronisé. Vérification HTTP 200 sur le serveur live. 867 tests .NET (861 locaux + 6 PG réels CI) au vert.
 - **Session 123 :** Résolution définitive de la boucle de recrutement des candidats livreurs sur WhatsApp. `CaptureZone` enrichi avec support des chiffres seuls (1 à 6), emojis chiffres (1️⃣-6️⃣), préfixes courants (#1, Choix 1, Option 1, Zone 1) et sous-quartiers d'Abidjan (Angré, Riviera, Maroc, Biétry, etc.). `BuildAskMessage` explicite désormais la réponse directe par chiffre (1, 2, 3, 4 ou 5) en plus des liens cliquables pour éliminer le problème des liens `wa.me` réflexifs sous Android WhatsApp. Possibilité de corriger sa commune dynamiquement. 880 tests .NET (874 locaux + 6 PG en CI) et 57 tests Vitest 100% verts.
 - **Session 124 :** Élimination totale de la surcharge cognitive et de la saisie texte : suppression définitive de l'envoi d'identifiants/mots de passe et de liens de connexion web. Remplacement par des liens d'action 1-clic bleus natifs `wa.me` (`DISPO`, `INDISPO`, `SOLDE`, `PROGRAMME`, `LIVRAISON`, `PRODUITS`, `TARIFS`). Support des commandes ultra-courtes à 1 chiffre (`1`, `2`, `3`, `4`) et emojis (`🟢`, `🔴`, `💰`, `📱`). Refonte des tableaux de bord WhatsApp pour livreurs et commerçants. Résolution de l'ambiguïté sur le parrainage : génération systématique d'un lien d'invitation 1-clic direct pré-rempli `wa.me/2250544051972?text=DISPO%20{Code}` (WhatsApp + Web) pour propulser le Défi Smartphone Redmi 15C. 880 tests .NET (874 locaux + 6 PG en CI) et 57 tests Vitest 100% verts. Poussé et déployé en production.
+- **Session 130 :** Valeur ajoutée client final : suppression définitive du code secret PIN à 4 chiffres (remplacé par la Garantie Colis Sûr et le scan QR 1-tap), Reçu Digital Inviolable & Ticket de Caisse Client (`suivi-receipt-card`, imprimable PDF et partageable WhatsApp), Consignes 1-tap avec repères d'Abidjan et créneaux horaires, et Mini-Vitrine Marchande Client 1-Tap (`BoutiqueClientPage.tsx` / `/app/b/:identifier` et endpoint `GET /api/vendors/public/{identifier}`). 883 tests .NET et 61 tests Vitest 100% verts.
 

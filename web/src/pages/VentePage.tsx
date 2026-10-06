@@ -33,7 +33,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Mes clients doivent-ils installer une application ?',
-    a: 'Absolument aucune ! C’est la force de WAZAP : vos clients continuent de commander naturellement par message WhatsApp comme ils le font déjà. Ils reçoivent automatiquement un lien de suivi en direct et un code PIN sécurisé pour la réception du colis.',
+    a: 'Absolument aucune ! C’est la force de WAZAP : vos clients continuent de commander naturellement par message WhatsApp comme ils le font déjà. Ils reçoivent automatiquement un lien de suivi en direct et la confirmation Colis Sûr par scan 1-tap pour la réception du colis.',
   },
   {
     q: 'Comment fonctionne l’Assurance Colis Sûr ?',
@@ -79,8 +79,8 @@ const TESTIMONIALS = [
     role: 'Chez Amara Grill · Marcory Zone 4',
     avatar: '/app/avatars/amara.jpg',
     stars: '★★★★★',
-    quote: 'Mes braisés partent encore tout chauds ! Le client reçoit son lien GPS et son code PIN de livraison. Fini les litiges ou les contestations à l’arrivée.',
-    tag: '🛡️ Sécurité PIN Colis Sûr',
+    quote: 'Mes braisés partent encore tout chauds ! Le client reçoit son lien GPS et valide la réception en 1 tap avec le QR Colis Sûr. Fini les litiges ou les contestations à l’arrivée.',
+    tag: '🛡️ Sécurité Colis Sûr 1-Tap',
   },
   {
     name: 'Fatou D.',
@@ -526,7 +526,7 @@ export default function VentePage() {
                 <div className="step-card__icon">📍</div>
                 <h3 className="step-card__title">Suivi &amp; Remise sécurisée</h3>
                 <p className="step-card__desc">
-                  Votre client suit le trajet en direct sur son smartphone. La remise est validée par code secret PIN à 4 chiffres.
+                  Votre client suit le trajet en direct sur son smartphone. La remise est validée en 1 tap par scan du QR Code Universel Colis Sûr.
                 </p>
               </article>
             </div>
@@ -739,10 +739,10 @@ export default function VentePage() {
             </div>
 
             <div className="colis-sur-item">
-              <div className="colis-sur-item__icon">🔢</div>
-              <h4 style={{ margin: '0 0 6px', fontSize: 16 }}>Code PIN Secret</h4>
+              <div className="colis-sur-item__icon">📷</div>
+              <h4 style={{ margin: '0 0 6px', fontSize: 16 }}>Scan Colis Sûr 1-Tap</h4>
               <p style={{ margin: 0, fontSize: 13, color: 'var(--wz-l-text-muted)' }}>
-                La course ne peut être clôturée que si le client destinataire transmet son code secret à 4 chiffres.
+                La course est clôturée instantanément lorsque le client fait scanner son QR Code Universel Colis Sûr, sans aucun code à mémoriser.
               </p>
             </div>
 

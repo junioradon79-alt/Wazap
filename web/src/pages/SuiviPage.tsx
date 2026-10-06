@@ -126,6 +126,7 @@ export default function SuiviPage() {
   const [showUniversalQr, setShowUniversalQr] = useState<boolean>(false)
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
   const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [preferredSlot, setPreferredSlot] = useState<string>('⚡ Express (< 45 min)')
 
   // Rating state
   const [ratingScore, setRatingScore] = useState<number>(5)
@@ -362,7 +363,7 @@ export default function SuiviPage() {
       setValidationSuccess('Livraison validée avec succès ! Le vendeur a été notifié pour votre règlement.')
       await fetchOrder()
     } catch (e) {
-      setValidationErr(e instanceof Error ? e.message : 'Code PIN incorrect ou erreur de validation.')
+      setValidationErr(e instanceof Error ? e.message : 'Erreur lors de la validation de livraison.')
     } finally {
       setValidatingDelivery(false)
     }
@@ -445,7 +446,7 @@ export default function SuiviPage() {
               Espace Livreur — Validation de Remise
             </h3>
             <p style={{ margin: '0 0 14px', fontSize: '13px', color: 'var(--suivi-text-muted)' }}>
-              Vous avez scanné le QR Code client. Confirmez le code PIN pour clôturer la livraison et déclencher le règlement de votre course.
+              Vous avez scanné le QR Code client. Validez la remise en 1 tap pour clôturer la livraison et déclencher votre règlement immédiat.
             </p>
 
             <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '14px' }}>
@@ -546,7 +547,7 @@ export default function SuiviPage() {
           <div style={{ display: 'flex', gap: '10px', marginTop: '16px', flexWrap: 'wrap' }}>
             <a
               href={`https://wa.me/?text=${encodeURIComponent(
-                `Bonjour ! Suivez ma commande #${order.code || order.id} en direct sur WAZAP ici :\n${typeof window !== 'undefined' ? window.location.href : ''}\nCode secret de remise : ${order.deliveryCode || 'fourni à l\'arrivée'}`
+                `Bonjour ! Suivez ma commande #${order.code || order.id} en direct sur WAZAP ici :\n${typeof window !== 'undefined' ? window.location.href : ''}`
               )}`}
               target="_blank"
               rel="noreferrer"
@@ -706,6 +707,77 @@ export default function SuiviPage() {
               placeholder="Ex : Marcory, rue Princesse, face à la pharmacie…"
             />
 
+            {/* CONSIGNES RAPIDES 1-TAP */}
+            <div className="suivi-quick-presets">
+              <span className="preset-label">Consigne rapide (1 tap) :</span>
+              <div className="preset-pill-list">
+                {[
+                  '🔔 Appeler au portail',
+                  '👮 Laisser au gardien',
+                  '🏢 Monter à l\'étage',
+                  '🚶 Je sors au carrefour'
+                ].map((preset, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    className="preset-pill"
+                    onClick={() => setAddress(prev => prev ? `${prev} · ${preset}` : preset)}
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* REPÈRES POPULAIRES ABIDJAN */}
+            <div className="suivi-landmarks">
+              <span className="preset-label">Repères populaires Abidjan (1 tap) :</span>
+              <div className="preset-pill-list">
+                {[
+                  '📍 Cocody St-Jean',
+                  '📍 Angré Terminus 81',
+                  '📍 Riviera Bonoumin',
+                  '📍 Yopougon Siporex',
+                  '📍 Yopougon Bel Air',
+                  '📍 Marcory Biétry',
+                  '📍 Koumassi Remblais'
+                ].map((lm, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    className="preset-pill landmark-pill"
+                    onClick={() => setAddress(prev => prev ? `${lm}, ${prev}` : lm)}
+                  >
+                    {lm}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* CRÉNEAU SOUHAITÉ 1-TAP */}
+            <div className="suivi-slot-selector">
+              <span className="preset-label">Créneau souhaité (1 tap) :</span>
+              <div className="preset-pill-list">
+                {[
+                  '⚡ Express (< 45 min)',
+                  '🍲 Pause déjeuner (12h30 - 14h)',
+                  '🌆 Ce soir (18h - 20h)'
+                ].map((slot, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    className={`preset-pill ${preferredSlot === slot ? 'active-slot' : ''}`}
+                    onClick={() => {
+                      setPreferredSlot(slot)
+                      setAddress(prev => prev ? `${prev} [${slot}]` : slot)
+                    }}
+                  >
+                    {slot}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {geoErr && <div className="suivi-error-msg">{geoErr}</div>}
 
             <button
@@ -720,50 +792,39 @@ export default function SuiviPage() {
           </section>
         )}
 
-        {/* SECRET DELIVERY PIN (COLIS SÛR) */}
-        {order.deliveryCode && !order.delivered && (
-          <section className="suivi-pin-card">
-            <div className="suivi-pin-header">
-              <div className="suivi-pin-title">
-                <span>🔒 Code Secret de Remise</span>
+        {/* CARTE RÉASSURANCE COLIS SÛR & SCAN LIVREUR (ZÉRO PIN / 1-TAP) */}
+        {!order.delivered && (
+          <section className="suivi-security-card">
+            <div className="suivi-security-header">
+              <span className="suivi-security-icon">🛡️</span>
+              <div>
+                <div className="suivi-security-title">Garantie Colis Sûr WAZAP</div>
+                <div className="suivi-security-sub">Remise 1-Tap Sécurisée • Zéro Espèces sur la Marchandise</div>
               </div>
-              <button
-                type="button"
-                className="suivi-copy-btn"
-                style={{ background: 'rgba(247, 201, 72, 0.15)', borderColor: 'var(--suivi-gold)', color: 'var(--suivi-gold)' }}
-                onClick={() => copyText(order.deliveryCode!, 'pin')}
-              >
-                {copiedKey === 'pin' ? 'Copié !' : 'Copier le code'}
-              </button>
-            </div>
-
-            <div className="suivi-pin-boxes">
-              {order.deliveryCode.split('').map((digit, idx) => (
-                <div key={idx} className="suivi-pin-digit">
-                  {digit}
-                </div>
-              ))}
             </div>
 
             {/* QR Code pour scan direct par le livreur */}
-            <div style={{ textAlign: 'center', margin: '18px 0 14px' }}>
+            <div style={{ textAlign: 'center', margin: '14px 0' }}>
               <div style={{ fontSize: '12px', color: 'var(--suivi-text-muted)', marginBottom: '8px' }}>
-                📷 Ou faites scanner ce QR Code par votre livreur à l’arrivée :
+                📷 À l’arrivée du livreur, faites scanner ce QR Code pour valider la remise en 1 tap :
               </div>
               <div style={{ display: 'inline-block', padding: '10px', background: '#fff', borderRadius: '12px', boxShadow: '0 4px 16px rgba(0,0,0,0.35)' }}>
                 <img
                   src={order.qrUrl || `/api/client/orders/${order.id}/qr`}
-                  alt="QR Code de livraison"
+                  alt="QR Code de remise Colis Sûr"
                   style={{ width: '150px', height: '150px', display: 'block' }}
                 />
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--suivi-emerald)', fontWeight: 700, marginTop: '8px' }}>
+                ✓ Validation instantanée 1-tap • Aucun code PIN nécessaire
               </div>
             </div>
 
             <div className="suivi-pin-note">
-              <strong>Garantie Colis Sûr :</strong> Ne montrez ce QR Code ou ne communiquez ce code PIN à votre livreur qu’au moment précis où il vous remet le colis en main propre.
+              <strong>Règle Colis Sûr :</strong> Présentez ce QR Code au livreur uniquement une fois le colis entre vos mains.
             </div>
 
-            {/* BANNIÈRE SÉCURITÉ PAIEMENT QR CODE (LEVIERS 1, 3, 5) */}
+            {/* BANNIÈRE SÉCURITÉ PAIEMENT QR CODE MULTI-OPÉRATEURS */}
             <div style={{
               background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(6, 78, 59, 0.2) 100%)',
               border: '1px solid rgba(16, 185, 129, 0.3)',
@@ -775,7 +836,7 @@ export default function SuiviPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                 <span style={{ fontSize: '18px' }}>⚡</span>
                 <span style={{ fontSize: '14px', fontWeight: 800, color: '#fff' }}>
-                  Privilégiez le Paiement par QR Code à la Livraison
+                  Paiement 100% Digital par QR Code Universel
                 </span>
               </div>
 
@@ -783,24 +844,135 @@ export default function SuiviPage() {
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', background: 'rgba(255,255,255,0.04)', padding: '8px 10px', borderRadius: '8px' }}>
                   <span style={{ fontSize: '16px', lineHeight: 1 }}>🛡️</span>
                   <div style={{ fontSize: '12px', color: '#e2e8f0', lineHeight: 1.4 }}>
-                    <strong style={{ color: 'var(--suivi-emerald)' }}>Protection Acheteur 2h Active :</strong> En payant par QR Code (Wave, Orange, MTN, Moov), vous bénéficiez de 2h d'assistance après livraison. En cas d'article non conforme, WAZAP bloque les fonds et organise un retour gratuit.
+                    <strong style={{ color: 'var(--suivi-emerald)' }}>Protection Acheteur 2h Active :</strong> En réglant via le QR Code Universel (Wave, Orange, MTN, Moov, Carte), vous bénéficiez de 2h de protection après livraison. En cas de non-conformité, l’assistance WAZAP intervient immédiatement.
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', background: 'rgba(255,255,255,0.04)', padding: '8px 10px', borderRadius: '8px' }}>
                   <span style={{ fontSize: '16px', lineHeight: 1 }}>🎁</span>
                   <div style={{ fontSize: '12px', color: '#e2e8f0', lineHeight: 1.4 }}>
-                    <strong style={{ color: 'var(--suivi-gold)' }}>Le Scan Gagnant :</strong> Chaque paiement par QR Code vous inscrit automatiquement au tirage au sort de la semaine pour remporter <strong>25 000 FCFA d'achats</strong> chez nos boutiques partenaires !
+                    <strong style={{ color: 'var(--suivi-gold)' }}>Le Scan Gagnant :</strong> Chaque paiement par QR Code vous inscrit automatiquement au tirage au sort de la semaine pour remporter <strong>25 000 FCFA d’achats</strong> chez nos boutiques partenaires !
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.25)', padding: '8px 10px', borderRadius: '8px' }}>
-                  <span style={{ fontSize: '16px', lineHeight: 1 }}>⚠️</span>
+                  <span style={{ fontSize: '16px', lineHeight: 1 }}>🚫</span>
                   <div style={{ fontSize: '12px', color: '#fca5a5', lineHeight: 1.4 }}>
-                    <strong>Règle Coursier Zéro Monnaie :</strong> Nos livreurs ne transportent aucun fond de caisse par mesure de sécurité. Si vous devez régler en espèces, préparez <strong>l'appoint exact</strong> (aucune monnaie ne pourra être rendue).
+                    <strong>Zéro Manipulation d’Espèces :</strong> Nos livreurs ne transportent aucun argent liquide sur la marchandise. Le règlement s’effectue exclusivement par scan direct.
                   </div>
                 </div>
               </div>
+            </div>
+          </section>
+        )}
+
+        {/* REÇU DIGITAL INVIOLABLE & TICKET DE CAISSE CLIENT (COLIS SÛR) */}
+        {order.delivered && (
+          <section className="suivi-receipt-card" id="wazap-receipt">
+            <div className="receipt-header">
+              <div className="receipt-brand">
+                <div className="receipt-badge-logo">W</div>
+                <div>
+                  <div className="receipt-title">REÇU OFFICIEL WAZAP</div>
+                  <div className="receipt-sub">Colis Sûr • Transaction Certifiée</div>
+                </div>
+              </div>
+              <span className="receipt-status-pill">LIVRÉ & SCELLÉ ✓</span>
+            </div>
+
+            <div className="receipt-divider" />
+
+            <div className="receipt-grid">
+              <div className="receipt-col">
+                <span className="receipt-label">Commande</span>
+                <span className="receipt-val" style={{ fontWeight: 800 }}>#{order.code}</span>
+              </div>
+              <div className="receipt-col">
+                <span className="receipt-label">Date & Heure</span>
+                <span className="receipt-val">{new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+              </div>
+              <div className="receipt-col">
+                <span className="receipt-label">Commerçant</span>
+                <span className="receipt-val">{order.vendorName || 'Boutique Partenaire'}</span>
+              </div>
+              <div className="receipt-col">
+                <span className="receipt-label">Livreur Certifié</span>
+                <span className="receipt-val">{rider?.riderName || order.riderName || 'Coursier WAZAP'}</span>
+              </div>
+              {order.address && (
+                <div className="receipt-col" style={{ gridColumn: 'span 2' }}>
+                  <span className="receipt-label">Lieu de livraison</span>
+                  <span className="receipt-val">{order.address}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="receipt-items-table">
+              <div className="receipt-table-header">
+                <span>Article</span>
+                <span style={{ textAlign: 'center' }}>Qté</span>
+                <span style={{ textAlign: 'right' }}>Total</span>
+              </div>
+              {order.orderLines && order.orderLines.length > 0 ? (
+                order.orderLines.map((line, idx) => (
+                  <div key={idx} className="receipt-table-row">
+                    <span>{line.productName}</span>
+                    <span style={{ textAlign: 'center' }}>{line.quantity}</span>
+                    <span style={{ textAlign: 'right', fontWeight: 700 }}>{(line.totalPrice ?? line.unitPrice * line.quantity).toLocaleString('fr-FR')} F</span>
+                  </div>
+                ))
+              ) : (
+                <div className="receipt-table-row">
+                  <span>{order.description || 'Marchandise certifiée'}</span>
+                  <span style={{ textAlign: 'center' }}>1</span>
+                  <span style={{ textAlign: 'right', fontWeight: 700 }}>{(order.amount ?? 0).toLocaleString('fr-FR')} F</span>
+                </div>
+              )}
+            </div>
+
+            <div className="receipt-totals-box">
+              <div className="receipt-total-row">
+                <span>Sous-total articles</span>
+                <span>{(order.amount ?? 0).toLocaleString('fr-FR')} FCFA</span>
+              </div>
+              <div className="receipt-total-row">
+                <span>Livraison Express WAZAP</span>
+                <span>{(order.deliveryFee ?? 0).toLocaleString('fr-FR')} FCFA</span>
+              </div>
+              <div className="receipt-total-row total-highlight">
+                <span style={{ fontWeight: 800, fontSize: '15px' }}>Total Réglé</span>
+                <span style={{ fontWeight: 900, fontSize: '16px', color: 'var(--suivi-emerald)' }}>
+                  {(order.totalAmount ?? (order.amount ?? 0) + (order.deliveryFee ?? 0)).toLocaleString('fr-FR')} FCFA
+                </span>
+              </div>
+            </div>
+
+            <div className="receipt-footer-seal">
+              🔒 Certifié conforme WAZAP Colis Sûr • Zéro manipulation d'espèces
+            </div>
+
+            <div className="receipt-actions">
+              <button
+                type="button"
+                className="receipt-btn-print"
+                onClick={() => window.print()}
+              >
+                📄 Imprimer ou Enregistrer le Reçu (PDF)
+              </button>
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(
+                  `*REÇU DE COMMANDE WAZAP #${order.code}*\n` +
+                  `🏪 Boutique : ${order.vendorName || 'Boutique'}\n` +
+                  `📦 Montant : ${(order.totalAmount ?? order.amount ?? 0).toLocaleString('fr-FR')} FCFA\n` +
+                  `✅ Statut : Livré & Scellé\n` +
+                  `🔗 Suivi : ${window.location.href}`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="receipt-btn-share"
+              >
+                📲 Partager ce Reçu sur WhatsApp
+              </a>
             </div>
           </section>
         )}
@@ -1257,6 +1429,21 @@ export default function SuiviPage() {
             </p>
           </div>
         )}
+
+        {/* ASSISTANCE WHATSAPP CLIENT DIRECTE (1-TAP) */}
+        <div style={{ marginTop: 24, textAlign: 'center' }}>
+          <a
+            href={`https://wa.me/2250544051972?text=${encodeURIComponent(
+              `Bonjour WAZAP, j'ai une question concernant ma livraison #${order.code || ''}.`
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="suivi-help-float-btn"
+          >
+            <span>💬</span>
+            <span>Besoin d’aide sur votre livraison ? Contactez le support WAZAP</span>
+          </a>
+        </div>
       </div>
     </div>
   )

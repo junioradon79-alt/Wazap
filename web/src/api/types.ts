@@ -481,3 +481,20 @@ export interface RiderDashboard {
   recentOrders: RiderRecentOrderItem[]
 }
 
+export interface PublicShopProduct {
+  id: string
+  name: string
+  price: number
+  emoji?: string | null
+  description?: string | null
+  isAvailable?: boolean
+  imageUrl?: string | null
+}
+
+export interface PublicShopDto {
+  vendorId: string
+  shopName: string
+  phone: string
+  zone: string
+  products: PublicShopProduct[]
+}

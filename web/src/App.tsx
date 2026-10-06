@@ -25,6 +25,7 @@ const SuiviPage = lazy(() => import('./pages/SuiviPage'))
 const VentePage = lazy(() => import('./pages/VentePage'))
 const LivreurPage = lazy(() => import('./pages/LivreurPage'))
 const ParrainagePage = lazy(() => import('./pages/ParrainagePage'))
+const BoutiqueClientPage = lazy(() => import('./pages/BoutiqueClientPage'))
 
 function PageLoader() {
   return (
@@ -69,8 +70,12 @@ export default function App() {
     // Le repli s'affiche le temps de charger le morceau de page demandé.
     <Suspense fallback={<PageLoader />}>
       <Routes>
-        {/* Pages publiques : suivi acheteur, vente, livreurs & parrainage */}
+        {/* Pages publiques : suivi acheteur, vente, livreurs & parrainage, mini-vitrines */}
         <Route path="/suivi/:id" element={<SuiviPage />} />
+        <Route path="/b/:identifier" element={<BoutiqueClientPage />} />
+        <Route path="/b" element={<BoutiqueClientPage />} />
+        <Route path="/boutique/:identifier" element={<BoutiqueClientPage />} />
+        <Route path="/boutique" element={<BoutiqueClientPage />} />
         <Route path="/vente" element={<VentePage />} />
         <Route path="/livreurs" element={<LivreurPage />} />
         <Route path="/devenir-livreur" element={<LivreurPage />} />

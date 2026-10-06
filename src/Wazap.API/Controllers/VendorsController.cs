@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Wazap.API.Services;
 using Wazap.Application.Abstractions;
@@ -8,6 +9,7 @@ using Wazap.Application.Dtos;
 using Wazap.Application.Exceptions;
 using Wazap.Application.Helpers;
 using Wazap.Application.Services;
+using Wazap.Domain.Entities;
 using Wazap.Domain.Enums;
 using Wazap.Infrastructure.Data;
 
@@ -248,6 +250,63 @@ public class VendorsController : ControllerBase
     {
         EnsureCanManage(id);
         return Ok(await _packService.GetVendorTransactionsAsync(id));
+    }
+
+    // --- Vitrine Publique Marchande (Boutique Client 1-Tap) -------------------------------
+
+    // GET: api/vendors/public/{identifier} — vitrine publique de la boutique pour le client (AllowAnonymous)
+    [HttpGet("public/{identifier}")]
+    [AllowAnonymous]
+    [EnableRateLimiting("client")]
+    public async Task<IActionResult> GetPublicShop(string identifier)
+    {
+        if (string.IsNullOrWhiteSpace(identifier))
+            return BadRequest("Identifiant de boutique requis.");
+
+        User? vendor = null;
+        if (Guid.TryParse(identifier, out var vendorGuid))
+        {
+            vendor = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == vendorGuid && u.Role == UserRole.Vendor);
+        }
+
+        if (vendor is null)
+        {
+            var lower = identifier.Trim().ToLowerInvariant();
+            vendor = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Username.ToLower() == lower && u.Role == UserRole.Vendor);
+        }
+
+        if (vendor is null && identifier.Equals("demo", StringComparison.OrdinalIgnoreCase))
+        {
+            return Ok(new
+            {
+                vendorId = Guid.Empty,
+                shopName = "Boutique Wax & Élégance",
+                phone = "2250544051972",
+                zone = "Cocody Deux-Plateaux",
+                products = new[]
+                {
+                    new { id = Guid.NewGuid(), name = "Boubou Brodé Grand Modèle", price = 15000, emoji = "👗", description = "Tissu wax de première qualité, broderie dorée artisanale.", isAvailable = true, imageUrl = (string?)null },
+                    new { id = Guid.NewGuid(), name = "Foulard en Soie Assorti", price = 5000, emoji = "🧣", description = "Foulard doux et élégant assorti à toutes tenues.", isAvailable = true, imageUrl = (string?)null },
+                    new { id = Guid.NewGuid(), name = "Collier Perles Traditionnelles", price = 8000, emoji = "✨", description = "Parure artisanale confectionnée à Abidjan.", isAvailable = true, imageUrl = (string?)null },
+                    new { id = Guid.NewGuid(), name = "Sac à Main Cuir & Wax", price = 12000, emoji = "👜", description = "Finition soignée, pochette intérieure zippée.", isAvailable = true, imageUrl = (string?)null }
+                }
+            });
+        }
+
+        if (vendor is null)
+            return NotFound(new { message = "Boutique marchande introuvable." });
+
+        var products = await _products.GetProductsAsync(vendor.Id);
+        var availableProducts = products.Where(p => p.IsAvailable).ToList();
+
+        return Ok(new
+        {
+            vendorId = vendor.Id,
+            shopName = vendor.Username,
+            phone = vendor.PhoneNumber ?? "2250544051972",
+            zone = vendor.Zone ?? "Abidjan",
+            products = availableProducts
+        });
     }
 
     // --- Catalogue produits du vendeur (menu du bot de commande client) -------------------

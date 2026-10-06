@@ -86,15 +86,14 @@ describe('SuiviPage (Suivi client en direct)', () => {
     expect(screen.getByText(/Confirmer et lancer la livraison ⚡/)).toBeInTheDocument()
   })
 
-  it('affiche le Code Secret de Remise (PIN 4 chiffres) et le profil du livreur', async () => {
+  it('affiche la Garantie Colis Sûr (Scan 1-Tap) et le profil du livreur sans code PIN', async () => {
     const mockOrder: ClientOrderStatus = {
-      id: 'order-with-pin',
-      code: 'PIN77889',
+      id: 'order-with-security',
+      code: 'SEC77889',
       vendorName: 'Electro Abidjan',
       status: 'InTransit',
       description: 'Écouteurs sans fil',
       amount: 18000,
-      deliveryCode: '4829',
       riderPhone: '+2250700000002',
       needsCoordinates: false,
       hasCoordinates: true,
@@ -115,21 +114,19 @@ describe('SuiviPage (Suivi client en direct)', () => {
       return mockOrder
     })
 
-    renderWithRoute('order-with-pin')
+    renderWithRoute('order-with-security')
 
-    expect(await screen.findByText(/Code Secret de Remise/)).toBeInTheDocument()
-    expect(screen.getAllByText('4').length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText('8')).toBeInTheDocument()
-    expect(screen.getByText('2')).toBeInTheDocument()
-    expect(screen.getByText('9')).toBeInTheDocument()
-    expect(screen.getByText(/Garantie Colis Sûr/)).toBeInTheDocument()
+    expect(await screen.findByText(/Garantie Colis Sûr WAZAP/)).toBeInTheDocument()
+    expect(screen.getByText(/Remise 1-Tap Sécurisée • Zéro Espèces sur la Marchandise/)).toBeInTheDocument()
+    expect(screen.getByText(/Validation instantanée 1-tap • Aucun code PIN nécessaire/)).toBeInTheDocument()
+    expect(screen.getByText(/Paiement 100% Digital par QR Code Universel/)).toBeInTheDocument()
 
     // Vérification du livreur
     expect((await screen.findAllByText(/Mamadou Touré/)).length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText(/Pourboire au livreur \(Wave \/ OM\)/)).toBeInTheDocument()
   })
 
-  it('permet de noter le livreur (1 à 5 étoiles) lorsque le colis est livré', async () => {
+  it('permet de noter le livreur et affiche le Reçu Officiel lorsque le colis est livré', async () => {
     const mockOrder: ClientOrderStatus = {
       id: 'order-delivered',
       code: 'DELIV999',
@@ -137,6 +134,8 @@ describe('SuiviPage (Suivi client en direct)', () => {
       status: 'Delivered',
       description: 'Sac en cuir',
       amount: 30000,
+      deliveryFee: 1500,
+      totalAmount: 31500,
       hasProofPhoto: true,
       needsCoordinates: false,
       hasCoordinates: true,
@@ -145,7 +144,7 @@ describe('SuiviPage (Suivi client en direct)', () => {
       delivered: true,
       payment: {
         status: 'Completed',
-        amount: 30000,
+        amount: 31500,
         paymentLink: null,
       },
     }
@@ -157,6 +156,10 @@ describe('SuiviPage (Suivi client en direct)', () => {
 
     expect(await screen.findByText(/Livré ✓/)).toBeInTheDocument()
     expect(screen.getByText(/Preuve Photo de Livraison/)).toBeInTheDocument()
+    expect(screen.getByText(/REÇU OFFICIEL WAZAP/)).toBeInTheDocument()
+    expect(screen.getByText(/LIVRÉ & SCELLÉ ✓/)).toBeInTheDocument()
+    expect(screen.getByText(/Imprimer ou Enregistrer le Reçu \(PDF\)/)).toBeInTheDocument()
+    expect(screen.getByText(/Partager ce Reçu sur WhatsApp/)).toBeInTheDocument()
     expect(screen.getByText(/Notez votre livraison/)).toBeInTheDocument()
     expect(screen.getByText(/Commande payée par Mobile Money/)).toBeInTheDocument()
 

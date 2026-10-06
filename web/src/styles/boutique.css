@@ -1,0 +1,417 @@
+/* ============================================================
+   WAZAP - BOUTIQUE CLIENT 1-TAP (MINI-VITRINE MARCHANDE)
+   Charte Officielle : Vert Émeraude (#00d66c / #075e54), Or (#f7c948), Sombre Élégant
+   Mobile-First • Zéro Friction • 1-Tap Absolu
+============================================================ */
+
+.btq-page {
+  min-height: 100vh;
+  background: #06110a;
+  background-image:
+    radial-gradient(ellipse 90% 50% at 50% -20%, rgba(0, 214, 108, 0.15), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(7, 94, 84, 0.15), transparent 60%);
+  color: #f1f7f4;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  padding-bottom: 120px;
+}
+
+.btq-container {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* En-tête Boutique */
+.btq-header {
+  background: rgba(15, 30, 22, 0.85);
+  border: 1px solid rgba(0, 214, 108, 0.22);
+  border-radius: 20px;
+  padding: 20px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.btq-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #00d66c, #f7c948, #075e54);
+}
+
+.btq-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.btq-badge-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btq-logo-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #00d66c 0%, #075e54 100%);
+  color: #fff;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  border: 2px solid #fff;
+}
+
+.btq-brand-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: #00d66c;
+  text-transform: uppercase;
+}
+
+.btq-verified-pill {
+  background: rgba(0, 214, 108, 0.15);
+  border: 1px solid rgba(0, 214, 108, 0.4);
+  color: #00d66c;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btq-shop-name {
+  font-size: 22px;
+  font-weight: 900;
+  margin: 0 0 6px;
+  color: #fff;
+  letter-spacing: -0.3px;
+}
+
+.btq-shop-zone {
+  font-size: 13px;
+  color: #9cb3a8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.btq-assurance-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 11px;
+  color: #e2ece7;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Grille Catalogue */
+.btq-section-title {
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.btq-count-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: #00d66c;
+  background: rgba(0, 214, 108, 0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.btq-products-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.btq-product-card {
+  background: rgba(15, 30, 22, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 14px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.btq-product-card.has-qty {
+  border-color: rgba(0, 214, 108, 0.4);
+  background: rgba(0, 214, 108, 0.06);
+}
+
+.btq-product-img {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.btq-product-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.btq-product-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.btq-product-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btq-product-desc {
+  font-size: 12px;
+  color: #9cb3a8;
+  line-height: 1.3;
+  margin-bottom: 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.btq-product-price {
+  font-size: 14px;
+  font-weight: 900;
+  color: #f7c948;
+}
+
+/* Sélecteur de quantité 1-Tap */
+.btq-qty-stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btq-btn-qty {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btq-btn-qty:hover {
+  background: rgba(0, 214, 108, 0.2);
+  border-color: #00d66c;
+  color: #00d66c;
+}
+
+.btq-btn-qty.plus {
+  background: linear-gradient(135deg, #00d66c, #059669);
+  color: #06110a;
+  border: none;
+}
+
+.btq-btn-qty.plus:hover {
+  filter: brightness(1.15);
+}
+
+.btq-qty-val {
+  min-width: 22px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 900;
+  color: #fff;
+}
+
+/* Panier et Configuration de Livraison 1-Tap */
+.btq-cart-card {
+  background: rgba(15, 30, 22, 0.95);
+  border: 1px solid rgba(0, 214, 108, 0.35);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  margin-bottom: 24px;
+}
+
+.btq-cart-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.btq-cart-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btq-pills-label {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #9cb3a8;
+  letter-spacing: 0.5px;
+  margin: 14px 0 8px;
+}
+
+.btq-pills-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.btq-pill-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #d1ded8;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btq-pill-btn:hover {
+  background: rgba(0, 214, 108, 0.12);
+  border-color: rgba(0, 214, 108, 0.3);
+}
+
+.btq-pill-btn.active {
+  background: rgba(0, 214, 108, 0.22);
+  border-color: #00d66c;
+  color: #00d66c;
+  font-weight: 800;
+}
+
+.btq-summary-box {
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 14px;
+  padding: 14px;
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btq-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #9cb3a8;
+}
+
+.btq-summary-row.total {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 10px;
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.btq-summary-total-val {
+  font-size: 18px;
+  color: #00d66c;
+}
+
+/* Bouton Géant Commander sur WhatsApp (1-Tap) */
+.btq-btn-order-wa {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #00d66c 0%, #059669 100%);
+  color: #06110a;
+  border: none;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 214, 108, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease;
+  box-sizing: border-box;
+}
+
+.btq-btn-order-wa:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+.btq-btn-order-wa:active {
+  transform: translateY(0);
+}
+
+.btq-notice-payment {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 11px;
+  color: #9cb3a8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* Empty state */
+.btq-empty-box {
+  text-align: center;
+  padding: 40px 20px;
+  background: rgba(15, 30, 22, 0.5);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+}

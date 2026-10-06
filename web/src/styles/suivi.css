@@ -885,3 +885,368 @@
   font-size: 13px;
   margin-top: 10px;
 }
+
+/* ---------------- SÉCURITÉ COLIS SÛR (ZÉRO CASH & SCAN) ---------------- */
+.suivi-security-card {
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 78, 59, 0.25) 100%);
+  border: 1.5px solid rgba(0, 214, 108, 0.35);
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.suivi-security-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.suivi-security-icon {
+  font-size: 32px;
+}
+
+.suivi-security-header h3 {
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.suivi-security-header p {
+  font-size: 13px;
+  color: var(--suivi-text-muted);
+}
+
+.suivi-security-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.suivi-security-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: #d1ddd8;
+  line-height: 1.45;
+}
+
+.suivi-security-item strong {
+  color: var(--suivi-emerald);
+}
+
+/* ---------------- 1-TAP PRESETS & LANDMARKS ---------------- */
+.suivi-quick-presets, .suivi-landmarks, .suivi-slot-selector {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.preset-label {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--suivi-text-muted);
+}
+
+.preset-pill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.preset-pill {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #e2ece7;
+  padding: 7px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.preset-pill:hover {
+  background: rgba(0, 214, 108, 0.18);
+  border-color: var(--suivi-emerald);
+  color: #fff;
+}
+
+.preset-pill.active-slot {
+  background: var(--suivi-emerald);
+  border-color: var(--suivi-emerald);
+  color: #06110a;
+  font-weight: 800;
+}
+
+.landmark-pill {
+  border-color: rgba(0, 214, 108, 0.25);
+  background: rgba(0, 214, 108, 0.08);
+}
+
+/* ---------------- REÇU OFFICIEL DE LIVRAISON (TICKET COLIS SÛR) ---------------- */
+.suivi-receipt-card {
+  background: linear-gradient(180deg, #121c17 0%, #0d1512 100%);
+  border: 1.5px solid rgba(0, 214, 108, 0.4);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.suivi-receipt-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #00d66c, #f7c948, #00d66c);
+}
+
+.receipt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.receipt-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.receipt-badge-logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #00d66c 0%, #075e54 100%);
+  border: 2px solid #fff;
+  color: #fff;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.receipt-title {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.3px;
+  color: #fff;
+}
+
+.receipt-sub {
+  font-size: 12px;
+  color: var(--suivi-text-muted);
+}
+
+.receipt-status-pill {
+  background: rgba(0, 214, 108, 0.15);
+  border: 1px solid var(--suivi-emerald);
+  color: var(--suivi-emerald);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 5px 12px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.receipt-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 2px 0;
+}
+
+.receipt-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.receipt-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.receipt-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 800;
+  color: var(--suivi-text-muted);
+}
+
+.receipt-val {
+  font-size: 13px;
+  color: #fff;
+  word-break: break-word;
+}
+
+.receipt-items-table {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.receipt-table-header {
+  display: grid;
+  grid-template-columns: 3fr 1fr 2fr;
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: var(--suivi-text-muted);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 6px;
+}
+
+.receipt-table-row {
+  display: grid;
+  grid-template-columns: 3fr 1fr 2fr;
+  font-size: 13px;
+  color: #e2ece7;
+}
+
+.receipt-totals-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 14px;
+  border-radius: 14px;
+}
+
+.receipt-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--suivi-text-muted);
+}
+
+.receipt-total-row.total-highlight {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 8px;
+  margin-top: 2px;
+  color: #fff;
+}
+
+.receipt-footer-seal {
+  text-align: center;
+  font-size: 12px;
+  color: var(--suivi-emerald);
+  font-weight: 700;
+  background: rgba(0, 214, 108, 0.08);
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px dashed rgba(0, 214, 108, 0.3);
+}
+
+.receipt-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.receipt-btn-print {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #00d66c, #059669);
+  color: #06110a;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.receipt-btn-print:hover {
+  filter: brightness(1.1);
+}
+
+.receipt-btn-share {
+  width: 100%;
+  padding: 11px;
+  background: rgba(37, 211, 102, 0.15);
+  border: 1px solid #25d366;
+  color: #25d366;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  text-align: center;
+  box-sizing: border-box;
+  display: block;
+}
+
+/* ---------------- FLOATING HELP BUTTON ---------------- */
+.suivi-help-float-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(37, 211, 102, 0.12);
+  border: 1px solid rgba(37, 211, 102, 0.3);
+  color: #25d366;
+  text-decoration: none;
+  padding: 12px 18px;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 13px;
+  margin-top: 10px;
+  transition: all 0.2s;
+}
+
+.suivi-help-float-btn:hover {
+  background: rgba(37, 211, 102, 0.25);
+  border-color: #25d366;
+}
+
+/* PRINT MEDIA */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #wazap-receipt, #wazap-receipt * {
+    visibility: visible;
+  }
+  #wazap-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: #fff !important;
+    color: #000 !important;
+    border: 2px solid #000 !important;
+  }
+  #wazap-receipt .receipt-actions {
+    display: none !important;
+  }
+}
