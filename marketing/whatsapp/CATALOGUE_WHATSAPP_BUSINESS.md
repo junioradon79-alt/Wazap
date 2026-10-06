@@ -16,6 +16,9 @@ Le catalogue est structuré en **3 Collections** :
 2. **🛵 Espace Livreurs & Recrutement** (Adhésion 0% commission & Défi Smartphone)
 3. **🛡️ Sécurité, Tarifs & Colis Sûr** (Grille tarifaire Abidjan & QR Code Universel)
 
+🌐 **Interface Web Interactive Clé en Main :**
+Ouvrez [`marketing/whatsapp/catalogue_preview.html`](file:///c:/Dev/Wazap/WazapSln/marketing/whatsapp/catalogue_preview.html) ou accédez en ligne à `https://junioradon79gm-001-site1.jtempurl.com/whatsapp/catalogue.html` pour prévisualiser toutes les fiches, copier les champs en 1 clic (Nom, Prix, Description, Liens) et télécharger directement les images carrées HD (2160×2160).
+
 ---
 
 ## 2. Fiches Articles Clé en Main (Prêtes à Copier-Coller)
@@ -25,7 +28,7 @@ Le catalogue est structuré en **3 Collections** :
 ---
 
 #### Article 1 : Pack Bienvenue Commerçant (15 Livraisons Offertes)
-* **Photos à charger :** `marketing/visuels/tiktok_cover_1_offre_15courses.jpg` (ou `marketing/visuels/wazap_commercants_carre_1080x1080.png`)
+* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/01_pack_bienvenue_15courses.png` (Carré HD 2160×2160)
 * **Nom de l'article :** `🎁 Pack Bienvenue (15 Livraisons Offertes)`
 * **Prix :** `0 FCFA`
 * **Description :**
@@ -45,7 +48,7 @@ Touchez le lien ci-dessous pour activer vos 15 courses offertes !
 ---
 
 #### Article 2 : Pack Petit (35 Livraisons Sécurisées)
-* **Photos à charger :** `marketing/visuels/wazap_commercants_carre_1080x1080.png`
+* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/02_pack_petit_35courses.png` (Carré HD 2160×2160)
 * **Nom de l'article :** `📦 Pack Petit — 35 Livraisons`
 * **Prix :** `5 000 FCFA`
 * **Description :**
@@ -65,7 +68,7 @@ Touchez le lien ci-dessous pour commander votre recharge.
 ---
 
 #### Article 3 : Pack Moyen (80 Livraisons Sécurisées)
-* **Photos à charger :** `marketing/visuels/wazap_commercants_carre_1080x1080.png`
+* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/03_pack_moyen_80courses.png` (Carré HD 2160×2160)
 * **Nom de l'article :** `🔥 Pack Moyen — 80 Livraisons (Recommandé)`
 * **Prix :** `10 000 FCFA`
 * **Description :**
@@ -85,7 +88,7 @@ Touchez le lien ci-dessous pour recharger votre compte.
 ---
 
 #### Article 4 : Pack Grand (220 Livraisons Sécurisées)
-* **Photos à charger :** `marketing/visuels/wazap_commercants_carre_1080x1080.png`
+* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/04_pack_grand_220courses.png` (Carré HD 2160×2160)
 * **Nom de l'article :** `🚀 Pack Grand — 220 Livraisons`
 * **Prix :** `25 000 FCFA`
 * **Description :**
@@ -105,7 +108,7 @@ Touchez le lien ci-dessous pour recharger votre compte.
 ---
 
 #### Article 5 : Pack Pro (1 000 Livraisons Grands Comptes)
-* **Photos à charger :** `marketing/visuels/wazap_commercants_carre_1080x1080.png`
+* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/05_pack_pro_1000courses.png` (Carré HD 2160×2160)
 * **Nom de l'article :** `👑 Pack Pro — 1 000 Livraisons`
 * **Prix :** `100 000 FCFA`
 * **Description :**
@@ -129,7 +132,7 @@ Touchez le lien ci-dessous pour commander votre pack Pro.
 ---
 
 #### Article 6 : Devenir Livreur Certifié WAZAP (0% Commission)
-* **Photos à charger :** `marketing/visuels/affiche_recrutement_motards_officielle.jpg`
+* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/06_devenir_livreur_certifie.png` (Carré HD 2160×2160)
 * **Nom de l'article :** `🛵 Devenir Livreur Certifié (0% Commission)`
 * **Prix :** `0 FCFA`
 * **Description :**
@@ -150,7 +153,7 @@ Touchez le lien ci-dessous pour vous inscrire immédiatement.
 ---
 
 #### Article 7 : Défi Smartphone Redmi 15C Neuf (Livreur Ambassadeur)
-* **Photos à charger :** `marketing/visuels/visuel_smartphone_feed_1080x1350.png`
+* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/07_defi_smartphone_redmi15c.png` (Carré HD 2160×2160)
 * **Nom de l'article :** `📱 Défi Smartphone Redmi 15C Neuf`
 * **Prix :** `0 FCFA` (Récompense offerte)
 * **Description :**
@@ -174,7 +177,7 @@ Suivi de progression en direct sur WhatsApp avec jauges visuelles ! Touchez le l
 ---
 
 #### Article 8 : Grille Tarifaire Officielle Grand Abidjan
-* **Photos à charger :** `marketing/visuels/visuel_dignite_motard_comparatif.png`
+* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/08_grille_tarifaire_abidjan.png` (Carré HD 2160×2160)
 * **Nom de l'article :** `📋 Grille Tarifaire Abidjan (0% Commission)`
 * **Prix :** `1 000 FCFA`
 * **Description :**
@@ -195,7 +198,7 @@ Touchez le lien ci-dessous pour consulter les détails ou demander une course.
 ---
 
 #### Article 9 : QR Code Universel & Garantie Colis Sûr
-* **Photos à charger :** `marketing/visuels/tiktok_cover_2_demo_scan.jpg`
+* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/09_qr_code_universel_colis_sur.png` (Carré HD 2160×2160)
 * **Nom de l'article :** `🛡️ Colis Sûr : Le QR Code Universel`
 * **Prix :** `0 FCFA`
 * **Description :**
