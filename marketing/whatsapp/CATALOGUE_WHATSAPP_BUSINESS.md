@@ -47,8 +47,48 @@ Touchez le lien ci-dessous pour activer vos 15 courses offertes !
 
 ---
 
-#### Article 2 : Pack Petit (35 Livraisons Sécurisées)
-* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/02_pack_petit_35courses.png` (Carré HD 2160×2160)
+#### Article 2 : Pack Mini (6 Livraisons Express)
+* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/02_pack_mini_6courses.png` (Carré HD 2160×2160)
+* **Nom de l'article :** `⚡ Pack Mini — 6 Livraisons`
+* **Prix :** `1 000 FCFA`
+* **Description :**
+```text
+La formule ultra-accessible pour tester ou démarrer vos livraisons (~166 F par mise en relation).
+
+✅ 6 crédits de livraison express dans tout Abidjan
+✅ Assignation en 3 minutes d'un coursier certifié
+✅ Paiement direct par QR Code Universel (Wave, OM, MTN, Moov)
+✅ Idéal pour tester le service en toute tranquillité
+
+Touchez le lien ci-dessous pour commander votre recharge.
+```
+* **Lien :** `https://wa.me/2250544051972?text=RECHARGE%20MINI`
+* **Code de l'article (SKU) :** `WA-PACK-MINI6`
+
+---
+
+#### Article 3 : Pack Découverte (15 Livraisons Sécurisées)
+* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/03_pack_decouverte_15courses.png` (Carré HD 2160×2160)
+* **Nom de l'article :** `✨ Pack Découverte — 15 Livraisons`
+* **Prix :** `2 500 FCFA`
+* **Description :**
+```text
+Le pack parfait pour les petites boutiques et créateurs (~166 F par mise en relation).
+
+✅ 15 crédits de livraison sécurisée Grand Abidjan
+✅ Suivi en direct du livreur par GPS
+✅ Garantie Colis Sûr : votre recette virée en direct
+✅ Valable sans date limite d'expiration
+
+Touchez le lien ci-dessous pour commander votre recharge.
+```
+* **Lien :** `https://wa.me/2250544051972?text=RECHARGE%20DECOUVERTE`
+* **Code de l'article (SKU) :** `WA-PACK-DECOUV15`
+
+---
+
+#### Article 4 : Pack Petit (35 Livraisons Sécurisées)
+* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/04_pack_petit_35courses.png` (Carré HD 2160×2160)
 * **Nom de l'article :** `📦 Pack Petit — 35 Livraisons`
 * **Prix :** `5 000 FCFA`
 * **Description :**
@@ -67,8 +107,8 @@ Touchez le lien ci-dessous pour commander votre recharge.
 
 ---
 
-#### Article 3 : Pack Moyen (80 Livraisons Sécurisées)
-* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/03_pack_moyen_80courses.png` (Carré HD 2160×2160)
+#### Article 5 : Pack Moyen (80 Livraisons Sécurisées)
+* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/05_pack_moyen_80courses.png` (Carré HD 2160×2160)
 * **Nom de l'article :** `🔥 Pack Moyen — 80 Livraisons (Recommandé)`
 * **Prix :** `10 000 FCFA`
 * **Description :**
@@ -87,8 +127,8 @@ Touchez le lien ci-dessous pour recharger votre compte.
 
 ---
 
-#### Article 4 : Pack Grand (220 Livraisons Sécurisées)
-* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/04_pack_grand_220courses.png` (Carré HD 2160×2160)
+#### Article 6 : Pack Grand (220 Livraisons Sécurisées)
+* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/06_pack_grand_220courses.png` (Carré HD 2160×2160)
 * **Nom de l'article :** `🚀 Pack Grand — 220 Livraisons`
 * **Prix :** `25 000 FCFA`
 * **Description :**
@@ -107,8 +147,8 @@ Touchez le lien ci-dessous pour recharger votre compte.
 
 ---
 
-#### Article 5 : Pack Pro (1 000 Livraisons Grands Comptes)
-* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/05_pack_pro_1000courses.png` (Carré HD 2160×2160)
+#### Article 7 : Pack Pro (1 000 Livraisons Grands Comptes)
+* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/07_pack_pro_1000courses.png` (Carré HD 2160×2160)
 * **Nom de l'article :** `👑 Pack Pro — 1 000 Livraisons`
 * **Prix :** `100 000 FCFA`
 * **Description :**
@@ -131,8 +171,8 @@ Touchez le lien ci-dessous pour commander votre pack Pro.
 
 ---
 
-#### Article 6 : Devenir Livreur Certifié WAZAP (0% Commission)
-* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/06_devenir_livreur_certifie.png` (Carré HD 2160×2160)
+#### Article 8 : Devenir Livreur Certifié WAZAP (0% Commission)
+* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/08_devenir_livreur_certifie.png` (Carré HD 2160×2160)
 * **Nom de l'article :** `🛵 Devenir Livreur Certifié (0% Commission)`
 * **Prix :** `0 FCFA`
 * **Description :**
@@ -152,8 +192,8 @@ Touchez le lien ci-dessous pour vous inscrire immédiatement.
 
 ---
 
-#### Article 7 : Défi Smartphone Redmi 15C Neuf (Livreur Ambassadeur)
-* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/07_defi_smartphone_redmi15c.png` (Carré HD 2160×2160)
+#### Article 9 : Défi Smartphone Redmi 15C Neuf (Livreur Ambassadeur)
+* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/09_defi_smartphone_redmi15c.png` (Carré HD 2160×2160)
 * **Nom de l'article :** `📱 Défi Smartphone Redmi 15C Neuf`
 * **Prix :** `0 FCFA` (Récompense offerte)
 * **Description :**
@@ -176,8 +216,8 @@ Suivi de progression en direct sur WhatsApp avec jauges visuelles ! Touchez le l
 
 ---
 
-#### Article 8 : Grille Tarifaire Officielle Grand Abidjan
-* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/08_grille_tarifaire_abidjan.png` (Carré HD 2160×2160)
+#### Article 10 : Grille Tarifaire Officielle Grand Abidjan
+* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/10_grille_tarifaire_abidjan.png` (Carré HD 2160×2160)
 * **Nom de l'article :** `📋 Grille Tarifaire Abidjan (0% Commission)`
 * **Prix :** `1 000 FCFA`
 * **Description :**
@@ -197,8 +237,8 @@ Touchez le lien ci-dessous pour consulter les détails ou demander une course.
 
 ---
 
-#### Article 9 : QR Code Universel & Garantie Colis Sûr
-* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/09_qr_code_universel_colis_sur.png` (Carré HD 2160×2160)
+#### Article 11 : QR Code Universel & Garantie Colis Sûr
+* **Photos à charger :** `marketing/whatsapp/catalogue_visuels/11_qr_code_universel_colis_sur.png` (Carré HD 2160×2160)
 * **Nom de l'article :** `🛡️ Colis Sûr : Le QR Code Universel`
 * **Prix :** `0 FCFA`
 * **Description :**
@@ -234,7 +274,7 @@ Touchez le lien ci-dessous pour expédier votre premier colis sécurisé.
      - Le **Lien** (`wa.me/2250544051972?text=...`).
      - Le **Code de l'article** (SKU).
    - Appuyez sur **Sauvegarder**.
-5. Répétez l'opération pour les 9 articles.
+5. Répétez l'opération pour les 11 articles.
 6. **Créer les Collections** (pour un classement visuel net) :
    - Dans l'onglet Catalogue, appuyez sur **Ajouter une nouvelle collection**.
    - Nommez la collection (ex : `Formules Commerçants`, `Espace Livreurs`, `Sécurité & Tarifs`).

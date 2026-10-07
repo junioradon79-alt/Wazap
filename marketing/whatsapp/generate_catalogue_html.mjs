@@ -32,7 +32,47 @@ Touchez le lien ci-dessous pour activer vos 15 courses offertes !`
     collection: "🏪 Formules Commerçants & E-commerce",
     collectionId: "commercants",
     num: 2,
-    image: "catalogue_visuels/02_pack_petit_35courses.png",
+    image: "catalogue_visuels/02_pack_mini_6courses.png",
+    name: "⚡ Pack Mini — 6 Livraisons",
+    price: "1 000 FCFA",
+    priceNum: 1000,
+    sku: "WA-PACK-MINI6",
+    link: "https://wa.me/2250544051972?text=RECHARGE%20MINI",
+    linkText: "RECHARGE MINI",
+    description: `La formule ultra-accessible pour tester ou démarrer vos livraisons (~166 F par mise en relation).
+
+✅ 6 crédits de livraison express dans tout Abidjan
+✅ Assignation en 3 minutes d'un coursier certifié
+✅ Paiement direct par QR Code Universel (Wave, OM, MTN, Moov)
+✅ Idéal pour tester le service en toute tranquillité
+
+Touchez le lien ci-dessous pour commander votre recharge.`
+  },
+  {
+    collection: "🏪 Formules Commerçants & E-commerce",
+    collectionId: "commercants",
+    num: 3,
+    image: "catalogue_visuels/03_pack_decouverte_15courses.png",
+    name: "✨ Pack Découverte — 15 Livraisons",
+    price: "2 500 FCFA",
+    priceNum: 2500,
+    sku: "WA-PACK-DECOUV15",
+    link: "https://wa.me/2250544051972?text=RECHARGE%20DECOUVERTE",
+    linkText: "RECHARGE DECOUVERTE",
+    description: `Le pack parfait pour les petites boutiques et créateurs (~166 F par mise en relation).
+
+✅ 15 crédits de livraison sécurisée Grand Abidjan
+✅ Suivi en direct du livreur par GPS
+✅ Garantie Colis Sûr : votre recette virée en direct
+✅ Valable sans date limite d'expiration
+
+Touchez le lien ci-dessous pour commander votre recharge.`
+  },
+  {
+    collection: "🏪 Formules Commerçants & E-commerce",
+    collectionId: "commercants",
+    num: 4,
+    image: "catalogue_visuels/04_pack_petit_35courses.png",
     name: "📦 Pack Petit — 35 Livraisons",
     price: "5 000 FCFA",
     priceNum: 5000,
@@ -51,8 +91,8 @@ Touchez le lien ci-dessous pour commander votre recharge.`
   {
     collection: "🏪 Formules Commerçants & E-commerce",
     collectionId: "commercants",
-    num: 3,
-    image: "catalogue_visuels/03_pack_moyen_80courses.png",
+    num: 5,
+    image: "catalogue_visuels/05_pack_moyen_80courses.png",
     name: "🔥 Pack Moyen — 80 Livraisons (Recommandé)",
     price: "10 000 FCFA",
     priceNum: 10000,
@@ -71,8 +111,8 @@ Touchez le lien ci-dessous pour recharger votre compte.`
   {
     collection: "🏪 Formules Commerçants & E-commerce",
     collectionId: "commercants",
-    num: 4,
-    image: "catalogue_visuels/04_pack_grand_220courses.png",
+    num: 6,
+    image: "catalogue_visuels/06_pack_grand_220courses.png",
     name: "🚀 Pack Grand — 220 Livraisons",
     price: "25 000 FCFA",
     priceNum: 25000,
@@ -91,8 +131,8 @@ Touchez le lien ci-dessous pour recharger votre compte.`
   {
     collection: "🏪 Formules Commerçants & E-commerce",
     collectionId: "commercants",
-    num: 5,
-    image: "catalogue_visuels/05_pack_pro_1000courses.png",
+    num: 7,
+    image: "catalogue_visuels/07_pack_pro_1000courses.png",
     name: "👑 Pack Pro — 1 000 Livraisons",
     price: "100 000 FCFA",
     priceNum: 100000,
@@ -113,8 +153,8 @@ Touchez le lien ci-dessous pour commander votre pack Pro.`
   {
     collection: "🛵 Espace Livreurs & Recrutement",
     collectionId: "livreurs",
-    num: 6,
-    image: "catalogue_visuels/06_devenir_livreur_certifie.png",
+    num: 8,
+    image: "catalogue_visuels/08_devenir_livreur_certifie.png",
     name: "🛵 Devenir Livreur Certifié (0% Commission)",
     price: "0 FCFA",
     priceNum: 0,
@@ -134,8 +174,8 @@ Touchez le lien ci-dessous pour vous inscrire immédiatement.`
   {
     collection: "🛵 Espace Livreurs & Recrutement",
     collectionId: "livreurs",
-    num: 7,
-    image: "catalogue_visuels/07_defi_smartphone_redmi15c.png",
+    num: 9,
+    image: "catalogue_visuels/09_defi_smartphone_redmi15c.png",
     name: "📱 Défi Smartphone Redmi 15C Neuf",
     price: "0 FCFA",
     priceNum: 0,
@@ -156,8 +196,8 @@ Suivi de progression en direct sur WhatsApp avec jauges visuelles ! Touchez le l
   {
     collection: "🛡️ Sécurité, Tarifs & Colis Sûr",
     collectionId: "securite",
-    num: 8,
-    image: "catalogue_visuels/08_grille_tarifaire_abidjan.png",
+    num: 10,
+    image: "catalogue_visuels/10_grille_tarifaire_abidjan.png",
     name: "📋 Grille Tarifaire Abidjan (0% Commission)",
     price: "1 000 FCFA",
     priceNum: 1000,
@@ -177,8 +217,8 @@ Touchez le lien ci-dessous pour consulter les détails ou demander une course.`
   {
     collection: "🛡️ Sécurité, Tarifs & Colis Sûr",
     collectionId: "securite",
-    num: 9,
-    image: "catalogue_visuels/09_qr_code_universel_colis_sur.png",
+    num: 11,
+    image: "catalogue_visuels/11_qr_code_universel_colis_sur.png",
     name: "🛡️ Colis Sûr : Le QR Code Universel",
     price: "0 FCFA",
     priceNum: 0,
@@ -609,8 +649,8 @@ function generateHtml(baseImagePath = './catalogue_visuels/') {
 
     <!-- TABS -->
     <div class="tabs-bar">
-      <button class="tab-btn active" onclick="filterCategory('all', this)">⚡ Tous les articles (9)</button>
-      <button class="tab-btn" onclick="filterCategory('commercants', this)">🏪 Formules Commerçants (5)</button>
+      <button class="tab-btn active" onclick="filterCategory('all', this)">⚡ Tous les articles (11)</button>
+      <button class="tab-btn" onclick="filterCategory('commercants', this)">🏪 Formules Commerçants (7)</button>
       <button class="tab-btn" onclick="filterCategory('livreurs', this)">🛵 Espace Livreurs (2)</button>
       <button class="tab-btn" onclick="filterCategory('securite', this)">🛡️ Sécurité & Tarifs (2)</button>
       <button class="tab-btn" onclick="copyFullManifest()">📋 Copier Tout le Manifeste</button>
@@ -788,7 +828,7 @@ DESCRIPTION :
         txt += \`SKU : \${item.sku}\\n\\n\`;
         txt += \`DESCRIPTION :\\n\${item.description}\\n\\n\`;
       });
-      copyText(txt, 'Manifeste complet de 9 articles copié !');
+      copyText(txt, 'Manifeste complet de 11 articles copié !');
     }
   </script>
 </body>
