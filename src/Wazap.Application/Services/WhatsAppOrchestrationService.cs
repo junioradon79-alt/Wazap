@@ -260,9 +260,7 @@ namespace Wazap.Application.Services
             if (!string.IsNullOrWhiteSpace(dropoffLink))
                 riderText += $"\n🗺️ Client : {dropoffLink}";
 
-            if (!string.IsNullOrWhiteSpace(order.DeliveryCode))
-                riderText += $"\n🔐 À la remise : demandez son code au client, puis envoyez"
-                          + $" LIVRE {orderCode} CODE <4 chiffres>.";
+            riderText += $"\n\n👉 Colis livré au client ? Touchez ici (1 tap) :\nhttps://wa.me/2250544051972?text=LIVRE%20{orderCode}";
 
             await SendTextAsync(rider, riderText);
 
@@ -347,12 +345,16 @@ namespace Wazap.Application.Services
                 return link is null ? line : $"{line}\n     🗺️ {link}";
             }));
 
-            var withCode = orders.Any(o => !string.IsNullOrWhiteSpace(o.DeliveryCode));
+            var links = string.Join("\n", orders.Select(o =>
+            {
+                var c = o.Id.ToString("N")[..8].ToUpperInvariant();
+                return $"  • #{c} ({o.ClientName}) : https://wa.me/2250544051972?text=LIVRE%20{c}";
+            }));
+
             var tourText = $"✅ Tournée acceptée : {orders.Count} commandes à récupérer chez le vendeur.\n" +
-                           $"📋 Livraisons :\n{details}\n" +
-                           (withCode
-                               ? "🔄 Après CHAQUE livraison : demandez son code au client et envoyez LIVRE <code> CODE <4 chiffres>."
-                               : "🔄 Envoyez LIVRE <code> après CHAQUE livraison effectuée.");
+                           $"📋 Livraisons :\n{details}\n\n" +
+                           $"👉 Après chaque livraison, touchez son lien pour confirmer (1 tap) :\n{links}\n\n" +
+                           $"👉 Ou tout clôturer : https://wa.me/2250544051972?text=LIVRE%20TOUT";
 
             if (!string.IsNullOrWhiteSpace(vendorPickupLink))
                 tourText += $"\n📍 Retrait : {vendorPickupLink}";

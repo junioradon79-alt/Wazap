@@ -114,14 +114,19 @@ public sealed class RiderDeliveryCommands
 
         // Tournée multi-clients : on ne clôture JAMAIS toutes les livraisons d'un coup
         // (sauf « LIVRE TOUT » explicite) pour notifier chaque client au bon moment.
+        // ZÉRO SAISIE TEXTE / 1-TAP ABSOLU (Règle Canonique n°10) :
+        // Le bot renvoie des liens wa.me pré-remplis pour chaque colis au lieu d'inviter à taper du texte.
         if (marker == "LIVRE" && orders.Count > 1 && string.IsNullOrWhiteSpace(code))
         {
-            var proofActive = _deliveryProof.RequireClientCode || clientCode is not null;
-            await reply(user,
-                "ℹ️ Plusieurs livraisons en cours.\n" +
-                (proofActive
-                    ? "Envoyez LIVRE <code> CODE <4 chiffres> après CHAQUE livraison (ex : LIVRE A1B2C3D4 CODE 1234)."
-                    : "Envoyez LIVRE <code> après CHAQUE livraison (ex : LIVRE A1B2C3D4), ou LIVRE TOUT pour tout clôturer."));
+            var sb = new System.Text.StringBuilder("ℹ️ *Plusieurs livraisons en cours.*\n\n");
+            sb.AppendLine("👉 Touchez le colis livré pour confirmer (1 clic) :");
+            foreach (var o in orders)
+            {
+                var shortCode = o.Id.ToString("N")[..8].ToUpperInvariant();
+                sb.AppendLine($"• #{shortCode} ({o.ClientName}) :\nhttps://wa.me/2250544051972?text=LIVRE%20{shortCode}\n");
+            }
+            sb.AppendLine("👉 Ou tout clôturer avec LIVRE TOUT (1 clic) :\nhttps://wa.me/2250544051972?text=LIVRE%20TOUT");
+            await reply(user, sb.ToString().TrimEnd());
             return;
         }
 
@@ -141,14 +146,21 @@ public sealed class RiderDeliveryCommands
             {
                 await reply(user,
                     "🔐 Clôture groupée impossible : chaque livraison se confirme avec le code de son client.\n" +
-                    "Envoyez LIVRE <code> CODE <4 chiffres> après chaque remise.");
+                    "Envoyez LIVRE <code> après chaque remise.");
                 return;
             }
 
             if (orders.Count != 1)
             {
-                await reply(user,
-                    "ℹ️ Précisez la course : LIVRE <code> CODE <4 chiffres> (ex : LIVRE A1B2C3D4 CODE 1234).");
+                var sb = new System.Text.StringBuilder("ℹ️ *Plusieurs livraisons en cours.*\n\n");
+                sb.AppendLine("👉 Touchez le colis livré pour confirmer (1 clic) :");
+                foreach (var o in orders)
+                {
+                    var shortCode = o.Id.ToString("N")[..8].ToUpperInvariant();
+                    sb.AppendLine($"• #{shortCode} ({o.ClientName}) :\nhttps://wa.me/2250544051972?text=LIVRE%20{shortCode}\n");
+                }
+                sb.AppendLine("👉 Ou tout clôturer avec LIVRE TOUT (1 clic) :\nhttps://wa.me/2250544051972?text=LIVRE%20TOUT");
+                await reply(user, sb.ToString().TrimEnd());
                 return;
             }
 
