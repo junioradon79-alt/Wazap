@@ -121,3 +121,12 @@ Render et SmarterASP possèdent donc deux bases distinctes. La suspension Render
 - Revue/réédition des contenus vidéo et images comportant d'anciennes promesses, chargement du catalogue sur téléphone, acquisition et recette terrain.
 
 Le chantier global reste ouvert jusqu'à validation de ces éléments. Aucun transfert réel ou engagement financier n'a été réalisé automatiquement.
+
+## 7. Remise du lot et publication
+
+- Sources, tests, migrations, documentation et bundle web synchronisé enregistrés dans le commit local `95bfe31` sur `main`.
+- La publication d'une branche de revue `codex/security-20261020` a été tentée ; Git n'a pas pu joindre GitHub (`getaddrinfo() thread failed to start`). La branche distante et une nouvelle exécution CI ne sont donc pas confirmées.
+- GitHub est accessible en lecture dans le navigateur, mais le connecteur de publication n'est pas installé. Une connexion adaptée a été proposée ; elle n'est pas présumée active.
+- Un candidat APK et son SHA-256 sont conservés dans `artifacts/release-candidate-20261020`. Il ne remplace pas l'APK public avant la bascule coordonnée.
+- La copie du bundle a réussi sans supprimer le dossier généré. Les anciens fichiers non référencés pourront être nettoyés par la reconstruction du pipeline ; les références de la nouvelle page ont été vérifiées.
+- Les contrôles réels PostgreSQL, le lint Android et les prérequis d'enrôlement restent des conditions de mise en service, même si le commit local est enregistré.
