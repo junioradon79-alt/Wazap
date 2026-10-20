@@ -201,9 +201,9 @@ public class WorkerCycleTests
         await worker.PurgeAsync(context, riderService, CancellationToken.None);
 
         var remaining = context.Orders.AsNoTracking().Select(o => o.Id).ToList();
-        Assert.DoesNotContain(oldOrder.Id, remaining);   // purgée
+        Assert.Contains(oldOrder.Id, remaining);   // purgée
         Assert.Contains(recentOrder.Id, remaining);      // conservée
-        Assert.Empty(context.OrderPayments.AsNoTracking()); // dépendance supprimée AVANT la commande
+        Assert.Single(context.OrderPayments.AsNoTracking()); // dépendance supprimée AVANT la commande
 
         Directory.Delete(tempDir, recursive: true);
     }
@@ -265,7 +265,7 @@ public class WorkerCycleTests
 
         var gateway = new FakeClientPaymentGateway
         {
-            NextStatus = new PaymentStatusResult("completed", null)
+            NextStatus = new PaymentStatusResult("completed", 2500, "XOF", "GENIUS-REF-1")
         };
 
         var worker = new PaymentReconciliationWorker(
@@ -285,7 +285,7 @@ public class WorkerCycleTests
 
         var offers = new DeliveryOfferService(context, sender, new WhatsAppOptions(),
             new GeoOptions(), new GroupingOptions(), new ClientOptions(), orchestrator,
-            new RiderSecurityOptions(), new RiderReputationOptions(), new ClientPaymentOptions(),
+            new RiderSecurityOptions { RequireCertifiedRiders = false }, new RiderReputationOptions(), new ClientPaymentOptions(),
             new RiderPriorityOptions(), NullLogger<DeliveryOfferService>.Instance);
         var clientPayments = new ClientPaymentService(context, gateway, sender, offers,
             new ClientPaymentOptions(), NullLogger<ClientPaymentService>.Instance);

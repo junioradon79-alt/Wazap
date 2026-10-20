@@ -37,6 +37,14 @@ scripts/activation/web.config.remote
 marketing/demo-video/
 
 # Android build artifacts
+*.keystore
+*.jks
+keystore.properties
+.env
+.env.*
+!.env.example
+secrets/
+backups/
 .gradle/
 **/build/
 local.properties

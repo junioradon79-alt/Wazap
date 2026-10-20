@@ -135,6 +135,16 @@ public sealed class OutboxBackgroundWorker : BackgroundService
             {
                 if (message.Type == WebhookEvents.TypeWebhookDelivery)
                     await DeliverWebhookAsync(message, httpFactory, ct);
+                else if (message.Type == "PaymentNotification")
+                {
+                    var notification = JsonSerializer.Deserialize<Wazap.Application.Dtos.PaymentNotification>(message.Payload)
+                        ?? throw new InvalidOperationException("Notification de paiement invalide.");
+                    await scope.ServiceProvider.GetRequiredService<Wazap.Application.Abstractions.IWhatsAppSender>()
+                        .SendTextMessageAsync(notification.Phone, notification.Text, ct);
+                }
+                else if (message.Type == "PaymentDispatch")
+                    await scope.ServiceProvider.GetRequiredService<Wazap.Application.Services.ClientPaymentService>()
+                        .TryDispatchAfterPaymentAsync(Guid.Parse(message.Payload));
                 else
                     await DeliverWhatsAppNotificationAsync(message, notificationService);
 

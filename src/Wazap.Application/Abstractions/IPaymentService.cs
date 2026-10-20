@@ -7,12 +7,20 @@ namespace Wazap.Application.Abstractions
         bool Success,
         string? TransactionReference,
         string? PaymentLink,
-        string? ErrorMessage);
+        string? ErrorMessage,
+        bool OutcomeUnknown = false);
 
     /// <summary>
     /// Statut d'une transaction côté agrégateur (utilisé par la réconciliation).
     /// </summary>
-    public sealed record PaymentStatusResult(string? Status, decimal? Amount);
+    public sealed record PaymentStatusResult(string? Status, decimal? Amount, string? Currency = null, string? Reference = null, Guid? WazapTransactionId = null)
+    {
+        public bool Confirms(decimal expectedAmount, string expectedReference) =>
+            string.Equals(Status, "completed", StringComparison.OrdinalIgnoreCase)
+            && Amount == expectedAmount
+            && string.Equals(Currency, "XOF", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(Reference, expectedReference, StringComparison.Ordinal);
+    }
 
     /// <summary>
     /// Port de paiement des packs (GeniusPay en production, mock en dev/test).

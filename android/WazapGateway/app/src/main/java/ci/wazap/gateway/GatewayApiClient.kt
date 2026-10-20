@@ -38,6 +38,9 @@ object GatewayApiClient {
     private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
 
     private val httpClient = OkHttpClient.Builder()
+        .addInterceptor(GatewayCredentials)
+        .followRedirects(false)
+        .followSslRedirects(false)
         .connectTimeout(6, TimeUnit.SECONDS)
         .readTimeout(15, TimeUnit.SECONDS)
         .writeTimeout(15, TimeUnit.SECONDS)
@@ -96,6 +99,7 @@ object GatewayApiClient {
         }
 
         val requestBody = payload.toString().toRequestBody(jsonMediaType)
+        val nonce = java.util.UUID.randomUUID().toString().replace("-", "")
         val urls = listOf(PRIMARY_BASE_URL, FALLBACK_BASE_URL)
         var lastError: Exception? = null
 
@@ -103,6 +107,7 @@ object GatewayApiClient {
             try {
                 val request = Request.Builder()
                     .url("$base/process")
+                    .header("X-Gateway-Nonce", nonce)
                     .post(requestBody)
                     .build()
 
@@ -140,6 +145,7 @@ object GatewayApiClient {
         senderName: String,
         imageFile: File
     ): ProcessResult = withContext(Dispatchers.IO) {
+        val uploadNonce = java.util.UUID.randomUUID().toString().replace("-", "")
         val mimeType = when (imageFile.extension.lowercase()) {
             "png" -> "image/png"
             "webp" -> "image/webp"
@@ -164,6 +170,7 @@ object GatewayApiClient {
             try {
                 val request = Request.Builder()
                     .url("$base/upload-photo")
+                    .header("X-Gateway-Nonce", uploadNonce)
                     .post(requestBody)
                     .build()
 

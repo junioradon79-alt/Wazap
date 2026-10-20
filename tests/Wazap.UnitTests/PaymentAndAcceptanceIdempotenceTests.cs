@@ -134,7 +134,7 @@ public class PaymentAndAcceptanceIdempotenceTests
 
             Offers = new DeliveryOfferService(Context, new RecordingWhatsAppSender(), whatsAppOptions,
                 new GeoOptions(), new GroupingOptions(), new ClientOptions(), orchestrator,
-                new RiderSecurityOptions(), new RiderReputationOptions(), new ClientPaymentOptions(),
+                new RiderSecurityOptions { RequireCertifiedRiders = false }, new RiderReputationOptions(), new ClientPaymentOptions(),
                 new RiderPriorityOptions(), NullLogger<DeliveryOfferService>.Instance);
         }
 

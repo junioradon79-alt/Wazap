@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -78,6 +79,12 @@ internal sealed class WazapAppFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        // Résolution indépendante du lanceur (VSTest ou xUnit dans le même processus).
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Wazap.slnx")))
+            directory = directory.Parent;
+        if (directory is null) throw new InvalidOperationException("Racine de solution de test introuvable.");
+        builder.UseContentRoot(Path.Combine(directory.FullName, "src", "Wazap.API"));
         // Environnement demandé : ni « Development » (qui chargerait les user-secrets locaux,
         // donc la vraie base et la vraie clé JWT) ni, par défaut, « Production » (logs JSON et
         // règles de démarrage propres à la production).
@@ -98,6 +105,8 @@ internal sealed class WazapAppFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
+            // Les cookies de test ne doivent pas écrire des clés dans le profil Windows.
+            services.AddDataProtection().UseEphemeralDataProtectionProvider();
             // 1) Base InMemory à la place de PostgreSQL.
             //    On retire TOUTES les inscriptions qui configurent le contexte : les options
             //    GÉNÉRIQUES, leur configuration (c'est elle qui portait le `UseNpgsql` d'origine)

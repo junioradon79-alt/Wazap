@@ -25,6 +25,7 @@ public class GatewayWhatsAppController : ControllerBase
     private readonly RiderProgramService _riderProgram;
     private readonly IOcrService? _ocrService;
     private readonly ILogger<GatewayWhatsAppController> _logger;
+    private readonly Wazap.Application.Configuration.ClientOptions _clientOptions;
 
     public GatewayWhatsAppController(
         ApplicationDbContext context,
@@ -32,7 +33,7 @@ public class GatewayWhatsAppController : ControllerBase
         RiderService riderService,
         RiderProgramService riderProgram,
         ILogger<GatewayWhatsAppController> logger,
-        IOcrService? ocrService = null)
+        IOcrService? ocrService = null, Wazap.Application.Configuration.ClientOptions? clientOptions = null)
     {
         _context = context;
         _riderRecruitment = riderRecruitment;
@@ -40,6 +41,7 @@ public class GatewayWhatsAppController : ControllerBase
         _riderProgram = riderProgram;
         _logger = logger;
         _ocrService = ocrService;
+        _clientOptions = clientOptions ?? new Wazap.Application.Configuration.ClientOptions();
     }
 
     private static readonly string[] ProtectedNumberSuffixes = new[]
@@ -108,14 +110,14 @@ public class GatewayWhatsAppController : ControllerBase
         // GARDE-FOU 2 : Rejet formel du numéro personnel du propriétaire / admin (+225 07 08 32 33 66)
         if (IsProtectedOrBlacklisted(digits))
         {
-            _logger.LogWarning("Passerelle Android : Numéro personnel protégé/propriétaire ignoré sans réponse automatique : {Phone}", normalizedPhone);
+            _logger.LogWarning("Passerelle Android : numéro protégé ignoré.");
             return Ok(new GatewayInboundResponse(true, false, null, "ignored_protected_number", normalizedPhone));
         }
 
         var text = request.Text.Trim();
         var upper = text.ToUpperInvariant();
 
-        _logger.LogInformation("Passerelle Android WAZAP : Message de {Phone} : {Text}", normalizedPhone, text);
+        _logger.LogInformation("Passerelle Android : message reçu ({Length} caractères).", text.Length);
 
         // 1. Candidat Livreur (Enrôlement, Commune, Choix 1-6)
         var candidateReply = await _riderRecruitment.GetCandidateResponseTextAsync(normalizedPhone, text, request.SenderName);
@@ -257,7 +259,7 @@ public class GatewayWhatsAppController : ControllerBase
 
         // Pour tout autre message non reconnu (discussions personnelles, salutations courantes, messages ordinaires),
         // STRICTEMENT AUCUNE réponse automatique n'est expédiée pour garantir l'absence totale d'interférence.
-        _logger.LogInformation("Passerelle Android : Message sans commande WAZAP de {Phone} ('{Text}'). Ignoré sans réponse automatique.", normalizedPhone, text);
+        _logger.LogInformation("Passerelle Android : message sans commande ignoré.");
         return Ok(new GatewayInboundResponse(
             Success: true,
             ShouldReply: false,
@@ -272,6 +274,7 @@ public class GatewayWhatsAppController : ControllerBase
     /// </summary>
     [HttpPost("upload-photo")]
     [EnableRateLimiting("webhook")]
+    [RequestSizeLimit(8 * 1024 * 1024)]
     public async Task<IActionResult> UploadPhoto(
         [FromForm] IFormFile? file,
         [FromForm] string sender,
@@ -281,6 +284,9 @@ public class GatewayWhatsAppController : ControllerBase
         {
             return BadRequest(new GatewayInboundResponse(false, false, null, "missing_file", sender));
         }
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (file.Length > 5 * 1024 * 1024 || extension is not (".jpg" or ".jpeg" or ".png" or ".webp"))
+            return BadRequest(new GatewayInboundResponse(false, false, null, "invalid_image", sender));
 
         var rawPhone = sender?.Trim() ?? string.Empty;
         var digits = PhoneNumberNormalizer.DigitsOnly(rawPhone);
@@ -294,12 +300,11 @@ public class GatewayWhatsAppController : ControllerBase
         // GARDE-FOU : Rejet formel du numéro personnel du propriétaire / admin (+225 07 08 32 33 66)
         if (IsProtectedOrBlacklisted(digits))
         {
-            _logger.LogWarning("Passerelle Android : Téléversement photo ignoré pour numéro personnel protégé/propriétaire : {Phone}", normalizedPhone);
+            _logger.LogWarning("Passerelle Android : document de numéro protégé ignoré.");
             return Ok(new GatewayInboundResponse(true, false, null, "ignored_protected_number", normalizedPhone));
         }
 
-        _logger.LogInformation("Passerelle Android WAZAP : Photo CNI/Permis reçue de {Phone} ({SenderName}), taille: {Size} octets",
-            normalizedPhone, senderName, file.Length);
+        _logger.LogInformation("Passerelle Android : document reçu, taille {Size} octets.", file.Length);
 
         byte[] imageBytes;
         using (var ms = new MemoryStream())
@@ -317,7 +322,7 @@ public class GatewayWhatsAppController : ControllerBase
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "OCR Google Vision en échec pour {Phone}", normalizedPhone);
+                _logger.LogWarning(ex, "OCR Google Vision en échec.");
             }
         }
 
@@ -329,7 +334,6 @@ public class GatewayWhatsAppController : ControllerBase
             ? ocr.IdNumber
             : null;
 
-        var docType = ocr?.DocumentType ?? "Pièce d'identité";
 
         var last8 = digits.Length >= 8 ? digits[^8..] : digits;
         var rider = await _context.Users
@@ -365,24 +369,26 @@ public class GatewayWhatsAppController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Stockage scan non bloquant en échec pour {UserId}", rider.Id);
+            _logger.LogWarning(ex, "Stockage sécurisé du scan en échec pour {UserId}", rider.Id);
+            return StatusCode(503, new GatewayInboundResponse(false, false, null, "scan_storage_unavailable", normalizedPhone));
         }
 
         var finalVerifiedName = extractedName ?? rider.Username;
-        var finalIdNumber = extractedIdNumber ?? ("AUTO-" + DateTime.UtcNow.ToString("yyyyMMddHHmmss"));
-        await _riderService.VerifyRiderAsync(rider.Id, finalVerifiedName, finalIdNumber, null, Guid.Empty);
+        // L'OCR extrait du texte ; seule l'équipe peut prendre la décision de certification.
+        var identity = await _context.RiderIdentities.FirstOrDefaultAsync(i => i.UserId == rider.Id);
+        if (identity is not null && ocr?.Success == true && !string.IsNullOrWhiteSpace(extractedIdNumber))
+            identity.UpdateParsedInfo(finalVerifiedName, extractedIdNumber);
 
         if (lead != null)
         {
             lead.SetStatus(LeadStatus.Converted);
-            await _context.SaveChangesAsync();
         }
+        await _context.SaveChangesAsync();
 
-        var idNotice = !string.IsNullOrWhiteSpace(extractedIdNumber) ? $" (N° {extractedIdNumber})" : "";
-        var riderDashboardUrl = $"https://junioradon79gm-001-site1.jtempurl.com/app/login?u={Uri.EscapeDataString(rider.Username)}";
+        var riderDashboardUrl = await PasswordlessAccess.IssueAsync(_context, rider, _clientOptions);
         var replyText = $"🎉 Félicitations {finalVerifiedName} !\n\n"
-            + $"✅ Votre {docType}{idNotice} a été analysée et validée avec succès par notre système 🪪⚡\n\n"
-            + "🛡️ Vous avez désormais le statut officiel de LIVREUR CERTIFIÉ WAZAP (Assurance Colis Sûr activée) !\n\n"
+            + "✅ Votre photo a été enregistrée de façon sécurisée.\n\n"
+            + "Votre dossier attend la vérification de notre équipe. Vous n'êtes pas encore certifié.\n\n"
             + "📊 Touchez ce lien pour ouvrir votre Cockpit Livreur (courses, gains nets et challenge smartphone) :\n"
             + $"👉 {riderDashboardUrl}\n\n"
             + "🛵 Pour vous mettre en ligne et recevoir vos premières courses immédiatement, cliquez ci-dessous :\n"
@@ -392,7 +398,7 @@ public class GatewayWhatsAppController : ControllerBase
             Success: true,
             ShouldReply: true,
             ReplyText: replyText,
-            Category: "rider_photo_verified",
+            Category: "rider_photo_pending_review",
             Sender: normalizedPhone));
     }
 }

@@ -64,14 +64,14 @@ namespace Wazap.Infrastructure.Services
             {
                 _logger.LogWarning("GeniusPay a retourné {Status} : {Content}",
                     (int)response.StatusCode, Truncate(content));
-                return new PaymentResult(false, null, null, $"Erreur GeniusPay ({(int)response.StatusCode}).");
+                return new PaymentResult(false, null, null, $"Erreur GeniusPay ({(int)response.StatusCode}).", OutcomeUnknown: (int)response.StatusCode >= 500);
             }
 
             var result = JsonSerializer.Deserialize<GeniusPayInitiateResponse>(content);
             if (result?.Data?.CheckoutUrl is null)
             {
                 _logger.LogWarning("Réponse GeniusPay inattendue : {Content}", Truncate(content));
-                return new PaymentResult(false, null, null, "Réponse GeniusPay invalide.");
+                return new PaymentResult(false, null, null, "Réponse GeniusPay invalide.", OutcomeUnknown: true);
             }
 
             _logger.LogInformation("Paiement GeniusPay initié : id={Id}, ref={Ref}, url={Url}",
@@ -116,7 +116,11 @@ namespace Wazap.Infrastructure.Services
             if (result?.Data is null)
                 return null;
 
-            return new PaymentStatusResult(result.Data.Status, result.Data.Amount);
+            Guid? internalId = result.Data.Metadata is { } metadata
+                && metadata.TryGetValue("wazap_transaction_id", out var value) && Guid.TryParse(value, out var parsed)
+                ? parsed : null;
+            return new PaymentStatusResult(result.Data.Status, result.Data.Amount, result.Data.Currency,
+                result.Data.Reference ?? result.Data.Id?.ToString(), internalId);
         }
 
         private static string Truncate(string value, int max = 500)
@@ -163,6 +167,14 @@ namespace Wazap.Infrastructure.Services
 
         private sealed class GeniusPayStatusData
         {
+            [JsonPropertyName("metadata")]
+            public Dictionary<string, string>? Metadata { get; set; }
+            [JsonPropertyName("currency")]
+            public string? Currency { get; set; }
+            [JsonPropertyName("reference")]
+            public string? Reference { get; set; }
+            [JsonPropertyName("id")]
+            public JsonElement? Id { get; set; }
             [JsonPropertyName("status")]
             public string? Status { get; set; }
 

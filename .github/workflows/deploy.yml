@@ -17,8 +17,7 @@ name: Deploy prod (SmarterASP - FTP)
 #
 # 💡 Les tests unitaires sont exécutés AVANT le publish : du code cassé (ex. service
 #    non enregistré en DI — incident prod du 11/09) NE PEUT PLUS atteindre la prod.
-#    Le workflow CI tourne en parallèle mais NE bloque PAS le déploiement : c'est le
-#    gate « Tests (garde-fou …) » ci-dessous, dans CE workflow, qui fait foi.
+#    La CI réutilisable complète est une dépendance bloquante du déploiement pour le même commit.
 #
 # Le web.config DISTANT n'est jamais écrasé (il porte les env vars de prod).
 
@@ -30,6 +29,11 @@ on:
       - 'web/**'
       - 'Wazap.slnx'
       - 'scripts/cd-deploy.sh'
+      - 'scripts/verify-restore.sh'
+      - 'scripts/scan-secrets.mjs'
+      - 'android/**'
+      - 'tests/**'
+      - '.github/workflows/ci.yml'
       - '.github/workflows/deploy.yml'
   workflow_dispatch:
     inputs:
@@ -51,7 +55,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validation:
+    uses: ./.github/workflows/ci.yml
+
   deploy:
+    needs: validation
     runs-on: ubuntu-latest
     # Environnement GitHub dédié : permet d'exiger une approbation humaine et de restreindre
     # les secrets au déploiement (Settings → Environments → production → Required reviewers).
@@ -117,7 +125,7 @@ jobs:
           echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
             | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
           sudo apt-get update -qq
-          sudo apt-get install -y -qq postgresql-client-17
+          sudo apt-get install -y -qq postgresql-client-18
           pg_dump --version
 
       - name: Sauvegarde de la base prod AVANT migration (pg_dump)
@@ -127,9 +135,8 @@ jobs:
         #
         # Robustesse : deux méthodes sont tentées (client du runner, puis conteneur PostgreSQL
         # le plus récent — un pg_dump récent sait sauvegarder un serveur plus ancien, l'inverse
-        # est faux). Si les deux échouent, le déploiement CONTINUE avec un avertissement très
-        # visible : bloquer une mise en production sur un problème d'outillage serait pire pour
-        # le service que déployer sans filet. L'échec est journalisé pour être corrigé.
+        # est faux). Si les deux échouent, le déploiement et les migrations sont bloqués.
+        # Seul skip_backup, explicitement choisi lors d'un lancement manuel, peut déroger.
         if: ${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.apply_migrations)) && !inputs.skip_backup }}
         shell: bash
         env:
@@ -137,8 +144,8 @@ jobs:
         run: |
           set -uo pipefail
           if [ -z "$PROD_DB" ]; then
-            echo "::warning::SMARTERASP_DB_CONNECTION absent — déploiement SANS sauvegarde préalable."
-            exit 0
+            echo "::warning::SMARTERASP_DB_CONNECTION absent — sauvegarde et déploiement bloqués."
+            exit 1
           fi
 
           # Conversion de la chaîne Npgsql (clé=valeur séparés par « ; ») en DSN libpq
@@ -178,8 +185,8 @@ jobs:
           # le client du runner, cause classique d'un « server version mismatch »).
           if [ "$ok" -eq 0 ]; then
             rm -f "$dump"
-            echo "--- pg_dump (conteneur postgres:latest) ---"
-            if docker run --rm -e PGPASSWORD="$password" postgres:latest \
+            echo "--- pg_dump (conteneur postgres:18) ---"
+            if docker run --rm -e PGPASSWORD="$password" postgres:18 \
                  pg_dump --no-owner --no-privileges --format=custom "$dsn" > "$dump"; then
               ok=1
             fi
@@ -187,8 +194,8 @@ jobs:
 
           if [ "$ok" -eq 0 ] || [ ! -s "$dump" ]; then
             rm -f "$dump"
-            echo "::error::SAUVEGARDE IMPOSSIBLE avant migration — déploiement poursuivi sans filet. Vérifiez la version du serveur PostgreSQL et la connectivité depuis les runners GitHub."
-            exit 0
+            echo "::error::SAUVEGARDE IMPOSSIBLE : migration et déploiement bloqués."
+            exit 1
           fi
 
           ls -lh backups/
@@ -201,7 +208,7 @@ jobs:
           name: sauvegarde-base-prod
           path: backups/*.dump
           retention-days: 30
-          if-no-files-found: ignore
+          if-no-files-found: error
 
       - name: Appliquer les migrations prod (idempotent)
         if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.apply_migrations) }}

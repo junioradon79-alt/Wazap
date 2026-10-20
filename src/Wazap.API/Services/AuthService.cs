@@ -171,15 +171,15 @@ public sealed class AuthService
             throw new UnauthorizedAccessException("Identifiants invalides.");
         }
 
+        // Une connexion qui attend encore son second facteur ne remet pas à zéro les échecs TOTP.
+        if (user.TwoFactorEnabled)
+            return new AuthResponse(user.Id, null, user.Username, user.Role.ToString(), MfaRequired: true);
+
         if (user.FailedLoginAttempts != 0 || user.LockedUntilUtc is not null)
         {
             user.ResetLoginFailures();
             await _context.SaveChangesAsync();
         }
-
-        // 2FA activée : on demande le code avant de délivrer les jetons.
-        if (user.TwoFactorEnabled)
-            return new AuthResponse(user.Id, null, user.Username, user.Role.ToString(), MfaRequired: true);
 
         return await IssueAuthAsync(user);
     }
@@ -196,10 +196,36 @@ public sealed class AuthService
             throw new UnauthorizedAccessException("Le mot de passe actuel est incorrect.");
 
         user.ChangePassword(_passwordHasher.Hash(request.NewPassword));
+        await RevokeAllRefreshTokensAsync(user.Id);
         await _context.SaveChangesAsync();
     }
 
     /// <summary>Émet le couple (access JWT 8 h + refresh token 30 j, stocké hashé).</summary>
+    public async Task<AuthResponse> RedeemAccessLinkAsync(string? token)
+    {
+        if (string.IsNullOrWhiteSpace(token) || token.Length > 128)
+            throw new UnauthorizedAccessException("Lien invalide ou expiré.");
+        var hash = PasswordlessAccess.Hash(token);
+        var grant = await _context.RefreshTokens.FirstOrDefaultAsync(t => t.TokenHash == hash);
+        if (grant is null || !grant.IsActive)
+            throw new UnauthorizedAccessException("Lien invalide ou expiré.");
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == grant.UserId);
+        if (user is null || user.Role == UserRole.Admin || user.TwoFactorEnabled || user.IsLocked()
+            || string.IsNullOrWhiteSpace(grant.SecurityStamp)
+            || !SecurityHelper.FixedTimeEquals(grant.SecurityStamp, user.SecurityStamp))
+            throw new UnauthorizedAccessException("Lien invalide ou expiré.");
+        if (_context.Database.IsRelational())
+        {
+            var claimed = await _context.RefreshTokens
+                .Where(t => t.Id == grant.Id && t.RevokedAtUtc == null && t.ExpiresAtUtc > DateTime.UtcNow)
+                .ExecuteUpdateAsync(s => s.SetProperty(t => t.RevokedAtUtc, (DateTime?)DateTime.UtcNow));
+            if (claimed != 1) throw new UnauthorizedAccessException("Lien déjà utilisé.");
+        }
+        grant.Revoke();
+        await _context.SaveChangesAsync();
+        return await IssueAuthAsync(user);
+    }
+
     private async Task<AuthResponse> IssueAuthAsync(User user)
     {
         // Empreinte de sécurité absente (compte créé avant l'introduction du mécanisme) :
@@ -210,7 +236,7 @@ public sealed class AuthService
 
         var access = _jwtTokenGenerator.Generate(user);
         var rawRefresh = SecurityHelper.GenerateOpaqueToken();
-        var refresh = new RefreshToken(user.Id, SecurityHelper.Sha256Hex(rawRefresh), DateTime.UtcNow.AddDays(30));
+        var refresh = new RefreshToken(user.Id, SecurityHelper.Sha256Hex(rawRefresh), DateTime.UtcNow.AddDays(30), user.SecurityStamp);
         _context.RefreshTokens.Add(refresh);
         await _context.SaveChangesAsync();
 
@@ -232,6 +258,19 @@ public sealed class AuthService
 
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == stored.UserId)
             ?? throw new UnauthorizedAccessException("Utilisateur introuvable.");
+
+        if (string.IsNullOrWhiteSpace(stored.SecurityStamp)
+            || !SecurityHelper.FixedTimeEquals(stored.SecurityStamp, user.SecurityStamp))
+            throw new UnauthorizedAccessException("Session révoquée : reconnectez-vous.");
+
+        if (_context.Database.IsRelational())
+        {
+            var claimed = await _context.RefreshTokens
+                .Where(r => r.Id == stored.Id && r.RevokedAtUtc == null && r.ExpiresAtUtc > DateTime.UtcNow)
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.RevokedAtUtc, (DateTime?)DateTime.UtcNow));
+            if (claimed == 0)
+                throw new UnauthorizedAccessException("Session expirée ou révoquée.");
+        }
 
         stored.Revoke();
         await _context.SaveChangesAsync();
@@ -265,6 +304,7 @@ public sealed class AuthService
     {
         var user = await FindUserByPhoneAnyRoleAsync(phoneNumber);
         if (user is null) return;
+        if (user.IsLocked() || user.HasActiveResetCode()) return;
 
         var code = SecurityHelper.GenerateNumericCode();
         user.SetResetCode(SecurityHelper.Sha256Hex(code), DateTime.UtcNow.AddMinutes(15));
@@ -289,11 +329,21 @@ public sealed class AuthService
         // 200). L'attaquant ne doit pas pouvoir distinguer les deux cas.
         var user = await FindUserByPhoneAnyRoleAsync(request.PhoneNumber);
 
+        if (user is not null && user.IsLocked())
+            throw new InvalidOperationException("Code invalide ou expiré.");
+
         if (user is null
             || !user.HasActiveResetCode()
             || user.ResetCodeHash is null
             || !SecurityHelper.FixedTimeEquals(user.ResetCodeHash, SecurityHelper.Sha256Hex(request.Code.Trim())))
         {
+            if (user is not null && user.HasActiveResetCode())
+            {
+                user.RegisterFailedLogin(Math.Max(1, _security.MaxFailedLoginAttempts),
+                    TimeSpan.FromMinutes(Math.Max(1, _security.LockoutMinutes)));
+                if (user.IsLocked()) user.ClearResetCode();
+                await _context.SaveChangesAsync();
+            }
             throw new InvalidOperationException("Code invalide ou expiré.");
         }
 
@@ -382,6 +432,7 @@ public sealed class AuthService
             throw new InvalidOperationException("Code de validation invalide.");
 
         user.EnableTwoFactorFromPending();
+        await RevokeAllRefreshTokensAsync(user.Id);
         await _context.SaveChangesAsync();
     }
 
@@ -398,6 +449,7 @@ public sealed class AuthService
             throw new InvalidOperationException("Code de validation invalide.");
 
         user.DisableTwoFactor();
+        await RevokeAllRefreshTokensAsync(user.Id);
         await _context.SaveChangesAsync();
     }
 

@@ -402,7 +402,7 @@ public sealed class OrderService
             // Preuve de livraison : un livreur ne clôture pas une course sans le code du
             // client. Sans cette règle, l'API contournerait la vérification WhatsApp.
             // Vendeur et Admin conservent la clôture manuelle (recours si code bloqué).
-            if (_deliveryProof.RequireClientCode
+            if ((_deliveryProof.RequireClientCode || order.ReceiptSecret is not null)
                 && request.Status == OrderStatus.Delivered
                 && order.DeliveryCode is not null
                 && order.DeliveryCodeVerifiedAt is null)

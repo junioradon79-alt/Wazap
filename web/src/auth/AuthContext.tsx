@@ -14,11 +14,14 @@ import type { AuthResponse } from '../api/types'
 interface AuthContextValue {
   user: StoredUser | null
   loading: boolean
-  login: (username: string, password: string) => Promise<void>
+  login: (username: string, password: string, code?: string) => Promise<void>
+  loginWithLink: (token: string) => Promise<void>
   logout: () => void
 }
 
 const AuthContext = createContext<AuthContextValue>(null!)
+
+export class MfaRequiredError extends Error {}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUserState] = useState<StoredUser | null>(null)
@@ -37,19 +40,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('wazap:unauthorized', handleUnauthorized)
   }, [])
 
-  const login = async (username: string, password: string): Promise<void> => {
-    const res = await api.post<AuthResponse>('/auth/login', { username, password })
+  const login = async (username: string, password: string, code?: string): Promise<void> => {
+    const res = await api.post<AuthResponse>(code ? '/auth/2fa/verify' : '/auth/login', { username, password, code })
 
     // Compte protégé par la double authentification : le serveur ne délivre AUCUN jeton à
     // cette étape (`token` vaut null, `mfaRequired` vaut true). Sans ce contrôle, l'écran
     // se croyait connecté avec un jeton nul et enchaînait les 401 sans rien expliquer.
-    if (res.mfaRequired || !res.token) {
-      throw new Error(
-        res.mfaRequired
-          ? "Ce compte est protégé par la double authentification (2FA). La saisie du code n'est pas encore disponible sur cet écran : passez par l'API ou désactivez la 2FA."
-          : "Réponse d'authentification invalide : jeton absent.",
-      )
-    }
+    if (res.mfaRequired) throw new MfaRequiredError("Saisissez le code de votre application d'authentification.")
+    if (!res.token) throw new Error("Réponse d'authentification invalide : jeton absent.")
 
     const stored: StoredUser = { userId: res.userId, username: res.username, role: res.role }
     setToken(res.token)
@@ -72,13 +70,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUserState(null)
   }
 
+  const loginWithLink = async (token: string): Promise<void> => {
+    const res = await api.post<AuthResponse>('/auth/access-link', { token })
+    if (!res.token || res.mfaRequired) throw new Error('Lien invalide ou expiré.')
+    const stored: StoredUser = { userId: res.userId, username: res.username, role: res.role }
+    setToken(res.token)
+    setRefreshToken(res.refreshToken ?? null)
+    setUser(stored)
+    setUserState(stored)
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithLink, logout }}>
       {children}
     </AuthContext.Provider>
   )
 }
 
 export function useAuth(): AuthContextValue {
-  return useContext(AuthContext) ?? { user: null, loading: false, login: async () => {}, logout: () => {} }
+  return useContext(AuthContext) ?? { user: null, loading: false, login: async () => {}, loginWithLink: async () => {}, logout: () => {} }
 }

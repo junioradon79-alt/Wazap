@@ -137,16 +137,12 @@ export default function SuiviPage() {
 
   // Rider QR validation state
   const [searchParams] = useSearchParams()
-  const isRiderValidationMode = searchParams.get('valider') === '1'
-  const paramCode = searchParams.get('code') || ''
-  const [codeToValidate, setCodeToValidate] = useState(paramCode)
+  const [receiptToken] = useState(() => new URLSearchParams(window.location.hash.slice(1)).get('receipt') || '')
+  const isRiderValidationMode = receiptToken.length > 0 || searchParams.get('valider') === '1'
   const [validatingDelivery, setValidatingDelivery] = useState(false)
   const [validationSuccess, setValidationSuccess] = useState<string | null>(null)
   const [validationErr, setValidationErr] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (paramCode) setCodeToValidate(paramCode)
-  }, [paramCode])
 
   const timer = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -326,28 +322,9 @@ export default function SuiviPage() {
     }
   }
 
-  const simulateDirectPayment = async () => {
-    setPaying(true)
-    setPayErr(null)
-    try {
-      if (isDemo) {
-        setOrder((prev) => (prev ? {
-          ...prev,
-          payment: { status: 'Completed', amount: prev.totalAmount ?? 36500, paymentLink: null }
-        } : null))
-        return
-      }
-      await api.post(`/client/orders/${id}/complete-split`, { paymentReference: `GENIUS-${Date.now()}` })
-      await fetchOrder()
-    } catch (e) {
-      setPayErr(e instanceof Error ? e.message : 'Erreur lors de la validation du paiement')
-    } finally {
-      setPaying(false)
-    }
-  }
 
   const handleValidateDelivery = async () => {
-    if (!id || !codeToValidate) return
+    if (!id || (!receiptToken && !isDemo)) return
     setValidatingDelivery(true)
     setValidationErr(null)
     setValidationSuccess(null)
@@ -359,7 +336,7 @@ export default function SuiviPage() {
         }
         return
       }
-      await api.post(`/client/orders/${id}/validate-delivery`, { code: codeToValidate })
+      await api.post(`/client/orders/${id}/validate-delivery`, { receiptToken })
       setValidationSuccess('Livraison validée avec succès ! Le vendeur a été notifié pour votre règlement.')
       await fetchOrder()
     } catch (e) {
@@ -443,33 +420,11 @@ export default function SuiviPage() {
           }}>
             <div style={{ fontSize: '26px', marginBottom: '6px' }}>🛵⚡</div>
             <h3 style={{ margin: '0 0 6px', fontSize: '18px', color: '#fff', fontWeight: 800 }}>
-              Espace Livreur — Validation de Remise
+              Confirmation de réception
             </h3>
             <p style={{ margin: '0 0 14px', fontSize: '13px', color: 'var(--suivi-text-muted)' }}>
-              Vous avez scanné le QR Code client. Validez la remise en 1 tap pour clôturer la livraison et déclencher votre règlement immédiat.
+              Confirmez uniquement lorsque le colis est dans vos mains. Le vendeur sera informé de la remise.
             </p>
-
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '14px' }}>
-              <input
-                type="text"
-                maxLength={4}
-                value={codeToValidate}
-                onChange={(e) => setCodeToValidate(e.target.value.trim())}
-                placeholder="Code à 4 chiffres"
-                style={{
-                  width: '180px',
-                  textAlign: 'center',
-                  fontSize: '22px',
-                  fontWeight: 800,
-                  letterSpacing: '6px',
-                  padding: '10px',
-                  borderRadius: '10px',
-                  border: '1px solid rgba(255,255,255,0.3)',
-                  background: 'rgba(0,0,0,0.4)',
-                  color: '#fff'
-                }}
-              />
-            </div>
 
             {validationErr && (
               <div style={{ color: '#ef4444', fontSize: '13px', marginBottom: '12px', fontWeight: 600 }}>
@@ -486,7 +441,7 @@ export default function SuiviPage() {
             <button
               type="button"
               className="suivi-btn-validate"
-              disabled={validatingDelivery || codeToValidate.length < 4}
+              disabled={validatingDelivery || (!receiptToken && !isDemo)}
               onClick={handleValidateDelivery}
               style={{ width: '100%', maxWidth: '320px', margin: '0 auto', display: 'block' }}
             >
@@ -803,25 +758,11 @@ export default function SuiviPage() {
               </div>
             </div>
 
-            {/* QR Code pour scan direct par le livreur */}
-            <div style={{ textAlign: 'center', margin: '14px 0' }}>
-              <div style={{ fontSize: '12px', color: 'var(--suivi-text-muted)', marginBottom: '8px' }}>
-                📷 À l’arrivée du livreur, faites scanner ce QR Code pour valider la remise en 1 tap :
-              </div>
-              <div style={{ display: 'inline-block', padding: '10px', background: '#fff', borderRadius: '12px', boxShadow: '0 4px 16px rgba(0,0,0,0.35)' }}>
-                <img
-                  src={order.qrUrl || `/api/client/orders/${order.id}/qr`}
-                  alt="QR Code de remise Colis Sûr"
-                  style={{ width: '150px', height: '150px', display: 'block' }}
-                />
-              </div>
-              <div style={{ fontSize: '11px', color: 'var(--suivi-emerald)', fontWeight: 700, marginTop: '8px' }}>
-                ✓ Validation instantanée 1-tap • Aucun code PIN nécessaire
-              </div>
-            </div>
-
+            <p style={{ textAlign: 'center', margin: '14px 0' }}>
+              {receiptToken ? 'Votre lien personnel permet de confirmer la réception en un clic ci-dessus.' : 'Ouvrez le lien personnel reçu sur WhatsApp pour confirmer la réception.'}
+            </p>
             <div className="suivi-pin-note">
-              <strong>Règle Colis Sûr :</strong> Présentez ce QR Code au livreur uniquement une fois le colis entre vos mains.
+              <strong>Règle Colis Sûr :</strong> Confirmez vous-même uniquement une fois le colis entre vos mains. Gardez votre lien personnel confidentiel.
             </div>
 
             {/* BANNIÈRE SÉCURITÉ PAIEMENT QR CODE MULTI-OPÉRATEURS */}
@@ -1296,7 +1237,7 @@ export default function SuiviPage() {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: 4, marginTop: 4 }}>
                 <span style={{ color: 'var(--suivi-text-muted)' }}>🛡️ Frais sécurisés GeniusPay (100 F + 1%) :</span>
-                <span style={{ color: 'var(--suivi-emerald)', fontWeight: 700 }}>Inclus & protégés</span>
+                <span style={{ color: 'var(--suivi-emerald)', fontWeight: 700 }}>{(order.splitPayment?.gatewayFee ?? 0).toLocaleString('fr-FR')} FCFA</span>
               </div>
             </div>
 
@@ -1389,30 +1330,10 @@ export default function SuiviPage() {
                   }}
                 />
                 <div style={{ fontSize: 11, color: '#666', marginTop: 6, fontWeight: 600 }}>
-                  Montant exact : {(order.totalAmount ?? 0).toLocaleString('fr-FR')} FCFA
+                  Montant à payer : {(order.payment?.amount ?? order.splitPayment?.totalAmount ?? order.totalAmount ?? 0).toLocaleString('fr-FR')} FCFA
                 </div>
               </div>
             )}
-
-            {/* Bouton de simulation directe (pour démo immédiate) */}
-            <div style={{ marginTop: 12, textAlign: 'center' }}>
-              <button
-                type="button"
-                onClick={simulateDirectPayment}
-                disabled={paying}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--suivi-emerald)',
-                  fontSize: 12,
-                  textDecoration: 'underline',
-                  cursor: 'pointer',
-                  padding: 4,
-                }}
-              >
-                ⚡ Simuler le paiement validé (GeniusPay Webhook)
-              </button>
-            </div>
 
             {payErr && <div className="suivi-error-msg" style={{ marginTop: 10 }}>{payErr}</div>}
           </section>
@@ -1425,7 +1346,7 @@ export default function SuiviPage() {
               Commande payée par Mobile Money !
             </strong>
             <p style={{ fontSize: 13, color: 'var(--suivi-text-muted)', margin: '6px 0 0' }}>
-              Le commerçant et le livreur ont reçu leurs virements automatiques respectifs. Aucun argent liquide à remettre au livreur.
+              Le paiement client est confirmé. Les sommes dues au commerçant et au livreur restent à reverser ; cette confirmation ne constitue pas un reçu de virement.
             </p>
           </div>
         )}

@@ -72,7 +72,7 @@ public class RiderServiceTests : IDisposable
         var identity = await context.RiderIdentities.FindAsync(rider.Id);
         Assert.NotNull(identity);
         Assert.Equal(RiderIdentityStatus.Verified, identity!.Status);
-        Assert.Contains(sender.TextMessages, m => m.Phone == rider.PhoneNumber && m.Message.Contains("certifié") && m.Message.Contains("/app/login?u="));
+        Assert.Contains(sender.TextMessages, m => m.Phone == rider.PhoneNumber && m.Message.Contains("certifié") && m.Message.Contains("/app/login#access="));
     }
 
     [Fact]

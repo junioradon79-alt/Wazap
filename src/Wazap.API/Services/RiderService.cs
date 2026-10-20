@@ -30,15 +30,17 @@ namespace Wazap.API.Services
         private readonly IWhatsAppSender _whatsApp;
         private readonly ILogger<RiderService> _logger;
         private readonly RiderScansOptions _scans;
+        private readonly ClientOptions _clientOptions;
 
         public RiderService(ApplicationDbContext context, IWebHostEnvironment env,
-            IWhatsAppSender whatsApp, RiderScansOptions scans, ILogger<RiderService> logger)
+            IWhatsAppSender whatsApp, RiderScansOptions scans, ILogger<RiderService> logger, ClientOptions? clientOptions = null)
         {
             _context = context;
             _env = env;
             _whatsApp = whatsApp;
             _logger = logger;
             _scans = scans;
+            _clientOptions = clientOptions ?? new ClientOptions();
         }
 
         public async Task<List<UserSummaryDto>> GetRidersAsync()
@@ -166,7 +168,7 @@ namespace Wazap.API.Services
             identity.Verify(fullName, idNumber, motorcycle, reviewerId);
             await _context.SaveChangesAsync();
 
-            var dashboardUrl = $"https://junioradon79gm-001-site1.jtempurl.com/app/login?u={Uri.EscapeDataString(rider.Username)}";
+            var dashboardUrl = await PasswordlessAccess.IssueAsync(_context, rider, _clientOptions);
             await NotifyRiderAsync(rider,
                 "✅ Félicitations ! Votre pièce est vérifiée : vous êtes désormais Livreur certifié WAZAP 🛵💨\n\n" +
                 "📊 Touche ce lien pour ouvrir ton COCKPIT LIVREUR (courses, gains nets et challenge smartphone) :\n" +
@@ -394,20 +396,36 @@ namespace Wazap.API.Services
         }
 
         /// <summary>Supprime le fichier de la photo de preuve (rétention, best-effort).</summary>
-        public void DeleteDeliveryProofPhotoFile(Guid orderId)
+        public bool DeleteDeliveryProofPhotoFile(Guid orderId)
         {
             try
             {
                 var dir = Path.Combine(_env.ContentRootPath, ProofPhotoFolder);
                 if (!Directory.Exists(dir))
-                    return;
+                    return true;
                 foreach (var candidate in Directory.GetFiles(dir, $"{orderId:N}.*"))
                     File.Delete(candidate);
+                return true;
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Suppression de la photo de preuve impossible pour {Order}.", orderId);
+                return false;
             }
+        }
+
+        public async Task<int> PurgeExpiredDeliveryProofsAsync(int days, CancellationToken ct)
+        {
+            if (days <= 0) return 0;
+            var cutoff = DateTime.UtcNow.AddDays(-days);
+            var orders = await _context.Orders.Where(o => o.Status == OrderStatus.Delivered
+                && o.DeliveredAt < cutoff && o.DeliveryProofPhotoFileName != null
+                && !_context.DeliveryClaims.Any(c => c.OrderId == o.Id)).ToListAsync(ct);
+            var count = 0;
+            foreach (var order in orders)
+                if (DeleteDeliveryProofPhotoFile(order.Id)) { order.PurgeDeliveryProofPhoto(); count++; }
+            if (count > 0) await _context.SaveChangesAsync(ct);
+            return count;
         }
 
         /// <summary>Chemin du scan local (null si aucun fichier téléversé).</summary>

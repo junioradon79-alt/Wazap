@@ -9,7 +9,8 @@ namespace Wazap.Infrastructure.Services
         Guid? WazapTransactionId,
         string? Reference,
         decimal? Amount,
-        string? Status);
+        string? Status,
+        string? Currency = null);
 
     /// <summary>
     /// Parse le payload d'un webhook GeniusPay de façon tolérante à la casse.
@@ -33,7 +34,7 @@ namespace Wazap.Infrastructure.Services
             if (Guid.TryParse(metaValue, out var parsed))
                 wazapTransactionId = parsed;
 
-            return new PaymentWebhookInfo(wazapTransactionId, reference, amount, status);
+            return new PaymentWebhookInfo(wazapTransactionId, reference, amount, status, Str(data, "currency"));
         }
 
         private static JsonElement? Find(JsonElement? node, string name)

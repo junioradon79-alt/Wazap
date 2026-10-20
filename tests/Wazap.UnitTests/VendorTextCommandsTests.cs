@@ -64,7 +64,7 @@ public class VendorTextCommandsTests
 
             var offers = new DeliveryOfferService(Context, Sender, whatsAppOptions,
                 new GeoOptions(), new GroupingOptions(), new ClientOptions(), orchestrator,
-                new RiderSecurityOptions(), new RiderReputationOptions(), new ClientPaymentOptions(),
+                new RiderSecurityOptions { RequireCertifiedRiders = false }, new RiderReputationOptions(), new ClientPaymentOptions(),
                 new RiderPriorityOptions(), NullLogger<DeliveryOfferService>.Instance);
 
             var orders = new OrderService(Context, new NoCurrentUser(), offers,

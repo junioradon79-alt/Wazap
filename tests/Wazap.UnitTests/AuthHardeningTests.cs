@@ -252,4 +252,49 @@ public class AuthHardeningTests
         var after = await client.PostAsync("/api/auth/2fa/setup", content: null);
         Assert.Equal(HttpStatusCode.Unauthorized, after.StatusCode);
     }
+    [Fact]
+    public async Task RefreshToken_ApresChangementMotDePasse_EstRevoque()
+    {
+        var (context, user) = await NewUserAsync();
+        var service = CreateAuthService(context);
+        var session = await service.LoginAsync(new LoginRequest { Username = user.Username, Password = "Motdepasse123!" });
+        await service.ChangePasswordAsync(user.Id, new ChangePasswordRequest { CurrentPassword = "Motdepasse123!", NewPassword = "NouveauMotdepasse123!" });
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.RefreshAsync(session.RefreshToken));
+    }
+
+    [Fact]
+    public async Task RefreshToken_ApresActivationMfa_EstRevoque()
+    {
+        var (context, user) = await NewUserAsync();
+        var service = CreateAuthService(context);
+        var session = await service.LoginAsync(new LoginRequest { Username = user.Username, Password = "Motdepasse123!" });
+        var (secret, _) = await service.SetupTwoFactorAsync(user.Id);
+        await service.EnableTwoFactorAsync(user.Id, Totp.CurrentCode(secret));
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.RefreshAsync(session.RefreshToken));
+    }
+
+    [Fact]
+    public async Task Login_MotDePasseCorrect_NeRemetPasAZeroLesEchecsDuSecondFacteur()
+    {
+        var (context, user) = await NewUserAsync();
+        var service = CreateAuthService(context);
+        user.EnableTwoFactor(Totp.GenerateSecret());
+        user.RegisterFailedLogin(3, TimeSpan.FromMinutes(15));
+        await context.SaveChangesAsync();
+        var result = await service.LoginAsync(new LoginRequest { Username = user.Username, Password = "Motdepasse123!" });
+        Assert.True(result.MfaRequired);
+        Assert.Equal(1, user.FailedLoginAttempts);
+    }
+
+    [Fact]
+    public async Task RefreshToken_LieALAncienneEmpreinte_EstRefuseMemeSansRevocationDeLaLigne()
+    {
+        var (context, user) = await NewUserAsync();
+        var service = CreateAuthService(context);
+        var session = await service.LoginAsync(new LoginRequest { Username = user.Username, Password = "Motdepasse123!" });
+        user.RevokeSessions();
+        await context.SaveChangesAsync();
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.RefreshAsync(session.RefreshToken));
+    }
+
 }

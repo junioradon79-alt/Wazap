@@ -57,7 +57,7 @@ public class CancellationPropagationTests
 
         var offers = new DeliveryOfferService(context, sender, new WhatsAppOptions(),
             new GeoOptions { MaxDistanceKm = 15 }, new GroupingOptions(), new ClientOptions(),
-            orchestrator, new RiderSecurityOptions(), new RiderReputationOptions(),
+            orchestrator, new RiderSecurityOptions { RequireCertifiedRiders = false }, new RiderReputationOptions(),
             new ClientPaymentOptions(), new RiderPriorityOptions(),
             NullLogger<DeliveryOfferService>.Instance);
 

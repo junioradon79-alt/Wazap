@@ -216,7 +216,7 @@ internal sealed class ServiceScopeFactoryStub : IServiceScopeFactory, IServiceSc
     private DeliveryOfferService BuildOffers()
         => new(_context, _sender, new WhatsAppOptions(),
             new GeoOptions(), new GroupingOptions(), new ClientOptions(), BuildOrchestrator(),
-            new RiderSecurityOptions(), new RiderReputationOptions(), new ClientPaymentOptions(),
+            new RiderSecurityOptions { RequireCertifiedRiders = false }, new RiderReputationOptions(), new ClientPaymentOptions(),
             new RiderPriorityOptions(), NullLogger<DeliveryOfferService>.Instance);
 
     public T GetRequiredService<T>() where T : class

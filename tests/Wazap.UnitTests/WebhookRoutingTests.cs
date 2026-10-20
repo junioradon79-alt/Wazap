@@ -130,6 +130,8 @@ public class WebhookRoutingTests
         h.Context.Orders.Add(order);
         await h.Context.SaveChangesAsync();
 
+        h.Context.Entry(order).Property(o => o.ReceiptSecret).CurrentValue = null; // Ancien parcours.
+        await h.Context.SaveChangesAsync();
         await h.SendAsync(RiderPhone, $"LIVRE CODE {code}");
 
         Assert.Equal(OrderStatus.Delivered, order.Status);
@@ -155,6 +157,8 @@ public class WebhookRoutingTests
         await h.Context.SaveChangesAsync();
 
         var wrong = code == "0000" ? "1111" : "0000";
+        h.Context.Entry(order).Property(o => o.ReceiptSecret).CurrentValue = null;
+        await h.Context.SaveChangesAsync();
         await h.SendAsync(RiderPhone, $"LIVRE CODE {wrong}");
 
         Assert.Equal(OrderStatus.InTransit, order.Status);

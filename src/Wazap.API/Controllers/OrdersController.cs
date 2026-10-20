@@ -51,6 +51,25 @@ public class OrdersController : ControllerBase
     }
 
     // GET: api/orders/{id}/proof-photo — photo de preuve de livraison (déchiffrée à la volée).
+    [HttpPost("{id:guid}/recipient-link")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin,Vendor")]
+    public async Task<IActionResult> SendRecipientLink(Guid id,
+        [FromServices] Wazap.Infrastructure.Data.ApplicationDbContext db,
+        [FromServices] WhatsAppOrchestrationService notifications)
+    {
+        var order = await _orderService.GetOrderAsync(id);
+        if (order is null) return NotFound();
+        if (!_orderService.CanAccess(order)) return Forbid();
+        if (order.Status is Wazap.Domain.Enums.OrderStatus.Delivered or Wazap.Domain.Enums.OrderStatus.Cancelled)
+            return BadRequest(new { message = "Commande clôturée." });
+        db.Attach(order);
+        order.EnsureDeliveryCode();
+        order.RenewRecipientAccess();
+        await db.SaveChangesAsync();
+        await notifications.SendDeliveryCodeAsync(order);
+        return Ok(new { message = "Lien personnel envoyé au destinataire sur WhatsApp." });
+    }
+
     // Réservée à l'admin : pièce d'un litige « Garantie Colis Sûr ».
     [HttpGet("{id:guid}/proof-photo")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]

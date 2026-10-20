@@ -204,6 +204,8 @@ public class RiderDeliveryCommandsTests
         var order = await f.AddOrderAsync(OrderStatus.InTransit);
         var expected = order.EnsureDeliveryCode();
 
+        f.Context.Entry(order).Property(o => o.ReceiptSecret).CurrentValue = null; // Commande historique.
+
         await f.Commands.HandleAsync(f.Rider, $"LIVRE CODE {expected}", f.Reply);
 
         Assert.Equal(OrderStatus.Delivered, order.Status);
@@ -216,6 +218,8 @@ public class RiderDeliveryCommandsTests
         using var f = new Fixture(new DeliveryProofOptions { RequireClientCode = true });
         var order = await f.AddOrderAsync(OrderStatus.InTransit);
         var wrong = WrongCodeFor(order);
+
+        f.Context.Entry(order).Property(o => o.ReceiptSecret).CurrentValue = null;
 
         await f.Commands.HandleAsync(f.Rider, $"LIVRE CODE {wrong}", f.Reply);
 
@@ -230,6 +234,8 @@ public class RiderDeliveryCommandsTests
         using var f = new Fixture(new DeliveryProofOptions { RequireClientCode = true });
         var order = await f.AddOrderAsync(OrderStatus.InTransit);
         var wrong = WrongCodeFor(order);
+
+        f.Context.Entry(order).Property(o => o.ReceiptSecret).CurrentValue = null;
 
         // MaxDeliveryCodeAttempts = 5 : la 6e tentative est refusée par verrouillage,
         // sans nouvelle incrémentation (anti-force brute).
@@ -249,6 +255,19 @@ public class RiderDeliveryCommandsTests
     {
         var expected = order.EnsureDeliveryCode();
         return expected == "0000" ? "0001" : "0000";
+    }
+
+    [Fact]
+    public async Task Livre_NewRecipientProof_CannotBeBypassedWithKnownPin()
+    {
+        using var f = new Fixture();
+        var order = await f.AddOrderAsync(OrderStatus.InTransit);
+        var pin = order.EnsureDeliveryCode();
+        await f.Context.SaveChangesAsync();
+        await f.Commands.HandleAsync(f.Rider, $"LIVRE CODE {pin}", f.Reply);
+        Assert.Equal(OrderStatus.InTransit, order.Status);
+        Assert.Null(order.DeliveryCodeVerifiedAt);
+        Assert.Contains("destinataire", f.LastReply);
     }
 
     [Fact]
@@ -280,6 +299,8 @@ public class RiderDeliveryCommandsTests
         using var f = new Fixture();
         var order = await f.AddOrderAsync(OrderStatus.InTransit);
         var expectedPin = order.EnsureDeliveryCode();
+
+        f.Context.Entry(order).Property(o => o.ReceiptSecret).CurrentValue = null;
 
         // Le livreur tape UNIQUEMENT les 4 chiffres sans aucun mot de passe ni syntaxe
         await f.Commands.HandleAsync(f.Rider, expectedPin, f.Reply);

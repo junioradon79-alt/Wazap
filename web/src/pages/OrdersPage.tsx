@@ -172,7 +172,10 @@ export default function OrdersPage() {
                         📸
                       </button>
                     )}
-                    {o.status !== 'Delivered' && o.status !== 'Cancelled' && (
+                      {o.status !== 'Delivered' && o.status !== 'Cancelled' && <button className="btn" onClick={() => {
+                        void api.post(`/orders/${o.id}/recipient-link`).then(() => setPayMessage('Lien personnel envoyé au destinataire sur WhatsApp.')).catch(err => setError(err instanceof Error ? err.message : 'Envoi impossible'))
+                      }}>Lien destinataire</button>}
+                      {o.status !== 'Delivered' && o.status !== 'Cancelled' && (
                       <button
                         className="btn btn--primary"
                         onClick={() => void requestPayment(o.id)}

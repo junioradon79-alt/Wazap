@@ -29,6 +29,7 @@ namespace Wazap.Infrastructure.Data
         public DbSet<DeliveryClaim> DeliveryClaims { get; set; }
         public DbSet<RiderRating> RiderRatings { get; set; }
         public DbSet<OrderPayment> OrderPayments { get; set; }
+        public DbSet<PaymentPayout> PaymentPayouts { get; set; }
         public DbSet<ClientOrderDraft> ClientOrderDrafts { get; set; }
         public DbSet<RiderPriorityPurchase> RiderPriorityPurchases { get; set; }
 
@@ -38,6 +39,22 @@ namespace Wazap.Infrastructure.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<PaymentPayout>(entity =>
+            {
+                entity.HasKey(p => p.Id);
+                entity.HasIndex(p => new { p.PaymentId, p.BeneficiaryRole }).IsUnique();
+                entity.HasIndex(p => new { p.Provider, p.ProviderReference }).IsUnique();
+                entity.Property(p => p.Amount).HasPrecision(18, 2);
+                entity.Property(p => p.BeneficiaryRole).HasMaxLength(10);
+                entity.Property(p => p.BeneficiaryPhone).HasMaxLength(32);
+                entity.Property(p => p.Currency).HasMaxLength(3);
+                entity.Property(p => p.Provider).HasMaxLength(80);
+                entity.Property(p => p.ProviderReference).HasMaxLength(200);
+                entity.Property(p => p.Evidence).HasMaxLength(1000);
+                entity.Ignore(p => p.IdempotencyKey);
+                entity.HasOne<OrderPayment>().WithMany().HasForeignKey(p => p.PaymentId).OnDelete(DeleteBehavior.Restrict);
+            });
 
             modelBuilder.Entity<Order>()
                 .Property(o => o.Amount)
@@ -51,6 +68,8 @@ namespace Wazap.Infrastructure.Data
             modelBuilder.Entity<Order>()
                 .Property(o => o.DeliveryCode)
                 .HasMaxLength(4);
+
+            modelBuilder.Entity<Order>().Property(o => o.ReceiptSecret).HasMaxLength(44);
 
             modelBuilder.Entity<Order>()
                 .Property(o => o.CancellationComment)
@@ -124,6 +143,11 @@ namespace Wazap.Infrastructure.Data
                 entity.Property(p => p.Amount).HasPrecision(18, 2);
                 entity.Property(p => p.CommissionAmount).HasPrecision(18, 2);
                 entity.Property(p => p.VendorPayoutDue).HasPrecision(18, 2);
+                entity.Property(p => p.RiderPayoutDue).HasPrecision(18, 2);
+                entity.Property(p => p.QuotedVendorAmount).HasPrecision(18, 2);
+                entity.Property(p => p.QuotedRiderAmount).HasPrecision(18, 2);
+                entity.Property(p => p.QuotedGatewayFee).HasPrecision(18, 2);
+                entity.Property(p => p.FeePayer).HasMaxLength(20);
                 entity.Property(p => p.TransactionReference).HasMaxLength(200);
                 entity.Property(p => p.PaymentLink).HasMaxLength(1000);
 

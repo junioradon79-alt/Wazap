@@ -105,7 +105,7 @@ public class RelationalMoneyPathsTests
             var whatsAppOptions = new WhatsAppOptions();
             Offers = new DeliveryOfferService(Context, new RecordingWhatsAppSender(), whatsAppOptions,
                 new GeoOptions(), new GroupingOptions(), new ClientOptions(), Orchestrator(new RecordingWhatsAppSender()),
-                new RiderSecurityOptions(), new RiderReputationOptions(), new ClientPaymentOptions(),
+                new RiderSecurityOptions { RequireCertifiedRiders = false }, new RiderReputationOptions(), new ClientPaymentOptions(),
                 new RiderPriorityOptions(), NullLogger<DeliveryOfferService>.Instance);
         }
 
@@ -224,7 +224,7 @@ public class RelationalMoneyPathsTests
         var sender = new RecordingWhatsAppSender();
         var offers = new DeliveryOfferService(context, sender, new WhatsAppOptions(),
             new GeoOptions(), new GroupingOptions(), new ClientOptions(), Orchestrator(sender),
-            new RiderSecurityOptions(), new RiderReputationOptions(), new ClientPaymentOptions(),
+            new RiderSecurityOptions { RequireCertifiedRiders = false }, new RiderReputationOptions(), new ClientPaymentOptions(),
             new RiderPriorityOptions(), NullLogger<DeliveryOfferService>.Instance);
 
         var service = new ClientPaymentService(context, new FakeClientPaymentGateway(), sender, offers,

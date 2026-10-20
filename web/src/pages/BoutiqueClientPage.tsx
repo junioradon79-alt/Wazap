@@ -59,9 +59,9 @@ export default function BoutiqueClientPage() {
         if (isMounted) {
           setShop(res)
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (isMounted) {
-          setError(err?.response?.data?.message || 'Boutique introuvable ou momentanément indisponible.')
+          setError(err instanceof Error ? err.message : 'Boutique introuvable ou momentanément indisponible.')
         }
       } finally {
         if (isMounted) {
