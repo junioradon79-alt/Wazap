@@ -158,7 +158,7 @@ jobs:
             --settings tests/Wazap.UnitTests/coverlet.runsettings \
             --results-directory artifacts/coverage || echo "::warning::Collecte de couverture en échec."
 
-          file=$(find artifacts/coverage -name coverage.cobertura.xml 2>/dev/null | head -1)
+          file=$(find artifacts/coverage -name coverage.cobertura.xml -print -quit 2>/dev/null)
           if [ -z "$file" ]; then
             echo "::warning::Aucun rapport de couverture produit — seuil non appliqué."
             exit 0
@@ -166,7 +166,7 @@ jobs:
           echo "Rapport : $file"
 
           # Le taux global est porté par l'élément racine <coverage line-rate="…">.
-          rate=$(grep -o 'line-rate="[0-9.]*"' "$file" | head -1 | sed 's/[^0-9.]//g')
+          rate=$(python3 -c 'import sys, xml.etree.ElementTree as ET; print(ET.parse(sys.argv[1]).getroot().attrib["line-rate"])' "$file")
           if ! printf '%s' "$rate" | grep -Eq '^[0-9]+(\.[0-9]+)?$'; then
             echo "::warning::Taux de couverture illisible ('$rate') — seuil non appliqué."
             exit 0

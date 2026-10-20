@@ -2,6 +2,18 @@
 
 Ce document décrit le travail réellement effectué dans le dépôt et les contrôles effectués sur les comptes externes. Un correctif local n'est pas présenté comme un correctif en production. Le lot commencé le 16 octobre a été repris et complété.
 
+## 0. Mise à jour après publication et réponse du support
+
+- Branche de revue publiée : `codex/security-20261020`, PR https://github.com/junioradon79-alt/Wazap/pull/1 ; premier commit distant `a5463c6aaf1529914c5cb3d473039b49cedcc994`. Aucun déploiement de production de ce lot.
+- CI 219 réussie : https://github.com/junioradon79-alt/Wazap/actions/runs/39419305357 . **926 tests serveur réussis, 0 ignoré, 0 échec** ; preuve dédiée **10 tests PostgreSQL réussis** ; restauration PostgreSQL isolée vérifiée (2 lignes, 26 318 FCFA de données de test). Il ne s'agit pas d'une restauration de production.
+- Frontend réussi, audits et scanner réussis. Android Debug et Release compilés ; tâches `lintVitalAnalyzeRelease`, `lintVitalReportRelease` et `lintVitalRelease` terminées avec succès. Les APK de validation CI ne remplacent pas un APK de production signé et configuré sur le téléphone.
+- Une erreur shell dans l'étape facultative de lecture de couverture a été identifiée malgré le statut global vert. Le correctif remplace le pipeline `grep | head` par une lecture XML de l'attribut racine et supprime aussi `find | head`. Une nouvelle CI doit valider cette correction.
+- SmarterASP a confirmé l'installation du SSL gratuit dans le ticket **3715734**. Vérification réelle : **https://wazap.ci/health répond Healthy** et **https://wazap.ci/app/login affiche la connexion**. L'ouverture de la racine `/` a été bloquée côté client lors du contrôle ; aucun avertissement de sécurité n'a été contourné.
+- Confirmation du renouvellement automatique demandée dans le même ticket. Sauvegarde réelle de `db_acdd27_wazap` déclenchée dans le dossier privé `/DB` de l'hébergement ; son achèvement reste à constater.
+- La mémoire interne complète et le fichier Android de notifications conservent leurs versions déjà présentes sur GitHub. Les autres fixtures de démonstration/tests ont été publiées après accord spécifique. Les deux anciennes valeurs d'authentification de WAHA désactivé ont été retirées de `appsettings.json` ; cela ne remplace pas une éventuelle rotation de secrets historiquement exposés.
+
+Les sections suivantes conservent le détail des contrôles locaux et de la chronologie antérieure. La présente mise à jour prévaut pour les points désormais vérifiés à distance. L'enrôlement du téléphone, la restauration réelle de production, les migrations et le pilote restent à faire avant la mise en service du lot.
+
 ## 1. Résultat technique local
 
 | Contrôle | Résultat du 20 octobre |
