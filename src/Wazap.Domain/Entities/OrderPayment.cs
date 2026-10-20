@@ -24,6 +24,27 @@ public class OrderPayment
     /// <summary>Montant net dû au vendeur (montant − commission), à verser.</summary>
     public decimal VendorPayoutDue { get; private set; }
 
+    // Devis figé avant l'appel au prestataire. Null pour les paiements historiques.
+    public decimal? QuotedVendorAmount { get; private set; }
+    public decimal? QuotedRiderAmount { get; private set; }
+    public decimal? QuotedGatewayFee { get; private set; }
+    public string? FeePayer { get; private set; }
+    public decimal RiderPayoutDue { get; private set; }
+
+    public void SetSplitQuote(decimal vendorAmount, decimal riderAmount, decimal gatewayFee, string feePayer)
+    {
+        if (Status != TransactionStatus.Pending || QuotedVendorAmount is not null
+            || vendorAmount < 0 || riderAmount < 0 || gatewayFee < 0
+            || vendorAmount + riderAmount + gatewayFee != Amount
+            || feePayer is not ("Client" or "Vendor" or "Shared"))
+            throw new InvalidOperationException("Devis de paiement invalide ou déjà figé.");
+
+        QuotedVendorAmount = vendorAmount;
+        QuotedRiderAmount = riderAmount;
+        QuotedGatewayFee = gatewayFee;
+        FeePayer = feePayer;
+    }
+
     /// <summary>Référence de transaction (provisoire avant initiation, agrégateur ensuite).</summary>
     public string TransactionReference { get; private set; } = default!;
 
@@ -112,7 +133,10 @@ public class OrderPayment
         if (string.IsNullOrWhiteSpace(paymentReference))
             throw new ArgumentException("La référence de paiement est requise.", nameof(paymentReference));
 
-        (CommissionAmount, VendorPayoutDue) = ComputeBreakdown(Amount, commissionPercent);
+        (CommissionAmount, VendorPayoutDue) = QuotedVendorAmount is { } vendor
+            ? (0m, vendor)
+            : ComputeBreakdown(Amount, commissionPercent);
+        RiderPayoutDue = QuotedRiderAmount ?? 0m;
         TransactionReference = paymentReference;
         Status = TransactionStatus.Completed;
         CompletedAt = DateTime.UtcNow;
@@ -126,5 +150,11 @@ public class OrderPayment
 
         Status = TransactionStatus.Failed;
         ErrorMessage = errorMessage;
+    }
+
+    public void MarkInitiationUncertain()
+    {
+        if (Status == TransactionStatus.Pending)
+            ErrorMessage = "Initiation à rapprocher : résultat prestataire inconnu. Aucune nouvelle session automatique.";
     }
 }

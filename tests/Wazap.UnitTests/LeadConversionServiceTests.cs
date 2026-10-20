@@ -96,12 +96,13 @@ public class LeadConversionServiceTests
 
         var result = await service.ConvertAsync(lead.Id, sendWelcome: true);
 
-        Assert.NotNull(result.TemporaryPassword);
+        Assert.Null(result.TemporaryPassword);
         Assert.Single(sender.TextMessages);
         var msg = sender.TextMessages[0];
         Assert.Equal("+2250708091011", msg.Phone);
         Assert.Contains("Tableau de Bord Marchand", msg.Message);
-        Assert.Contains("/app/login?u=chezthalia&p=" + Uri.EscapeDataString(result.TemporaryPassword), msg.Message);
+        Assert.Contains("/app/login#access=", msg.Message);
+        Assert.DoesNotContain("&p=", msg.Message);
     }
 
     [Fact]

@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 using Microsoft.Extensions.Logging.Abstractions;
 using Wazap.API.Controllers;
 using Wazap.API.Services;
@@ -25,6 +27,7 @@ public class ClientOrdersControllerTests : IDisposable
         _riderService = new RiderService(_db, new FakeWebHostEnvironment(_tempDir), new RecordingWhatsAppSender(),
             scans, NullLogger<RiderService>.Instance);
         _controller = new ClientOrdersController(_db, null!, null!, _riderService);
+        _controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
     }
 
     public void Dispose()
@@ -69,7 +72,7 @@ public class ClientOrdersControllerTests : IDisposable
         Assert.Equal(order.Id, (Guid)val.id);
         Assert.Equal("vendor_test", (string)val.vendorName);
         Assert.Equal(15000m, (decimal)val.amount);
-        Assert.Equal(order.DeliveryCode, (string)val.deliveryCode);
+        Assert.Null((string?)val.deliveryCode);
         Assert.NotNull(val.timestamps);
         Assert.NotNull(val.timestamps.vendorConfirmedAt);
         Assert.NotNull(val.timestamps.riderAssignedAt);
@@ -144,7 +147,10 @@ public class ClientOrdersControllerTests : IDisposable
         _db.Orders.Add(order);
         await _db.SaveChangesAsync();
 
-        var result = await _controller.GetDeliveryQr(order.Id);
+        order.EnsureDeliveryCode();
+        await _db.SaveChangesAsync();
+        Assert.IsType<UnauthorizedResult>(await _controller.GetDeliveryQr(order.Id));
+        var result = await _controller.GetDeliveryQr(order.Id, order.CreateReceiptToken());
         var fileResult = Assert.IsType<FileContentResult>(result);
 
         Assert.Equal("image/png", fileResult.ContentType);
@@ -166,6 +172,10 @@ public class ClientOrdersControllerTests : IDisposable
         _db.Orders.Add(order);
         await _db.SaveChangesAsync();
 
+        Assert.IsType<ForbidResult>(await _controller.StartDelivery(order.Id));
+        _controller.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[] {
+            new Claim(ClaimTypes.NameIdentifier, rider.Id.ToString()), new Claim(ClaimTypes.Role, "Rider")
+        }, "test"));
         var result = await _controller.StartDelivery(order.Id);
         var okResult = Assert.IsType<OkObjectResult>(result);
 
@@ -194,10 +204,10 @@ public class ClientOrdersControllerTests : IDisposable
 
         // 1. Mauvais code -> BadRequest
         var badResult = await _controller.ValidateDelivery(order.Id, new ValidateDeliveryRequest("9999"));
-        Assert.IsType<BadRequestObjectResult>(badResult);
+        Assert.IsType<UnauthorizedResult>(badResult);
 
         // 2. Bon code -> Succès et Delivered
-        var goodResult = await _controller.ValidateDelivery(order.Id, new ValidateDeliveryRequest(pin));
+        var goodResult = await _controller.ValidateDelivery(order.Id, new ValidateDeliveryRequest(ReceiptToken: order.CreateReceiptToken()));
         var okResult = Assert.IsType<OkObjectResult>(goodResult);
         dynamic val = okResult.Value!;
         Assert.Equal("Delivered", (string)val.status);

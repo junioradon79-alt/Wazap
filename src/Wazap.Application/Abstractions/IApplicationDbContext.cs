@@ -23,6 +23,7 @@ public interface IApplicationDbContext
     DbSet<DeliveryClaim> DeliveryClaims { get; }
     DbSet<RiderRating> RiderRatings { get; }
     DbSet<OrderPayment> OrderPayments { get; }
+    DbSet<PaymentPayout> PaymentPayouts { get; }
 
     // Tables ajoutées depuis : sans elles dans le port, les services devaient dépendre du type
     // CONCRET de l'infrastructure pour les atteindre — ce qui annulait l'intérêt du port.

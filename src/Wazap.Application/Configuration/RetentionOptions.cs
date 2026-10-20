@@ -19,6 +19,7 @@ public sealed class RetentionOptions
 
     /// <summary>Messages outbox envoyés conservés (jours).</summary>
     public int SentOutboxDays { get; set; } = 30;
+    public int WhatsAppLogsDays { get; set; } = 90;
 
     /// <summary>
     /// Scans de pièce d'identité des livreurs conservés (jours) APRÈS la décision de

@@ -32,7 +32,7 @@ public class DeliveryOfferDeclineTests
             new GroupingOptions(),
             new ClientOptions(),
             orchestrator,
-            new RiderSecurityOptions(),
+            new RiderSecurityOptions { RequireCertifiedRiders = false },
             new RiderReputationOptions(),
             new ClientPaymentOptions(),
             new RiderPriorityOptions(),

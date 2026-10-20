@@ -1,3 +1,4 @@
+> **État actuel — 20 octobre 2026 :** consulter [le suivi vérifié des chantiers](docs/ETAT_CHANTIERS_2026-10-20.md) et `MEMOIRE.md`. Le fournisseur WhatsApp officiel est **YCloud**, le règlement de la marchandise est exclusivement digital via le QR Code Universel et les nouvelles connexions utilisent des liens personnels temporaires. Les versements réels restent distincts des paiements encaissés. Les sections historiques ci-dessous contiennent des descriptions et compteurs antérieurs ; elles ne prouvent pas la mise en service du lot actuel.
 # WAZAP — État du projet & progression
 
 > Document de référence pour ne pas perdre la progression.

@@ -44,7 +44,7 @@ public class GatewayWhatsAppControllerTests : IDisposable
         }
     }
 
-    private (GatewayWhatsAppController controller, ApplicationDbContext context) CreateController(IOcrService? ocrService = null)
+    private (GatewayWhatsAppController controller, ApplicationDbContext context) CreateController(IOcrService? ocrService = null, RiderScansOptions? scanOptions = null)
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase("gateway-" + Guid.NewGuid().ToString("N"))
@@ -55,7 +55,7 @@ public class GatewayWhatsAppControllerTests : IDisposable
         var sender = new RecordingWhatsAppSender();
         var downloader = new WebhookHarness.FakeMediaDownloader();
         var passwordHasher = new FakePasswordHasher();
-        var scans = new RiderScansOptions { AllowUnencryptedStorage = true };
+        var scans = scanOptions ?? new RiderScansOptions { AllowUnencryptedStorage = true };
         var config = new ConfigStub();
 
         var riderService = new RiderService(
@@ -270,7 +270,7 @@ public class GatewayWhatsAppControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task UploadPhoto_AvecFichierEtOcr_CertifieLivreurEtRenvoieReponse()
+    public async Task UploadPhoto_AvecOcr_ConserveLeScanSansCertifierLeLivreur()
     {
         var (controller, context) = CreateController(new FakeOcrService());
 
@@ -293,10 +293,10 @@ public class GatewayWhatsAppControllerTests : IDisposable
         Assert.NotNull(resp);
         Assert.True(resp.Success);
         Assert.True(resp.ShouldReply);
-        Assert.Equal("rider_photo_verified", resp.Category);
-        Assert.Contains("LIVREUR CERTIFIÉ WAZAP", resp.ReplyText);
+        Assert.Equal("rider_photo_pending_review", resp.Category);
+        Assert.Contains("pas encore certifié", resp.ReplyText);
         Assert.Contains("NIAGARE IBRAHIM", resp.ReplyText);
-        Assert.Contains("NIAG01-21-24209886I", resp.ReplyText);
+        Assert.DoesNotContain("NIAG01-21-24209886I", resp.ReplyText);
 
         // Vérifier que le livreur est bien créé et certifié en base
         var rider = await context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == "+2250701020304");
@@ -305,7 +305,7 @@ public class GatewayWhatsAppControllerTests : IDisposable
 
         var identity = await context.RiderIdentities.FirstOrDefaultAsync(i => i.UserId == rider.Id);
         Assert.NotNull(identity);
-        Assert.Equal(RiderIdentityStatus.Verified, identity.Status);
+        Assert.NotEqual(RiderIdentityStatus.Verified, identity.Status);
         Assert.Equal("NIAG01-21-24209886I", identity.IdNumber);
     }
 
@@ -320,6 +320,27 @@ public class GatewayWhatsAppControllerTests : IDisposable
         Assert.NotNull(resp);
         Assert.False(resp.Success);
         Assert.Equal("missing_file", resp.Category);
+    }
+
+    [Fact]
+    public async Task UploadPhoto_SansChiffrement_RefuseSansCertifier()
+    {
+        var (controller, context) = CreateController(new FakeOcrService(), new RiderScansOptions());
+        var file = new FormFile(new MemoryStream(new byte[] { 0xff, 0xd8, 0xff }), 0, 3, "file", "cni.jpg");
+        var response = Assert.IsType<ObjectResult>(await controller.UploadPhoto(file, "+2250701020399", "Candidat"));
+        Assert.Equal(503, response.StatusCode);
+        Assert.False(await context.RiderIdentities.AnyAsync(i => i.Status == RiderIdentityStatus.Verified));
+    }
+
+    [Fact]
+    public async Task UploadPhoto_SansOcr_ConserveUnDossierEnAttente()
+    {
+        var (controller, context) = CreateController();
+        var file = new FormFile(new MemoryStream(new byte[] { 0xff, 0xd8, 0xff }), 0, 3, "file", "cni.jpg");
+        var response = Assert.IsType<OkObjectResult>(await controller.UploadPhoto(file, "+2250701020398", "Candidat"));
+        var body = Assert.IsType<GatewayInboundResponse>(response.Value);
+        Assert.Equal("rider_photo_pending_review", body.Category);
+        Assert.All(await context.RiderIdentities.ToListAsync(), i => Assert.Equal(RiderIdentityStatus.Pending, i.Status));
     }
 
     [Fact]

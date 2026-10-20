@@ -13,5 +13,5 @@ public sealed class RiderSecurityOptions
     /// reçoivent des offres (badge « Livreur certifié »). À activer une fois le pool
     /// certifié suffisant (risque : plus aucune offre si aucun livreur certifié).
     /// </summary>
-    public bool RequireCertifiedRiders { get; set; }
+    public bool RequireCertifiedRiders { get; set; } = true;
 }

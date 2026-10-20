@@ -12,6 +12,11 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.view.ViewGroup
+import android.text.InputType
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationManagerCompat
@@ -93,6 +98,10 @@ class MainActivity : AppCompatActivity() {
         btnClearLogs = findViewById(R.id.btnClearLogs)
         tvLogs = findViewById(R.id.tvLogs)
         scrollLogs = findViewById(R.id.scrollLogs)
+        (btnPingApi.parent as? ViewGroup)?.addView(MaterialButton(this).apply {
+            text = "Configurer les accès de cet appareil"
+            setOnClickListener { configureGatewayAccess() }
+        })
 
         val prefs = getSharedPreferences("wazap_gateway_prefs", Context.MODE_PRIVATE)
         switchAutoReply.isChecked = prefs.getBoolean("auto_reply_enabled", true)
@@ -147,6 +156,34 @@ class MainActivity : AppCompatActivity() {
         btnClearLogs.setOnClickListener {
             GatewayLogger.clear()
         }
+    }
+
+    private fun configureGatewayAccess() {
+        val device = EditText(this).apply { hint = "Identifiant de l'appareil"; isSingleLine = true }
+        val secret = EditText(this).apply {
+            hint = "Secret fourni par l'administrateur"; isSingleLine = true
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+        val fields = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(32, 16, 32, 16)
+            addView(device); addView(secret)
+        }
+        val dialog = MaterialAlertDialogBuilder(this).setTitle("Enrôlement de la passerelle")
+            .setView(fields).setNegativeButton("Annuler", null).setPositiveButton("Enregistrer", null).create()
+        dialog.setOnShowListener {
+            dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                try {
+                    GatewayCredentials.save(device.text.toString().trim(), secret.text.toString())
+                    secret.text.clear()
+                    dialog.dismiss()
+                    GatewayLogger.log("Accès de l'appareil enregistrés.")
+                } catch (_: Exception) {
+                    secret.error = "Identifiant alphanumérique et secret d'au moins 32 octets requis."
+                }
+            }
+        }
+        dialog.show()
     }
 
     private fun requestStoragePermissions() {

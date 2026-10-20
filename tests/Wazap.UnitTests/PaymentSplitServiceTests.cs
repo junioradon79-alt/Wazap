@@ -15,12 +15,16 @@ public class PaymentSplitServiceTests
     private readonly ApplicationDbContext _context;
     private readonly RecordingWhatsAppSender _sender;
     private readonly PaymentSplitService _service;
+    private readonly ClientPaymentService _payments;
 
     public PaymentSplitServiceTests()
     {
         _context = TestInfra.NewContext("paymentsplit-" + Guid.NewGuid().ToString("N"));
         _sender = new RecordingWhatsAppSender();
-        _service = new PaymentSplitService(_context, _sender, NullLogger<PaymentSplitService>.Instance);
+        _payments = new ClientPaymentService(_context, new FakeClientPaymentGateway(), _sender, null!,
+            new Wazap.Application.Configuration.ClientPaymentOptions { Enabled = true }, NullLogger<ClientPaymentService>.Instance);
+        _service = new PaymentSplitService(_context, _sender,
+            NullLogger<PaymentSplitService>.Instance, _payments);
     }
 
     private Order CreateTestOrder(decimal amount = 35000m, decimal deliveryFee = 1500m)
@@ -67,51 +71,41 @@ public class PaymentSplitServiceTests
         var order = CreateTestOrder(amount: 25000m, deliveryFee: 1500m);
 
         // Act
-        var result = await _service.InitiateSplitPaymentAsync(order.Id);
+        var result = await _service.InitiateSplitPaymentAsync(order.Id, feePayer: SplitFeePayer.Client);
 
         // Assert
         Assert.True(result.Success);
-        Assert.Equal(26500m, result.TotalAmount);
+        Assert.Equal(26865m, result.TotalAmount);
         Assert.Equal(25000m, result.MerchantAmount);
         Assert.Equal(1500m, result.RiderDeliveryFee);
         Assert.NotNull(result.PaymentLink);
-        Assert.Contains(order.Id.ToString(), result.PaymentLink);
+        Assert.StartsWith("https://checkout.test/", result.PaymentLink);
 
         var payment = await _context.OrderPayments.FirstOrDefaultAsync(p => p.OrderId == order.Id);
         Assert.NotNull(payment);
-        Assert.Equal(26500m, payment.Amount);
+        Assert.Equal(26865m, payment.Amount);
     }
 
     [Fact]
-    public async Task CompleteSplitPaymentAsync_NotifieVendeurEtLivreur_EtCloturePaiement()
+    public async Task Confirmation_ConserveDevisEtNotifieSeulementLesSommesDues_UneSeuleFois()
     {
-        // Arrange
-        var order = CreateTestOrder(amount: 35000m, deliveryFee: 1500m);
-        await _service.InitiateSplitPaymentAsync(order.Id);
-
-        // Act
-        var result = await _service.CompleteSplitPaymentAsync(order.Id, "WAVE-TEST-REF-1234");
-
-        // Assert
-        Assert.True(result.Success);
-        Assert.Equal(35000m, result.MerchantAmount);
-        Assert.Equal(1500m, result.RiderDeliveryFee);
-
-        var payment = await _context.OrderPayments.FirstOrDefaultAsync(p => p.OrderId == order.Id);
-        Assert.NotNull(payment);
+        var order = CreateTestOrder();
+        var result = await _service.InitiateSplitPaymentAsync(order.Id, feePayer: SplitFeePayer.Shared);
+        var payment = await _context.OrderPayments.SingleAsync(p => p.OrderId == order.Id);
+        Assert.Equal(36733m, payment.Amount);
+        Assert.Equal(34768m, payment.QuotedVendorAmount);
+        Assert.Equal(1500m, payment.QuotedRiderAmount);
+        Assert.Equal(465m, payment.QuotedGatewayFee);
+        await _payments.CompletePaymentAsync(payment.Id, "VERIFIED-REF");
+        var messageCount = _sender.TextMessages.Count;
+        await _payments.CompletePaymentAsync(payment.Id, "VERIFIED-REF");
+        Assert.Equal(messageCount, _sender.TextMessages.Count);
         Assert.Equal(TransactionStatus.Completed, payment.Status);
-
-        // Vérifier que le vendeur et le livreur ont été notifiés par WhatsApp
-        var vendorMsg = _sender.TextMessages.FirstOrDefault(m => m.Phone == "+22507112233");
-        var riderMsg = _sender.TextMessages.FirstOrDefault(m => m.Phone == "+22507012345");
-
-        Assert.True(vendorMsg != default);
-        Assert.Contains("PAIEMENT REÇU", vendorMsg.Message);
-        Assert.Contains("35 000", vendorMsg.Message);
-
-        Assert.True(riderMsg != default);
-        Assert.Contains("COURSE RÉGLÉE", riderMsg.Message);
-        Assert.Contains("1 500", riderMsg.Message);
+        Assert.Equal(34768m, payment.VendorPayoutDue);
+        Assert.Equal(1500m, payment.RiderPayoutDue);
+        Assert.DoesNotContain(_sender.TextMessages, m => m.Message.Contains("transféré"));
+        Assert.Contains(_sender.TextMessages, m => m.Message.Contains("reste à effectuer"));
+        Assert.Equal(result.TotalAmount, payment.VendorPayoutDue + payment.RiderPayoutDue + payment.QuotedGatewayFee);
     }
 
     [Fact]
@@ -139,43 +133,26 @@ public class PaymentSplitServiceTests
     }
 
     [Fact]
-    public async Task CompleteSplitPaymentAsync_OptionA_DeclencheDoubleVirementSortantEtTraces()
+    public async Task VersementManuel_NeProduitPasDeReferenceNiDeConfirmationFictive()
     {
-        // Arrange : Service avec IPayoutService (Disbursement API Option A)
-        var payoutService = new Wazap.Infrastructure.Services.ManualPayoutService(NullLogger<Wazap.Infrastructure.Services.ManualPayoutService>.Instance);
-        var serviceWithPayout = new PaymentSplitService(
-            _context,
-            _sender,
-            payoutService,
-            paymentService: null,
-            NullLogger<PaymentSplitService>.Instance);
+        var payout = new Wazap.Infrastructure.Services.ManualPayoutService(
+            NullLogger<Wazap.Infrastructure.Services.ManualPayoutService>.Instance);
+        var result = await payout.DisburseSplitAsync(new Wazap.Application.Abstractions.SplitDisbursementRequest(
+            Guid.NewGuid(), "+2250700000001", 10000, "+2250700000002", 1500, "TEST"));
+        Assert.False(result.Success);
+        Assert.True(result.RequiresManualTransfer);
+        Assert.Null(result.VendorTransferRef);
+        Assert.Null(result.RiderTransferRef);
+    }
 
-        var order = CreateTestOrder(amount: 45000m, deliveryFee: 2500m);
-        await serviceWithPayout.InitiateSplitPaymentAsync(order.Id);
-
-        // Act
-        var result = await serviceWithPayout.CompleteSplitPaymentAsync(order.Id, "GENIUS-PAY-REF-999");
-
-        // Assert
-        Assert.True(result.Success);
-        Assert.Equal(45000m, result.MerchantAmount);
-        Assert.Equal(2500m, result.RiderDeliveryFee);
-        Assert.NotNull(result.VendorDisbursementRef);
-        Assert.NotNull(result.RiderDisbursementRef);
-        Assert.StartsWith("DISB-VND-", result.VendorDisbursementRef);
-        Assert.StartsWith("DISB-RDR-", result.RiderDisbursementRef);
-
-        // Vérifier les messages WhatsApp avec références de virement immédiat
-        var vendorMsg = _sender.TextMessages.FirstOrDefault(m => m.Phone == "+22507112233");
-        var riderMsg = _sender.TextMessages.FirstOrDefault(m => m.Phone == "+22507012345");
-
-        Assert.True(vendorMsg != default);
-        Assert.Contains(result.VendorDisbursementRef, vendorMsg.Message);
-        Assert.Contains("45 000", vendorMsg.Message);
-
-        Assert.True(riderMsg != default);
-        Assert.Contains(result.RiderDisbursementRef, riderMsg.Message);
-        Assert.Contains("2 500", riderMsg.Message);
+    [Fact]
+    public async Task Initiation_ReutiliseLeDevisEtLeLienSansNouvelEncaissement()
+    {
+        var order = CreateTestOrder();
+        var first = await _service.InitiateSplitPaymentAsync(order.Id, feePayer: SplitFeePayer.Shared);
+        var second = await _service.InitiateSplitPaymentAsync(order.Id, feePayer: SplitFeePayer.Client);
+        Assert.Equal(first, second);
+        Assert.Single(await _context.OrderPayments.ToListAsync());
     }
 
     [Fact]

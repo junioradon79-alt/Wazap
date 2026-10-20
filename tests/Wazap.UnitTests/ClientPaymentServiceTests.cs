@@ -14,6 +14,7 @@ namespace Wazap.UnitTests;
 internal sealed class FakeClientPaymentGateway : IPaymentService
 {
     public bool FailRequest { get; set; }
+    public bool ThrowRequest { get; set; }
     public PaymentStatusResult? NextStatus { get; set; }
     public List<string> Requests { get; } = new();
 
@@ -21,6 +22,7 @@ internal sealed class FakeClientPaymentGateway : IPaymentService
         Guid vendorId, string packName, decimal amount, string reference)
     {
         Requests.Add(reference);
+        if (ThrowRequest) throw new TimeoutException("Réponse prestataire perdue.");
         return Task.FromResult(FailRequest
             ? new PaymentResult(false, null, null, "Solde insuffisant")
             : new PaymentResult(true, $"PAY-{Requests.Count}", $"https://checkout.test/{Requests.Count}", null));
@@ -50,7 +52,7 @@ internal sealed class ClientPaymentHarness
             Sender, whatsAppOptions, NullLogger<WhatsAppOrchestrationService>.Instance);
         Offers = new DeliveryOfferService(Context, Sender, whatsAppOptions,
             new GeoOptions(), new GroupingOptions(), new ClientOptions(), orchestrator,
-            new RiderSecurityOptions(), new RiderReputationOptions(), Options,
+            new RiderSecurityOptions { RequireCertifiedRiders = false }, new RiderReputationOptions(), Options,
             new RiderPriorityOptions(), NullLogger<DeliveryOfferService>.Instance);
 
         Service = new ClientPaymentService(Context, Gateway, Sender, Offers, Options,
@@ -73,6 +75,24 @@ internal sealed class ClientPaymentHarness
 
 public class ClientPaymentServiceTests
 {
+    [Fact]
+    public async Task RequestPayment_TimeoutKeepsDurableIntentAndDoesNotCreateAnotherCheckout()
+    {
+        var harness = new ClientPaymentHarness();
+        var order = harness.NewConfirmedOrder();
+        harness.Gateway.ThrowRequest = true;
+        var first = await harness.Service.RequestPaymentAsync(order.Id);
+        Assert.False(first.Success);
+        var payment = harness.PaymentFor(order.Id)!;
+        Assert.Equal(TransactionStatus.Pending, payment.Status);
+        Assert.NotNull(payment.ErrorMessage);
+        var next = await harness.Service.RequestPaymentAsync(order.Id);
+        Assert.Equal("Processing", next.Status);
+        Assert.Single(harness.Gateway.Requests);
+        await harness.Service.CompletePaymentAsync(payment.Id, "verified-after-timeout");
+        Assert.Equal(TransactionStatus.Completed, harness.PaymentFor(order.Id)!.Status);
+        Assert.Single(harness.Context.PaymentPayouts);
+    }
     [Fact]
     public async Task RequestPayment_WhenDisabled_ShouldFailWithoutCharge()
     {

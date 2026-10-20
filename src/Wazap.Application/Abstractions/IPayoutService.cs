@@ -45,8 +45,8 @@ public sealed record SplitDisbursementResult(
 /// Versement sortant d'une indemnisation « Garantie Colis Sûr » ou reversement direct fractionné.
 /// </summary>
 /// <remarks>
-/// Ce port permet d'exécuter les virements Mobile Money sortants (disbursement API)
-/// dès que l'agrégateur (GeniusPay) est connecté et activé sur le compte marchand WAZAP.
+/// Les virements sortants nécessitent une implémentation dédiée et une confirmation du
+/// prestataire. Activer la passerelle d'encaissement ne déclenche pas ces virements.
 /// </remarks>
 public interface IPayoutService
 {

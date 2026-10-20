@@ -66,7 +66,19 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
-    // POST: api/auth/refresh — rotation du refresh token
+    [HttpPost("access-link")]
+    [AllowAnonymous]
+    [EnableRateLimiting("auth")]
+    public async Task<ActionResult<AuthResponse>> AccessLink([FromBody] AccessLinkRequest request)
+    {
+        Response.Headers.CacheControl = "no-store";
+        try { return Ok(await _authService.RedeemAccessLinkAsync(request.Token)); }
+        catch (UnauthorizedAccessException) { return Unauthorized(new { message = "Lien invalide, expiré ou déjà utilisé. Demandez un nouvel accès sur WhatsApp." }); }
+    }
+
+    public sealed record AccessLinkRequest(string? Token);
+
+    // POST: api/auth/refresh - rotation du refresh token
     [HttpPost("refresh")]
     [AllowAnonymous]
     [EnableRateLimiting("auth")]
@@ -148,6 +160,7 @@ public class AuthController : ControllerBase
 
     // POST: api/auth/2fa/enable — active la 2FA après vérification du premier code
     [HttpPost("2fa/enable")]
+    [EnableRateLimiting("auth")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public async Task<IActionResult> EnableTwoFactor([FromBody] EnableTwoFactorRequest request)
     {
@@ -167,6 +180,7 @@ public class AuthController : ControllerBase
 
     // POST: api/auth/2fa/disable — désactive la 2FA (code requis)
     [HttpPost("2fa/disable")]
+    [EnableRateLimiting("auth")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public async Task<IActionResult> DisableTwoFactor([FromBody] DisableTwoFactorRequest request)
     {

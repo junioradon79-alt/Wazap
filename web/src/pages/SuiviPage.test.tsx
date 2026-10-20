@@ -118,7 +118,7 @@ describe('SuiviPage (Suivi client en direct)', () => {
 
     expect(await screen.findByText(/Garantie Colis Sûr WAZAP/)).toBeInTheDocument()
     expect(screen.getByText(/Remise 1-Tap Sécurisée • Zéro Espèces sur la Marchandise/)).toBeInTheDocument()
-    expect(screen.getByText(/Validation instantanée 1-tap • Aucun code PIN nécessaire/)).toBeInTheDocument()
+    expect(screen.getByText(/Ouvrez le lien personnel reçu sur WhatsApp/)).toBeInTheDocument()
     expect(screen.getByText(/Paiement 100% Digital par QR Code Universel/)).toBeInTheDocument()
 
     // Vérification du livreur

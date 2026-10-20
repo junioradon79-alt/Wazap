@@ -97,7 +97,7 @@ namespace Wazap.API.Services
                 _logger.LogInformation("Réconciliation {Ref} : statut {Status}.",
                     transaction.TransactionReference, status.Status);
 
-                if (status.Status.Equals("completed", StringComparison.OrdinalIgnoreCase))
+                if (status.Confirms(transaction.Amount, transaction.TransactionReference))
                     await packService.CompletePurchaseAsync(transaction.Id, transaction.TransactionReference, ct);
                 else if (status.Status is "failed" or "cancelled" or "refunded")
                     await packService.FailPurchaseAsync(transaction.Id);
@@ -120,7 +120,7 @@ namespace Wazap.API.Services
                 _logger.LogInformation("Réconciliation paiement commande {Ref} : statut {Status}.",
                     payment.TransactionReference, status.Status);
 
-                if (status.Status.Equals("completed", StringComparison.OrdinalIgnoreCase))
+                if (status.Confirms(payment.Amount, payment.TransactionReference))
                     await clientPayments.CompletePaymentAsync(payment.Id, payment.TransactionReference);
                 else if (status.Status is "failed" or "cancelled" or "refunded")
                     await clientPayments.FailPaymentAsync(payment.Id);
@@ -143,7 +143,7 @@ namespace Wazap.API.Services
                 _logger.LogInformation("Réconciliation pack prioritaire {Ref} : statut {Status}.",
                     purchase.TransactionReference, status.Status);
 
-                if (status.Status.Equals("completed", StringComparison.OrdinalIgnoreCase))
+                if (status.Confirms(purchase.Amount, purchase.TransactionReference))
                     await riderPriority.CompletePurchaseAsync(purchase.Id, purchase.TransactionReference, ct);
                 else if (status.Status is "failed" or "cancelled" or "refunded")
                     await riderPriority.FailPurchaseAsync(purchase.Id);

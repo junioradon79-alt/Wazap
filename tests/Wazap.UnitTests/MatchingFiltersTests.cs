@@ -116,7 +116,7 @@ public class MatchingFiltersTests
             new GeoOptions { MaxDistanceKm = 15 }, new GroupingOptions(), new ClientOptions(),
             new WhatsAppOrchestrationService(sender, new WhatsAppOptions(),
                 NullLogger<WhatsAppOrchestrationService>.Instance),
-            new RiderSecurityOptions(), new RiderReputationOptions(), new ClientPaymentOptions(),
+            new RiderSecurityOptions { RequireCertifiedRiders = false }, new RiderReputationOptions(), new ClientPaymentOptions(),
             new RiderPriorityOptions(), NullLogger<DeliveryOfferService>.Instance);
 
         var result = await offers.BroadcastAsync(order.Id);

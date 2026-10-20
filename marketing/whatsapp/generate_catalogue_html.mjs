@@ -13,20 +13,20 @@ const items = [
     collectionId: "commercants",
     num: 1,
     image: "catalogue_visuels/01_pack_bienvenue_15courses.png",
-    name: "🎁 Pack Bienvenue (15 Livraisons Offertes)",
+    name: "🎁 Pack Bienvenue (15 crédits de mise en relation offerts)",
     price: "0 FCFA",
     priceNum: 0,
     sku: "WA-PACK-TRIAL15",
     link: "https://wa.me/2250544051972?text=COLIS",
     linkText: "COLIS",
-    description: `Testez WAZAP sans aucun engagement ! Vos 15 premières livraisons sont 100% offertes (zéro commission de mise en relation).
+    description: `Testez WAZAP sans aucun engagement ! 15 crédits de mise en relation sont offerts. Les frais de livraison et de paiement restent distincts.
 
-✅ Livreur assigné en 3 minutes chrono à Abidjan
+✅ Recherche de livreurs disponibles dans votre zone à Abidjan
 ✅ Règlement par QR Code Universel (Wave, Orange, MTN, Moov)
-✅ Virement instantané sur votre propre compte à la livraison
+✅ Encaissement digital suivi ; versement au commerçant après rapprochement
 ✅ Zéro manipulation d'espèces sur vos produits = Zéro vol
 
-Touchez le lien ci-dessous pour activer vos 15 courses offertes !`
+Touchez le lien ci-dessous pour activer vos 15 crédits offerts !`
   },
   {
     collection: "🏪 Formules Commerçants & E-commerce",
@@ -42,7 +42,7 @@ Touchez le lien ci-dessous pour activer vos 15 courses offertes !`
     description: `La formule ultra-accessible pour tester ou démarrer vos livraisons (~166 F par mise en relation).
 
 ✅ 6 crédits de livraison express dans tout Abidjan
-✅ Assignation en 3 minutes d'un coursier certifié
+✅ Recherche de livreurs certifiés disponibles
 ✅ Paiement direct par QR Code Universel (Wave, OM, MTN, Moov)
 ✅ Idéal pour tester le service en toute tranquillité
 
@@ -229,7 +229,7 @@ Touchez le lien ci-dessous pour consulter les détails ou demander une course.`
 
 • Règlement exclusivement digital par Scan du QR Code Universel WAZAP
 • Compatible Wave, Orange Money, MTN MoMo, Moov Money et Cartes Bancaires
-• Votre recette arrive instantanément sur votre propre compte Mobile Money
+• Le paiement confirmé et le versement au commerçant sont suivis séparément
 • Le livreur est payé de sa course sans délai
 • Zéro manipulation d'espèces sur vos articles
 

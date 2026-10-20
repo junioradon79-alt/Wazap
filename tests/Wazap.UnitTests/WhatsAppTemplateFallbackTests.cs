@@ -140,7 +140,7 @@ public class WhatsAppTemplateFallbackTests
     }
 
     [Fact]
-    public async Task DeliveryCode_WhenTemplateAccepted_SendsTemplateWithCode()
+    public async Task DeliveryReceipt_UsesUtilityTemplateWithPersonalLink()
     {
         var sender = new RecordingWhatsAppSender();
         var service = CreateService(sender);
@@ -151,8 +151,8 @@ public class WhatsAppTemplateFallbackTests
 
         var template = Assert.Single(sender.TemplateMessages);
         Assert.Equal("+2250700000003", template.Phone);
-        Assert.Equal("delivery_code", template.Template);
-        Assert.Equal(order.DeliveryCode, template.Variables["1"]);
+        Assert.Equal("client_tracking_link", template.Template);
+        Assert.Contains("#receipt=", template.Variables["3"]);
         Assert.Empty(sender.TextMessages);
     }
 
@@ -168,7 +168,7 @@ public class WhatsAppTemplateFallbackTests
 
         var text = Assert.Single(sender.TextMessages);
         Assert.Equal("+2250700000003", text.Phone);
-        Assert.Contains(order.DeliveryCode!, text.Message);
+        Assert.Contains("#receipt=", text.Message);
     }
 
     /// <summary>Passerelle qui refuse tout envoi de template, mais accepte le texte.</summary>

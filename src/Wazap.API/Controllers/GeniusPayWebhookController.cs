@@ -19,7 +19,6 @@ public class GeniusPayWebhookController : ControllerBase
     private readonly PackService _packService;
     private readonly RiderPriorityService _riderPriority;
     private readonly ClientPaymentService _clientPayments;
-    private readonly PaymentSplitService? _paymentSplit;
     private readonly GeniusPayOptions _options;
     private readonly ILogger<GeniusPayWebhookController> _logger;
 
@@ -29,8 +28,7 @@ public class GeniusPayWebhookController : ControllerBase
         RiderPriorityService riderPriority,
         ClientPaymentService clientPayments,
         GeniusPayOptions options,
-        ILogger<GeniusPayWebhookController> logger,
-        PaymentSplitService? paymentSplit = null)
+        ILogger<GeniusPayWebhookController> logger)
     {
         _context = context;
         _packService = packService;
@@ -38,7 +36,6 @@ public class GeniusPayWebhookController : ControllerBase
         _clientPayments = clientPayments;
         _options = options;
         _logger = logger;
-        _paymentSplit = paymentSplit;
     }
 
 
@@ -91,6 +88,14 @@ public class GeniusPayWebhookController : ControllerBase
             return;
         }
 
+        if (!string.Equals(info.Currency, "XOF", StringComparison.OrdinalIgnoreCase)
+            || string.IsNullOrWhiteSpace(info.Reference)
+            || info.Status?.ToLowerInvariant() is not ("completed" or "success" or "succeeded"))
+        {
+            _logger.LogWarning("Confirmation ignorée : devise XOF, référence et statut de succès vérifiables requis.");
+            return;
+        }
+
         var transaction = info.WazapTransactionId.HasValue
             ? await _context.CreditTransactions.FirstOrDefaultAsync(t => t.Id == info.WazapTransactionId.Value)
             : info.Reference is null
@@ -109,7 +114,7 @@ public class GeniusPayWebhookController : ControllerBase
                     return;
                 }
 
-                if (info.Amount.HasValue && priorityPurchase.Amount != info.Amount.Value)
+                if ((!info.Amount.HasValue || priorityPurchase.Amount != info.Amount.Value))
                 {
                     _logger.LogWarning("Montant webhook {Paid} ≠ achat prioritaire {Expected} pour {Id}. Ignoré.",
                         info.Amount, priorityPurchase.Amount, priorityPurchase.Id);
@@ -132,17 +137,17 @@ public class GeniusPayWebhookController : ControllerBase
             }
 
             // Intégrité : le montant payé doit correspondre au panier.
-            if (info.Amount.HasValue && orderPayment.Amount != info.Amount.Value)
+            if (!orderPayment.TransactionReference.StartsWith(OrderPayment.PendingReferencePrefix, StringComparison.Ordinal)
+                && !string.Equals(orderPayment.TransactionReference, info.Reference, StringComparison.Ordinal))
+            {
+                _logger.LogWarning("Référence de confirmation différente de la session initiée pour {PaymentId}.", orderPayment.Id);
+                return;
+            }
+            if ((!info.Amount.HasValue || orderPayment.Amount != info.Amount.Value))
             {
                 _logger.LogWarning("Montant webhook {Paid} ≠ paiement commande {Expected} pour {Id}. Ignoré.",
                     info.Amount, orderPayment.Amount, orderPayment.Id);
                 return;
-            }
-
-            if (_paymentSplit is not null)
-            {
-                await _paymentSplit.CompleteSplitPaymentAsync(
-                    orderPayment.OrderId, info.Reference ?? $"GENIUS-{orderPayment.Id:N}");
             }
 
             await _clientPayments.CompletePaymentAsync(
@@ -157,7 +162,7 @@ public class GeniusPayWebhookController : ControllerBase
         }
 
         // Intégrité : le montant payé doit correspondre à la transaction.
-        if (info.Amount.HasValue && transaction.Amount != info.Amount.Value)
+        if ((!info.Amount.HasValue || transaction.Amount != info.Amount.Value))
         {
             _logger.LogWarning("Montant webhook {Paid} ≠ transaction {Expected} pour {Id}. Ignoré.",
                 info.Amount, transaction.Amount, transaction.Id);

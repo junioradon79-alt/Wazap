@@ -15,7 +15,7 @@ namespace Wazap.API.Services;
 ///  2. compléments par texte (nom, quartier) → dernière étape : la photo de la pièce d'identité ;
 ///  3. photo reçue → téléchargement, création du compte livreur (identifiants envoyés sur
 ///     WhatsApp), dossier RiderIdentity avec scan chiffré + consentement « whatsapp » tracé,
-///     et alerte équipe (certification en 1 clic dans /app/certifications).
+///     et alerte équipe (certification en 1 clic dans /app/riders).
 /// Le Lead reste visible dans /app/leads (source « whatsapp-livreur ») : la piste n'est jamais
 /// perdue, même si le candidat abandonne en cours de route.
 /// </summary>
@@ -350,7 +350,7 @@ public sealed class RiderRecruitmentService
             lead.SetStatus(LeadStatus.Converted);
             await _context.SaveChangesAsync();
 
-            var cniNotice = !string.IsNullOrWhiteSpace(detectedCni) ? $"\n🪪 {detectedDocType ?? "Pièce d'identité"} vérifiée : {detectedCni}" : "";
+            var cniNotice = "\nPièce reçue. La certification attend la vérification de notre équipe.";
             var welcomeText = $"🎉 Félicitations {resolvedName} ! Ton profil livreur WAZAP est activé à {lead.Zone} ! 🛵💨{cniNotice}\n\n"
                 + "Ici sur WhatsApp, 0 texte à taper ! Touche simplement le lien de ton choix :\n\n"
                 + "🟢 1. ME METTRE EN LIGNE (Recevoir les courses) :\n"
@@ -372,11 +372,9 @@ public sealed class RiderRecruitmentService
 
             await NotifyTeamAsync($"Candidature livreur COMPLÈTE (OCR) : {normalized} — {resolvedName} · {lead.Zone} · {detectedCni ?? "scan reçu"}. " +
                 (referrer is not null ? $"Parrain : {referrer.Username} ({referrer.ReferralCode}). " : string.Empty) +
-                "Vérifier le dossier dans /app/certifications (certification en 1 clic).");
+                "Vérifier le dossier dans /app/riders (certification en 1 clic).");
 
-            _logger.LogInformation(
-                "Candidat livreur {Phone} converti via OCR : compte {Username} ({FullName}), scan chiffré, CNI {Cni}.",
-                normalized, username, resolvedName, detectedCni);
+            _logger.LogInformation("Dossier candidat enregistré pour le compte {UserId}.", user.Id);
         }
         catch (InvalidOperationException ex)
         {
@@ -464,8 +462,7 @@ public sealed class RiderRecruitmentService
             }
         }
 
-        _logger.LogInformation("Livreur auto-enrôlé depuis Lead {Phone} -> {Username} ({Name}, Zone: {Zone})",
-            normalized, username, candidateName, user.Zone);
+        _logger.LogInformation("Livreur enregistré depuis un prospect, compte {UserId}.", user.Id);
 
         return user;
     }

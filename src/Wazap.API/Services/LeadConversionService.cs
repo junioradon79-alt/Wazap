@@ -21,19 +21,21 @@ public sealed class LeadConversionService
     private readonly TrialOptions _trial;
     private readonly IWhatsAppSender _whatsApp;
     private readonly ILogger<LeadConversionService> _logger;
+    private readonly ClientOptions _clientOptions;
 
     public LeadConversionService(
         ApplicationDbContext context,
         IPasswordHasher passwordHasher,
         TrialOptions trial,
         IWhatsAppSender whatsApp,
-        ILogger<LeadConversionService> logger)
+        ILogger<LeadConversionService> logger, ClientOptions? clientOptions = null)
     {
         _context = context;
         _passwordHasher = passwordHasher;
         _trial = trial;
         _whatsApp = whatsApp;
         _logger = logger;
+        _clientOptions = clientOptions ?? new ClientOptions();
     }
 
     public async Task<LeadConversionResult> ConvertAsync(Guid leadId, bool sendWelcome = true, CancellationToken ct = default)
@@ -66,7 +68,7 @@ public sealed class LeadConversionService
         // Username dérivé du commerce (unique).
         var username = await BuildUniqueUsernameAsync(lead.BusinessName, ct);
 
-        var tempPassword = "Wazap-" + Random.Shared.Next(100000, 999999);
+        var tempPassword = SecurityHelper.GenerateOpaqueToken();
         var user = new User(username, _passwordHasher.Hash(tempPassword), UserRole.Vendor, phone);
         if (!string.IsNullOrWhiteSpace(lead.Zone))
             user.SetZone(lead.Zone);
@@ -132,7 +134,7 @@ public sealed class LeadConversionService
         }
 
         _logger.LogInformation("Lead {LeadId} converti en vendeur {UserId} ({Username}).", lead.Id, user.Id, user.Username);
-        return new LeadConversionResult(user.Id, username, tempPassword, user.Credits,
+        return new LeadConversionResult(user.Id, username, null, user.Credits,
             user.ReferralCode ?? string.Empty, lead.Zone, false);
     }
 
@@ -161,13 +163,9 @@ public sealed class LeadConversionService
     private async Task SendWelcomeAsync(Lead lead, User user, int trialCredits, string? tempPassword = null)
     {
         var name = string.IsNullOrWhiteSpace(lead.ContactName) ? lead.BusinessName : lead.ContactName;
-        var dashboardUrl = string.IsNullOrWhiteSpace(tempPassword)
-            ? $"https://junioradon79gm-001-site1.jtempurl.com/app/login?u={Uri.EscapeDataString(user.Username)}"
-            : $"https://junioradon79gm-001-site1.jtempurl.com/app/login?u={Uri.EscapeDataString(user.Username)}&p={Uri.EscapeDataString(tempPassword)}";
+        var dashboardUrl = await PasswordlessAccess.IssueAsync(_context, user, _clientOptions);
 
         var msg = $"Félicitations {name} ! 🎉 Votre compte commerçant WAZAP est actif.\n\n"
-            + $"• Identifiant : {user.Username}\n"
-            + (tempPassword != null ? $"• Mot de passe : {tempPassword}\n" : "")
             + $"• Code parrainage : {user.ReferralCode}\n"
             + (trialCredits > 0 ? $"• {trialCredits} crédits offerts pour démarrer (15 premières commandes)\n\n" : "\n")
             + "📊 Accédez directement à votre Tableau de Bord Marchand (1 clic sans mot de passe à taper) :\n"

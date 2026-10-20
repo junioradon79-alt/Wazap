@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Wazap.Application.Abstractions;
@@ -46,14 +47,20 @@ public sealed class ClientPaymentService
     /// session d'encaissement en attente avec un lien renvoie le MÊME lien — le client
     /// qui a quitté WhatsApp ne doit pas générer une seconde session chez l'agrégateur.
     /// </summary>
-    public async Task<ClientPaymentResultDto> RequestPaymentAsync(Guid orderId)
+    public async Task<ClientPaymentResultDto> RequestPaymentAsync(Guid orderId, SplitFeePayer? splitFeePayer = null)
     {
         if (!_options.Enabled)
             return new ClientPaymentResultDto(false, "Disabled", 0, null,
                 "Le paiement client n'est pas activé.");
 
+        var transaction = _context.SupportsConditionalUpdates && _context.Database.CurrentTransaction is null
+            ? await _context.Database.BeginTransactionAsync() : null;
         try
         {
+            // Le verrou de ligne sérialise initiation et confirmation, y compris deux sessions distinctes.
+            if (_context.SupportsConditionalUpdates)
+                await _context.Orders.Where(o => o.Id == orderId)
+                    .ExecuteUpdateAsync(setters => setters.SetProperty(o => o.Status, o => o.Status));
             var order = await _context.Orders.AsNoTracking()
                 .FirstOrDefaultAsync(o => o.Id == orderId);
 
@@ -64,6 +71,11 @@ public sealed class ClientPaymentService
                 return new ClientPaymentResultDto(false, order.Status.ToString(), order.Amount, null,
                     $"Commande {order.Status} : le paiement n'est plus possible.");
 
+            var paid = await _context.OrderPayments.AsNoTracking()
+                .FirstOrDefaultAsync(p => p.OrderId == orderId && p.Status == TransactionStatus.Completed);
+            if (paid is not null)
+                return new ClientPaymentResultDto(true, "Completed", paid.Amount, null, null);
+
             var pending = await _context.OrderPayments
                 .Where(p => p.OrderId == orderId && p.Status == TransactionStatus.Pending)
                 .OrderByDescending(p => p.CreatedAt)
@@ -72,26 +84,48 @@ public sealed class ClientPaymentService
             if (pending is not null && !string.IsNullOrWhiteSpace(pending.PaymentLink))
                 return new ClientPaymentResultDto(true, "Pending", pending.Amount, pending.PaymentLink, null);
 
+            if (pending is not null)
+                return new ClientPaymentResultDto(false, "Processing", pending.Amount, null,
+                    "Le paiement est en cours de vérification. Actualisez le suivi ; aucune seconde session ne sera créée.");
+
             // --- SUITE-INITIATION ---
 
-            var payment = new OrderPayment(orderId, order.Amount);
-            _context.OrderPayments.Add(payment);
+            // Une tentative existante sans lien conserve son identifiant de rapprochement.
+            var quote = splitFeePayer.HasValue ? PaymentSplitService.CalculateSplit(order, splitFeePayer) : null;
+            var payment = pending ?? new OrderPayment(orderId, quote?.TotalAmount ?? order.Amount);
+            if (pending is null)
+            {
+                if (quote is not null)
+                    payment.SetSplitQuote(quote.MerchantAmount, quote.RiderDeliveryFee, quote.GatewayFee, quote.FeePayer.ToString());
+                _context.OrderPayments.Add(payment);
+                await _context.SaveChangesAsync();
+            }
+
+            // L'intention doit survivre à une réponse réseau perdue et à un webhook très rapide.
+            if (transaction is not null)
+            {
+                await transaction.CommitAsync();
+                await transaction.DisposeAsync();
+                transaction = null;
+            }
 
             // La référence passée à l'agrégateur est l'ID interne (metadata wazap_transaction_id) :
             // c'est elle qui permet au webhook de retrouver le paiement.
             var paymentResult = await _paymentService.RequestPaymentAsync(
                 order.VendorUserId ?? Guid.Empty,
                 $"Commande WAZAP #{OrderCode(orderId)}",
-                order.Amount,
+                payment.Amount,
                 payment.Id.ToString());
 
-            if (!paymentResult.Success)
+            if (!paymentResult.Success || string.IsNullOrWhiteSpace(paymentResult.PaymentLink))
             {
-                payment.MarkFailed();
+                if (paymentResult.OutcomeUnknown) payment.MarkInitiationUncertain();
+                else await FailPaymentAsync(payment.Id, paymentResult.ErrorMessage);
                 await _context.SaveChangesAsync();
+                if (transaction is not null) await transaction.CommitAsync();
                 _logger.LogWarning("Initiation du paiement client impossible pour {OrderId} : {Error}",
                     orderId, paymentResult.ErrorMessage);
-                return new ClientPaymentResultDto(false, "Failed", order.Amount, null,
+                return new ClientPaymentResultDto(false, paymentResult.OutcomeUnknown ? "Processing" : "Failed", payment.Amount, null,
                     paymentResult.ErrorMessage ?? "Erreur de la passerelle de paiement.");
             }
 
@@ -101,6 +135,7 @@ public sealed class ClientPaymentService
                 payment.SetPaymentLink(paymentResult.PaymentLink);
 
             await _context.SaveChangesAsync();
+            if (transaction is not null) await transaction.CommitAsync();
 
             // Lien au client (best effort) : le texte n'aboutit que dans la fenêtre 24 h,
             // mais le lien reste disponible sur la page de suivi.
@@ -112,7 +147,7 @@ public sealed class ClientPaymentService
                         order.ClientWhatsAppNumber,
                         $"💳 Payez votre commande #{OrderCode(orderId)} en Mobile Money " +
                         $"({Format(payment.Amount)} FCFA) :\n{payment.PaymentLink}\n" +
-                        "Ou en espèces à la livraison.");
+                        "Règlement à la livraison exclusivement digital via le QR Code Universel WAZAP.");
                 }
                 catch (Exception ex)
                 {
@@ -127,9 +162,20 @@ public sealed class ClientPaymentService
         }
         catch (Exception ex)
         {
+            if (transaction is null)
+            {
+                var uncertain = await _context.OrderPayments.FirstOrDefaultAsync(p => p.OrderId == orderId
+                    && p.Status == TransactionStatus.Pending && p.PaymentLink == null);
+                uncertain?.MarkInitiationUncertain();
+                await _context.SaveChangesAsync();
+            }
             _logger.LogError(ex, "Erreur lors de l'initiation du paiement client pour {OrderId}.", orderId);
             return new ClientPaymentResultDto(false, "Error", 0, null,
                 "Une erreur est survenue lors de l'initiation du paiement.");
+        }
+        finally
+        {
+            if (transaction is not null) await transaction.DisposeAsync();
         }
     }
 
@@ -145,11 +191,20 @@ public sealed class ClientPaymentService
     /// </summary>
     public async Task CompletePaymentAsync(Guid paymentId, string paymentReference)
     {
+        await using var transaction = _context.SupportsConditionalUpdates && _context.Database.CurrentTransaction is null
+            ? await _context.Database.BeginTransactionAsync() : null;
         var payment = await _context.OrderPayments.AsNoTracking().FirstOrDefaultAsync(p => p.Id == paymentId);
         if (payment is null)
         {
             _logger.LogWarning("Paiement client {PaymentId} introuvable (webhook).", paymentId);
             return;
+        }
+
+        if (_context.SupportsConditionalUpdates)
+        {
+            await _context.Orders.Where(o => o.Id == payment.OrderId)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(o => o.Status, o => o.Status));
+            payment = await _context.OrderPayments.AsNoTracking().FirstAsync(p => p.Id == paymentId);
         }
 
         if (payment.Status != TransactionStatus.Pending)
@@ -166,13 +221,16 @@ public sealed class ClientPaymentService
             _logger.LogWarning(
                 "Paiement {PaymentId} complété alors que la commande {OrderId} l'était déjà — remboursement à traiter chez l'agrégateur.",
                 paymentId, payment.OrderId);
-            await FailPaymentAsync(paymentId);
+            await FailPaymentAsync(paymentId, "Paiement reçu alors que la commande était déjà payée : remboursement à traiter.");
+            if (transaction is not null) await transaction.CommitAsync();
             return;
         }
 
         if (_context.SupportsConditionalUpdates)
         {
-            var (commission, payout) = OrderPayment.ComputeBreakdown(payment.Amount, _options.CommissionPercent);
+            var (commission, payout) = payment.QuotedVendorAmount is { } vendor
+                ? (0m, vendor) : OrderPayment.ComputeBreakdown(payment.Amount, _options.CommissionPercent);
+            var riderPayout = payment.QuotedRiderAmount ?? 0m;
             var completedAt = DateTime.UtcNow;
 
             var claimed = await _context.OrderPayments
@@ -182,6 +240,8 @@ public sealed class ClientPaymentService
                     .SetProperty(p => p.TransactionReference, paymentReference)
                     .SetProperty(p => p.CommissionAmount, commission)
                     .SetProperty(p => p.VendorPayoutDue, payout)
+                    .SetProperty(p => p.RiderPayoutDue, riderPayout)
+                    .SetProperty(p => p.ErrorMessage, (string?)null)
                     .SetProperty(p => p.CompletedAt, (DateTime?)completedAt));
 
             if (claimed == 0)
@@ -204,22 +264,61 @@ public sealed class ClientPaymentService
         var completed = await _context.OrderPayments.AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == paymentId) ?? payment;
 
+        var settledOrder = await _context.Orders.AsNoTracking().FirstAsync(o => o.Id == completed.OrderId);
+        if (completed.VendorPayoutDue > 0)
+            _context.PaymentPayouts.Add(new PaymentPayout(completed.Id, "Vendor", settledOrder.VendorUserId,
+                settledOrder.VendorWhatsAppNumber, completed.VendorPayoutDue));
+        if (completed.RiderPayoutDue > 0)
+            _context.PaymentPayouts.Add(new PaymentPayout(completed.Id, "Rider", settledOrder.RiderUserId,
+                settledOrder.RiderWhatsAppNumber, completed.RiderPayoutDue));
+        var notifications = QueuePaymentNotifications(completed, settledOrder);
+        OutboxMessage? dispatch = null;
+        if (_options.RequirePaymentBeforeDispatch)
+        {
+            dispatch = new OutboxMessage("PaymentDispatch", completed.OrderId.ToString());
+            _context.OutboxMessages.Add(dispatch);
+        }
+        await _context.SaveChangesAsync();
+
+        if (transaction is not null) await transaction.CommitAsync();
+
         _logger.LogInformation(
             "Paiement client complété : {PaymentId} pour la commande {OrderId} ({Amount} FCFA, commission {Commission}).",
             completed.Id, completed.OrderId, completed.Amount, completed.CommissionAmount);
 
-        await NotifySuccessAsync(completed);
-        await TryDispatchAfterPaymentAsync(completed.OrderId);
+        foreach (var message in notifications)
+        {
+            try
+            {
+                var notification = JsonSerializer.Deserialize<PaymentNotification>(message.Payload)!;
+                await _whatsApp.SendTextMessageAsync(notification.Phone, notification.Text);
+                message.MarkSent();
+            }
+            catch (Exception ex) { _logger.LogWarning(ex, "Notification {MessageId} conservée dans l'outbox pour reprise.", message.Id); }
+        }
+        if (dispatch is not null)
+        {
+            try { await TryDispatchAfterPaymentAsync(completed.OrderId); dispatch.MarkSent(); }
+            catch (Exception ex) { _logger.LogWarning(ex, "Diffusion conservée dans l'outbox pour {OrderId}.", completed.OrderId); }
+        }
+        await _context.SaveChangesAsync();
     }
 
     /// <summary>Marque un paiement en échec (webhook GeniusPay « payment.failed »). Idempotent.</summary>
-    public async Task FailPaymentAsync(Guid paymentId)
+    public async Task FailPaymentAsync(Guid paymentId, string? errorMessage = null)
     {
+        if (_context.SupportsConditionalUpdates)
+        {
+            await _context.OrderPayments.Where(p => p.Id == paymentId && p.Status == TransactionStatus.Pending)
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.Status, TransactionStatus.Failed)
+                    .SetProperty(p => p.ErrorMessage, errorMessage));
+            return;
+        }
         var payment = await _context.OrderPayments.FirstOrDefaultAsync(p => p.Id == paymentId);
         if (payment is null || payment.Status != TransactionStatus.Pending)
             return;
 
-        payment.MarkFailed();
+        payment.MarkFailed(errorMessage);
         await _context.SaveChangesAsync();
         _logger.LogWarning("Paiement client {PaymentId} marqué en échec.", paymentId);
     }
@@ -241,7 +340,7 @@ public sealed class ClientPaymentService
     /// Paiement bloquant : une fois payé, la course reprend son cours — diffusion si les
     /// coordonnées du client sont déjà connues, sinon routage classique (lien de suivi).
     /// </summary>
-    private async Task TryDispatchAfterPaymentAsync(Guid orderId)
+    public async Task TryDispatchAfterPaymentAsync(Guid orderId)
     {
         if (!_options.RequirePaymentBeforeDispatch)
             return;
@@ -261,46 +360,29 @@ public sealed class ClientPaymentService
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Diffusion impossible après paiement de la commande {OrderId}.", orderId);
+            throw;
         }
     }
 
-    private async Task NotifySuccessAsync(OrderPayment payment)
+    private List<OutboxMessage> QueuePaymentNotifications(OrderPayment payment, Order order)
     {
-        var order = await _context.Orders.AsNoTracking()
-            .FirstOrDefaultAsync(o => o.Id == payment.OrderId);
-        if (order is null)
+        var result = new List<OutboxMessage>();
+        void Add(string? phone, string text)
         {
-            _logger.LogWarning("Commande {OrderId} introuvable pour la notification de paiement.",
-                payment.OrderId);
-            return;
+            if (string.IsNullOrWhiteSpace(phone)) return;
+            var message = new OutboxMessage("PaymentNotification", JsonSerializer.Serialize(new PaymentNotification(phone, text)));
+            _context.OutboxMessages.Add(message);
+            result.Add(message);
         }
-
-        try
-        {
-            await _whatsApp.SendTextMessageAsync(
-                order.ClientWhatsAppNumber,
-                $"✅ Paiement reçu pour la commande #{OrderCode(payment.OrderId)} " +
-                $"({Format(payment.Amount)} FCFA). Le vendeur a été informé, la livraison suit son cours.");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Confirmation client impossible pour la commande {OrderId}.", payment.OrderId);
-        }
-
-        try
-        {
-            await _whatsApp.SendTextMessageAsync(
-                order.VendorWhatsAppNumber,
-                $"💰 Commande #{OrderCode(payment.OrderId)} PAYÉE par le client : " +
-                $"{Format(payment.Amount)} FCFA encaissés par WAZAP. " +
-                $"Montant net à vous reverser : {Format(payment.VendorPayoutDue)} FCFA.");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Notification vendeur impossible pour la commande {OrderId}.", payment.OrderId);
-        }
+        Add(order.ClientWhatsAppNumber,
+            $"Paiement reçu pour la commande #{OrderCode(payment.OrderId)} ({Format(payment.Amount)} FCFA). Le vendeur a été informé, la livraison suit son cours.");
+        Add(order.VendorWhatsAppNumber,
+            $"Commande #{OrderCode(payment.OrderId)} PAYÉE par le client : {Format(payment.Amount)} FCFA encaissés. Montant net à vous reverser : {Format(payment.VendorPayoutDue)} FCFA. Le versement reste à effectuer.");
+        if (payment.RiderPayoutDue > 0)
+            Add(order.RiderWhatsAppNumber,
+                $"Paiement client reçu pour #{OrderCode(payment.OrderId)}. Frais de livraison à vous reverser : {Format(payment.RiderPayoutDue)} FCFA. Le versement reste à effectuer.");
+        return result;
     }
-
     private static string OrderCode(Guid orderId)
         => orderId.ToString("N")[..8].ToUpperInvariant();
 
@@ -336,7 +418,7 @@ public sealed class ClientPaymentService
                 await _whatsApp.SendTextMessageAsync(order.ClientWhatsAppNumber,
                     $"💳 {order.ClientName}, votre commande #{OrderCode(orderId)} peut être payée par Mobile Money :\n"
                     + $"{result.PaymentLink}\n\n"
-                    + "Le paiement en espèces à la livraison reste accepté.");
+                    + "Paiement exclusivement digital : Wave, Orange Money, MTN MoMo, Moov Money ou carte bancaire.");
             }
             catch (Exception ex)
             {
