@@ -14,6 +14,8 @@
 
     <label class="geo-page__label" for="password">Mot de passe</label>
     <input id="password" type="password" class="geo-page__input" @bind="_password" autocomplete="current-password" />
+    <label class="geo-page__label" for="code">Code de double authentification (si activée)</label>
+    <input id="code" class="geo-page__input" @bind="_code" autocomplete="one-time-code" inputmode="numeric" />
 
     <div class="geo-page__actions">
         <button class="btn btn--primary" @onclick="LoginAsync">Connexion</button>
@@ -28,16 +30,17 @@
 @code {
     private string _username = string.Empty;
     private string _password = string.Empty;
+    private string _code = string.Empty;
     private bool _error;
 
     private async Task LoginAsync()
     {
         _error = false;
-        var url = Navigation.BaseUri.TrimEnd('/') + "/api/auth/ui/login";
+        var url = Navigation.BaseUri.TrimEnd('/') + (string.IsNullOrWhiteSpace(_code) ? "/api/auth/ui/login" : "/api/auth/ui/login-2fa");
 
         try
         {
-            var response = await Http.PostAsJsonAsync(url, new { username = _username, password = _password });
+            var response = await Http.PostAsJsonAsync(url, new { username = _username, password = _password, code = _code });
             if (response.IsSuccessStatusCode)
                 Navigation.NavigateTo("/", forceLoad: true);
             else

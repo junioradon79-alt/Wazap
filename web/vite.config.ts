@@ -13,6 +13,8 @@ export default defineConfig({
     },
   },
   build: {
+    // Conserver la compatibilité mobile du build précédent lors du passage à Vite 8.
+    target: ['chrome87', 'edge88', 'firefox78', 'safari14'],
     outDir: 'dist',
     emptyOutDir: true,
   },

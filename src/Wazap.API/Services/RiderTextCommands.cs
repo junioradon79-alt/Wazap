@@ -24,6 +24,7 @@ namespace Wazap.API.Services;
 public sealed class RiderTextCommands
 {
     private readonly ApplicationDbContext? _context;
+    private readonly Wazap.Application.Configuration.ClientOptions _clientOptions;
     private readonly RiderService _riderService;
     private readonly RiderRatingService _riderRatings;
     private readonly RiderProgramService _riderProgram;
@@ -32,12 +33,13 @@ public sealed class RiderTextCommands
         RiderService riderService,
         RiderRatingService riderRatings,
         RiderProgramService riderProgram,
-        ApplicationDbContext? context = null)
+        ApplicationDbContext? context = null, Wazap.Application.Configuration.ClientOptions? clientOptions = null)
     {
         _riderService = riderService;
         _riderRatings = riderRatings;
         _riderProgram = riderProgram;
         _context = context;
+        _clientOptions = clientOptions ?? new Wazap.Application.Configuration.ClientOptions();
     }
 
     /// <summary>
@@ -218,6 +220,13 @@ public sealed class RiderTextCommands
         sb.AppendLine();
         sb.AppendLine("🏆 Mon Défi SMARTPHONE :");
         sb.AppendLine("https://wa.me/2250544051972?text=PROGRAMME");
+
+        if (_context is not null)
+        {
+            sb.AppendLine();
+            sb.AppendLine("Ouvrir mon espace sécurisé (lien valable 15 minutes) :");
+            sb.AppendLine(await PasswordlessAccess.IssueAsync(_context, user, _clientOptions));
+        }
 
         return sb.ToString().TrimEnd();
     }

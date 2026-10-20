@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Security.Claims;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using QRCoder;
@@ -78,11 +81,28 @@ public class ClientOrdersController : ControllerBase
             .Select(r => new { r.Score, r.Comment, r.CreatedAt })
             .FirstOrDefaultAsync();
 
+        var riderCertified = order.RiderUserId is { } assignedRider
+            && await _context.RiderIdentities.AsNoTracking().AnyAsync(i => i.UserId == assignedRider
+                && i.Status == RiderIdentityStatus.Verified);
+
         var payment = await _context.OrderPayments.AsNoTracking()
             .Where(p => p.OrderId == id)
             .OrderByDescending(p => p.CreatedAt)
-            .Select(p => new { p.Status, p.Amount, p.PaymentLink })
+            .Select(p => new { p.Status, p.Amount, p.PaymentLink, p.QuotedVendorAmount, p.QuotedRiderAmount, p.QuotedGatewayFee, p.FeePayer })
             .FirstOrDefaultAsync();
+
+        SplitPaymentCalculation? quote = null;
+        if (payment?.QuotedVendorAmount is { } merchant)
+        {
+            quote = new SplitPaymentCalculation(payment.Amount, merchant, payment.QuotedRiderAmount ?? 0,
+                order.VendorWhatsAppNumber, order.RiderWhatsAppNumber, "", "", payment.QuotedGatewayFee ?? 0,
+                Enum.Parse<SplitFeePayer>(payment.FeePayer!));
+        }
+        else if (payment is null)
+        {
+            try { quote = PaymentSplitService.CalculateSplit(order, SplitFeePayer.Shared); }
+            catch (InvalidOperationException) { /* Panier trop petit : aucun devis de paiement proposé. */ }
+        }
 
         return Ok(new
         {
@@ -95,11 +115,12 @@ public class ClientOrdersController : ControllerBase
             amount = order.Amount,
             deliveryFee = order.DeliveryFee,
             totalAmount = order.TotalAmount,
-            deliveryCode = order.DeliveryCode,
-            qrUrl = $"/api/client/orders/{order.Id}/qr",
+            deliveryCode = (string?)null,
+            qrUrl = (string?)null,
             trackingUrl = $"{_clientOptions.TrackingBaseUrl.TrimEnd('/')}/{order.Id}",
             hasProofPhoto = order.DeliveryProofPhotoFileName != null,
             riderPhone = order.RiderWhatsAppNumber,
+            riderCertified,
             needsCoordinates = order.RequiresClientCoordinates,
             hasCoordinates = order.ClientLatitude is not null && order.ClientLongitude is not null,
             address = order.ClientAddress,
@@ -132,13 +153,13 @@ public class ClientOrdersController : ControllerBase
                     amount = payment.Amount,
                     paymentLink = payment.PaymentLink
                 },
-            splitPayment = new
+            splitPayment = quote is null ? null : new
             {
-                merchantAmount = PaymentSplitService.CalculateSplit(order, SplitFeePayer.Shared).MerchantAmount,
-                riderDeliveryFee = PaymentSplitService.CalculateSplit(order, SplitFeePayer.Shared).RiderDeliveryFee,
-                gatewayFee = PaymentSplitService.CalculateSplit(order, SplitFeePayer.Shared).GatewayFee,
-                feePayer = PaymentSplitService.CalculateSplit(order, SplitFeePayer.Shared).FeePayer.ToString(),
-                totalAmount = PaymentSplitService.CalculateSplit(order, SplitFeePayer.Shared).TotalAmount,
+                merchantAmount = quote.MerchantAmount,
+                riderDeliveryFee = quote.RiderDeliveryFee,
+                gatewayFee = quote.GatewayFee,
+                feePayer = quote.FeePayer.ToString(),
+                totalAmount = quote.TotalAmount,
                 qrPaymentUrl = $"/api/client/orders/{order.Id}/qr-payment",
                 supportedOperators = new[] { "Wave", "OrangeMoney", "MTN", "Moov", "Visa" }
             }
@@ -301,16 +322,16 @@ public class ClientOrdersController : ControllerBase
     // GET: api/client/orders/{id}/qr — QR Code de livraison à scanner par le livreur
     [HttpGet("{id:guid}/qr")]
     [EnableRateLimiting("client")]
-    public async Task<IActionResult> GetDeliveryQr(Guid id)
+    public async Task<IActionResult> GetDeliveryQr(Guid id, [FromQuery] string? receipt = null)
     {
         var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id);
         if (order is null)
             return NotFound();
 
-        var code = order.EnsureDeliveryCode();
-        await _context.SaveChangesAsync();
+        if (!order.VerifyReceiptToken(receipt)) return Unauthorized();
+        Response.Headers.CacheControl = "no-store";
 
-        var targetUrl = $"{_clientOptions.TrackingBaseUrl.TrimEnd('/')}/{order.Id}?valider=1&code={code}";
+        var targetUrl = $"{_clientOptions.TrackingBaseUrl.TrimEnd('/')}/{order.Id}#receipt={receipt}";
 
         using var generator = new QRCodeGenerator();
         using var qrData = generator.CreateQrCode(targetUrl, QRCodeGenerator.ECCLevel.M);
@@ -322,12 +343,15 @@ public class ClientOrdersController : ControllerBase
 
     // POST: api/client/orders/{id}/start-delivery — le livreur déclenche la course ("Livraison déclenchée")
     [HttpPost("{id:guid}/start-delivery")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Rider")]
     [EnableRateLimiting("client")]
     public async Task<IActionResult> StartDelivery(Guid id)
     {
         var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id);
         if (order is null)
             return NotFound();
+
+        if (!IsAssignedRider(order)) return Forbid();
 
         if (order.Status == OrderStatus.InTransit)
             return Ok(new { status = order.Status.ToString(), message = "Livraison déjà en cours." });
@@ -372,9 +396,14 @@ public class ClientOrdersController : ControllerBase
     [EnableRateLimiting("client")]
     public async Task<IActionResult> ValidateDelivery(Guid id, [FromBody] ValidateDeliveryRequest request)
     {
+        await using var transaction = _context.Database.IsRelational() ? await _context.Database.BeginTransactionAsync() : null;
+        if (_context.Database.IsRelational())
+            await _context.Orders.Where(o => o.Id == id).ExecuteUpdateAsync(s => s.SetProperty(o => o.Status, o => o.Status));
         var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id);
         if (order is null)
             return NotFound();
+
+        if (!order.VerifyReceiptToken(request.ReceiptToken)) return Unauthorized();
 
         if (order.Status == OrderStatus.Delivered)
             return Ok(new { status = order.Status.ToString(), message = "Commande déjà validée et livrée." });
@@ -382,20 +411,7 @@ public class ClientOrdersController : ControllerBase
         if (order.Status is not (OrderStatus.RiderAssigned or OrderStatus.ReadyForPickup or OrderStatus.PickedUp or OrderStatus.InTransit))
             return BadRequest(new { message = $"Impossible de valider la livraison en statut {order.Status}." });
 
-        var verifyResult = order.VerifyDeliveryCode(request.Code);
-        if (verifyResult is DeliveryCodeResult.Mismatch or DeliveryCodeResult.Locked)
-        {
-            await _context.SaveChangesAsync();
-            var remaining = Order.MaxDeliveryCodeAttempts - order.DeliveryCodeAttempts;
-            return BadRequest(new
-            {
-                message = verifyResult == DeliveryCodeResult.Mismatch
-                    ? "Code PIN incorrect."
-                    : "Trop de tentatives erronées. Contactez le vendeur.",
-                remainingAttempts = Math.Max(0, remaining)
-            });
-        }
-
+        order.RecordRecipientReceipt(request.ReceiptToken);
         if (order.Status == OrderStatus.RiderAssigned)
             order.MarkReadyForPickup();
         if (order.Status == OrderStatus.ReadyForPickup)
@@ -406,6 +422,7 @@ public class ClientOrdersController : ControllerBase
             order.MarkDelivered();
 
         await _context.SaveChangesAsync();
+        if (transaction is not null) await transaction.CommitAsync();
 
         if (_whatsApp is not null)
         {
@@ -439,12 +456,16 @@ public class ClientOrdersController : ControllerBase
 
     // GET: api/client/orders/{id}/qr-handover — QR Code de ramassage au magasin (affiché par le vendeur, scanné par le livreur)
     [HttpGet("{id:guid}/qr-handover")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin,Vendor")]
     [EnableRateLimiting("client")]
     public async Task<IActionResult> GetHandoverQr(Guid id)
     {
         var order = await _context.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == id);
         if (order is null)
             return NotFound();
+
+        if (!User.IsInRole("Admin") && (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var vendorId)
+            || order.VendorUserId != vendorId)) return Forbid();
 
         var targetUrl = $"{_clientOptions.TrackingBaseUrl.TrimEnd('/')}/{order.Id}?ramasser=1";
 
@@ -458,9 +479,13 @@ public class ClientOrdersController : ControllerBase
 
     // POST: api/client/orders/{id}/scan-handover — Le livreur scanne le QR code du colis/comptoir au magasin
     [HttpPost("{id:guid}/scan-handover")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Rider")]
     [EnableRateLimiting("client")]
     public async Task<IActionResult> ScanHandover(Guid id)
     {
+        var assigned = await _context.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == id);
+        if (assigned is null) return NotFound();
+        if (!IsAssignedRider(assigned)) return Forbid();
         if (_paymentSplit is not null)
         {
             var result = await _paymentSplit.ProcessHandoverScanAsync(id);
@@ -519,69 +544,35 @@ public class ClientOrdersController : ControllerBase
         if (order is null)
             return NotFound();
 
-        var calculation = PaymentSplitService.CalculateSplit(order, request?.FeePayer);
-        var paymentLink = $"{_clientOptions.TrackingBaseUrl.TrimEnd('/')}/{order.Id}?payer=1&mode=split";
-
-        if (_paymentSplit is not null)
-        {
-            var initResult = await _paymentSplit.InitiateSplitPaymentAsync(id, _clientOptions.TrackingBaseUrl, request?.FeePayer);
-            return Ok(new
-            {
-                success = initResult.Success,
-                totalAmount = initResult.TotalAmount,
-                merchantAmount = initResult.MerchantAmount,
-                riderDeliveryFee = initResult.RiderDeliveryFee,
-                gatewayFee = initResult.GatewayFee,
-                feePayer = initResult.FeePayer.ToString(),
-                paymentLink = initResult.PaymentLink,
-                qrPayload = initResult.QrPayload,
-                status = initResult.Status
-            });
-        }
-
+        if (_paymentSplit is null)
+            return StatusCode(503, new { message = "Le paiement sécurisé n'est pas disponible." });
+        var result = await _paymentSplit.InitiateSplitPaymentAsync(id, _clientOptions.TrackingBaseUrl, request?.FeePayer);
+        if (!result.Success)
+            return BadRequest(new { message = result.ErrorMessage });
         return Ok(new
         {
-            success = true,
-            totalAmount = calculation.TotalAmount,
-            merchantAmount = calculation.MerchantAmount,
-            riderDeliveryFee = calculation.RiderDeliveryFee,
-            gatewayFee = calculation.GatewayFee,
-            feePayer = calculation.FeePayer.ToString(),
-            paymentLink,
-            qrPayload = paymentLink,
-            status = "Pending"
+            success = true, totalAmount = result.TotalAmount, merchantAmount = result.MerchantAmount,
+            riderDeliveryFee = result.RiderDeliveryFee, gatewayFee = result.GatewayFee,
+            feePayer = result.FeePayer.ToString(), paymentLink = result.PaymentLink,
+            qrPayload = result.QrPayload, status = result.Status
         });
     }
 
-    // POST: api/client/orders/{id}/complete-split — Clôture du paiement fractionné et notification instantanée
+    // Anciennes applications : aucune déclaration de paiement par le client n'est acceptée.
     [HttpPost("{id:guid}/complete-split")]
     [EnableRateLimiting("client")]
-    public async Task<IActionResult> CompleteSplit(Guid id, [FromBody] CompleteSplitRequest request)
-    {
-        if (_paymentSplit is not null)
-        {
-            var result = await _paymentSplit.CompleteSplitPaymentAsync(id, request.PaymentReference ?? $"WAVE-{Guid.NewGuid():N}"[..16]);
-            return Ok(result);
-        }
+    public IActionResult CompleteSplit(Guid id, [FromBody] CompleteSplitRequest request)
+        => StatusCode(StatusCodes.Status410Gone, new { message = "Seul le prestataire peut confirmer le paiement." });
 
-        var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id);
-        if (order is null)
-            return NotFound();
-
-        return Ok(new
-        {
-            success = true,
-            orderId = id,
-            merchantAmount = order.Amount,
-            riderDeliveryFee = order.DeliveryFee,
-            message = "Paiement fractionné complété."
-        });
-    }
+    private bool IsAssignedRider(Order order) => User?.Identity?.IsAuthenticated == true
+        && User.IsInRole("Rider")
+        && Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var riderId)
+        && order.RiderUserId == riderId;
 }
 
 public sealed record SetClientCoordinatesRequest(double Latitude, double Longitude, string? Address);
 public sealed record SubmitClientRatingRequest(int Score, string? Comment);
-public sealed record ValidateDeliveryRequest(string Code);
+public sealed record ValidateDeliveryRequest(string? Code = null, string? ReceiptToken = null);
 public sealed record CompleteSplitRequest(string? PaymentReference);
 public sealed record PaySplitRequest(SplitFeePayer? FeePayer = null);
 

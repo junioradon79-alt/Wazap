@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api/client'
+import PayoutRegister from '../components/PayoutRegister'
 import type { CreditTransaction, UserSummary } from '../api/types'
 import { ErrorAlert, StatusBadge, formatDateTime, formatMoney } from '../components/ui'
 
@@ -117,6 +118,7 @@ export default function TransactionsPage() {
           </div>
         )}
       </section>
+      <PayoutRegister />
     </>
   )
 }

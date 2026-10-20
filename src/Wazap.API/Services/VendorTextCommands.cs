@@ -326,9 +326,12 @@ public sealed class VendorTextCommands
         var deliveredThisMonth = orders.Count(o => o.Status == OrderStatus.Delivered && o.DeliveredAt >= monthStart);
         var revenueThisMonth = orders.Where(o => o.Status == OrderStatus.Delivered && o.DeliveredAt >= monthStart).Sum(o => o.Amount);
 
-        var webDashboardUrl = $"https://junioradon79gm-001-site1.jtempurl.com/app/login?u={Uri.EscapeDataString(user.Username)}";
+        var webDashboardUrl = await PasswordlessAccess.IssueAsync(_context, user, _clientOptions);
 
         var sb = new StringBuilder();
+        sb.AppendLine("Ouvrir mon espace sécurisé (lien valable 15 minutes) :");
+        sb.AppendLine(webDashboardUrl);
+        sb.AppendLine();
         sb.AppendLine("📊 *TABLEAU DE BORD COMMERÇANT* — WAZAP");
         sb.AppendLine("━━━━━━━━━━━━━━━━━━━━");
         sb.AppendLine($"🏪 *{user.Username}* ({(user.PhoneNumber ?? "WhatsApp")})");

@@ -84,7 +84,7 @@ public sealed class RetentionWorker : BackgroundService
 
         // 1. Commandes livrées anciennes (leur historique d'offres est supprimé avec elles).
         var oldOrderIds = await db.Orders
-            .Where(o => o.Status == OrderStatus.Delivered && o.DeliveredAt < ordersCutoff)
+            .Where(o => o.Status == OrderStatus.Delivered && o.DeliveredAt < ordersCutoff && !db.OrderPayments.Any(p => p.OrderId == o.Id))
             .Select(o => o.Id)
             .ToListAsync(ct);
 
@@ -92,15 +92,7 @@ public sealed class RetentionWorker : BackgroundService
         var paymentsPurged = 0;
         if (oldOrderIds.Count > 0)
         {
-            // Les paiements du panier client portent une FK en RESTRICT vers la commande : sans
-            // cette suppression préalable, le DELETE des commandes échouait (FK violation), la
-            // passe entière était annulée et se répétait indéfiniment — les étapes 3 et 4
-            // (outbox, scans d'identité) ne s'exécutaient donc JAMAIS, en violation de la
-            // politique de rétention RGPD affichée.
-            paymentsPurged = await db.OrderPayments
-                .Where(p => oldOrderIds.Contains(p.OrderId))
-                .ExecuteDeleteAsync(ct);
-
+            // Conservation des commandes et pièces comptables dès qu'un paiement existe.
             await db.DeliveryOffers
                 .Where(x => x.OrderId != null && oldOrderIds.Contains(x.OrderId.Value))
                 .ExecuteDeleteAsync(ct);
@@ -138,6 +130,12 @@ public sealed class RetentionWorker : BackgroundService
         // 4. Scans de pièce d'identité (RGPD) : la donnée d'identité ne se conserve pas
         //    indéfiniment — la décision de certification, si.
         var scansPurged = await riderService.PurgeExpiredScansAsync(_retention.RiderScansDays, ct);
+        await riderService.PurgeExpiredDeliveryProofsAsync(_retention.DeliveredOrdersDays, ct);
+        if (_retention.WhatsAppLogsDays > 0)
+        {
+            var logsCutoff = now.AddDays(-_retention.WhatsAppLogsDays);
+            await db.WhatsAppMessageLogs.Where(m => m.CreatedAt < logsCutoff).ExecuteDeleteAsync(ct);
+        }
 
         // 5. Marqueurs de déduplication des webhooks entrants. Au-delà de quelques jours ils
         //    ne servent plus (aucune passerelle ne réessaie aussi longtemps) : sans purge, la

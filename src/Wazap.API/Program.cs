@@ -142,7 +142,7 @@ builder.Services.AddSingleton(riderScansOptions);
 var colisSurOptions = builder.Configuration.GetSection(ColisSurOptions.SectionName).Get<ColisSurOptions>() ?? new ColisSurOptions();
 builder.Services.AddSingleton(colisSurOptions);
 
-// Versement sortant : aucune API de disbursement chez GeniusPay → virement manuel tracé.
+// Aucun connecteur de reversement sortant intégré : virement manuel tracé.
 builder.Services.AddScoped<IPayoutService, ManualPayoutService>();
 
 // Options paiement du panier client (Mobile Money via GeniusPay, non bloquant par défaut)
@@ -227,6 +227,21 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         // servi en HTTP l'exposerait sur le réseau.
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Events.OnValidatePrincipal = async context =>
+        {
+            var subject = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var stamp = context.Principal?.FindFirstValue(JwtTokenGenerator.SecurityStampClaim);
+            var db = context.HttpContext.RequestServices.GetRequiredService<ApplicationDbContext>();
+            var currentStamp = Guid.TryParse(subject, out var id)
+                ? await db.Users.AsNoTracking().Where(u => u.Id == id)
+                    .Select(u => u.SecurityStamp).FirstOrDefaultAsync(context.HttpContext.RequestAborted)
+                : null;
+            if (string.IsNullOrWhiteSpace(stamp) || currentStamp != stamp)
+            {
+                context.RejectPrincipal();
+                await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+        };
     })
     .AddJwtBearer(options =>
     {
@@ -474,6 +489,8 @@ builder.Services.AddCors(options =>
 // Front Blazor Server (tableau de bord administrateur)
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider, SessionRevalidationProvider>();
 
 var app = builder.Build();
 
@@ -624,6 +641,19 @@ if (builder.Configuration.GetValue("Networking:TrustForwardedHeaders", false))
         knownProxies.Length);
 }
 
+app.Use(async (http, next) =>
+{
+    http.Response.Headers["Referrer-Policy"] = "no-referrer";
+    http.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    if (http.Request.Path.StartsWithSegments("/app"))
+    {
+        http.Response.Headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https://maps.googleapis.com; frame-src https://www.google.com https://maps.google.com https://www.youtube.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'";
+    }
+    if (http.Request.Path.StartsWithSegments("/api/client") || http.Request.Path.StartsWithSegments("/api/auth"))
+        http.Response.Headers.CacheControl = "no-store";
+    await next();
+});
+
 app.UseDefaultFiles();
 var staticFileContentTypeProvider = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
 staticFileContentTypeProvider.Mappings[".apk"] = "application/vnd.android.package-archive";
@@ -650,6 +680,10 @@ app.UseWhen(
 app.UseWhen(
     ctx => ctx.Request.Path.StartsWithSegments("/api/webhook/whatsapp"),
     branch => branch.UseMiddleware<MetaWebhookSignatureMiddleware>());
+
+app.UseWhen(
+    ctx => ctx.Request.Path.StartsWithSegments("/api/gateway/whatsapp"),
+    branch => branch.UseMiddleware<GatewayAuthenticationMiddleware>());
 
 app.MapControllers();
 app.MapHealthChecks("/health");

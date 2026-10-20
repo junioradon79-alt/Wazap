@@ -1,21 +1,24 @@
-# [SPRINT ACTIF & HANDOFF DE SESSION WAZAP]
-<!-- ecc.memory.v1 scope:project type:handoff status:active updated:2026-10-06 -->
+# Sprint actif WAZAP — 20 octobre 2026
 
-## 1. État Actuel du Système
-- **Backend .NET :** 886 tests (880 réussis localement + 6 sur PostgreSQL réel en CI) - 0 échec.
-- **Frontend Vitest :** 61/61 tests réussis (100%).
-- **Production :** En ligne sur `https://junioradon79gm-001-site1.jtempurl.com` (HTTP 200 Healthy).
-- **Passerelle Android WAZAP Gateway :** v1.1 déployée avec succès sur le smartphone `TECNO CM6` via USB (`Success`), service d'écoute lié et actif (`com.whatsapp.w4b` uniquement).
-- **Architecture :** .NET 8 / EF Core / PostgreSQL (SmarterASP) + React 18 / Vite / TypeScript + YCloud API + WAZAP Gateway Android.
+Objectif global : fermer les chantiers techniques, infrastructure et exploitation. Le lot local est vérifié ; la mise en service et les dépendances externes restent ouvertes.
 
-## 2. Chantiers Prioritaires en Cours (P0 - P1)
-- **P0 [DNS / Bloqué Externe] :** Domaine officiel `wazap.ci` chez WiniHost en attente de mise à jour des serveurs NS Cloudflare (`bonnie` & `nicolas`). Fallback actif opérationnel.
-- **P1 [Terrain & Produit] :** Tester en conditions réelles avec les recrues terrain le nouveau flux WhatsApp 100% 1-tap : activation sans mot de passe, tableau de bord livreur avec liens `wa.me` directs, lien parrain pré-rempli (`wa.me/2250544051972?text=DISPO%20{Code}`) et défi smartphone.
-- **P1 [Acquisition WhatsApp] :** Smartphone Business `+225 05 44 05 19 72` actif avec passerelle v1.1 étanche, réponses rapides (`/dispo`, `/tarifs`, `/course`, `/vendeur`), et Catalogue 3 collections prêtes à charger (11 articles : 7 packs commerçants, 2 livreurs, 2 sécurité).
-- **P1 [TikTok] :** Calendrier éditorial @wazap_ci en cours avec les 6 vidéos Motion Design 30s + vidéo 20s.
+## Livré dans les sources
+- Paiements vérifiés (montant, XOF, statut, référence), devis immuable, intention durable avant appel prestataire, absence de second checkout automatique après timeout.
+- Versements dus distincts des encaissements et preuves réelles ; registre et rapprochement administrateur dans Transactions.
+- Liens personnels de connexion à usage unique (15 min), réception destinataire (48 h), routes de transport limitées au livreur affecté.
+- MFA administrateur, sessions révoquées, revalidation Blazor, passerelle HMAC et anti-rejeu, certification humaine et matching certifié par défaut.
+- Conservation financière, purge séparée des preuves, CSP, scanner de secrets et signature Android par environnement.
+- CI bloquante du même commit : PostgreSQL 18, web, Android, audits, sauvegarde avant migration et exercice de restauration isolé.
 
-## 3. Livrables Récents
-- **Session 131 :** Validation de remise de colis par le Commerçant : commande WhatsApp 1-tap `REMIS [code]`, endpoint API `POST /api/vendors/orders/{id}/handover`, bouton 1-clic `📦 Colis remis` sur le dashboard marchand.
-- **Session 132 :** Éradication complète du texte libre en tournée livreur : liens 1-tap `wa.me` systématiques (`LIVRE {code}`, `LIVRE TOUT`), suppression définitive de toute mention de code PIN.
-- **Session 133 :** Intégration des Pack Mini (1 000 F) et Découverte (2 500 F) dans le Catalogue WhatsApp Business & Web (11 articles officiels, 11 visuels carrés HD 2160×2160, galeries web régénérées). 886 tests .NET et 61 tests Vitest 100% verts.
+## Validation
+916 tests .NET réussis, 10 PostgreSQL ignorés, aucun échec ; 64 tests web réussis ; build .NET 0 warning ; lint/TypeScript/build web OK. APK release v1.2.0 signé, contrôle lint complet à confirmer en CI.
 
+## Prochaines actions bloquantes
+1. Conserver les infrastructures : SmarterASP expire le 30/10/2026 ; Render wazap-db suspendue, suppression annoncée dans 13 jours au contrôle du 20/10.
+2. Reconnexion WiniHost, DNS Cloudflare et SSL. Production temporaire Healthy ; base SmarterASP active et distincte de Render.
+3. Enrôlement du téléphone (secret serveur/appareil), compatibilité de certificat, puis publication avec CI complète et migration sauvegardée.
+4. Reprise des anciennes commandes, certifications et preuves de paiements/versements. Anciennes URL à mot de passe à révoquer.
+5. Contrat/API réelle de reversement ; revue des 11 articles et 7 vidéos avant publication ; recette et acquisition terrain.
+6. Durcissement complémentaire : sessions HttpOnly du portail, coffre/rotation historiques, anonymisation et architecture des services.
+
+Source détaillée : docs/ETAT_CHANTIERS_2026-10-20.md.

@@ -18,13 +18,15 @@ namespace Wazap.Application.Services
         private readonly IWhatsAppSender _whatsAppSender;
         private readonly WhatsAppOptions _whatsAppOptions;
         private readonly ILogger<WhatsAppOrchestrationService> _logger;
+        private readonly ClientOptions _clientOptions;
 
         public WhatsAppOrchestrationService(IWhatsAppSender whatsAppSender, WhatsAppOptions whatsAppOptions,
-            ILogger<WhatsAppOrchestrationService> logger)
+            ILogger<WhatsAppOrchestrationService> logger, ClientOptions? clientOptions = null)
         {
             _whatsAppSender = whatsAppSender;
             _whatsAppOptions = whatsAppOptions;
             _logger = logger;
+            _clientOptions = clientOptions ?? new ClientOptions();
         }
 
         /// <summary>
@@ -251,7 +253,7 @@ namespace Wazap.Application.Services
             var riderText = $"✅ Course acceptée #{orderCode}.\n" +
                             $"📦 À livrer : {order.Description}\n" +
                             $"🛵 Vos frais de livraison : {order.DeliveryFee:N0} FCFA (dus par le commerçant/client)\n" +
-                            (order.Amount > 0 ? $"💵 Montant marchandise (si encaissement espèces) : {order.Amount:N0} FCFA\n" : string.Empty) +
+                            (order.Amount > 0 ? $"💵 Montant marchandise (paiement exclusivement digital) : {order.Amount:N0} FCFA\n" : string.Empty) +
                             "📍 Retrait chez le vendeur.";
 
             if (!string.IsNullOrWhiteSpace(vendorPickupLink))
@@ -276,6 +278,15 @@ namespace Wazap.Application.Services
         /// </summary>
         public async Task SendDeliveryCodeAsync(Order order)
         {
+            if (order.ReceiptSecret is not null)
+            {
+                var receiptUrl = $"{_clientOptions.TrackingBaseUrl.TrimEnd('/')}/{order.Id}#receipt={order.CreateReceiptToken()}";
+                await SendTemplateOrTextAsync(order.ClientWhatsAppNumber, _whatsAppOptions.TemplateClientTrackingLink,
+                    "Votre colis WAZAP est en préparation. Conservez ce lien personnel :\n" + receiptUrl +
+                    "\nTouchez « Confirmer la réception » uniquement lorsque le colis est dans vos mains. Ce lien expire après 48 heures ; ne le transférez pas au livreur.",
+                    new Dictionary<string, string> { ["1"] = "WAZAP", ["2"] = order.Id.ToString("N")[..8].ToUpperInvariant(), ["3"] = receiptUrl });
+                return;
+            }
             if (string.IsNullOrWhiteSpace(order.DeliveryCode))
                 return;
 

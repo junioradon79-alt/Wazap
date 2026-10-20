@@ -138,6 +138,12 @@ public sealed class RiderDeliveryCommands
             return;
         }
 
+        if (marker == "LIVRE" && orders.Any(o => o.ReceiptSecret is not null && o.DeliveryCodeVerifiedAt is null))
+        {
+            await reply(user, "Le destinataire confirme lui-même la réception en touchant son lien personnel WAZAP, une fois le colis dans ses mains. Le suivi public ne permet pas de confirmer à sa place.");
+            return;
+        }
+
         // Preuve de remise : le code du client est vérifié dès qu'il est fourni, et
         // exigé quand « DeliveryProof:RequireClientCode » est actif.
         if (marker == "LIVRE" && (_deliveryProof.RequireClientCode || clientCode is not null))

@@ -1,28 +1,35 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { useAuth } from '../auth/AuthContext'
+import { MfaRequiredError, useAuth } from '../auth/AuthContext'
 
 export default function LoginPage() {
-  const { login } = useAuth()
+  const { login, loginWithLink } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
   const uParam = searchParams.get('u') || searchParams.get('username') || ''
-  const pParam = searchParams.get('p') || searchParams.get('password') || ''
+  const [accessToken] = useState(() => new URLSearchParams(window.location.hash.slice(1)).get('access'))
+  const attemptedLink = useRef(false)
 
   const [username, setUsername] = useState(uParam)
-  const [password, setPassword] = useState(pParam)
+  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [mfaRequired, setMfaRequired] = useState(false)
+  const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [autoLoggingIn, setAutoLoggingIn] = useState(false)
 
-  // 1-Tap Auto-Login si les identifiants sont fournis dans le lien (Règle Canonique n°10 : Zéro Saisie)
+  // Échange unique du lien personnel, puis effacement du fragment secret.
   useEffect(() => {
-    if (uParam && pParam && !autoLoggingIn) {
+    if (searchParams.has('p') || searchParams.has('password'))
+      window.history.replaceState(null, '', window.location.pathname)
+    if (accessToken && !attemptedLink.current) {
+      attemptedLink.current = true
+      window.history.replaceState(null, '', window.location.pathname)
       setAutoLoggingIn(true)
       setBusy(true)
       setError('')
-      login(uParam, pParam)
+      loginWithLink(accessToken)
         .then(() => {
           navigate('/', { replace: true })
         })
@@ -32,16 +39,17 @@ export default function LoginPage() {
           setAutoLoggingIn(false)
         })
     }
-  }, [uParam, pParam, autoLoggingIn, login, navigate])
+  }, [accessToken, loginWithLink, navigate, searchParams])
 
   const submit = async (e: FormEvent): Promise<void> => {
     e.preventDefault()
     setBusy(true)
     setError('')
     try {
-      await login(username, password)
+      await login(username, password, mfaRequired ? code : undefined)
       navigate('/', { replace: true })
     } catch (err) {
+      if (err instanceof MfaRequiredError) setMfaRequired(true)
       setError(err instanceof Error ? err.message : 'Identifiants invalides.')
     } finally {
       setBusy(false)
@@ -76,6 +84,13 @@ export default function LoginPage() {
           </div>
         ) : (
           <form onSubmit={submit}>
+            {mfaRequired && (
+              <div className="field">
+                <label htmlFor="mfa-code">Code de double authentification</label>
+                <input id="mfa-code" value={code} onChange={e => setCode(e.target.value)}
+                  autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required />
+              </div>
+            )}
             <div className="field">
               <label htmlFor="username">Identifiant / Nom d'utilisateur</label>
               <input

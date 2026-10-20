@@ -11,14 +11,24 @@ android {
         applicationId = "ci.wazap.gateway"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 3
+        versionName = "1.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    val signingPath = System.getenv("ANDROID_KEYSTORE_PATH")
+    if (!signingPath.isNullOrBlank()) {
+        signingConfigs.create("production") {
+            storeFile = file(signingPath)
+            storePassword = requireNotNull(System.getenv("ANDROID_KEYSTORE_PASSWORD"))
+            keyAlias = requireNotNull(System.getenv("ANDROID_KEY_ALIAS"))
+            keyPassword = requireNotNull(System.getenv("ANDROID_KEY_PASSWORD"))
+        }
+    }
     buildTypes {
         release {
+            if (!signingPath.isNullOrBlank()) signingConfig = signingConfigs.getByName("production")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

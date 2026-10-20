@@ -177,6 +177,7 @@ export interface SubmitClientRatingRequest {
 }
 
 export interface ClientOrderStatus {
+  riderCertified?: boolean
   id: string
   code: string
   vendorName: string | null

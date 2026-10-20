@@ -4,8 +4,8 @@ using Wazap.Application.Abstractions;
 namespace Wazap.Infrastructure.Services;
 
 /// <summary>
-/// Versement manuel : aucune API de disbursement n'étant disponible chez GeniusPay,
-/// l'indemnisation est virée à la main (Orange Money / MTN MoMo) puis confirmée dans
+/// Versement manuel : aucun connecteur de reversement sortant n'est intégré ici.
+/// L'indemnisation est virée à la main (Orange Money / MTN MoMo) puis confirmée dans
 /// <c>/app/claims</c> avec sa référence de transaction.
 /// </summary>
 /// <remarks>
@@ -30,20 +30,13 @@ public sealed class ManualPayoutService : IPayoutService
 
     public Task<SplitDisbursementResult> DisburseSplitAsync(SplitDisbursementRequest request, CancellationToken ct = default)
     {
-        var vendorRef = $"DISB-VND-{Guid.NewGuid():N}"[..18].ToUpperInvariant();
-        var riderRef = !string.IsNullOrWhiteSpace(request.RiderPhone)
-            ? $"DISB-RDR-{Guid.NewGuid():N}"[..18].ToUpperInvariant()
-            : null;
-
         _logger.LogInformation(
-            "⚡ Split Disbursement WAZAP Option A (Disbursement API) : Commande #{Code} — Vendeur {VendorPhone} : {VendorAmount} FCFA (Réf: {VendorRef}) | Livreur {RiderPhone} : {RiderFee} FCFA (Réf: {RiderRef})",
-            request.OrderCode, request.VendorPhone, request.VendorAmount, vendorRef, request.RiderPhone ?? "aucun", request.RiderFee, riderRef ?? "N/A");
+            "Reversement manuel à effectuer pour la commande {OrderId} : vendeur {VendorAmount} FCFA, livreur {RiderFee} FCFA.",
+            request.OrderId, request.VendorAmount, request.RiderFee);
 
         return Task.FromResult(new SplitDisbursementResult(
-            Success: true,
-            VendorTransferRef: vendorRef,
-            RiderTransferRef: riderRef,
-            RequiresManualTransfer: false));
+            Success: false,
+            RequiresManualTransfer: true));
     }
 }
 

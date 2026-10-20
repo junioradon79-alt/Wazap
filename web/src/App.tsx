@@ -61,6 +61,11 @@ function Protected({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+function RolePage({ roles, children }: { roles: string[]; children: ReactNode }) {
+  const { user } = useAuth()
+  return user && roles.includes(user.role) ? <>{children}</> : <Navigate to="/" replace />
+}
+
 export default function App() {
   const { user, loading } = useAuth()
 
@@ -107,17 +112,17 @@ export default function App() {
               }
             />
           )}
-          <Route path="/vendor/dashboard" element={<VendorDashboardPage />} />
-          <Route path="/rider/dashboard" element={<RiderDashboardPage />} />
+          <Route path="/vendor/dashboard" element={<RolePage roles={['Admin', 'Vendor']}><VendorDashboardPage /></RolePage>} />
+          <Route path="/rider/dashboard" element={<RolePage roles={['Admin', 'Rider']}><RiderDashboardPage /></RolePage>} />
           <Route path="/packs" element={<PacksPage />} />
-          <Route path="/transactions" element={<TransactionsPage />} />
-          <Route path="/vendors" element={<VendorsPage />} />
-          <Route path="/catalogue" element={<CataloguePage />} />
-          <Route path="/leads" element={<LeadsPage />} />
-          <Route path="/claims" element={<ClaimsPage />} />
-          <Route path="/avis" element={<RatingsPage />} />
-          <Route path="/riders" element={<RidersPage />} />
-          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/transactions" element={<RolePage roles={['Admin']}><TransactionsPage /></RolePage>} />
+          <Route path="/vendors" element={<RolePage roles={['Admin']}><VendorsPage /></RolePage>} />
+          <Route path="/catalogue" element={<RolePage roles={['Admin', 'Vendor']}><CataloguePage /></RolePage>} />
+          <Route path="/leads" element={<RolePage roles={['Admin']}><LeadsPage /></RolePage>} />
+          <Route path="/claims" element={<RolePage roles={['Admin']}><ClaimsPage /></RolePage>} />
+          <Route path="/avis" element={<RolePage roles={['Admin']}><RatingsPage /></RolePage>} />
+          <Route path="/riders" element={<RolePage roles={['Admin']}><RidersPage /></RolePage>} />
+          <Route path="/orders" element={<RolePage roles={['Admin', 'Vendor']}><OrdersPage /></RolePage>} />
           <Route
             path="/whatsapp"
             element={user?.role === 'Admin' ? <WhatsAppLogsPage /> : <Navigate to="/" replace />}

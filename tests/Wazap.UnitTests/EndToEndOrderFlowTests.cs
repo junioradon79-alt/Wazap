@@ -14,15 +14,16 @@ public class EndToEndOrderFlowTests
 {
     private readonly ApplicationDbContext _context;
     private readonly RecordingWhatsAppSender _sender;
-    private readonly ManualPayoutService _payoutService;
+    private readonly ClientPaymentService _payments;
     private readonly PaymentSplitService _splitService;
 
     public EndToEndOrderFlowTests()
     {
         _context = TestInfra.NewContext("e2e-" + Guid.NewGuid().ToString("N"));
         _sender = new RecordingWhatsAppSender();
-        _payoutService = new ManualPayoutService(NullLogger<ManualPayoutService>.Instance);
-        _splitService = new PaymentSplitService(_context, _sender, _payoutService, null, NullLogger<PaymentSplitService>.Instance);
+        _payments = new ClientPaymentService(_context, new FakeClientPaymentGateway(), _sender, null!,
+            new Wazap.Application.Configuration.ClientPaymentOptions { Enabled = true }, NullLogger<ClientPaymentService>.Instance);
+        _splitService = new PaymentSplitService(_context, _sender, NullLogger<PaymentSplitService>.Instance, _payments);
     }
 
     [Fact]
@@ -107,17 +108,12 @@ public class EndToEndOrderFlowTests
         order.MarkDelivered();
         await _context.SaveChangesAsync();
 
-        var completeResult = await _splitService.CompleteSplitPaymentAsync(order.Id, "WAVE-TEST-E2E-999");
-
-        // Assert : Double reversement automatique sortant (Option A : zéro cash touché par le livreur)
-        Assert.True(completeResult.Success);
-        Assert.NotNull(completeResult.VendorDisbursementRef);
-        Assert.NotNull(completeResult.RiderDisbursementRef);
-        Assert.StartsWith("DISB-VND-", completeResult.VendorDisbursementRef);
-        Assert.StartsWith("DISB-RDR-", completeResult.RiderDisbursementRef);
-
-        // Messages WhatsApp automatiques envoyés
-        Assert.Contains(_sender.TextMessages, m => m.Phone == vendor.PhoneNumber && m.Message.Contains("PAIEMENT REÇU"));
-        Assert.Contains(_sender.TextMessages, m => m.Phone == rider.PhoneNumber && m.Message.Contains("COURSE RÉGLÉE"));
+        var payment = await _context.OrderPayments.SingleAsync(p => p.OrderId == order.Id);
+        await _payments.CompletePaymentAsync(payment.Id, "VERIFIED-GATEWAY-REF");
+        Assert.Equal(TransactionStatus.Completed, payment.Status);
+        Assert.Equal(24818m, payment.VendorPayoutDue);
+        Assert.Equal(1500m, payment.RiderPayoutDue);
+        Assert.Contains(_sender.TextMessages, m => m.Phone == vendor.PhoneNumber && m.Message.Contains("à vous reverser"));
+        Assert.Contains(_sender.TextMessages, m => m.Phone == rider.PhoneNumber && m.Message.Contains("reste à effectuer"));
     }
 }

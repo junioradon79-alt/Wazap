@@ -51,7 +51,10 @@ public class Order
 
     // Preuve de livraison : code à 4 chiffres remis au client à l'assignation du livreur,
     // que le livreur doit restituer pour clôturer la course (« LIVRE <code> CODE <4 chiffres> »).
+    [System.Text.Json.Serialization.JsonIgnore]
     public string? DeliveryCode { get; private set; }
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string? ReceiptSecret { get; private set; }
     public DateTime? DeliveryCodeVerifiedAt { get; private set; }
     public int DeliveryCodeAttempts { get; private set; }
 
@@ -221,8 +224,40 @@ public class Order
     /// </summary>
     public string EnsureDeliveryCode()
     {
+        ReceiptSecret ??= Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
         DeliveryCode ??= RandomNumberGenerator.GetInt32(0, 10_000).ToString("D4", CultureInfo.InvariantCulture);
         return DeliveryCode;
+    }
+
+    public string CreateReceiptToken(DateTimeOffset? expires = null)
+    {
+        if (ReceiptSecret is null) throw new InvalidOperationException("Preuve destinataire indisponible.");
+        var expiry = (expires ?? DateTimeOffset.UtcNow.AddHours(48)).ToUnixTimeSeconds();
+        var payload = $"wazap:receipt:{Id:N}:{expiry}";
+        var signature = HMACSHA256.HashData(Convert.FromBase64String(ReceiptSecret), Encoding.UTF8.GetBytes(payload));
+        return expiry.ToString(CultureInfo.InvariantCulture) + "." + Convert.ToHexString(signature);
+    }
+
+    public bool VerifyReceiptToken(string? token)
+    {
+        if (ReceiptSecret is null || string.IsNullOrWhiteSpace(token) || token.Length > 100) return false;
+        var parts = token.Split('.');
+        if (parts.Length != 2 || !long.TryParse(parts[0], NumberStyles.None, CultureInfo.InvariantCulture, out var expiry)
+            || expiry <= DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+            || expiry > DateTimeOffset.UtcNow.AddHours(49).ToUnixTimeSeconds()) return false;
+        var expected = CreateReceiptToken(DateTimeOffset.FromUnixTimeSeconds(expiry));
+        return CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(expected), Encoding.UTF8.GetBytes(token));
+    }
+
+    public void RecordRecipientReceipt(string? token)
+    {
+        if (!VerifyReceiptToken(token)) throw new InvalidOperationException("Preuve destinataire invalide ou expirée.");
+        DeliveryCodeVerifiedAt = DateTime.UtcNow;
+    }
+
+    public void RenewRecipientAccess()
+    {
+        ReceiptSecret = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
     }
 
     /// <summary>

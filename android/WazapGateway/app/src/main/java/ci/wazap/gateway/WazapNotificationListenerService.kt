@@ -270,6 +270,7 @@ class WazapNotificationListenerService : NotificationListenerService() {
         // 4. Notification.EXTRA_PEOPLE
         val extras = notification.extras
         if (extras != null) {
+            @Suppress("DEPRECATION") // Repli pour les notifications anciennes sur Android 8.
             val people = extras.getStringArray(Notification.EXTRA_PEOPLE)
             if (people != null) {
                 for (p in people) {

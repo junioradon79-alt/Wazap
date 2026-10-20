@@ -390,6 +390,10 @@ namespace Wazap.Infrastructure.Migrations
                     b.Property<DateTime?>("PickedUpAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("ReceiptSecret")
+                        .HasMaxLength(44)
+                        .HasColumnType("character varying(44)");
+
                     b.Property<bool>("RequiresClientCoordinates")
                         .HasColumnType("boolean");
 
@@ -501,12 +505,32 @@ namespace Wazap.Infrastructure.Migrations
                     b.Property<string>("ErrorMessage")
                         .HasColumnType("text");
 
+                    b.Property<string>("FeePayer")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("PaymentLink")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
+
+                    b.Property<decimal?>("QuotedGatewayFee")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal?>("QuotedRiderAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal?>("QuotedVendorAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("RiderPayoutDue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -570,6 +594,68 @@ namespace Wazap.Infrastructure.Migrations
                     b.ToTable("OutboxMessages");
                 });
 
+            modelBuilder.Entity("Wazap.Domain.Entities.PaymentPayout", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("BeneficiaryPhone")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("BeneficiaryRole")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<Guid?>("BeneficiaryUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ConfirmedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ConfirmedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<string>("Evidence")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<Guid>("PaymentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Provider")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("ProviderReference")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PaymentId", "BeneficiaryRole")
+                        .IsUnique();
+
+                    b.HasIndex("Provider", "ProviderReference")
+                        .IsUnique();
+
+                    b.ToTable("PaymentPayouts");
+                });
+
             modelBuilder.Entity("Wazap.Domain.Entities.ProcessedWebhookMessage", b =>
                 {
                     b.Property<string>("Id")
@@ -603,6 +689,9 @@ namespace Wazap.Infrastructure.Migrations
 
                     b.Property<DateTime?>("RevokedAtUtc")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("text");
 
                     b.Property<string>("TokenHash")
                         .IsRequired()
@@ -1107,6 +1196,15 @@ namespace Wazap.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("Wazap.Domain.Entities.PaymentPayout", b =>
+                {
+                    b.HasOne("Wazap.Domain.Entities.OrderPayment", null)
+                        .WithMany()
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Wazap.Domain.Entities.RiderIdentity", b =>

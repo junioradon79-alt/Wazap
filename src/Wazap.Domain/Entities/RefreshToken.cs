@@ -12,10 +12,11 @@ public class RefreshToken
     public DateTime ExpiresAtUtc { get; private set; }
     public DateTime? RevokedAtUtc { get; private set; }
     public string? ReplacedByTokenHash { get; private set; }
+    public string? SecurityStamp { get; private set; }
 
     private RefreshToken() { }
 
-    public RefreshToken(Guid userId, string tokenHash, DateTime expiresAtUtc)
+    public RefreshToken(Guid userId, string tokenHash, DateTime expiresAtUtc, string? securityStamp = null)
     {
         if (string.IsNullOrWhiteSpace(tokenHash))
             throw new ArgumentException("Le hash du token est requis.", nameof(tokenHash));
@@ -25,6 +26,7 @@ public class RefreshToken
         TokenHash = tokenHash;
         CreatedAtUtc = DateTime.UtcNow;
         ExpiresAtUtc = expiresAtUtc;
+        SecurityStamp = securityStamp;
     }
 
     public bool IsActive => ExpiresAtUtc > DateTime.UtcNow && RevokedAtUtc is null;
