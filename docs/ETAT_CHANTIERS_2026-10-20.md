@@ -80,8 +80,9 @@ Rapports locaux : `artifacts/validation-20261020/inprocess-results.json`, `inpro
 | Hébergement SmarterASP | Offre W60-EU, expiration affichée le **30 octobre 2026** | Régularisation de l'abonnement par le propriétaire |
 | Render `wazap-db` | Suspendue, PostgreSQL 18, suppression annoncée **dans 13 jours** lors du contrôle du 20 octobre | Choisir conservation et offre payante avant échéance ; aucun export Free disponible dans Recovery |
 | Render `wazap-api` | Service affiché déployé dans le compte | Déterminer son rôle à conserver face à SmarterASP ; ne supprimer aucune ressource avant sauvegarde |
-| `wazap.ci` | Ouverture échouée, connexion réinitialisée | Reconnexion WiniHost puis contrôle DNS/Cloudflare/SSL |
-| WiniHost | Session expirée, formulaire de connexion | Connexion du propriétaire nécessaire |
+| `wazap.ci` | DNS public correct : NS `bonnie`/`nicolas`, A `45.58.159.54` ; HTTPS encore en échec | Réémettre et installer le certificat SSL SmarterASP |
+| WiniHost | Reconnexion effectuée ; domaine actif, expiration le 30 septembre 2027 | L'interface affiche `amanda`/`marek`, distincts des NS publics ; ne pas remplacer la délégation publique fonctionnelle |
+| SSL SmarterASP `wazap.ci` | Invalide ; journal du 30 septembre : `Invalid: wazap.ci not resolvable, exit.` | Le panneau n'expose ni relance ni demande gratuite ; réimport exige un certificat existant. Intervention du support à demander |
 | GitHub `main` | Dernier commit visible `bf1db17`, 7 octobre | Publier le lot validé et contrôler les nouveaux workflows |
 | Contrôles GitHub du dernier commit | Backend et ancien déploiement réussis ; frontend en échec | Nouvelle CI bloquante corrigée dans les sources locales |
 
@@ -99,7 +100,7 @@ Render et SmarterASP possèdent donc deux bases distinctes. La suspension Render
 ## 5. Ordre de mise en service
 
 1. Régulariser la conservation des infrastructures avant leurs échéances ; sauvegarder les bases utiles sans supprimer les anciennes ressources.
-2. Reconnecter WiniHost ; vérifier les NS Cloudflare attendus `bonnie.ns.cloudflare.com` et `nicolas.ns.cloudflare.com`, le routage et le certificat. Ne pas annoncer le domaine opérationnel avant vérification.
+2. DNS publics vérifiés le 20 octobre après reconnexion WiniHost : `bonnie.ns.cloudflare.com`, `nicolas.ns.cloudflare.com`, A `45.58.159.54` (TTL 300). Faire réémettre le certificat SSL invalide puis vérifier le domaine en HTTPS et `/health` avant de l'annoncer opérationnel.
 3. Enrôler la passerelle : config serveur `Gateway__Devices__<identifiant>` et même secret dans l'application Android. Aucun secret n'est embarqué dans l'APK ou dans ce rapport.
 4. Vérifier le certificat de l'application déjà installée, installer le candidat compatible et configurer l'appareil. Le fichier APK actuellement proposé par la version locale du site est signé **Android Debug** ; le nouveau candidat utilise la clé de production WAZAP. Une mise à jour entre certificats différents sera refusée par Android ; ne pas désinstaller sans préparer la reprise de configuration.
 5. Publier les sources puis exiger la CI complète, notamment les dix tests PostgreSQL et le lint Android. Ne pas contourner un contrôle échoué pour accélérer le déploiement.
@@ -113,7 +114,7 @@ Render et SmarterASP possèdent donc deux bases distinctes. La suspension Render
 - Publication GitHub, nouvelle CI et déploiement effectif tant qu'ils ne sont pas observés réussis.
 - Tests PostgreSQL et restauration réelle de production dans cette session.
 - Lint Android complet, installation et test sur téléphone réel.
-- DNS, renouvellements payants et récupération de la base Render.
+- Remise en service SSL du domaine, renouvellements payants et récupération de la base Render.
 - Activation contractuelle et technique des versements automatiques multi-bénéficiaires.
 - Rotation des secrets historiques exposés, coffre et permissions de toutes les copies hors dépôt. Le scanner ne retire pas les secrets d'un historique public déjà publié.
 - Migration des JWT du portail depuis le stockage JavaScript vers une session HttpOnly avec protection CSRF adaptée : la CSP et la révocation réduisent le risque, sans remplacer ce changement d'architecture.
@@ -126,7 +127,15 @@ Le chantier global reste ouvert jusqu'à validation de ces éléments. Aucun tra
 
 - Sources, tests, migrations, documentation et bundle web synchronisé enregistrés dans le commit local `95bfe31` sur `main`.
 - La publication d'une branche de revue `codex/security-20261020` a été tentée ; Git n'a pas pu joindre GitHub (`getaddrinfo() thread failed to start`). La branche distante et une nouvelle exécution CI ne sont donc pas confirmées.
-- GitHub est accessible en lecture dans le navigateur, mais le connecteur de publication n'est pas installé. Une connexion adaptée a été proposée ; elle n'est pas présumée active.
+- Le connecteur GitHub est maintenant disponible et la lecture de `main` est confirmée. Le push Git local échoue encore sur la résolution réseau ; publication par connecteur à vérifier.
 - Un candidat APK et son SHA-256 sont conservés dans `artifacts/release-candidate-20261020`. Il ne remplace pas l'APK public avant la bascule coordonnée.
 - La copie du bundle a réussi sans supprimer le dossier généré. Les anciens fichiers non référencés pourront être nettoyés par la reconstruction du pipeline ; les références de la nouvelle page ont été vérifiées.
 - Les contrôles réels PostgreSQL, le lint Android et les prérequis d'enrôlement restent des conditions de mise en service, même si le commit local est enregistré.
+
+## 8. Demande SSL prête pour SmarterASP (non envoyée)
+
+Objet : Réémission du certificat Let's Encrypt de wazap.ci après résolution DNS
+
+Bonjour, sur l'hébergement `junioradon79gm-001` (site `wazap2`), le certificat de `wazap.ci` est marqué invalide. Le journal du 30 septembre indique « Invalid: wazap.ci not resolvable, exit. ». Le domaine résout désormais publiquement vers `45.58.159.54` avec les NS `bonnie.ns.cloudflare.com` et `nicolas.ns.cloudflare.com`. Pouvez-vous relancer l'émission et l'installation du certificat gratuit Let's Encrypt et vérifier son renouvellement automatique ? Le panneau actuel ne propose ni Request Free SSL ni relance pour cet enregistrement ; Réimporter demande un certificat existant. Merci de ne souscrire aucun module payant sans accord préalable.
+
+La documentation publique SmarterASP indique une émission/renouvellement Let's Encrypt gérés depuis le panneau : https://www.smarterasp.net/support/kb/a1885/do-you-support-lets-encrypt-free-ssl-tls-certificates-in-shared-hosting.aspx . La présence effective de ce bouton n'est pas constatée dans ce compte.
