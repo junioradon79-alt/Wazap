@@ -128,6 +128,7 @@ Le chantier global reste ouvert jusqu'à validation de ces éléments. Aucun tra
 - Sources, tests, migrations, documentation et bundle web synchronisé enregistrés dans le commit local `95bfe31` sur `main`.
 - La publication d'une branche de revue `codex/security-20261020` a été tentée ; Git n'a pas pu joindre GitHub (`getaddrinfo() thread failed to start`). La branche distante et une nouvelle exécution CI ne sont donc pas confirmées.
 - Le connecteur GitHub est maintenant disponible et la lecture de `main` est confirmée. Le push Git local échoue encore sur la résolution réseau ; publication par connecteur à vérifier.
+- Tentative de création d'un blob du présent rapport par le connecteur refusée par le contrôle automatique : informations internes d'infrastructure/hébergement, exposition vers GitHub non explicitement autorisée. Aucune branche, aucun commit distant ni PR créé ; demander l'accord explicite avant de publier ce contenu. Ne pas contourner le refus par un autre canal.
 - Un candidat APK et son SHA-256 sont conservés dans `artifacts/release-candidate-20261020`. Il ne remplace pas l'APK public avant la bascule coordonnée.
 - La copie du bundle a réussi sans supprimer le dossier généré. Les anciens fichiers non référencés pourront être nettoyés par la reconstruction du pipeline ; les références de la nouvelle page ont été vérifiées.
 - Les contrôles réels PostgreSQL, le lint Android et les prérequis d'enrôlement restent des conditions de mise en service, même si le commit local est enregistré.
