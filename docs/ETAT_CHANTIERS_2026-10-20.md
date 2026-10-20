@@ -82,7 +82,7 @@ Rapports locaux : `artifacts/validation-20261020/inprocess-results.json`, `inpro
 | Render `wazap-api` | Service affiché déployé dans le compte | Déterminer son rôle à conserver face à SmarterASP ; ne supprimer aucune ressource avant sauvegarde |
 | `wazap.ci` | DNS public correct : NS `bonnie`/`nicolas`, A `45.58.159.54` ; HTTPS encore en échec | Réémettre et installer le certificat SSL SmarterASP |
 | WiniHost | Reconnexion effectuée ; domaine actif, expiration le 30 septembre 2027 | L'interface affiche `amanda`/`marek`, distincts des NS publics ; ne pas remplacer la délégation publique fonctionnelle |
-| SSL SmarterASP `wazap.ci` | Invalide ; journal du 30 septembre : `Invalid: wazap.ci not resolvable, exit.` | Le panneau n'expose ni relance ni demande gratuite ; réimport exige un certificat existant. Intervention du support à demander |
+| SSL SmarterASP `wazap.ci` | Invalide ; journal du 30 septembre : `Invalid: wazap.ci not resolvable, exit.` | Ticket **3715734**, envoyé le 20 octobre à 11:09 UTC, en attente du personnel ; aucune option payante commandée |
 | GitHub `main` | Dernier commit visible `bf1db17`, 7 octobre | Publier le lot validé et contrôler les nouveaux workflows |
 | Contrôles GitHub du dernier commit | Backend et ancien déploiement réussis ; frontend en échec | Nouvelle CI bloquante corrigée dans les sources locales |
 
@@ -129,11 +129,14 @@ Le chantier global reste ouvert jusqu'à validation de ces éléments. Aucun tra
 - La publication d'une branche de revue `codex/security-20261020` a été tentée ; Git n'a pas pu joindre GitHub (`getaddrinfo() thread failed to start`). La branche distante et une nouvelle exécution CI ne sont donc pas confirmées.
 - Le connecteur GitHub est maintenant disponible et la lecture de `main` est confirmée. Le push Git local échoue encore sur la résolution réseau ; publication par connecteur à vérifier.
 - Tentative de création d'un blob du présent rapport par le connecteur refusée par le contrôle automatique : informations internes d'infrastructure/hébergement, exposition vers GitHub non explicitement autorisée. Aucune branche, aucun commit distant ni PR créé ; demander l'accord explicite avant de publier ce contenu. Ne pas contourner le refus par un autre canal.
+- Accord explicite reçu ensuite pour le rapport et le lot sur une branche de revue, ainsi que pour l'envoi de la demande SSL. Le blob du rapport a alors été accepté. Le contrôle a séparément refusé l'export de la mémoire interne complète et d'un fichier Android contenant des numéros privés. La publication conserve donc leurs versions déjà présentes sur `origin/main`, sans exporter ces deux fichiers locaux : `MEMOIRE.md` et `WazapNotificationListenerService.kt` (seule modification locale de ce dernier : une annotation de suppression de dépréciation). Le filtrage de la passerelle reste inchangé. Aucune fusion ni mise en production automatique n'est demandée.
 - Un candidat APK et son SHA-256 sont conservés dans `artifacts/release-candidate-20261020`. Il ne remplace pas l'APK public avant la bascule coordonnée.
 - La copie du bundle a réussi sans supprimer le dossier généré. Les anciens fichiers non référencés pourront être nettoyés par la reconstruction du pipeline ; les références de la nouvelle page ont été vérifiées.
 - Les contrôles réels PostgreSQL, le lint Android et les prérequis d'enrôlement restent des conditions de mise en service, même si le commit local est enregistré.
 
-## 8. Demande SSL prête pour SmarterASP (non envoyée)
+## 8. Demande SSL envoyée à SmarterASP
+
+Ticket **3715734**, confirmé par le panneau officiel le 20 octobre 2026 à 11:09 UTC ; statut **En attente du personnel**. Destinataire vérifié via le service client intégré au compte d'hébergement.
 
 Objet : Réémission du certificat Let's Encrypt de wazap.ci après résolution DNS
 
