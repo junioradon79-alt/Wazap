@@ -3,6 +3,7 @@ interface BrandLogoProps {
   variant?: 'badge' | 'inline'
   className?: string
   showTagline?: boolean
+  theme?: 'dark' | 'light'
 }
 
 const SIZES = {
@@ -17,6 +18,7 @@ export default function BrandLogo({
   variant = 'inline',
   className = '',
   showTagline = true,
+  theme = 'dark',
 }: BrandLogoProps) {
   const dim = SIZES[size]
   const base = import.meta.env.BASE_URL || '/app/'
@@ -39,7 +41,7 @@ export default function BrandLogo({
             width: dim.img * 1.6,
             height: dim.img * 1.6,
             borderRadius: '50%',
-            border: '2px solid rgba(255, 255, 255, 0.95)',
+            border: theme === 'light' ? '2px solid rgba(0, 168, 107, 0.4)' : '2px solid rgba(255, 255, 255, 0.95)',
             objectFit: 'cover',
             filter: 'drop-shadow(0 4px 16px rgba(0, 214, 108, 0.35))',
           }}
@@ -65,7 +67,7 @@ export default function BrandLogo({
           width: dim.img,
           height: dim.img,
           borderRadius: '50%',
-          border: '1.5px solid rgba(255, 255, 255, 0.95)',
+          border: theme === 'light' ? '1.5px solid rgba(0, 168, 107, 0.4)' : '1.5px solid rgba(255, 255, 255, 0.95)',
           objectFit: 'cover',
           flexShrink: 0,
           background: 'rgba(255, 255, 255, 0.05)',
@@ -79,7 +81,7 @@ export default function BrandLogo({
             fontWeight: 900,
             fontSize: dim.text,
             letterSpacing: '-0.5px',
-            color: '#fff',
+            color: theme === 'light' ? '#0f172a' : '#fff',
             fontFamily: 'system-ui, -apple-system, sans-serif',
           }}
         >

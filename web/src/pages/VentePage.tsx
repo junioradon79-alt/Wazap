@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { api } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
@@ -68,38 +68,37 @@ const COMPARISON_GOOD = [
 const TESTIMONIALS = [
   {
     name: 'Aïcha B.',
-    role: 'Boutique Chic & Glam · Cocody Angré',
-    avatar: '/app/avatars/aicha.jpg',
+    role: 'Boutique Chic & Glam à Cocody Angré',
+    avatar: 'avatars/aicha.jpg',
     stars: '★★★★★',
     quote: 'Avant WAZAP, je perdais 4 à 5 ventes par jour parce que mes livreurs habituels ne décrochaient pas. Maintenant, je confirme sur WhatsApp, en 3 minutes le coursier est devant mon magasin.',
     tag: '⚡ +120 000 F / semaine sauvés',
   },
   {
     name: 'Amara T.',
-    role: 'Chez Amara Grill · Marcory Zone 4',
-    avatar: '/app/avatars/amara.jpg',
+    role: 'Chez Amara Grill à Marcory Zone 4',
+    avatar: 'avatars/amara.jpg',
     stars: '★★★★★',
     quote: 'Mes braisés partent encore tout chauds ! Le client reçoit son lien GPS et valide la réception en 1 tap avec le QR Colis Sûr. Fini les litiges ou les contestations à l’arrivée.',
     tag: '🛡️ Sécurité Colis Sûr 1-Tap',
   },
   {
     name: 'Fatou D.',
-    role: 'Douceurs de Fatou · Yopougon Maroc',
-    avatar: '/app/avatars/fatou.jpg',
+    role: 'Douceurs de Fatou à Yopougon Maroc',
+    avatar: 'avatars/fatou.jpg',
     stars: '★★★★★',
     quote: 'Les 15 courses offertes m’ont convaincue tout de suite. Zéro engagement, pas d’application compliquée. Tout se passe dans WhatsApp, c’est magique pour mon commerce.',
     tag: '🎁 15 courses sans risque',
   },
   {
     name: 'Koffi E.',
-    role: 'Livreur Partenaire · Koumassi & Marcory',
-    avatar: '/app/avatars/koffi.jpg',
+    role: 'Livreur Partenaire à Koumassi & Marcory',
+    avatar: 'avatars/koffi.jpg',
     stars: '★★★★★',
     quote: 'Je ne tourne plus à vide dans Abidjan. Les alertes tombent sur mon WhatsApp avec l’adresse exacte. Et 100% des frais de course (1 000 à 2 000 F) me reviennent directement.',
     tag: '🛵 100% des frais au livreur',
   },
 ]
-
 
 export default function VentePage() {
   const { user } = useAuth()
@@ -121,15 +120,51 @@ export default function VentePage() {
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
 
+  // Parallaxe & Motion
+  const [scrollProgress, setScrollProgress] = useState(0)
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [tilt, setTilt] = useState({ x: 0, y: 0 })
+  const heroVisualRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     api.get<{ whatsappNumber: string }>('/public/sales/config')
       .then((c) => setWhatsapp(c.whatsappNumber))
       .catch(() => setWhatsapp(''))
   }, [])
 
+  // Écouteur de scroll pour la barre de progression et le statut topbar
+  useEffect(() => {
+    const handleScroll = () => {
+      const totalScroll = document.documentElement.scrollHeight - window.innerHeight
+      const currentProgress = totalScroll > 0 ? (window.scrollY / totalScroll) * 100 : 0
+      setScrollProgress(currentProgress)
+      setIsScrolled(window.scrollY > 20)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Parallaxe 3D Tilt interactif sur le smartphone au survol
+  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
+    if (!heroVisualRef.current) return
+    const rect = heroVisualRef.current.getBoundingClientRect()
+    const x = e.clientX - rect.left - rect.width / 2
+    const y = e.clientY - rect.top - rect.height / 2
+    // Limiter la rotation entre -8 et +8 degrés
+    const rotateY = Math.max(-8, Math.min(8, (x / (rect.width / 2)) * 8))
+    const rotateX = Math.max(-8, Math.min(8, -(y / (rect.height / 2)) * 8))
+    setTilt({ x: rotateX, y: rotateY })
+  }
+
+  const handleMouseLeave = () => {
+    setTilt({ x: 0, y: 0 })
+  }
+
   const waLink = (text: string) => {
-    if (!whatsapp) return null
-    const n = whatsapp.replace(/[^\d]/g, '').replace(/^0+/, '')
+    // Si l'API ne renvoie rien, utiliser le numéro officiel WAZAP canonique : +225 05 44 05 19 72
+    const rawNumber = whatsapp || '+2250544051972'
+    const n = rawNumber.replace(/[^\d]/g, '').replace(/^0+/, '')
     return `https://wa.me/${n}?text=${encodeURIComponent(text)}`
   }
 
@@ -137,7 +172,7 @@ export default function VentePage() {
   const monthlyOrders = dailyDeliveries * 26
   const savedOrders = Math.round(monthlyOrders * 0.22) // 22% de commandes traditionnellement perdues faute de livreur
   const hoursSavedPerMonth = Math.round((dailyDeliveries * 7 * 26) / 60)
-  
+
   const recommendedPack = useMemo(() => {
     if (monthlyOrders <= 150) return { name: 'Pack Petit', credits: '35 courses', price: '5 000 FCFA', unit: '143 FCFA / course' }
     if (monthlyOrders <= 350) return { name: 'Pack Moyen', credits: '80 courses', price: '10 000 FCFA', unit: '125 FCFA / course' }
@@ -178,28 +213,40 @@ export default function VentePage() {
   }
 
   const activeCommuneData = COMMUNES[selectedCommune] || COMMUNES['Marcory']
+  const baseAssetUrl = import.meta.env.BASE_URL || '/app/'
 
   return (
     <div className="landing-wrap">
-      {/* Topbar sticky */}
-      <header className="landing-topbar">
+      {/* Barre de progression fluide de lecture */}
+      <div className="landing-scroll-progress" style={{ width: `${scrollProgress}%` }} />
+
+      {/* Orbes décoratives en arrière-plan (Parallaxe fluide) */}
+      <div className="parallax-layer" aria-hidden="true">
+        <div
+          className="parallax-orb parallax-orb--1"
+          style={{ transform: `translate3d(0, ${scrollProgress * 0.4}px, 0)` }}
+        />
+        <div
+          className="parallax-orb parallax-orb--2"
+          style={{ transform: `translate3d(0, ${-scrollProgress * 0.3}px, 0)` }}
+        />
+        <div
+          className="parallax-orb parallax-orb--3"
+          style={{ transform: `translate3d(0, ${scrollProgress * 0.25}px, 0)` }}
+        />
+      </div>
+
+      {/* Topbar sticky avec verre dépoli lumineux */}
+      <header className={`landing-topbar ${isScrolled ? 'is-scrolled' : ''}`}>
         <div className="landing-container landing-topbar__inner">
           <Link to="/" style={{ textDecoration: 'none' }}>
-            <BrandLogo size="md" variant="inline" showTagline={false} />
+            <BrandLogo size="md" variant="inline" showTagline={false} theme="light" />
           </Link>
 
           <div className="landing-topbar__actions">
             <Link
               to="/livreurs"
-              className="landing-btn"
-              style={{
-                background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(0, 214, 108, 0.2))',
-                border: '1px solid rgba(245, 158, 11, 0.4)',
-                color: '#fbbf24',
-                padding: '8px 14px',
-                fontSize: 13,
-                fontWeight: 700,
-              }}
+              className="landing-btn landing-btn--rider"
             >
               🛵 Espace Livreurs (1 000 F net)
             </Link>
@@ -217,22 +264,20 @@ export default function VentePage() {
                 className="landing-btn landing-btn--ghost"
                 style={{ padding: '8px 16px', fontSize: 13 }}
               >
-                🔐 Espace Marchand
+                🔒 Espace Marchand
               </Link>
             )}
-            {waLink('Bonjour WAZAP 👋 Je souhaite avoir des informations sur la livraison de mon commerce.') && (
-              <a
-                href={waLink('Bonjour WAZAP 👋 Je souhaite avoir des informations sur la livraison de mon commerce.')!}
-                target="_blank"
-                rel="noreferrer"
-                className="landing-btn landing-btn--ghost"
-                style={{ padding: '8px 16px', fontSize: 13 }}
-              >
-                💬 WhatsApp Direct
-              </a>
-            )}
+            <a
+              href={waLink('Bonjour WAZAP 👋 Je souhaite avoir des informations sur la livraison de mon commerce.')}
+              target="_blank"
+              rel="noreferrer"
+              className="landing-btn landing-btn--ghost"
+              style={{ padding: '8px 16px', fontSize: 13 }}
+            >
+              💬 WhatsApp Direct
+            </a>
             <a href="#inscription" className="landing-btn landing-btn--primary" style={{ padding: '8px 18px', fontSize: 13 }}>
-              🚀 Essai 15 Courses
+              🎁 Essai 15 Courses
             </a>
           </div>
         </div>
@@ -242,25 +287,14 @@ export default function VentePage() {
       <section className="landing-container landing-hero">
         <div>
           {/* Bannière d'orientation Livreurs */}
-          <div style={{
-            background: 'linear-gradient(90deg, rgba(245, 158, 11, 0.15), rgba(0, 214, 108, 0.15))',
-            border: '1px solid rgba(245, 158, 11, 0.35)',
-            borderRadius: 12,
-            padding: '10px 16px',
-            marginBottom: 20,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 12,
-            flexWrap: 'wrap',
-          }}>
-            <div style={{ fontSize: 13, color: '#f8fafc' }}>
-              🛵 <strong style={{ color: '#fbbf24' }}>Vous êtes livreur à moto ?</strong> Rejoignez le réseau à 1 000 FCFA net garanti par course (0% commission).
+          <div className="landing-hero__banner-rider">
+            <div style={{ fontSize: 13.5, color: '#334155' }}>
+              🛵 <strong style={{ color: '#b45309' }}>Vous êtes livreur à moto ?</strong> Rejoignez le réseau à 1 000 FCFA net garanti par course (0% commission).
             </div>
             <Link
               to="/livreurs"
               style={{
-                color: '#00d66c',
+                color: '#00A86B',
                 fontWeight: 800,
                 fontSize: 13,
                 textDecoration: 'none',
@@ -269,7 +303,7 @@ export default function VentePage() {
                 gap: 4,
               }}
             >
-              Accéder à l'Espace Livreurs ➔
+              Accéder à l'Espace Livreurs →
             </Link>
           </div>
 
@@ -293,16 +327,14 @@ export default function VentePage() {
             <a href="#inscription" className="landing-btn landing-btn--primary">
               ⚡ Activer mon commerce (15 courses offertes)
             </a>
-            {waLink('Bonjour WAZAP 👋 Je veux tester la livraison pour mon commerce.') && (
-              <a
-                href={waLink('Bonjour WAZAP 👋 Je veux tester la livraison pour mon commerce.')!}
-                target="_blank"
-                rel="noreferrer"
-                className="landing-btn landing-btn--ghost"
-              >
-                💬 Discuter en direct
-              </a>
-            )}
+            <a
+              href={waLink('Bonjour WAZAP 👋 Je veux tester la livraison pour mon commerce.')}
+              target="_blank"
+              rel="noreferrer"
+              className="landing-btn landing-btn--ghost"
+            >
+              💬 Discuter en direct
+            </a>
             <a
               href="/demo-video.html"
               target="_blank"
@@ -316,7 +348,7 @@ export default function VentePage() {
 
           <div className="landing-hero__perks">
             <div className="landing-perk">
-              <span className="landing-perk__icon">✅</span>
+              <span className="landing-perk__icon">🎁</span>
               <span>15 livraisons offertes</span>
             </div>
             <div className="landing-perk">
@@ -334,74 +366,103 @@ export default function VentePage() {
           </div>
         </div>
 
-        {/* Smartphone Mockup : Live WhatsApp Simulation */}
-        <div>
-          <div className="mockup-phone">
-            <div className="mockup-phone__notch" />
-            <div className="mockup-wa-header">
-              <div className="mockup-wa-avatar" style={{ padding: 1, background: '#fff', overflow: 'hidden', borderRadius: '50%' }}>
-                <img
-                  src={`${import.meta.env.BASE_URL}logo-officiel-2026.jpg`}
-                  alt="WAZAP"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
-                />
-              </div>
-              <div>
-                <div style={{ fontWeight: 800, fontSize: 13, color: '#fff' }}>WAZAP Livraison</div>
-                <div style={{ fontSize: 10, color: '#a7f3d0' }}>● En ligne · Abidjan</div>
-              </div>
+        {/* Hero Visual : Mockup Smartphone Interactif avec Effet Parallaxe 3D Tilt */}
+        <div
+          className="hero-visual-wrap"
+          ref={heroVisualRef}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+        >
+          {/* Badges Flottants Parallaxe */}
+          <div className="floating-badge floating-badge--top-right">
+            <span style={{ fontSize: 18 }}>⚡</span>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#00A86B' }}>Assignation éclair</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>Livreur trouvé en 2 min 40s</div>
             </div>
+          </div>
 
-            <div className="mockup-wa-body">
-              {/* Message client */}
-              <div className="mockup-msg mockup-msg--in">
-                Bonjour 👋 Je veux commander <strong>2 Attiéké Poisson braisé</strong> à livrer à <strong>Marcory Zone 4</strong> (Rue du 7 Décembre).
-                <div className="mockup-msg__time">12:34</div>
-              </div>
+          <div className="floating-badge floating-badge--bottom-left">
+            <span style={{ fontSize: 18 }}>🛡️</span>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#0284c7' }}>Colis Sûr Vérifié</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>Scan QR • 0 Cash Marchandise</div>
+            </div>
+          </div>
 
-              {/* Réponse commerçant / bot */}
-              <div className="mockup-msg mockup-msg--out">
-                Commande confirmée ! 🛵 WAZAP a assigné un livreur disponible à proximité :
-                <div className="mockup-card">
-                  <div style={{ fontWeight: 700, color: '#34d399' }}>🛵 Ibrahim K. (Yamaha YBR)</div>
-                  <div style={{ fontSize: 11, color: '#cbd5e1' }}>À 1,2 km de votre boutique · Arrivée estimée : 14 min</div>
-                  <div style={{ marginTop: 4, color: '#fcd34d', fontSize: 11, fontWeight: 700 }}>
-                    🛡️ Scan QR Code Universel · 0 Cash Marchandise
-                  </div>
+          <div
+            className="mockup-phone-container"
+            style={{
+              transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+            }}
+          >
+            <div className="mockup-phone">
+              <div className="mockup-phone__notch" />
+              <div className="mockup-wa-header">
+                <div className="mockup-wa-avatar" style={{ padding: 1, background: '#fff', overflow: 'hidden', borderRadius: '50%' }}>
+                  <img
+                    src={`${baseAssetUrl}logo-officiel-2026.jpg`}
+                    alt="WAZAP"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                  />
                 </div>
-                <div className="mockup-msg__time">12:35 · Reçu ✓✓</div>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: 13, color: '#fff' }}>WAZAP Livraison</div>
+                  <div style={{ fontSize: 10, color: '#a7f3d0' }}>🟢 En ligne à Abidjan</div>
+                </div>
               </div>
 
-              {/* Notification client statut */}
-              <div className="mockup-msg mockup-msg--in">
-                ✅ Super, je suis le livreur en direct sur la carte ! Merci pour la rapidité.
-                <div className="mockup-msg__time">12:36</div>
-              </div>
+              <div className="mockup-wa-body">
+                {/* Message client */}
+                <div className="mockup-msg mockup-msg--in">
+                  Bonjour 👋 Je veux commander <strong>2 Attiéké Poisson braisé</strong> à livrer à <strong>Marcory Zone 4</strong> (Rue du 7 Décembre).
+                  <div className="mockup-msg__time">12:34</div>
+                </div>
 
-              {/* Statut final */}
-              <div style={{ textAlign: 'center', margin: '4px 0' }}>
-                <span style={{ background: 'rgba(0, 214, 108, 0.15)', color: '#00d66c', fontSize: 10, padding: '3px 10px', borderRadius: 999, fontWeight: 700 }}>
-                  ✓ Course livrée avec succès en 18 minutes
-                </span>
+                {/* Réponse WAZAP */}
+                <div className="mockup-msg mockup-msg--out">
+                  Commande confirmée ! ⚡ WAZAP a assigné un livreur disponible à proximité :
+                  <div className="mockup-card">
+                    <div style={{ fontWeight: 700, color: '#047857' }}>🛵 Ibrahim K. (Yamaha YBR)</div>
+                    <div style={{ fontSize: 11, color: '#475569' }}>📍 1,2 km de votre boutique • Arrivée estimée : 14 min</div>
+                    <div style={{ marginTop: 4, color: '#b45309', fontSize: 11, fontWeight: 700 }}>
+                      🛡️ Scan QR Code Universel • 0 Cash Marchandise
+                    </div>
+                  </div>
+                  <div className="mockup-msg__time">12:35 • Reçu ✓✓</div>
+                </div>
+
+                {/* Notification client statut */}
+                <div className="mockup-msg mockup-msg--in">
+                  👌 Super, je suis le livreur en direct sur la carte ! Merci pour la rapidité.
+                  <div className="mockup-msg__time">12:36</div>
+                </div>
+
+                {/* Statut final */}
+                <div style={{ textAlign: 'center', margin: '4px 0' }}>
+                  <span style={{ background: '#ecfdf5', color: '#065f46', fontSize: 11, padding: '4px 12px', borderRadius: 999, fontWeight: 700, border: '1px solid #a7f3d0' }}>
+                    ✓ Course livrée avec succès en 18 minutes
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Metrics Ribbon */}
+      {/* Metrics Ribbon (Stats Bar Lumineuse) */}
       <div className="landing-container">
         <section className="landing-ribbon">
           <div className="landing-ribbon__item">
             <span className="landing-ribbon__val">
-              <span>&lt; 3</span> <span style={{ color: '#00d66c', fontSize: 24 }}>min</span>
+              <span>&lt; 3</span> <span style={{ color: '#00A86B', fontSize: 24 }}>min</span>
             </span>
             <span className="landing-ribbon__lbl">Temps moyen d’assignation livreur</span>
           </div>
 
           <div className="landing-ribbon__item">
             <span className="landing-ribbon__val">
-              <span>10</span> <span style={{ color: '#00d66c', fontSize: 24 }}>communes</span>
+              <span>10</span> <span style={{ color: '#00A86B', fontSize: 24 }}>communes</span>
             </span>
             <span className="landing-ribbon__lbl">Couverture complète du Grand Abidjan</span>
           </div>
@@ -415,7 +476,7 @@ export default function VentePage() {
 
           <div className="landing-ribbon__item">
             <span className="landing-ribbon__val">
-              <span>4.9</span> <span style={{ color: '#f59e0b', fontSize: 22 }}>★</span>
+              <span>4.9</span> <span style={{ color: '#f59e0b', fontSize: 24 }}>★</span>
             </span>
             <span className="landing-ribbon__lbl">Score de satisfaction commerçants</span>
           </div>
@@ -423,7 +484,7 @@ export default function VentePage() {
       </div>
 
       {/* Comparatif Avant / Après */}
-      <section className="landing-container" style={{ marginTop: 60 }}>
+      <section className="landing-container">
         <div className="section-head">
           <span className="landing-pill">POURQUOI CHOISIR WAZAP</span>
           <h2 className="section-head__title">Fini le casse-tête des livraisons à Abidjan</h2>
@@ -436,7 +497,7 @@ export default function VentePage() {
           <div className="comparison-card comparison-card--bad">
             <div className="comparison-header">
               <span className="comparison-header__icon">❌</span>
-              <h3 className="comparison-header__title" style={{ color: '#fca5a5' }}>
+              <h3 className="comparison-header__title" style={{ color: '#b91c1c' }}>
                 Sans WAZAP (Méthode classique)
               </h3>
             </div>
@@ -453,7 +514,7 @@ export default function VentePage() {
           <div className="comparison-card comparison-card--good">
             <div className="comparison-header">
               <span className="comparison-header__icon">⚡</span>
-              <h3 className="comparison-header__title" style={{ color: '#34d399' }}>
+              <h3 className="comparison-header__title" style={{ color: '#047857' }}>
                 Avec WAZAP (100% WhatsApp)
               </h3>
             </div>
@@ -514,7 +575,7 @@ export default function VentePage() {
 
               <article className="step-card">
                 <div className="step-card__num">02</div>
-                <div className="step-card__icon">🛵</div>
+                <div className="step-card__icon">⚡</div>
                 <h3 className="step-card__title">Assignation automatique</h3>
                 <p className="step-card__desc">
                   En un message ou un clic, l’algorithme WAZAP alerte les livreurs certifiés situés dans votre rayon de proximité immédiat.
@@ -523,10 +584,10 @@ export default function VentePage() {
 
               <article className="step-card">
                 <div className="step-card__num">03</div>
-                <div className="step-card__icon">📍</div>
+                <div className="step-card__icon">🛡️</div>
                 <h3 className="step-card__title">Suivi &amp; Remise sécurisée</h3>
                 <p className="step-card__desc">
-                  Votre client suit le trajet en direct sur son smartphone. La remise est validée en 1 tap par scan du QR Code Universel Colis Sûr.
+                  Votre client suit le trajet en direct sur son smartphone. La course est validée par le scan du QR Code Universel Colis Sûr.
                 </p>
               </article>
             </div>
@@ -535,46 +596,52 @@ export default function VentePage() {
           <div>
             <div className="section-head">
               <span className="landing-pill">POUR LES LIVREURS INDÉPENDANTS</span>
-              <h2 className="section-head__title">Des courses dans votre secteur, sans prospecter.</h2>
+              <h2 className="section-head__title">Prenez des courses à votre rythme, 0% de commission</h2>
               <p className="section-head__sub">
-                Recevez directement sur votre WhatsApp les demandes des commerces proches de votre position. Inscription 100% gratuite.
+                Rejoignez la première communauté de livreurs respectés d’Abidjan avec des tarifs transparents et sans intermédiaire gourmand.
               </p>
             </div>
 
             <div className="steps-grid">
               <article className="step-card">
                 <div className="step-card__num">01</div>
-                <div className="step-card__icon">📍</div>
-                <h3 className="step-card__title">Définissez votre zone</h3>
+                <div className="step-card__icon">💰</div>
+                <h3 className="step-card__title">100% des frais de course pour vous</h3>
                 <p className="step-card__desc">
-                  Envoyez simplement votre commune ou votre position GPS par WhatsApp pour recevoir les alertes de courses à proximité immédiate.
+                  1 000 FCFA net minimum par course intra-commune, 1 500 à 2 000 FCFA pour les trajets inter-communes. Zéro commission prélevée sur vos gains.
                 </p>
               </article>
 
               <article className="step-card">
                 <div className="step-card__num">02</div>
-                <div className="step-card__icon">💰</div>
-                <h3 className="step-card__title">100% des frais de course pour vous</h3>
+                <div className="step-card__icon">📍</div>
+                <h3 className="step-card__title">Alertes de proximité géolocalisées</h3>
                 <p className="step-card__desc">
-                  Vous percevez l’intégralité des frais de livraison (1 000 à 2 000 FCFA) réglés directement par le vendeur ou l’acheteur.
+                  Recevez directement sur WhatsApp les propositions de courses proches de votre position avec les adresses précises de départ et d’arrivée.
                 </p>
               </article>
 
               <article className="step-card">
                 <div className="step-card__num">03</div>
-                <div className="step-card__icon">⭐</div>
-                <h3 className="step-card__title">Gagnez en réputation</h3>
+                <div className="step-card__icon">🛵</div>
+                <h3 className="step-card__title">Liberté totale sans patron</h3>
                 <p className="step-card__desc">
-                  Chaque course réussie augmente votre note et votre priorité pour recevoir les meilleures courses des commerces de votre quartier.
+                  Envoyez simplement DISPO pour vous connecter quand vous voulez, et INDISPO pour vous reposer. Vous restez maître absolu de votre planning.
                 </p>
               </article>
+            </div>
+
+            <div style={{ textAlign: 'center', marginBottom: 54 }}>
+              <Link to="/livreurs" className="landing-btn landing-btn--primary" style={{ padding: '14px 28px', fontSize: 16 }}>
+                🛵 Découvrir la grille tarifaire complète &amp; Postuler
+              </Link>
             </div>
           </div>
         )}
       </section>
 
       {/* Témoignages Commerçants avec Avatars Réels */}
-      <section className="landing-container" style={{ marginTop: 70 }}>
+      <section className="landing-container">
         <div className="section-head">
           <span className="landing-pill">ILS LIVRENT DÉJÀ AVEC WAZAP</span>
           <h2 className="section-head__title">Adopté par les commerçants d’Abidjan</h2>
@@ -588,7 +655,7 @@ export default function VentePage() {
             <div key={idx} className="testimonial-card">
               <div>
                 <div className="testimonial-header">
-                  <img src={t.avatar} alt={t.name} className="testimonial-avatar" />
+                  <img src={`${baseAssetUrl}${t.avatar}`} alt={t.name} className="testimonial-avatar" />
                   <div>
                     <h4 className="testimonial-info__name">{t.name}</h4>
                     <p className="testimonial-info__role">{t.role}</p>
@@ -616,8 +683,8 @@ export default function VentePage() {
         <div className="simulator-box">
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <span style={{ fontSize: 14, color: 'var(--wz-l-text-muted)', fontWeight: 600 }}>Volume quotidien de commandes :</span>
-              <span style={{ fontSize: 32, fontWeight: 900, color: '#00d66c' }}>
+              <span style={{ fontSize: 14.5, color: 'var(--wz-l-text-muted)', fontWeight: 600 }}>Volume quotidien de commandes :</span>
+              <span style={{ fontSize: 32, fontWeight: 900, color: '#00A86B' }}>
                 {dailyDeliveries} <span style={{ fontSize: 16 }}>courses/jour</span>
               </span>
             </div>
@@ -632,17 +699,17 @@ export default function VentePage() {
               className="simulator-slider"
               aria-label="Nombre de livraisons par jour"
             />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--wz-l-text-dim)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: 'var(--wz-l-text-dim)', fontWeight: 600 }}>
               <span>2 courses/j</span>
               <span>40 courses/j</span>
               <span>80+ courses/j</span>
             </div>
 
-            <div style={{ marginTop: 24, padding: 18, background: 'rgba(0, 214, 108, 0.08)', borderRadius: 14, border: '1px solid rgba(0, 214, 108, 0.2)' }}>
-              <div style={{ fontSize: 12, textTransform: 'uppercase', color: '#00d66c', fontWeight: 800 }}>Pack Recommandé</div>
-              <div style={{ fontSize: 22, fontWeight: 900, margin: '4px 0', color: '#fff' }}>{recommendedPack.name}</div>
-              <div style={{ fontSize: 14, color: 'var(--wz-l-text-muted)' }}>
-                {recommendedPack.credits} · {recommendedPack.price} · <strong style={{ color: '#34d399' }}>{recommendedPack.unit}</strong>
+            <div style={{ marginTop: 24, padding: 20, background: '#ecfdf5', borderRadius: 16, border: '1px solid #a7f3d0' }}>
+              <div style={{ fontSize: 12, textTransform: 'uppercase', color: '#065f46', fontWeight: 800, letterSpacing: 0.5 }}>Pack Recommandé</div>
+              <div style={{ fontSize: 24, fontWeight: 900, margin: '4px 0', color: '#0f172a' }}>{recommendedPack.name}</div>
+              <div style={{ fontSize: 14, color: '#334155' }}>
+                {recommendedPack.credits} • {recommendedPack.price} • <strong style={{ color: '#047857' }}>{recommendedPack.unit}</strong>
               </div>
             </div>
           </div>
@@ -651,7 +718,7 @@ export default function VentePage() {
             <div className="simulator-metric-row">
               <div>
                 <div style={{ fontSize: 13, color: 'var(--wz-l-text-muted)' }}>Courses traitées / mois</div>
-                <div style={{ fontSize: 24, fontWeight: 900 }}>~{monthlyOrders} livraisons</div>
+                <div style={{ fontSize: 22, fontWeight: 900, color: '#0f172a' }}>~{monthlyOrders} livraisons</div>
               </div>
               <span style={{ fontSize: 24 }}>📦</span>
             </div>
@@ -659,7 +726,7 @@ export default function VentePage() {
             <div className="simulator-metric-row">
               <div>
                 <div style={{ fontSize: 13, color: 'var(--wz-l-text-muted)' }}>Ventes sauvées (non perdues)</div>
-                <div style={{ fontSize: 24, fontWeight: 900, color: '#00d66c' }}>+{savedOrders} ventes / mois</div>
+                <div style={{ fontSize: 22, fontWeight: 900, color: '#00A86B' }}>+{savedOrders} ventes / mois</div>
               </div>
               <span style={{ fontSize: 24 }}>📈</span>
             </div>
@@ -667,7 +734,7 @@ export default function VentePage() {
             <div className="simulator-metric-row">
               <div>
                 <div style={{ fontSize: 13, color: 'var(--wz-l-text-muted)' }}>Temps d’appels téléphoniques gagné</div>
-                <div style={{ fontSize: 24, fontWeight: 900, color: '#f59e0b' }}>~{hoursSavedPerMonth} h / mois</div>
+                <div style={{ fontSize: 22, fontWeight: 900, color: '#f59e0b' }}>~{hoursSavedPerMonth} h / mois</div>
               </div>
               <span style={{ fontSize: 24 }}>⏱️</span>
             </div>
@@ -700,18 +767,18 @@ export default function VentePage() {
 
         <div className="commune-card">
           <div>
-            <div style={{ fontSize: 12, color: 'var(--wz-l-text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Assignation coursier</div>
-            <div style={{ fontSize: 24, fontWeight: 900, color: '#00d66c', marginTop: 4 }}>{activeCommuneData.assignTime}</div>
+            <div style={{ fontSize: 12.5, color: 'var(--wz-l-text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Assignation coursier</div>
+            <div style={{ fontSize: 26, fontWeight: 900, color: '#00A86B', marginTop: 4 }}>{activeCommuneData.assignTime}</div>
           </div>
           <div style={{ width: 1, height: 40, background: 'var(--wz-l-border)' }} />
           <div>
-            <div style={{ fontSize: 12, color: 'var(--wz-l-text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Délai moyen livraison</div>
-            <div style={{ fontSize: 24, fontWeight: 900, color: '#fff', marginTop: 4 }}>~{activeCommuneData.deliveryTime}</div>
+            <div style={{ fontSize: 12.5, color: 'var(--wz-l-text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Délai moyen livraison</div>
+            <div style={{ fontSize: 26, fontWeight: 900, color: '#0f172a', marginTop: 4 }}>~{activeCommuneData.deliveryTime}</div>
           </div>
           <div style={{ width: 1, height: 40, background: 'var(--wz-l-border)' }} />
           <div>
-            <div style={{ fontSize: 12, color: 'var(--wz-l-text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Livreurs certifiés actifs</div>
-            <div style={{ fontSize: 24, fontWeight: 900, color: '#f59e0b', marginTop: 4 }}>{activeCommuneData.ridersCount}+</div>
+            <div style={{ fontSize: 12.5, color: 'var(--wz-l-text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Livreurs certifiés actifs</div>
+            <div style={{ fontSize: 26, fontWeight: 900, color: '#f59e0b', marginTop: 4 }}>{activeCommuneData.ridersCount}+</div>
           </div>
         </div>
       </section>
@@ -722,8 +789,8 @@ export default function VentePage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
             <span style={{ fontSize: 32 }}>🛡️</span>
             <div>
-              <h3 style={{ fontSize: 26, fontWeight: 900, margin: 0 }}>Garantie Colis Sûr WAZAP</h3>
-              <p style={{ margin: '4px 0 0', color: 'var(--wz-l-text-muted)', fontSize: 14 }}>
+              <h3 style={{ fontSize: 26, fontWeight: 900, margin: 0, color: '#064e3b' }}>Garantie Colis Sûr WAZAP</h3>
+              <p style={{ margin: '4px 0 0', color: '#334155', fontSize: 14.5 }}>
                 Le protocole de sécurité et d’indemnisation le plus rigoureux d’Abidjan.
               </p>
             </div>
@@ -732,32 +799,32 @@ export default function VentePage() {
           <div className="colis-sur-grid">
             <div className="colis-sur-item">
               <div className="colis-sur-item__icon">🪪</div>
-              <h4 style={{ margin: '0 0 6px', fontSize: 16 }}>Identité Vérifiée</h4>
-              <p style={{ margin: 0, fontSize: 13, color: 'var(--wz-l-text-muted)' }}>
+              <h4 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 800, color: '#0f172a' }}>Identité Vérifiée</h4>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--wz-l-text-body)' }}>
                 Chaque coursier fournit une CNI ou Passeport valide, vérifié par nos équipes avant la première course.
               </p>
             </div>
 
             <div className="colis-sur-item">
-              <div className="colis-sur-item__icon">📷</div>
-              <h4 style={{ margin: '0 0 6px', fontSize: 16 }}>Scan Colis Sûr 1-Tap</h4>
-              <p style={{ margin: 0, fontSize: 13, color: 'var(--wz-l-text-muted)' }}>
-                La course est clôturée instantanément lorsque le client fait scanner son QR Code Universel Colis Sûr, sans aucun code à mémoriser.
+              <div className="colis-sur-item__icon">📱</div>
+              <h4 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 800, color: '#0f172a' }}>Scan Colis Sûr 1-Tap</h4>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--wz-l-text-body)' }}>
+                Règlement par Scan du QR Code Universel (Wave, Orange Money, MTN, Moov, Carte). Zéro cash sur la marchandise.
               </p>
             </div>
 
             <div className="colis-sur-item">
-              <div className="colis-sur-item__icon">🚨</div>
-              <h4 style={{ margin: '0 0 6px', fontSize: 16 }}>Suspension Immédiate</h4>
-              <p style={{ margin: 0, fontSize: 13, color: 'var(--wz-l-text-muted)' }}>
+              <div className="colis-sur-item__icon">⚡</div>
+              <h4 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 800, color: '#0f172a' }}>Suspension Immédiate</h4>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--wz-l-text-body)' }}>
                 Un simple message « SINISTRE + code » bloque instantanément le livreur et ouvre l’enquête opérationnelle.
               </p>
             </div>
 
             <div className="colis-sur-item">
-              <div className="colis-sur-item__icon">💸</div>
-              <h4 style={{ margin: '0 0 6px', fontSize: 16 }}>Remboursement 48h</h4>
-              <p style={{ margin: 0, fontSize: 13, color: 'var(--wz-l-text-muted)' }}>
+              <div className="colis-sur-item__icon">💳</div>
+              <h4 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 800, color: '#0f172a' }}>Remboursement 48h</h4>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--wz-l-text-body)' }}>
                 Crédit restitué et indemnisation par Mobile Money sous 48h en cas d’avarie ou perte confirmée.
               </p>
             </div>
@@ -771,33 +838,30 @@ export default function VentePage() {
           {done ? (
             <div style={{ textAlign: 'center', padding: '20px 0' }}>
               <div style={{ fontSize: 52, marginBottom: 12 }}>🎉</div>
-              <h2 style={{ fontSize: 28, fontWeight: 900, margin: '0 0 10px', color: '#00d66c' }}>
+              <h2 style={{ fontSize: 28, fontWeight: 900, margin: '0 0 10px', color: '#00A86B' }}>
                 Félicitations {contact || business} !
               </h2>
-              <p style={{ color: 'var(--wz-l-text-muted)', fontSize: 16, lineHeight: 1.6, maxWidth: 480, margin: '0 auto 24px' }}>
+              <p style={{ color: 'var(--wz-l-text-body)', fontSize: 16, lineHeight: 1.6, maxWidth: 480, margin: '0 auto 24px' }}>
                 Votre demande a bien été enregistrée. Un responsable WAZAP vous contacte sur WhatsApp dans l’heure pour activer vos <strong>15 premières courses offertes</strong>.
               </p>
 
-              {waLink(`Bonjour WAZAP 👋 Je viens de m’inscrire sur le site (${business}). Je souhaite activer mes 15 courses offertes immédiatement !`) && (
-                <a
-                  href={waLink(`Bonjour WAZAP 👋 Je viens de m’inscrire sur le site (${business}). Je souhaite activer mes 15 courses offertes immédiatement !`)!}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="landing-btn landing-btn--wa"
-                  style={{ width: '100%', marginBottom: 12 }}
-                >
-                  💬 Ouvrir la conversation WhatsApp prioritaire
-                </a>
-              )}
+              <a
+                href={waLink(`Bonjour WAZAP 👋 Je viens de m’inscrire sur le site (${business}). Je souhaite activer mes 15 courses offertes immédiatement !`)}
+                target="_blank"
+                rel="noreferrer"
+                className="landing-btn landing-btn--wa"
+                style={{ width: '100%', marginBottom: 12, padding: '14px 20px', fontSize: 15 }}
+              >
+                💬 Ouvrir la conversation WhatsApp prioritaire
+              </a>
 
               <button
                 type="button"
                 className="landing-btn landing-btn--ghost"
-                style={{ width: '100%', fontSize: 14 }}
+                style={{ width: '100%' }}
                 onClick={() => {
                   setDone(false)
                   setBusiness('')
-                  setContact('')
                   setPhone('')
                 }}
               >
@@ -808,7 +872,7 @@ export default function VentePage() {
             <div>
               <div style={{ textAlign: 'center', marginBottom: 28 }}>
                 <span className="landing-pill">ACTIVATION IMMÉDIATE</span>
-                <h2 style={{ fontSize: 30, fontWeight: 900, margin: '10px 0 6px' }}>
+                <h2 style={{ fontSize: 30, fontWeight: 900, margin: '10px 0 6px', color: '#0f172a' }}>
                   {audience === 'vendor' ? 'Activez vos 15 livraisons offertes' : 'Rejoignez la flotte des livreurs WAZAP'}
                 </h2>
                 <p style={{ color: 'var(--wz-l-text-muted)', fontSize: 15 }}>
@@ -831,7 +895,7 @@ export default function VentePage() {
               )}
 
               {error && (
-                <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', color: '#fca5a5', padding: '12px 16px', borderRadius: 10, fontSize: 14, marginBottom: 18 }}>
+                <div style={{ background: '#fef2f2', border: '1px solid #f87171', color: '#991b1b', padding: '12px 16px', borderRadius: 10, fontSize: 14, marginBottom: 18, fontWeight: 600 }}>
                   ⚠️ {error}
                 </div>
               )}
@@ -857,13 +921,13 @@ export default function VentePage() {
                 onChange={(e) => setZone(e.target.value)}
               >
                 {Object.keys(COMMUNES).map((c) => (
-                  <option key={c} value={c} style={{ background: '#0b1610', color: '#fff' }}>
+                  <option key={c} value={c}>
                     {c}
                   </option>
                 ))}
               </select>
-              <div style={{ fontSize: 13, color: '#34d399', fontWeight: 700, marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span>🟢</span> {(COMMUNES[zone] || COMMUNES['Marcory']).ridersCount}+ livreurs certifiés actifs en ce moment à {zone}
+              <div style={{ fontSize: 13, color: '#059669', fontWeight: 700, marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span>🛵</span> {(COMMUNES[zone] || COMMUNES['Marcory']).ridersCount}+ livreurs certifiés actifs en ce moment à {zone}
               </div>
 
               <label className="landing-label" htmlFor="whatsapp-phone">
@@ -900,10 +964,10 @@ export default function VentePage() {
                 disabled={busy}
                 onClick={() => void submit()}
               >
-                {busy ? 'Traitement de l’activation…' : '🚀 Valider et recevoir mes 15 courses gratuites'}
+                {busy ? 'Traitement de l’activation…' : '🎁 Valider et recevoir mes 15 courses gratuites'}
               </button>
 
-              <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 14, fontSize: 12, color: 'var(--wz-l-text-dim)', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 14, fontSize: 12.5, color: 'var(--wz-l-text-dim)', flexWrap: 'wrap', fontWeight: 600 }}>
                 <span>🔒 100% Confidentiel</span>
                 <span>•</span>
                 <span>⚡ Activation en 5 min</span>
@@ -928,28 +992,29 @@ export default function VentePage() {
             <details key={item.q} className="faq-item">
               <summary className="faq-summary">
                 <span>{item.q}</span>
-                <span style={{ fontSize: 18, color: '#00d66c' }}>▾</span>
+                <span style={{ fontSize: 18, color: '#00A86B' }}>▾</span>
               </summary>
               <div className="faq-content">{item.a}</div>
             </details>
           ))}
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: 32 }}>
+        <div style={{ textAlign: 'center', marginTop: 36 }}>
           <Link
             to="/parrainage"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: 8,
-              padding: '12px 20px',
-              borderRadius: 12,
-              background: 'rgba(0, 214, 108, 0.1)',
-              color: '#00d66c',
-              border: '1px solid rgba(0, 214, 108, 0.25)',
+              padding: '12px 22px',
+              borderRadius: 999,
+              background: '#ecfdf5',
+              color: '#065f46',
+              border: '1px solid #a7f3d0',
               fontWeight: 700,
               fontSize: 14,
               textDecoration: 'none',
+              boxShadow: '0 2px 8px rgba(0, 168, 107, 0.08)',
             }}
           >
             🎁 Déjà partenaire ? Parrainez un commerçant et gagnez +5 crédits →
@@ -957,18 +1022,18 @@ export default function VentePage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer style={{ marginTop: 80, borderTop: '1px solid var(--wz-l-border)', paddingTop: 36, textAlign: 'center' }}>
+      {/* Footer Épuré */}
+      <footer style={{ marginTop: 80, borderTop: '1px solid var(--wz-l-border)', paddingTop: 40, textAlign: 'center', background: '#f8fafc' }}>
         <div className="landing-container">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 12 }}>
-            <span style={{ fontSize: 20 }}>⚡</span>
-            <span style={{ fontWeight: 900, fontSize: 18, color: '#fff' }}>WAZAP CÔTE D&apos;IVOIRE</span>
+            <span style={{ fontSize: 22 }}>⚡</span>
+            <span style={{ fontWeight: 900, fontSize: 18, color: '#0f172a' }}>WAZAP CÔTE D'IVOIRE</span>
           </div>
-          <p style={{ color: 'var(--wz-l-text-dim)', fontSize: 13, maxWidth: 520, margin: '0 auto 16px' }}>
+          <p style={{ color: 'var(--wz-l-text-muted)', fontSize: 13.5, maxWidth: 540, margin: '0 auto 16px', lineHeight: 1.6 }}>
             Plateforme de mise en relation express pour la livraison à Abidjan. Conforme à la réglementation ivoirienne des transports et du commerce électronique.
           </p>
-          <div style={{ fontSize: 12, color: 'var(--wz-l-text-dim)' }}>
-            © {new Date().getFullYear()} WAZAP · Fait avec passion pour le commerce abidjanais.
+          <div style={{ fontSize: 12.5, color: 'var(--wz-l-text-dim)', paddingBottom: 24 }}>
+            © {new Date().getFullYear()} WAZAP • Fait avec passion pour le commerce abidjanais.
           </div>
         </div>
       </footer>
@@ -976,20 +1041,18 @@ export default function VentePage() {
       {/* Sticky Bottom Bar on Mobile */}
       <div className="landing-sticky-bar">
         <a href="#inscription" className="landing-btn landing-btn--primary" style={{ flex: 1, padding: '12px 14px', fontSize: 14 }}>
-          🚀 15 courses offertes
+          🎁 15 courses offertes
         </a>
-        {waLink('Bonjour WAZAP 👋') && (
-          <a
-            href={waLink('Bonjour WAZAP 👋')!}
-            target="_blank"
-            rel="noreferrer"
-            className="landing-btn landing-btn--wa"
-            style={{ padding: '12px 16px', fontSize: 16 }}
-            aria-label="Contacter sur WhatsApp"
-          >
-            💬
-          </a>
-        )}
+        <a
+          href={waLink('Bonjour WAZAP 👋')}
+          target="_blank"
+          rel="noreferrer"
+          className="landing-btn landing-btn--wa"
+          style={{ padding: '12px 16px', fontSize: 16 }}
+          aria-label="Contacter sur WhatsApp"
+        >
+          💬
+        </a>
       </div>
     </div>
   )
