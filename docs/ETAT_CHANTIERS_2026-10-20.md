@@ -1,3 +1,13 @@
+# Validation acquise le 20 octobre 2026 a 17:18 UTC
+
+Restauration reelle isolee reussie sous PostgreSQL 18.6 : 20 tables controlees, 8 sommes financieres conformes avant et apres migrations et trois migrations attendues presentes. Empreinte de sauvegarde verifiee. Preuve privee : `artifacts/private-backups/20261020/restore-result.json`, horodatee `2026-10-20T17:18:32.2407620Z`. Donnees et journaux hors Git. Aucune migration de production ni mise en production.
+
+Ce prealable est termine : ne pas relancer la restauration pour poursuivre. Suite : verifier le certificat du Gateway installe, coordonner son enrolement avec le serveur et effectuer la recette terrain/fournisseur avant bascule. CI 220 verte sur `4239d02ed9b12e1d35f7bd22789ceccf48c853d4` (926 tests serveur, couverture 80,7 %, frontend et Android).
+
+Cette mise a jour prevaut sur les statuts historiques ci-dessous.
+
+---
+
 # WAZAP — État vérifié des chantiers au 20 octobre 2026
 
 Ce document décrit le travail réellement effectué dans le dépôt et les contrôles effectués sur les comptes externes. Un correctif local n'est pas présenté comme un correctif en production. Le lot commencé le 16 octobre a été repris et complété.
