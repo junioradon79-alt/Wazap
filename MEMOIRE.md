@@ -1,4 +1,20 @@
-﻿# Validation acquise le 21 octobre 2026 à 20:50 UTC
+# Validation acquise le 21 octobre 2026 à 21:21 UTC — Déploiement Production 100% Réussi
+
+- **Mise en ligne complète et vérifiée de `https://wazap.ci` :**
+  - Correction définitive du conflit d'endpoints racine : `https://wazap.ci/` renvoie un **`HTTP 302 Found` fluide vers `/app`**, qui sert directement la landing page commerciale (`VentePage`) avec statut **`HTTP 200 OK`**.
+  - Liens courts marketing (`/tiktok`, `/15`) alignés sur le numéro officiel unique **`+225 05 44 05 19 72`** (Règle 2).
+  - Routes d'acquisition (`/devenir-livreur`, `/vente`, `/livreurs`, `/demo`, `/health`) testées et opérationnelles en direct.
+- **Pipeline de Déploiement Continu GitHub Actions (Run 39674057683) :**
+  - Validation complète réussie (Frontend 64/64 Vitest, Android Gateway, Backend .NET 933 tests).
+  - Sauvegarde de sécurité `pg_dump` de la base PostgreSQL de production réussie et archivée comme artefact (30 jours).
+  - Migrations de schéma EF Core appliquées sur la base de production SmarterASP.
+  - Déploiement différentiel FTP des binaires `win-x64` et du bundle web achevé avec succès, maintenance levée et health check au vert.
+- **Domaine & Sécurité :** DNS Cloudflare (`45.58.159.54`) et certificat SSL Let's Encrypt opérationnels.
+- **Rappel échéance infrastructure :** Hébergement SmarterASP W60-EU à renouveler avant le **30 octobre 2026**.
+
+---
+
+# Validation acquise le 21 octobre 2026 à 20:50 UTC
 
 - **Refonte complète de la landing page vitrine wazap.ci (VentePage.tsx et landing.css) :**
   - **Interface claire & lumineuse (Light Theme Premium) :** suppression du thème sombre "obsidian" au profit d'un univers visuel contemporain, cristallin et aéré (fond blanc éclatant #ffffff avec mesh gradient émeraude délicat, typographie slate foncée #0f172a et #334155 ultra-lisible, cartes à ombres douces et liserés émeraude subtils).
