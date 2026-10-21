@@ -152,20 +152,36 @@ jobs:
           # (clé=valeur séparés par des espaces, clés minuscules). On ne recopie QUE les
           # paramètres connus : libpq refuse une clé inconnue. Le mot de passe passe par
           # PGPASSWORD (une valeur contenant « ; » ou une espace casserait le DSN).
-          dsn=""
-          password=""
+          pghost=""
+          pgport=""
+          pgdatabase=""
+          pguser=""
+          pgpassword=""
+          pgsslmode="require"
           while IFS= read -r part; do
+            [ -n "$part" ] || continue
             key="${part%%=*}"; value="${part#*=}"
             key="$(echo "$key" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
             case "$key" in
-              host)     dsn="$dsn host='$value'" ;;
-              port)     dsn="$dsn port='$value'" ;;
-              database) dsn="$dsn dbname='$value'" ;;
-              username) dsn="$dsn user='$value'" ;;
-              password) password="$value" ;;
-              sslmode)  dsn="$dsn sslmode='$value'" ;;
+              host)                     pghost="$value" ;;
+              port)                     pgport="$value" ;;
+              database|dbname)          pgdatabase="$value" ;;
+              username|user|userid|uid) pguser="$value" ;;
+              password|pwd)             pgpassword="$value" ;;
+              sslmode)                  pgsslmode="$(echo "$value" | tr '[:upper:]' '[:lower:]')"
+                                        case "$pgsslmode" in
+                                          require*|prefer*|allow*|disable*|verify*) ;;
+                                          *) pgsslmode="require" ;;
+                                        esac ;;
             esac
           done < <(printf '%s' "$PROD_DB" | tr ';' '\n')
+
+          export PGHOST="$pghost"
+          export PGPORT="${pgport:-6432}"
+          export PGDATABASE="$pgdatabase"
+          export PGUSER="$pguser"
+          export PGPASSWORD="$pgpassword"
+          export PGSSLMODE="${pgsslmode:-require}"
 
           stamp="$(date -u +%Y%m%d_%H%M%S)"
           mkdir -p backups
@@ -173,25 +189,24 @@ jobs:
           ok=0
 
           # Méthode 1 : client installé sur le runner (le plus rapide).
-          echo "--- pg_dump (client du runner) ---"
-          if PGPASSWORD="$password" pg_dump --no-owner --no-privileges --format=custom \
-               --file="$dump" "$dsn"; then
+          echo "--- pg_dump (client runner vers $PGHOST:$PGPORT sur $PGDATABASE avec user $PGUSER, sslmode=$PGSSLMODE) ---"
+          if pg_dump --no-owner --no-privileges --format=custom --file="$dump"; then
             ok=1
           else
             echo "::warning::pg_dump (client runner) en échec — nouvelle tentative via conteneur."
           fi
 
-          # Méthode 2 : conteneur PostgreSQL le plus récent (couvre un serveur plus récent que
-          # le client du runner, cause classique d'un « server version mismatch »).
+          # Méthode 2 : conteneur PostgreSQL le plus récent (si client runner trop ancien)
           if [ "$ok" -eq 0 ]; then
             rm -f "$dump"
             echo "--- pg_dump (conteneur postgres:18) ---"
-            if docker run --rm -e PGPASSWORD="$password" postgres:18 \
-                 pg_dump --no-owner --no-privileges --format=custom "$dsn" > "$dump"; then
+            if docker run --rm \
+                 -e PGHOST="$PGHOST" -e PGPORT="$PGPORT" -e PGDATABASE="$PGDATABASE" \
+                 -e PGUSER="$PGUSER" -e PGPASSWORD="$PGPASSWORD" -e PGSSLMODE="$PGSSLMODE" \
+                 postgres:18 pg_dump --no-owner --no-privileges --format=custom > "$dump"; then
               ok=1
             fi
           fi
-
           if [ "$ok" -eq 0 ] || [ ! -s "$dump" ]; then
             rm -f "$dump"
             echo "::error::SAUVEGARDE IMPOSSIBLE : migration et déploiement bloqués."
