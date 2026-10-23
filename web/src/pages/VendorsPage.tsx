@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { UserSummary } from '../api/types'
-import { ErrorAlert, StatusBadge, formatDateTime } from '../components/ui'
-import { Modal } from '../components/Modal'
+import {
+  EmptyState,
+  ErrorAlert,
+  Modal,
+  PageHeader,
+  StatusBadge,
+  formatDateTime,
+} from '../components'
 
 export default function VendorsPage() {
   const [vendors, setVendors] = useState<UserSummary[]>([])
@@ -15,10 +21,11 @@ export default function VendorsPage() {
 
   const load = async (): Promise<void> => {
     try {
-      setVendors(await api.get<UserSummary[]>('/vendors'))
-      setError('') // une action réussie ne doit pas laisser une bannière d'erreur périmée
+      const data = await api.get<UserSummary[]>('/vendors')
+      setVendors(data)
+      setError('')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur')
+      setError(err instanceof Error ? err.message : 'Erreur de chargement')
     }
   }
 
@@ -30,7 +37,6 @@ export default function VendorsPage() {
     if (!topup) return
     const n = Number(credits)
     if (!Number.isInteger(n) || n <= 0) return
-    // Crédits OFFERTS sans paiement : confirmation explicite (opération financière).
     if (!window.confirm(`Offrir ${n} crédit(s) à ${topup.username} sans paiement ?`)) return
     setBusy(true)
     setError('')
@@ -62,12 +68,15 @@ export default function VendorsPage() {
 
   return (
     <>
-      <div className="page-head">
-        <div>
-          <h1>Vendeurs</h1>
-          <p>Comptes vendeurs, crédits et zones déclarées</p>
-        </div>
-      </div>
+      <PageHeader
+        title="Vendeurs"
+        subtitle={`${vendors.length} compte${vendors.length > 1 ? 's' : ''} vendeur${vendors.length > 1 ? 's' : ''} partenaires · crédits et zones déclarées`}
+        actions={
+          <button type="button" className="btn btn--ghost" onClick={() => void load()}>
+            ⟳ Actualiser
+          </button>
+        }
+      />
 
       {error && <ErrorAlert message={error} onRetry={() => void load()} />}
 
@@ -87,45 +96,98 @@ export default function VendorsPage() {
             <tbody>
               {vendors.map((v) => (
                 <tr key={v.id}>
-                  <td><div className="vendor"><span className="vendor__name">{v.username}</span><span className="vendor__phone">{v.role}</span></div></td>
-                  <td><span className="whatsapp">{v.phoneNumber ?? '—'}</span></td>
-                  <td><b>{v.credits}</b></td>
-                  <td>{v.zone ?? '—'}</td>
-                  <td><StatusBadge status={v.isAvailable ? 'Oui' : 'Non'} /></td>
                   <td>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <button className="btn btn--primary" onClick={() => { setTopup(v); setCredits('') }}>Créditer</button>
-                      <button className="btn" onClick={() => { setZoneEdit(v); setZoneValue(v.zone ?? '') }}>Zone</button>
+                    <div className="vendor">
+                      <span className="vendor__name">{v.username}</span>
+                      <span className="vendor__phone">{v.role}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="whatsapp">{v.phoneNumber ?? '—'}</span>
+                  </td>
+                  <td>
+                    <strong>{v.credits}</strong>
+                  </td>
+                  <td>{v.zone ?? '—'}</td>
+                  <td>
+                    <StatusBadge status={v.isAvailable ? 'Oui' : 'Non'} />
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button
+                        type="button"
+                        className="btn btn--primary btn--sm"
+                        onClick={() => {
+                          setTopup(v)
+                          setCredits('')
+                        }}
+                      >
+                        Créditer
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn--ghost btn--sm"
+                        onClick={() => {
+                          setZoneEdit(v)
+                          setZoneValue(v.zone ?? '')
+                        }}
+                      >
+                        Zone
+                      </button>
                     </div>
                   </td>
                 </tr>
               ))}
-              {vendors.length === 0 && <tr><td colSpan={6} className="empty">Aucun vendeur</td></tr>}
+              {vendors.length === 0 && (
+                <tr>
+                  <td colSpan={6}>
+                    <EmptyState
+                      icon="🏪"
+                      title="Aucun vendeur enregistré"
+                      description="Les commerçants inscrits via WhatsApp ou la page d'acquisition apparaîtront ici."
+                    />
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </section>
 
       {topup && (
-        // Modales partagées (C-07) : rôle dialog, Échap, focus déplacé puis restitué.
         <Modal
           title={`Créditer ${topup.username}`}
           labelledBy="vendor-topup-title"
           onClose={() => setTopup(null)}
         >
-            <p style={{ color: 'var(--wz-muted)' }}>
-              Solde actuel : <b>{topup.credits}</b> crédits · Dernière position : {topup.locationUpdatedAt ? formatDateTime(topup.locationUpdatedAt) : '—'}
-            </p>
-            <div className="field">
-              <label>Crédits à ajouter</label>
-              <input type="number" min={1} value={credits} onChange={(e) => setCredits(e.target.value)} />
-            </div>
-            <div className="modal__actions">
-              <button className="btn" onClick={() => setTopup(null)}>Annuler</button>
-              <button className="btn btn--primary" onClick={() => void doTopup()} disabled={busy}>
-                {busy ? '…' : 'Créditer'}
-              </button>
-            </div>
+          <p style={{ color: 'var(--wz-muted)', marginBottom: 16 }}>
+            Solde actuel : <b>{topup.credits}</b> crédits · Dernière position :{' '}
+            {topup.locationUpdatedAt ? formatDateTime(topup.locationUpdatedAt) : '—'}
+          </p>
+          <div className="field">
+            <label htmlFor="topup-credits">Crédits à ajouter</label>
+            <input
+              id="topup-credits"
+              type="number"
+              min={1}
+              value={credits}
+              onChange={(e) => setCredits(e.target.value)}
+              placeholder="ex: 15"
+            />
+          </div>
+          <div className="modal__actions">
+            <button type="button" className="btn" onClick={() => setTopup(null)}>
+              Annuler
+            </button>
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={() => void doTopup()}
+              disabled={busy}
+            >
+              {busy ? '…' : 'Créditer'}
+            </button>
+          </div>
         </Modal>
       )}
 
@@ -135,16 +197,29 @@ export default function VendorsPage() {
           labelledBy="vendor-zone-title"
           onClose={() => setZoneEdit(null)}
         >
-            <div className="field">
-              <label>Quartier / zone</label>
-              <input value={zoneValue} onChange={(e) => setZoneValue(e.target.value)} placeholder="ex : Cocody" maxLength={50} />
-            </div>
-            <div className="modal__actions">
-              <button className="btn" onClick={() => setZoneEdit(null)}>Annuler</button>
-              <button className="btn btn--primary" onClick={() => void doZone()} disabled={busy}>
-                {busy ? '…' : 'Enregistrer'}
-              </button>
-            </div>
+          <div className="field">
+            <label htmlFor="vendor-zone-input">Quartier / commune d'Abidjan</label>
+            <input
+              id="vendor-zone-input"
+              value={zoneValue}
+              onChange={(e) => setZoneValue(e.target.value)}
+              placeholder="ex : Cocody"
+              maxLength={50}
+            />
+          </div>
+          <div className="modal__actions">
+            <button type="button" className="btn" onClick={() => setZoneEdit(null)}>
+              Annuler
+            </button>
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={() => void doZone()}
+              disabled={busy}
+            >
+              {busy ? '…' : 'Enregistrer'}
+            </button>
+          </div>
         </Modal>
       )}
     </>

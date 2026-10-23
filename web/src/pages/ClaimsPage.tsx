@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { ClaimListItem } from '../api/types'
-import { ErrorAlert, formatDateTime } from '../components/ui'
-import { Modal } from '../components/Modal'
+import { EmptyState, ErrorAlert, Modal, PageHeader, formatDateTime } from '../components'
 
 const CLAIM_STATUS: Record<ClaimListItem['status'], { label: string; badge: string }> = {
   Pending: { label: '🚨 À traiter', badge: 'badge--orange' },
@@ -25,7 +24,7 @@ export default function ClaimsPage() {
       setClaims(data)
       setError('')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur')
+      setError(err instanceof Error ? err.message : 'Erreur de chargement')
     }
   }
 
@@ -36,7 +35,6 @@ export default function ClaimsPage() {
   const openApprove = (c: ClaimListItem): void => {
     setCompensation('0')
     setNote('')
-    // Le barème propose le montant ; l'équipe peut le corriger avant de valider.
     setAmountFcfa(String(c.suggestedCompensationFcfa ?? 0))
     setApproveTarget(c)
   }
@@ -62,12 +60,7 @@ export default function ClaimsPage() {
 
   const reject = async (c: ClaimListItem): Promise<void> => {
     const reason = window.prompt(`Rejeter le dossier #${c.orderCode} ?\nMotif (optionnel) :`)
-    // `prompt` renvoie NULL quand l'utilisateur clique « Annuler ». L'ancien `|| ''`
-    // transformait ce null en chaîne vide, ce qui rendait la garde suivante inopérante :
-    // annuler la fenêtre REJETAIT quand même le sinistre (action irréversible, vendeur
-    // non indemnisé, livreur dégelé).
     if (reason === null) return
-
     if (!window.confirm(`Confirmer le REJET définitif du dossier #${c.orderCode} ?`)) return
 
     setBusy(true)
@@ -104,17 +97,15 @@ export default function ClaimsPage() {
 
   return (
     <>
-      <div className="page-head">
-        <div>
-          <h1>Sinistres — Garantie Colis Sûr</h1>
-          <p>
-            {claims.length} dossiers · 🚨 {pending} à traiter · ✅{' '}
-            {claims.filter((c) => c.status === 'Approved').length} indemnisés ·{' '}
-            {claims.filter((c) => c.status === 'Rejected').length} rejetés{toPay > 0 ? ` · 💰 ${toPay} versement(s) à effectuer` : ''}
-          </p>
-        </div>
-        <button className="btn" onClick={() => void load()} disabled={busy}>⟳ Actualiser</button>
-      </div>
+      <PageHeader
+        title="Sinistres — Garantie Colis Sûr"
+        subtitle={`${claims.length} dossier${claims.length > 1 ? 's' : ''} · 🚨 ${pending} à traiter · ✅ ${claims.filter((c) => c.status === 'Approved').length} indemnisés · ${claims.filter((c) => c.status === 'Rejected').length} rejetés${toPay > 0 ? ` · 💰 ${toPay} versement(s) à effectuer` : ''}`}
+        actions={
+          <button type="button" className="btn btn--ghost" onClick={() => void load()} disabled={busy}>
+            ⟳ Actualiser
+          </button>
+        }
+      />
 
       {error && <ErrorAlert message={error} onRetry={() => void load()} />}
 
@@ -145,7 +136,7 @@ export default function ClaimsPage() {
                         <span className="vendor__phone">{c.vendorPhone}</span>
                       </div>
                     </td>
-                    <td><span className="vendor__name">{c.riderName}</span></td>
+                    <td><strong>{c.riderName}</strong></td>
                     <td style={{ fontSize: 13 }}>{c.description || '—'}</td>
                     <td><span className={`badge ${meta.badge}`}>{meta.label}</span></td>
                     <td style={{ fontSize: 13 }}>
@@ -156,19 +147,19 @@ export default function ClaimsPage() {
                             <div style={{ marginTop: 2 }}>
                               💰 {c.compensationAmountFcfa.toLocaleString('fr-FR')} FCFA
                               {c.payoutStatus === 'Paid' ? (
-                                <span className="badge badge--ok" style={{ marginLeft: 6 }}>versé</span>
+                                <span className="badge badge--green" style={{ marginLeft: 6 }}>versé</span>
                               ) : (
-                                <span className="badge badge--warn" style={{ marginLeft: 6 }}>
+                                <span className="badge badge--orange" style={{ marginLeft: 6 }}>
                                   {c.payoutStatus === 'Failed' ? 'échec' : 'à verser'}
                                 </span>
                               )}
                               {c.riderDepositDebitedFcfa ? (
-                                <div style={{ fontSize: 11, color: 'var(--wz-muted, #888)' }}>
+                                <div style={{ fontSize: 11, color: 'var(--wz-muted)' }}>
                                   dont {c.riderDepositDebitedFcfa.toLocaleString('fr-FR')} F sur la caution livreur
                                 </div>
                               ) : null}
                               {c.payoutReference ? (
-                                <div style={{ fontSize: 11, color: 'var(--wz-muted, #888)' }}>réf. {c.payoutReference}</div>
+                                <div style={{ fontSize: 11, color: 'var(--wz-muted)' }}>réf. {c.payoutReference}</div>
                               ) : null}
                             </div>
                           ) : null}
@@ -182,16 +173,16 @@ export default function ClaimsPage() {
                       {c.status === 'Pending' ? (
                         <div style={{ display: 'flex', gap: 6 }}>
                           <button
-                            className="btn btn--primary"
-                            style={{ padding: '6px 8px', fontSize: 12 }}
+                            type="button"
+                            className="btn btn--primary btn--sm"
                             disabled={busy}
                             onClick={() => openApprove(c)}
                           >
                             Indemniser
                           </button>
                           <button
-                            className="btn btn--ghost"
-                            style={{ padding: '6px 8px', fontSize: 12, borderColor: '#fca5a5', color: '#b91c1c' }}
+                            type="button"
+                            className="btn btn--danger btn--sm"
                             disabled={busy}
                             onClick={() => void reject(c)}
                           >
@@ -200,15 +191,15 @@ export default function ClaimsPage() {
                         </div>
                       ) : c.payoutStatus === 'Pending' || c.payoutStatus === 'Failed' ? (
                         <button
-                          className="btn btn--primary"
-                          style={{ padding: '6px 8px', fontSize: 12 }}
+                          type="button"
+                          className="btn btn--primary btn--sm"
                           disabled={busy}
                           onClick={() => void markPaid(c)}
                         >
-                          💰 Confirmer le versement
+                          💰 Verser
                         </button>
                       ) : (
-                        <span style={{ fontSize: 12, color: 'var(--wz-muted, #888)' }}>
+                        <span style={{ fontSize: 12, color: 'var(--wz-muted)' }}>
                           {c.reviewNote || 'Traité'}
                         </span>
                       )}
@@ -216,27 +207,36 @@ export default function ClaimsPage() {
                   </tr>
                 )
               })}
-              {claims.length === 0 && <tr><td colSpan={8} className="empty">Aucun sinistre — les vendeurs déclarent via « SINISTRE +code » sur WhatsApp.</td></tr>}
+              {claims.length === 0 && (
+                <tr>
+                  <td colSpan={8}>
+                    <EmptyState
+                      icon="🛡️"
+                      title="Aucun sinistre en cours"
+                      description="La Garantie Colis Sûr protège les commerçants. Les déclarations reçues via WhatsApp apparaîtront ici."
+                    />
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </section>
 
       {approveTarget && (
-        // Modale partagée : role="dialog", aria-modal, Échap, focus déplacé puis restitué.
-        // Les <div className="modal"> écrits à la main n'offraient rien de tout cela (C-07).
         <Modal
           title={`Indemniser le sinistre #${approveTarget.orderCode}`}
           labelledBy="claim-approve-title"
           onClose={() => setApproveTarget(null)}
         >
-          <p style={{ fontSize: 13, marginBottom: 12 }}>
-            Le livreur <strong>{approveTarget.riderName}</strong> sera <strong>exclu définitivement</strong>.
-            Le vendeur {approveTarget.vendorName} sera remboursé du crédit de la course + indemnisation.
+          <p style={{ fontSize: 13, marginBottom: 14, color: 'var(--wz-muted)' }}>
+            Le livreur <strong>{approveTarget.riderName}</strong> sera exclu si négligence prouvée.
+            Le vendeur <strong>{approveTarget.vendorName}</strong> sera remboursé du crédit de la course et indemnisé.
           </p>
           <div className="field">
-            <label>Crédits d'indemnisation (en plus du remboursement de la course)</label>
+            <label htmlFor="claim-compensation-credits">Crédits d'indemnisation (en plus du remboursement)</label>
             <input
+              id="claim-compensation-credits"
               type="number"
               min={0}
               value={compensation}
@@ -244,28 +244,41 @@ export default function ClaimsPage() {
             />
           </div>
           <div className="field">
-            <label>
-              Indemnisation en FCFA — barème :{' '}
-              {approveTarget.suggestedCompensationFcfa.toLocaleString('fr-FR')} F
+            <label htmlFor="claim-amount-fcfa">
+              Indemnisation en FCFA (barème recommandé :{' '}
+              {approveTarget.suggestedCompensationFcfa.toLocaleString('fr-FR')} F)
             </label>
             <input
+              id="claim-amount-fcfa"
               type="number"
               min={0}
               value={amountFcfa}
               onChange={(e) => setAmountFcfa(e.target.value)}
             />
-            <small style={{ color: 'var(--wz-muted)' }}>
-              0 = pas de versement. Sinon le dossier reste « à verser » jusqu'à confirmation
-              du virement Mobile Money.
+            <small style={{ color: 'var(--wz-muted)', marginTop: 4 }}>
+              0 = aucun virement d'espèces. Sinon le dossier passe en attente de virement Mobile Money.
             </small>
           </div>
           <div className="field">
-            <label>Note de décision (optionnel)</label>
-            <input value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} />
+            <label htmlFor="claim-note">Note de décision / motif (optionnel)</label>
+            <input
+              id="claim-note"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              maxLength={300}
+              placeholder="ex: Colis égaré constaté"
+            />
           </div>
           <div className="modal__actions">
-            <button className="btn" onClick={() => setApproveTarget(null)}>Annuler</button>
-            <button className="btn btn--primary" onClick={() => void doApprove()} disabled={busy}>
+            <button type="button" className="btn" onClick={() => setApproveTarget(null)}>
+              Annuler
+            </button>
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={() => void doApprove()}
+              disabled={busy}
+            >
               {busy ? '…' : '✅ Confirmer l\'indemnisation'}
             </button>
           </div>
@@ -274,4 +287,3 @@ export default function ClaimsPage() {
     </>
   )
 }
-

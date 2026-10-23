@@ -23,7 +23,8 @@ function formatPhoneForWaMe(phone?: string | null): string {
 function buildWhatsAppAccessLink(rider: UserSummary, cert?: RiderCertification): string {
   const cleanPhone = formatPhoneForWaMe(rider.phoneNumber)
   const name = cert?.fullName || rider.username || 'champion'
-  const dashboardWebUrl = `https://junioradon79gm-001-site1.jtempurl.com/app/login?u=${encodeURIComponent(rider.username)}`
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://wazap.ci'
+  const dashboardWebUrl = `${origin}/app/login?u=${encodeURIComponent(rider.username)}`
   const msg = `Salut ${name} ! Bienvenue sur WAZAP 🛵💨\n\n` +
     `📊 Touche ce lien pour ouvrir ton COCKPIT LIVREUR (courses, gains nets, challenge smartphone) :\n` +
     `${dashboardWebUrl}\n\n` +

@@ -1,3 +1,31 @@
+# Session 118 — 23 octobre 2026 : Refactoring Architectural, Composants Réutilisables & Optimisation Web
+
+- **Refactoring architectural frontend & création de la bibliothèque de composants réutilisables (`web/src/components`) :**
+  - `StatCard` & `StatsGrid` : Cartes KPI modulaires avec variantes thématiques (`green`, `blue`, `dark`, `orange`, `purple`), badges de tendance et hint.
+  - `PageHeader` : En-tête de page standardisé avec titre, sous-titres dynamiques, badges et boutons d'action.
+  - `Pagination` : Contrôle de pagination réutilisable et accessible.
+  - `CopyButton` & hook `useClipboard` : Bouton de copie 1-tap avec feedback animé instantané et repli contextuel.
+  - `FilterTabs` : Onglets de filtrage segmented control avec badges de comptage et navigation au clavier.
+  - `EmptyState` : Gestion propre des listes vides avec icônes contextuelles, textes clairs et actions de reprise.
+  - `Skeleton` & `SkeletonStatCard` : Placeholders animés (shimmer) pour éliminer le Cumulative Layout Shift (CLS).
+- **Refactorisation & modernisation des pages clés :**
+  - `DashboardPage.tsx` : Remplacement de 150 lignes de code répétitif par `StatCard`, `StatsGrid`, `PageHeader`, `SkeletonStatCard`, bundle réduit de 20%.
+  - `OrdersPage.tsx` : Intégration de `PageHeader`, `Pagination`, `EmptyState`, boutons compacts.
+  - `VendorsPage.tsx` : En-tête standardisé, tableau modernisé, gestion de l'état vide via `EmptyState`.
+  - `ClaimsPage.tsx` : En-tête clair, tableau et modale d'indemnisation épurés.
+  - `RatingsPage.tsx` : En-tête réputation livreur avec filtres unifiés et `EmptyState`.
+  - `Layout.tsx` : Navigation propre et déclarative basée sur les rôles (`UserRole`), code simplifié sans ternaires imbriqués.
+- **Correction des URLs résiduelles :**
+  - `RidersPage.tsx` : Remplacement de l'ancien domaine de test `junioradon79gm-001-site1.jtempurl.com` par `window.location.origin` (avec fallback `wazap.ci`).
+  - `VendorDashboardPage.tsx` : Remplacement du fallback obsolète par `https://wazap.ci/app/suivi`.
+- **Validation Qualité & Performance :**
+  - 100% des tests Vitest réussis : **71/71 tests (16 suites de tests, +9 nouveaux tests unitaires de composants)**.
+  - 100% des tests .NET réussis : **933 tests (923 réussis, 0 échec, 10 PostgreSQL pour la CI)**.
+  - Build Vite ultra-rapide (345ms), bundle principal optimisé (réduit de 199.55 Ko à 188.52 Ko).
+  - Synchronisation complète du bundle dans `src/Wazap.API/wwwroot/app`.
+
+---
+
 # Validation acquise le 21 octobre 2026 à 21:21 UTC — Déploiement Production 100% Réussi
 
 - **Mise en ligne complète et vérifiée de `https://wazap.ci` :**

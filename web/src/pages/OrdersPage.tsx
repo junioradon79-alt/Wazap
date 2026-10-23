@@ -1,8 +1,17 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { api, getToken, getUser } from '../api/client'
 import type { CreateOrderRequest, OrderDto, PagedResult } from '../api/types'
-import { Modal } from '../components/Modal'
-import { ErrorAlert, StatusBadge, formatDateTime, formatMoney, shortId } from '../components/ui'
+import {
+  EmptyState,
+  ErrorAlert,
+  Modal,
+  PageHeader,
+  Pagination,
+  StatusBadge,
+  formatDateTime,
+  formatMoney,
+  shortId,
+} from '../components'
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<OrderDto[]>([])
@@ -129,16 +138,15 @@ export default function OrdersPage() {
 
   return (
     <>
-      <div className="page-head">
-        <div>
-          <h1>Commandes</h1>
-          <p>
-            {total} commande{total > 1 ? 's' : ''} au total
-            {totalPages > 1 && ` · page ${page} sur ${totalPages}`}
-          </p>
-        </div>
-        <button className="btn btn--primary" onClick={() => setShowCreate(true)}>+ Nouvelle commande</button>
-      </div>
+      <PageHeader
+        title="Commandes"
+        subtitle={`${total} commande${total > 1 ? 's' : ''} au total${totalPages > 1 ? ` · page ${page} sur ${totalPages}` : ''}`}
+        actions={
+          <button type="button" className="btn btn--primary" onClick={() => setShowCreate(true)}>
+            + Nouvelle commande
+          </button>
+        }
+      />
 
       {error && <ErrorAlert message={error} onRetry={() => void load(page)} />}
       {payMessage && <div className="alert alert--success">{payMessage}</div>}
@@ -161,54 +169,77 @@ export default function OrdersPage() {
               {orders.map((o) => (
                 <tr key={o.id}>
                   <td><span className="order-id">#{shortId(o.id)}</span></td>
-                  <td>{o.clientName}</td>
+                  <td><strong>{o.clientName}</strong></td>
                   <td>{o.description}</td>
-                  <td>{formatMoney(o.amount)}</td>
+                  <td><strong>{formatMoney(o.amount)}</strong></td>
                   <td><StatusBadge status={o.status} /></td>
                   <td>{formatDateTime(o.createdAt)}</td>
                   <td>
-                    {getUser()?.role === 'Admin' && o.hasProofPhoto && (
-                      <button className="btn btn--ghost" onClick={() => void viewProof(o.id)} title="Photo de preuve">
-                        📸
-                      </button>
-                    )}
-                      {o.status !== 'Delivered' && o.status !== 'Cancelled' && <button className="btn" onClick={() => {
-                        void api.post(`/orders/${o.id}/recipient-link`).then(() => setPayMessage('Lien personnel envoyé au destinataire sur WhatsApp.')).catch(err => setError(err instanceof Error ? err.message : 'Envoi impossible'))
-                      }}>Lien destinataire</button>}
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {getUser()?.role === 'Admin' && o.hasProofPhoto && (
+                        <button className="btn btn--ghost btn--sm" onClick={() => void viewProof(o.id)} title="Photo de preuve">
+                          📸
+                        </button>
+                      )}
                       {o.status !== 'Delivered' && o.status !== 'Cancelled' && (
+                        <button
+                          className="btn btn--sm"
+                          onClick={() => {
+                            void api
+                              .post(`/orders/${o.id}/recipient-link`)
+                              .then(() => setPayMessage('Lien personnel envoyé au destinataire sur WhatsApp.'))
+                              .catch((err) => setError(err instanceof Error ? err.message : 'Envoi impossible'))
+                          }}
+                        >
+                          Lien destinataire
+                        </button>
+                      )}
+                      {o.status !== 'Delivered' && o.status !== 'Cancelled' && (
+                        <button
+                          className="btn btn--primary btn--sm"
+                          onClick={() => void requestPayment(o.id)}
+                          disabled={paying !== null}
+                        >
+                          {paying === o.id ? '…' : '💳 Demander lien'}
+                        </button>
+                      )}
                       <button
-                        className="btn btn--primary"
-                        onClick={() => void requestPayment(o.id)}
-                        disabled={paying !== null}
+                        className="btn btn--blue btn--sm"
+                        onClick={() => void broadcast(o.id)}
+                        disabled={broadcasting !== null}
                       >
-                        {paying === o.id ? '…' : '💳 Demander le lien'}
+                        {broadcasting === o.id ? '…' : 'Broadcast'}
                       </button>
-                    )}
-                    <button
-                      className="btn btn--blue"
-                      onClick={() => void broadcast(o.id)}
-                      disabled={broadcasting !== null}
-                    >
-                      {broadcasting === o.id ? '…' : 'Broadcast'}
-                    </button>
+                    </div>
                   </td>
                 </tr>
               ))}
-              {orders.length === 0 && <tr><td colSpan={7} className="empty">Aucune commande</td></tr>}
+              {orders.length === 0 && (
+                <tr>
+                  <td colSpan={7}>
+                    <EmptyState
+                      icon="🧾"
+                      title="Aucune commande trouvée"
+                      description="Créez votre première commande pour lancer l'affectation éclair d'un coursier certifié."
+                      action={
+                        <button type="button" className="btn btn--primary" onClick={() => setShowCreate(true)}>
+                          + Nouvelle commande
+                        </button>
+                      }
+                    />
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
 
         {totalPages > 1 && (
-          <div className="pager">
-            <button className="btn" disabled={page <= 1} onClick={() => void load(page - 1)}>
-              ← Précédent
-            </button>
-            <span>Page {page} / {totalPages}</span>
-            <button className="btn" disabled={page >= totalPages} onClick={() => void load(page + 1)}>
-              Suivant →
-            </button>
-          </div>
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={(p) => void load(p)}
+          />
         )}
       </section>
 

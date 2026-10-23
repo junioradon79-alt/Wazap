@@ -1,102 +1,142 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { DashboardSummary } from '../api/types'
-import { ErrorAlert, StatusBadge, formatMoney, shortId } from '../components/ui'
+import {
+  ErrorAlert,
+  PageHeader,
+  SkeletonStatCard,
+  StatCard,
+  StatsGrid,
+  StatusBadge,
+  formatMoney,
+  shortId,
+} from '../components'
 
 export default function DashboardPage() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(true)
 
-  // Extrait de l'effet : en cas d'échec, tout le tableau de bord disparaissait derrière
-  // un message d'erreur sans aucune action possible (P2 / C-05).
   const load = async (): Promise<void> => {
     try {
-      setSummary(await api.get<DashboardSummary>('/dashboard/summary'))
+      setLoading(true)
+      const data = await api.get<DashboardSummary>('/dashboard/summary')
+      setSummary(data)
       setError('')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur')
+      setError(err instanceof Error ? err.message : 'Erreur de chargement')
+    } finally {
+      setLoading(false)
     }
   }
 
   useEffect(() => {
     void load()
-    // Chargement initial uniquement.
   }, [])
 
   if (error) return <ErrorAlert message={error} onRetry={() => void load()} />
-  if (!summary) return <div className="loading"><span className="loading__spinner" /> Chargement du tableau de bord…</div>
+
+  if (loading || !summary) {
+    return (
+      <>
+        <PageHeader
+          title="Tableau de bord"
+          subtitle="Chargement des indicateurs en direct…"
+        />
+        <StatsGrid>
+          <SkeletonStatCard />
+          <SkeletonStatCard />
+          <SkeletonStatCard />
+        </StatsGrid>
+        <StatsGrid>
+          <SkeletonStatCard />
+          <SkeletonStatCard />
+          <SkeletonStatCard />
+          <SkeletonStatCard />
+        </StatsGrid>
+      </>
+    )
+  }
 
   return (
     <>
-      <section className="stats">
-        <article className="stat-card stat-card--green">
-          <div className="stat-card__icon">🧾</div>
-          <div className="stat-card__body">
-            <span className="stat-card__label">Commandes en cours</span>
-            <span className="stat-card__value">{summary.inProgressOrdersCount}</span>
-            <span className="stat-card__hint">En cours de traitement</span>
-          </div>
-        </article>
+      <PageHeader
+        title="Tableau de bord"
+        subtitle="Pilotage global de la plateforme, flux des livraisons et volumes"
+        actions={
+          <button
+            type="button"
+            className="btn btn--ghost"
+            onClick={() => void load()}
+            title="Rafraîchir les données"
+          >
+            ⟳ Actualiser
+          </button>
+        }
+      />
 
-        <article className="stat-card stat-card--blue">
-          <div className="stat-card__icon">🛵</div>
-          <div className="stat-card__body">
-            <span className="stat-card__label">Livreurs actifs</span>
-            <span className="stat-card__value">{summary.activeRiders}</span>
-            <span className="stat-card__hint">Assignés à une course</span>
-          </div>
-        </article>
+      {/* Cartes Clés Principales */}
+      <StatsGrid>
+        <StatCard
+          icon="🧾"
+          variant="green"
+          label="Commandes en cours"
+          value={summary.inProgressOrdersCount}
+          hint="En cours de traitement"
+        />
+        <StatCard
+          icon="🛵"
+          variant="blue"
+          label="Livreurs actifs"
+          value={summary.activeRiders}
+          hint="Assignés à une course"
+        />
+        <StatCard
+          icon="💰"
+          variant="dark"
+          label="Chiffre d'affaires du mois"
+          value={formatMoney(summary.monthlyRevenue)}
+          hint="Livré ce mois-ci"
+        />
+      </StatsGrid>
 
-        <article className="stat-card stat-card--dark">
-          <div className="stat-card__icon">💰</div>
-          <div className="stat-card__body">
-            <span className="stat-card__label">Chiffre d'affaires du mois</span>
-            <span className="stat-card__value">{formatMoney(summary.monthlyRevenue)}</span>
-            <span className="stat-card__hint">Livré ce mois-ci</span>
-          </div>
-        </article>
-      </section>
+      {/* Métriques 30 jours */}
+      <StatsGrid>
+        <StatCard
+          icon="📊"
+          variant="dark"
+          label="CA 30j"
+          value={formatMoney(summary.revenue30d)}
+          trend={{
+            value: summary.revenueChangePercent,
+            label: 'vs période précédente',
+          }}
+          hint={`${summary.revenueChangePercent > 0 ? '+' : ''}${summary.revenueChangePercent} % vs période précédente`}
+        />
+        <StatCard
+          icon="🛒"
+          variant="blue"
+          label="Panier moyen"
+          value={formatMoney(summary.averageBasket30d)}
+          hint="Sur les 30 derniers jours"
+        />
+        <StatCard
+          icon="✅"
+          variant="green"
+          label="Taux livraison"
+          value={`${Math.round(summary.deliveryRate30d * 100)} %`}
+          hint="Commandes livrées 30j"
+        />
+        <StatCard
+          icon="🔄"
+          variant="blue"
+          label="Conversion leads"
+          value={`${Math.round(summary.leadConversionRate30d * 100)} %`}
+          hint="Leads → vendeurs 30j"
+        />
+      </StatsGrid>
 
-      <section className="stats">
-        <article className="stat-card stat-card--dark">
-          <div className="stat-card__icon">📊</div>
-          <div className="stat-card__body">
-            <span className="stat-card__label">CA 30j</span>
-            <span className="stat-card__value">{formatMoney(summary.revenue30d)}</span>
-            <span className="stat-card__hint">
-              {summary.revenueChangePercent > 0 ? '+' : ''}{summary.revenueChangePercent} % vs période précédente
-            </span>
-          </div>
-        </article>
-
-        <article className="stat-card stat-card--blue">
-          <div className="stat-card__icon">🛒</div>
-          <div className="stat-card__body">
-            <span className="stat-card__label">Panier moyen</span>
-            <span className="stat-card__value">{formatMoney(summary.averageBasket30d)}</span>
-            <span className="stat-card__hint">Sur les 30 derniers jours</span>
-          </div>
-        </article>
-
-        <article className="stat-card stat-card--green">
-          <div className="stat-card__icon">✅</div>
-          <div className="stat-card__body">
-            <span className="stat-card__label">Taux livraison</span>
-            <span className="stat-card__value">{Math.round(summary.deliveryRate30d * 100)} %</span>
-            <span className="stat-card__hint">Commandes livrées 30j</span>
-          </div>
-        </article>
-
-        <article className="stat-card stat-card--blue">
-          <div className="stat-card__icon">🔄</div>
-          <div className="stat-card__body">
-            <span className="stat-card__label">Conversion leads</span>
-            <span className="stat-card__value">{Math.round(summary.leadConversionRate30d * 100)} %</span>
-            <span className="stat-card__hint">Leads → vendeurs 30j</span>
-          </div>
-        </article>
-      </section>
-
+      {/* Tableau des commandes récentes */}
       <section className="panel">
         <header className="panel__header">
           <div>
@@ -121,26 +161,45 @@ export default function DashboardPage() {
             <tbody>
               {summary.recentOrders.map((order) => (
                 <tr key={order.id}>
-                  <td><span className="order-id">#{shortId(order.id)}</span></td>
+                  <td>
+                    <span className="order-id">#{shortId(order.id)}</span>
+                  </td>
                   <td>
                     <div className="vendor">
                       <span className="vendor__name">{order.vendorName}</span>
                       <span className="vendor__phone">{order.vendorWhatsApp}</span>
                     </div>
                   </td>
-                  <td><span className="whatsapp">{order.maskedClientPhone}</span></td>
-                  <td><StatusBadge status={order.statusLabel} /></td>
+                  <td>
+                    <span className="whatsapp">{order.maskedClientPhone}</span>
+                  </td>
+                  <td>
+                    <StatusBadge status={order.statusLabel} />
+                  </td>
                 </tr>
               ))}
               {summary.recentOrders.length === 0 && (
-                <tr><td colSpan={4} className="empty">Aucune commande en cours</td></tr>
+                <tr>
+                  <td colSpan={4} className="empty">
+                    Aucune commande en cours
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
         </div>
       </section>
 
-      <div className="grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
+      {/* Top vendeurs & Répartition par zone */}
+      <div
+        className="grid"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: 16,
+          marginTop: 16,
+        }}
+      >
         {summary.topVendors30d.length > 0 && (
           <section className="panel">
             <header className="panel__header">
@@ -161,7 +220,7 @@ export default function DashboardPage() {
                 <tbody>
                   {summary.topVendors30d.map((v, i) => (
                     <tr key={i}>
-                      <td>{v.username}</td>
+                      <td><strong>{v.username}</strong></td>
                       <td>{v.deliveredOrders}</td>
                       <td>{formatMoney(v.revenue)}</td>
                     </tr>
@@ -177,7 +236,7 @@ export default function DashboardPage() {
             <header className="panel__header">
               <div>
                 <h2 className="panel__title">🗺️ CA par zone 30j</h2>
-                <p className="panel__subtitle">Répartition géographique</p>
+                <p className="panel__subtitle">Répartition géographique Grand Abidjan</p>
               </div>
             </header>
             <div className="table-wrap">
@@ -191,7 +250,7 @@ export default function DashboardPage() {
                 <tbody>
                   {summary.revenueByZone30d.map((z, i) => (
                     <tr key={i}>
-                      <td>{z.zone}</td>
+                      <td><strong>{z.zone}</strong></td>
                       <td>{formatMoney(z.revenue)}</td>
                     </tr>
                   ))}
