@@ -1,193 +1,72 @@
-import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { api } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import BrandLogo from '../components/BrandLogo'
 import '../styles/landing.css'
 
-interface CommuneInfo {
-  name: string
-  assignTime: string
-  deliveryTime: string
-  ridersCount: number
-  popular: string
-}
-
-const COMMUNES: Record<string, CommuneInfo> = {
-  Marcory: { name: 'Marcory', assignTime: '⚡ 2 min', deliveryTime: '15 min', ridersCount: 42, popular: 'Zone 4, Anoumabo, Résidentiel' },
-  Cocody: { name: 'Cocody', assignTime: '⚡ 3 min', deliveryTime: '18 min', ridersCount: 56, popular: 'Angré, Riviera, Deux-Plateaux' },
-  Yopougon: { name: 'Yopougon', assignTime: '⚡ 4 min', deliveryTime: '20 min', ridersCount: 65, popular: 'Siporex, Maroc, Bel Air' },
-  Plateau: { name: 'Plateau', assignTime: '⚡ 2 min', deliveryTime: '12 min', ridersCount: 34, popular: 'Centre d’affaires, Cité administrative' },
-  Adjamé: { name: 'Adjamé', assignTime: '⚡ 3 min', deliveryTime: '15 min', ridersCount: 48, popular: 'Grand Marché, Forum, Renault' },
-  Treichville: { name: 'Treichville', assignTime: '⚡ 2 min', deliveryTime: '14 min', ridersCount: 30, popular: 'Avenue 8, Rue 12, Belleville' },
-  Koumassi: { name: 'Koumassi', assignTime: '⚡ 3 min', deliveryTime: '16 min', ridersCount: 38, popular: 'Remblais, Campement, Prodomo' },
-  Abobo: { name: 'Abobo', assignTime: '⚡ 4 min', deliveryTime: '22 min', ridersCount: 35, popular: 'Samaké, Gare, Avocatier' },
-  'Port-Bouët': { name: 'Port-Bouët', assignTime: '⚡ 4 min', deliveryTime: '18 min', ridersCount: 26, popular: 'Vridi, Aéroport, Derrière Wharf' },
-  Bingerville: { name: 'Bingerville', assignTime: '⚡ 5 min', deliveryTime: '25 min', ridersCount: 20, popular: 'Félicité, Blanchon, Nouveau Goudron' },
-}
+const COMMUNES = [
+  'Marcory', 'Cocody', 'Yopougon', 'Plateau', 'Adjamé', 'Treichville',
+  'Koumassi', 'Abobo', 'Port-Bouët', 'Bingerville',
+]
 
 const FAQ_ITEMS = [
   {
     q: 'Comment fonctionne WAZAP et que paie le commerçant ?',
-    a: 'WAZAP est le « Yango de la marchandise » : nous mettons en relation instantanée votre commerce avec un livreur géographiquement proche et disponible, sans passer un seul coup de fil. Vous achetez des packs de crédits (1 crédit = 1 course confiée), débités uniquement lorsque le livreur accepte votre commande. Les frais habituels de livraison (1 000 à 2 000 FCFA) restent payés directement au livreur par vous ou votre client.',
+    a: 'WAZAP vous met en relation avec un livreur disponible près de votre commerce. Vous achetez des crédits : un crédit correspond à une course confiée et n’est utilisé que lorsqu’un livreur accepte la commande. Les frais de livraison habituels sont réglés directement au livreur par vous ou votre client.',
   },
   {
     q: 'Mes clients doivent-ils installer une application ?',
-    a: 'Absolument aucune ! C’est la force de WAZAP : vos clients continuent de commander naturellement par message WhatsApp comme ils le font déjà. Ils reçoivent automatiquement un lien de suivi en direct et la confirmation Colis Sûr par scan 1-tap pour la réception du colis.',
+    a: 'Non. Vos clients continuent de commander naturellement par WhatsApp. Ils reçoivent un lien de suivi et la confirmation de réception de leur colis.',
   },
   {
-    q: 'Comment fonctionne l’Assurance Colis Sûr ?',
-    a: 'Chaque livreur WAZAP est certifié avec CNI vérifiée. La validation de la livraison et l’activation de l’Assurance Colis Sûr se font par le scan du QR Code Universel du livreur. En cas d’avarie ou de perte confirmée, vous déclarez le sinistre directement par WhatsApp (« SINISTRE + code ») : vous êtes indemnisé par Mobile Money sous 48h jusqu’à 50 000 FCFA.',
+    q: 'Que comprend Colis Sûr ?',
+    a: 'Chaque livreur du réseau est identifié. La réception peut être validée par le QR Code Universel WAZAP. En cas d’incident, vous pouvez le signaler directement sur WhatsApp pour ouvrir une prise en charge.',
   },
   {
     q: 'Qu’est-ce qui est offert au démarrage ?',
-    a: 'Pour vous permettre de tester sans aucun risque, les frais de service WAZAP sont offerts sur vos 15 premières livraisons (crédits gratuits offerts à l’activation). Aucun abonnement, aucun frais caché, aucun engagement.',
-  },
-  {
-    q: 'Comment sont encaissés les paiements des clients ?',
-    a: 'Règlement à la livraison exclusivement par Scan du QR Code Universel WAZAP (compatible Wave, Orange Money, MTN, Moov, Carte bancaire). Aucun argent liquide accepté sur la marchandise, ce qui garantit 0 risque de vol ou de fuite.',
+    a: 'Les frais de service WAZAP sont offerts sur vos 15 premières livraisons. Il n’y a ni abonnement, ni engagement au démarrage.',
   },
 ]
 
-const COMPARISON_BAD = [
-  'Appels à répétition pour chercher un coursier disponible',
-  'Clients impatients qui annulent après 45 minutes d’attente',
-  'Colis perdus ou abîmés sans recours ni indemnisation',
-  'Livreurs injoignables sous la pluie ou dans les embouteillages',
-  'Commissions élevées prélevées sur vos marges commerciales',
-]
-
-const COMPARISON_GOOD = [
-  'Assignation automatique en moins de 3 minutes sur WhatsApp',
-  'Lien de suivi GPS en direct envoyé automatiquement au client',
-  'Assurance Colis Sûr avec Scan QR Code Universel et indemnisation sous 48h',
-  'Flotte active de livreurs certifiés avec CNI vérifiée sur 10 communes',
-  '0% de commission sur vos articles et 15 courses offertes au départ',
-]
-
-const TESTIMONIALS = [
-  {
-    name: 'Aïcha B.',
-    role: 'Boutique Chic & Glam à Cocody Angré',
-    avatar: 'avatars/aicha.jpg',
-    stars: '★★★★★',
-    quote: 'Avant WAZAP, je perdais 4 à 5 ventes par jour parce que mes livreurs habituels ne décrochaient pas. Maintenant, je confirme sur WhatsApp, en 3 minutes le coursier est devant mon magasin.',
-    tag: '⚡ +120 000 F / semaine sauvés',
-  },
-  {
-    name: 'Amara T.',
-    role: 'Chez Amara Grill à Marcory Zone 4',
-    avatar: 'avatars/amara.jpg',
-    stars: '★★★★★',
-    quote: 'Mes braisés partent encore tout chauds ! Le client reçoit son lien GPS et valide la réception en 1 tap avec le QR Colis Sûr. Fini les litiges ou les contestations à l’arrivée.',
-    tag: '🛡️ Sécurité Colis Sûr 1-Tap',
-  },
-  {
-    name: 'Fatou D.',
-    role: 'Douceurs de Fatou à Yopougon Maroc',
-    avatar: 'avatars/fatou.jpg',
-    stars: '★★★★★',
-    quote: 'Les 15 courses offertes m’ont convaincue tout de suite. Zéro engagement, pas d’application compliquée. Tout se passe dans WhatsApp, c’est magique pour mon commerce.',
-    tag: '🎁 15 courses sans risque',
-  },
-  {
-    name: 'Koffi E.',
-    role: 'Livreur Partenaire à Koumassi & Marcory',
-    avatar: 'avatars/koffi.jpg',
-    stars: '★★★★★',
-    quote: 'Je ne tourne plus à vide dans Abidjan. Les alertes tombent sur mon WhatsApp avec l’adresse exacte. Et 100% des frais de course (1 000 à 2 000 F) me reviennent directement.',
-    tag: '🛵 100% des frais au livreur',
-  },
+const PACKS = [
+  { name: 'Mini', deliveries: '6 courses', price: '1 000 F' },
+  { name: 'Petit', deliveries: '35 courses', price: '5 000 F' },
+  { name: 'Moyen', deliveries: '80 courses', price: '10 000 F' },
+  { name: 'Grand', deliveries: '220 courses', price: '25 000 F' },
 ]
 
 export default function VentePage() {
   const { user } = useAuth()
   const location = useLocation()
   const query = useMemo(() => new URLSearchParams(location.search), [location.search])
-  const src = query.get('src') || 'page-vente'
+  const source = query.get('src') || 'page-vente'
 
   const [whatsapp, setWhatsapp] = useState('')
-  const [audience, setAudience] = useState<'vendor' | 'rider'>('vendor')
-  const [selectedCommune, setSelectedCommune] = useState<string>('Marcory')
-  const [dailyDeliveries, setDailyDeliveries] = useState<number>(15)
-
-  // Champs de formulaire
   const [business, setBusiness] = useState('')
   const [contact, setContact] = useState('')
   const [phone, setPhone] = useState('')
-  const [zone, setZone] = useState<string>(() => query.get('zone') ?? 'Marcory')
+  const [zone, setZone] = useState(() => query.get('zone') ?? 'Marcory')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
 
-  // Parallaxe & Motion
-  const [scrollProgress, setScrollProgress] = useState(0)
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [tilt, setTilt] = useState({ x: 0, y: 0 })
-  const heroVisualRef = useRef<HTMLDivElement>(null)
-
   useEffect(() => {
     api.get<{ whatsappNumber: string }>('/public/sales/config')
-      .then((c) => setWhatsapp(c.whatsappNumber))
+      .then((config) => setWhatsapp(config.whatsappNumber))
       .catch(() => setWhatsapp(''))
   }, [])
 
-  // Écouteur de scroll pour la barre de progression et le statut topbar
-  useEffect(() => {
-    const handleScroll = () => {
-      const totalScroll = document.documentElement.scrollHeight - window.innerHeight
-      const currentProgress = totalScroll > 0 ? (window.scrollY / totalScroll) * 100 : 0
-      setScrollProgress(currentProgress)
-      setIsScrolled(window.scrollY > 20)
-    }
-
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  // Parallaxe 3D Tilt interactif sur le smartphone au survol
-  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
-    if (!heroVisualRef.current) return
-    const rect = heroVisualRef.current.getBoundingClientRect()
-    const x = e.clientX - rect.left - rect.width / 2
-    const y = e.clientY - rect.top - rect.height / 2
-    // Limiter la rotation entre -8 et +8 degrés
-    const rotateY = Math.max(-8, Math.min(8, (x / (rect.width / 2)) * 8))
-    const rotateX = Math.max(-8, Math.min(8, -(y / (rect.height / 2)) * 8))
-    setTilt({ x: rotateX, y: rotateY })
-  }
-
-  const handleMouseLeave = () => {
-    setTilt({ x: 0, y: 0 })
-  }
-
   const waLink = (text: string) => {
-    // Si l'API ne renvoie rien, utiliser le numéro officiel WAZAP canonique : +225 05 44 05 19 72
     const rawNumber = whatsapp || '+2250544051972'
-    const n = rawNumber.replace(/[^\d]/g, '').replace(/^0+/, '')
-    return `https://wa.me/${n}?text=${encodeURIComponent(text)}`
+    const number = rawNumber.replace(/[^\d]/g, '').replace(/^0+/, '')
+    return `https://wa.me/${number}?text=${encodeURIComponent(text)}`
   }
-
-  // Calculs du simulateur de rentabilité
-  const monthlyOrders = dailyDeliveries * 26
-  const savedOrders = Math.round(monthlyOrders * 0.22) // 22% de commandes traditionnellement perdues faute de livreur
-  const hoursSavedPerMonth = Math.round((dailyDeliveries * 7 * 26) / 60)
-
-  const recommendedPack = useMemo(() => {
-    if (monthlyOrders <= 150) return { name: 'Pack Petit', credits: '35 courses', price: '5 000 FCFA', unit: '143 FCFA / course' }
-    if (monthlyOrders <= 350) return { name: 'Pack Moyen', credits: '80 courses', price: '10 000 FCFA', unit: '125 FCFA / course' }
-    if (monthlyOrders <= 700) return { name: 'Pack Grand', credits: '220 courses', price: '25 000 FCFA', unit: '114 FCFA / course' }
-    return { name: 'Pack Pro', credits: '1 000 courses', price: '100 000 FCFA', unit: '100 FCFA / course' }
-  }, [monthlyOrders])
 
   const submit = async () => {
     setError(null)
     if (!business.trim()) {
-      setError(audience === 'vendor' ? 'Indiquez le nom de votre commerce.' : 'Indiquez votre prénom et nom.')
-      return
-    }
-    if (!zone.trim()) {
-      setError('Choisissez votre commune principale.')
+      setError('Indiquez le nom de votre commerce.')
       return
     }
     if (!phone.trim() || phone.replace(/\D/g, '').length < 8) {
@@ -201,859 +80,195 @@ export default function VentePage() {
         businessName: business.trim(),
         contactName: contact.trim() || null,
         whatsappNumber: phone.trim(),
-        zone: zone.trim(),
-        source: audience === 'vendor' ? src : `${src}-livreur`,
+        zone,
+        source,
       })
       setDone(true)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Une erreur est survenue lors de l’envoi. Veuillez réessayer.')
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Une erreur est survenue lors de l’envoi. Veuillez réessayer.')
     } finally {
       setBusy(false)
     }
   }
 
-  const activeCommuneData = COMMUNES[selectedCommune] || COMMUNES['Marcory']
   const baseAssetUrl = import.meta.env.BASE_URL || '/app/'
 
   return (
     <div className="landing-wrap">
-      {/* Barre de progression fluide de lecture */}
-      <div className="landing-scroll-progress" style={{ width: `${scrollProgress}%` }} />
+      <div className="landing-notice">15 livraisons offertes à l’activation · Sans abonnement · Abidjan</div>
 
-      {/* Orbes décoratives en arrière-plan (Parallaxe fluide) */}
-      <div className="parallax-layer" aria-hidden="true">
-        <div
-          className="parallax-orb parallax-orb--1"
-          style={{ transform: `translate3d(0, ${scrollProgress * 0.4}px, 0)` }}
-        />
-        <div
-          className="parallax-orb parallax-orb--2"
-          style={{ transform: `translate3d(0, ${-scrollProgress * 0.3}px, 0)` }}
-        />
-        <div
-          className="parallax-orb parallax-orb--3"
-          style={{ transform: `translate3d(0, ${scrollProgress * 0.25}px, 0)` }}
-        />
-      </div>
-
-      {/* Topbar sticky avec verre dépoli lumineux */}
-      <header className={`landing-topbar ${isScrolled ? 'is-scrolled' : ''}`}>
+      <header className="landing-topbar">
         <div className="landing-container landing-topbar__inner">
-          <Link to="/" style={{ textDecoration: 'none' }}>
+          <Link to="/" className="landing-brand-link" aria-label="Accueil WAZAP">
             <BrandLogo size="md" variant="inline" showTagline={false} theme="light" />
           </Link>
 
+          <nav className="landing-nav" aria-label="Navigation principale">
+            <a href="#fonctionnement">Comment ça marche</a>
+            <a href="#offre">L’offre</a>
+            <a href="#securite">Colis Sûr</a>
+          </nav>
+
           <div className="landing-topbar__actions">
-            <Link
-              to="/livreurs"
-              className="landing-btn landing-btn--rider"
-            >
-              🛵 Espace Livreurs (1 000 F net)
-            </Link>
+            <Link to="/livreurs" className="landing-link-rider">Je suis livreur</Link>
             {user ? (
-              <Link
-                to="/"
-                className="landing-btn landing-btn--ghost"
-                style={{ padding: '8px 16px', fontSize: 13 }}
-              >
-                📊 Mon Espace
-              </Link>
+              <Link to="/" className="landing-link-account">Mon espace</Link>
             ) : (
-              <Link
-                to="/login"
-                className="landing-btn landing-btn--ghost"
-                style={{ padding: '8px 16px', fontSize: 13 }}
-              >
-                🔒 Espace Marchand
-              </Link>
+              <Link to="/login" className="landing-link-account">Se connecter</Link>
             )}
-            <a
-              href={waLink('Bonjour WAZAP 👋 Je souhaite avoir des informations sur la livraison de mon commerce.')}
-              target="_blank"
-              rel="noreferrer"
-              className="landing-btn landing-btn--ghost"
-              style={{ padding: '8px 16px', fontSize: 13 }}
-            >
-              💬 WhatsApp Direct
-            </a>
-            <a href="#inscription" className="landing-btn landing-btn--primary" style={{ padding: '8px 18px', fontSize: 13 }}>
-              🎁 Essai 15 Courses
-            </a>
+            <a href="#inscription" className="landing-btn landing-btn--primary">Essayer WAZAP</a>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="landing-container landing-hero">
-        <div>
-          {/* Bannière d'orientation Livreurs */}
-          <div className="landing-hero__banner-rider">
-            <div style={{ fontSize: 13.5, color: '#334155' }}>
-              🛵 <strong style={{ color: '#b45309' }}>Vous êtes livreur à moto ?</strong> Rejoignez le réseau à 1 000 FCFA net garanti par course (0% commission).
+      <main>
+        <section className="landing-container landing-hero" aria-labelledby="landing-title">
+          <div className="landing-hero__copy">
+            <p className="landing-eyebrow"><span aria-hidden="true" /> La livraison pensée pour Abidjan</p>
+            <h1 id="landing-title" className="landing-hero__title">
+              Votre commerce livre <em>sans appels, sans stress.</em>
+            </h1>
+            <p className="landing-hero__sub">
+              Vos commandes restent sur WhatsApp. WAZAP trouve un livreur disponible, suit le colis et informe votre client — simplement.
+            </p>
+            <div className="landing-hero__cta">
+              <a href="#inscription" className="landing-btn landing-btn--primary">Activer mes 15 courses offertes <span aria-hidden="true">→</span></a>
+              <a href="#fonctionnement" className="landing-btn landing-btn--text">Voir comment ça marche</a>
             </div>
-            <Link
-              to="/livreurs"
-              style={{
-                color: '#00A86B',
-                fontWeight: 800,
-                fontSize: 13,
-                textDecoration: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 4,
-              }}
-            >
-              Accéder à l'Espace Livreurs →
-            </Link>
+            <p className="landing-hero__note">Aucun engagement · vous payez uniquement à l’usage</p>
+            <ul className="landing-hero__trust" aria-label="Garanties WAZAP">
+              <li>100% WhatsApp</li>
+              <li>Suivi en direct</li>
+              <li>Livreurs identifiés</li>
+            </ul>
           </div>
 
-          <div className="landing-pill">
-            <span className="landing-pill__dot" />
-            <span>LE YANGO DE LA MARCHANDISE À ABIDJAN</span>
-          </div>
-
-          <h1 className="landing-hero__title">
-            Vendez plus. <br />
-            Livrez sans effort, <br />
-            <span className="landing-hero__title-highlight">100% sur WhatsApp.</span>
-          </h1>
-
-          <p className="landing-hero__sub">
-            Ne perdez plus jamais une vente faute de coursier. Vos clients commandent par message,
-            un livreur proche est trouvé <strong>en moins de 3 minutes</strong> avec suivi en direct et garantie Colis Sûr.
-          </p>
-
-          <div className="landing-hero__cta">
-            <a href="#inscription" className="landing-btn landing-btn--primary">
-              ⚡ Activer mon commerce (15 courses offertes)
-            </a>
-            <a
-              href={waLink('Bonjour WAZAP 👋 Je veux tester la livraison pour mon commerce.')}
-              target="_blank"
-              rel="noreferrer"
-              className="landing-btn landing-btn--ghost"
-            >
-              💬 Discuter en direct
-            </a>
-            <a
-              href="/demo-video.html"
-              target="_blank"
-              rel="noreferrer"
-              className="landing-btn landing-btn--ghost"
-              style={{ padding: '12px 18px', fontSize: 13 }}
-            >
-              ▶️ Démo vidéo (58s)
-            </a>
-          </div>
-
-          <div className="landing-hero__perks">
-            <div className="landing-perk">
-              <span className="landing-perk__icon">🎁</span>
-              <span>15 livraisons offertes</span>
-            </div>
-            <div className="landing-perk">
-              <span className="landing-perk__icon">⚡</span>
-              <span>0 application à installer</span>
-            </div>
-            <div className="landing-perk">
-              <span className="landing-perk__icon">🛡️</span>
-              <span>Livreurs certifiés Colis Sûr</span>
-            </div>
-            <div className="landing-perk">
-              <span className="landing-perk__icon">💳</span>
-              <span>Crédits dès 1 000 F à l’usage</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Hero Visual : Mockup Smartphone Interactif avec Effet Parallaxe 3D Tilt */}
-        <div
-          className="hero-visual-wrap"
-          ref={heroVisualRef}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
-        >
-          {/* Badges Flottants Parallaxe */}
-          <div className="floating-badge floating-badge--top-right">
-            <span style={{ fontSize: 18 }}>⚡</span>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 800, color: '#00A86B' }}>Assignation éclair</div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>Livreur trouvé en 2 min 40s</div>
-            </div>
-          </div>
-
-          <div className="floating-badge floating-badge--bottom-left">
-            <span style={{ fontSize: 18 }}>🛡️</span>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 800, color: '#0284c7' }}>Colis Sûr Vérifié</div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>Scan QR • 0 Cash Marchandise</div>
-            </div>
-          </div>
-
-          <div
-            className="mockup-phone-container"
-            style={{
-              transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-            }}
-          >
-            <div className="mockup-phone">
-              <div className="mockup-phone__notch" />
-              <div className="mockup-wa-header">
-                <div className="mockup-wa-avatar" style={{ padding: 1, background: '#fff', overflow: 'hidden', borderRadius: '50%' }}>
-                  <img
-                    src={`${baseAssetUrl}logo-officiel-2026.jpg`}
-                    alt="WAZAP"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
-                  />
-                </div>
-                <div>
-                  <div style={{ fontWeight: 800, fontSize: 13, color: '#fff' }}>WAZAP Livraison</div>
-                  <div style={{ fontSize: 10, color: '#a7f3d0' }}>🟢 En ligne à Abidjan</div>
-                </div>
-              </div>
-
-              <div className="mockup-wa-body">
-                {/* Message client */}
-                <div className="mockup-msg mockup-msg--in">
-                  Bonjour 👋 Je veux commander <strong>2 Attiéké Poisson braisé</strong> à livrer à <strong>Marcory Zone 4</strong> (Rue du 7 Décembre).
-                  <div className="mockup-msg__time">12:34</div>
-                </div>
-
-                {/* Réponse WAZAP */}
-                <div className="mockup-msg mockup-msg--out">
-                  Commande confirmée ! ⚡ WAZAP a assigné un livreur disponible à proximité :
-                  <div className="mockup-card">
-                    <div style={{ fontWeight: 700, color: '#047857' }}>🛵 Ibrahim K. (Yamaha YBR)</div>
-                    <div style={{ fontSize: 11, color: '#475569' }}>📍 1,2 km de votre boutique • Arrivée estimée : 14 min</div>
-                    <div style={{ marginTop: 4, color: '#b45309', fontSize: 11, fontWeight: 700 }}>
-                      🛡️ Scan QR Code Universel • 0 Cash Marchandise
-                    </div>
-                  </div>
-                  <div className="mockup-msg__time">12:35 • Reçu ✓✓</div>
-                </div>
-
-                {/* Notification client statut */}
-                <div className="mockup-msg mockup-msg--in">
-                  👌 Super, je suis le livreur en direct sur la carte ! Merci pour la rapidité.
-                  <div className="mockup-msg__time">12:36</div>
-                </div>
-
-                {/* Statut final */}
-                <div style={{ textAlign: 'center', margin: '4px 0' }}>
-                  <span style={{ background: '#ecfdf5', color: '#065f46', fontSize: 11, padding: '4px 12px', borderRadius: 999, fontWeight: 700, border: '1px solid #a7f3d0' }}>
-                    ✓ Course livrée avec succès en 18 minutes
-                  </span>
-                </div>
+          <div className="landing-hero__visual">
+            <div className="landing-portrait-glow" aria-hidden="true" />
+            <figure className="landing-portrait">
+              <img src={`${baseAssetUrl}images/wazap-hero-merchant.png`} alt="Commerçante souriante utilisant WAZAP" />
+            </figure>
+            <div className="landing-delivery-note">
+              <span className="landing-delivery-note__check" aria-hidden="true">✓</span>
+              <div>
+                <strong>Une vente, une livraison</strong>
+                <span>Votre client est informé à chaque étape.</span>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Metrics Ribbon (Stats Bar Lumineuse) */}
-      <div className="landing-container">
-        <section className="landing-ribbon">
-          <div className="landing-ribbon__item">
-            <span className="landing-ribbon__val">
-              <span>&lt; 3</span> <span style={{ color: '#00A86B', fontSize: 24 }}>min</span>
-            </span>
-            <span className="landing-ribbon__lbl">Temps moyen d’assignation livreur</span>
-          </div>
-
-          <div className="landing-ribbon__item">
-            <span className="landing-ribbon__val">
-              <span>10</span> <span style={{ color: '#00A86B', fontSize: 24 }}>communes</span>
-            </span>
-            <span className="landing-ribbon__lbl">Couverture complète du Grand Abidjan</span>
-          </div>
-
-          <div className="landing-ribbon__item">
-            <span className="landing-ribbon__val">
-              <span>100%</span>
-            </span>
-            <span className="landing-ribbon__lbl">Livreurs avec CNI certifiée Colis Sûr</span>
-          </div>
-
-          <div className="landing-ribbon__item">
-            <span className="landing-ribbon__val">
-              <span>4.9</span> <span style={{ color: '#f59e0b', fontSize: 24 }}>★</span>
-            </span>
-            <span className="landing-ribbon__lbl">Score de satisfaction commerçants</span>
           </div>
         </section>
-      </div>
 
-      {/* Comparatif Avant / Après */}
-      <section className="landing-container">
-        <div className="section-head">
-          <span className="landing-pill">POURQUOI CHOISIR WAZAP</span>
-          <h2 className="section-head__title">Fini le casse-tête des livraisons à Abidjan</h2>
-          <p className="section-head__sub">
-            Comparez la méthode artisanale avec la rapidité et la sérénité de l’automatisation WAZAP.
-          </p>
-        </div>
+        <section className="landing-container landing-proof" aria-label="Les bénéfices WAZAP">
+          <article>
+            <span className="landing-proof__icon" aria-hidden="true">↗</span>
+            <div><h2>Un livreur en quelques minutes</h2><p>Un réseau local pour prendre le relais au bon moment.</p></div>
+          </article>
+          <article>
+            <span className="landing-proof__icon" aria-hidden="true">✓</span>
+            <div><h2>Des colis mieux protégés</h2><p>Suivi, validation de réception et livreurs identifiés.</p></div>
+          </article>
+          <article>
+            <span className="landing-proof__icon" aria-hidden="true">○</span>
+            <div><h2>Des coûts faciles à comprendre</h2><p>Des crédits à l’usage, sans commission sur vos ventes.</p></div>
+          </article>
+        </section>
 
-        <div className="comparison-grid">
-          <div className="comparison-card comparison-card--bad">
-            <div className="comparison-header">
-              <span className="comparison-header__icon">❌</span>
-              <h3 className="comparison-header__title" style={{ color: '#b91c1c' }}>
-                Sans WAZAP (Méthode classique)
-              </h3>
-            </div>
-            <ul className="comparison-list">
-              {COMPARISON_BAD.map((item, idx) => (
-                <li key={idx} className="comparison-item comparison-item--bad">
-                  <span className="comparison-item__icon">✕</span>
-                  <span>{item}</span>
-                </li>
+        <section id="fonctionnement" className="landing-section landing-container">
+          <div className="landing-section__head">
+            <p className="landing-eyebrow"><span aria-hidden="true" /> Simple avant tout</p>
+            <h2>Trois étapes. Votre vente continue d’avancer.</h2>
+            <p>WAZAP s’intègre dans la façon dont vos clients commandent déjà.</p>
+          </div>
+          <div className="landing-steps">
+            <article><span>01</span><h3>Vous confirmez la commande</h3><p>Envoyez l’adresse et les détails de livraison directement par WhatsApp.</p></article>
+            <article><span>02</span><h3>WAZAP trouve le livreur</h3><p>Un coursier disponible près de vous peut prendre la course.</p></article>
+            <article><span>03</span><h3>Votre client suit la livraison</h3><p>Il reçoit les informations nécessaires jusqu’à la réception du colis.</p></article>
+          </div>
+        </section>
+
+        <section id="offre" className="landing-container landing-offer">
+          <div className="landing-offer__intro">
+            <p>Pour essayer sans risque</p>
+            <h2>15 livraisons offertes.</h2>
+            <span>Testez WAZAP avec vos vraies commandes, puis choisissez les crédits adaptés à votre rythme.</span>
+            <div>✓ Sans abonnement &nbsp; · &nbsp; ✓ Sans frais cachés</div>
+            <a href="#inscription" className="landing-btn landing-btn--light">Activer mon offre découverte <span aria-hidden="true">→</span></a>
+          </div>
+          <div className="landing-offer__packs" aria-label="Aperçu des packs de crédits">
+            <p>Ensuite, choisissez votre rythme</p>
+            <div className="landing-packs">
+              {PACKS.map((pack) => (
+                <article key={pack.name}>
+                  <h3>Pack {pack.name}</h3><span>{pack.deliveries}</span><strong>{pack.price}</strong>
+                </article>
               ))}
-            </ul>
+            </div>
+            <a href="#inscription" className="landing-offer__details">Nous vous aidons à choisir votre pack →</a>
           </div>
+        </section>
 
-          <div className="comparison-card comparison-card--good">
-            <div className="comparison-header">
-              <span className="comparison-header__icon">⚡</span>
-              <h3 className="comparison-header__title" style={{ color: '#047857' }}>
-                Avec WAZAP (100% WhatsApp)
-              </h3>
-            </div>
-            <ul className="comparison-list">
-              {COMPARISON_GOOD.map((item, idx) => (
-                <li key={idx} className="comparison-item comparison-item--good">
-                  <span className="comparison-item__icon">✓</span>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
+        <section id="securite" className="landing-container landing-safety">
+          <div className="landing-safety__copy">
+            <p className="landing-eyebrow"><span aria-hidden="true" /> Colis Sûr</p>
+            <h2>La confiance reste au cœur de chaque course.</h2>
+            <p>De l’identification du livreur à la réception, WAZAP vous aide à rendre la livraison plus lisible pour vous comme pour votre client.</p>
           </div>
-        </div>
-      </section>
-
-      {/* Audience Toggle : Commerçants vs Livreurs */}
-      <section className="landing-container">
-        <div className="audience-tabs" role="tablist">
-          <button
-            type="button"
-            className={`audience-tab ${audience === 'vendor' ? 'active' : ''}`}
-            onClick={() => setAudience('vendor')}
-            role="tab"
-            aria-selected={audience === 'vendor'}
-          >
-            🏪 Vous êtes Commerçant / Vendeur
-          </button>
-          <button
-            type="button"
-            className={`audience-tab ${audience === 'rider' ? 'active' : ''}`}
-            onClick={() => setAudience('rider')}
-            role="tab"
-            aria-selected={audience === 'rider'}
-          >
-            🛵 Vous êtes Livreur Indépendant
-          </button>
-        </div>
-
-        {audience === 'vendor' ? (
-          <div>
-            <div className="section-head">
-              <span className="landing-pill">POUR LES COMMERÇANTS ET RESTAURATEURS</span>
-              <h2 className="section-head__title">Trois étapes simples. Zéro prise de tête.</h2>
-              <p className="section-head__sub">
-                Vous préparez vos colis, WAZAP s’occupe de trouver le coursier le plus proche et de rassurer votre client.
-              </p>
-            </div>
-
-            <div className="steps-grid">
-              <article className="step-card">
-                <div className="step-card__num">01</div>
-                <div className="step-card__icon">💬</div>
-                <h3 className="step-card__title">Votre client commande</h3>
-                <p className="step-card__desc">
-                  Par message WhatsApp ordinaire (« 2 paires de chaussures à Cocody »). Aucune nouvelle habitude à faire adopter à votre clientèle.
-                </p>
-              </article>
-
-              <article className="step-card">
-                <div className="step-card__num">02</div>
-                <div className="step-card__icon">⚡</div>
-                <h3 className="step-card__title">Assignation automatique</h3>
-                <p className="step-card__desc">
-                  En un message ou un clic, l’algorithme WAZAP alerte les livreurs certifiés situés dans votre rayon de proximité immédiat.
-                </p>
-              </article>
-
-              <article className="step-card">
-                <div className="step-card__num">03</div>
-                <div className="step-card__icon">🛡️</div>
-                <h3 className="step-card__title">Suivi &amp; Remise sécurisée</h3>
-                <p className="step-card__desc">
-                  Votre client suit le trajet en direct sur son smartphone. La course est validée par le scan du QR Code Universel Colis Sûr.
-                </p>
-              </article>
-            </div>
+          <div className="landing-safety__list">
+            <article><b>01</b><div><h3>Livreurs identifiés</h3><p>Chaque livreur du réseau est vérifié avant son activation.</p></div></article>
+            <article><b>02</b><div><h3>Réception confirmée</h3><p>Le QR Code Universel WAZAP peut confirmer la remise du colis.</p></div></article>
+            <article><b>03</b><div><h3>Signalement facilité</h3><p>Un incident peut être signalé directement sur WhatsApp.</p></div></article>
           </div>
-        ) : (
-          <div>
-            <div className="section-head">
-              <span className="landing-pill">POUR LES LIVREURS INDÉPENDANTS</span>
-              <h2 className="section-head__title">Prenez des courses à votre rythme, 0% de commission</h2>
-              <p className="section-head__sub">
-                Rejoignez la première communauté de livreurs respectés d’Abidjan avec des tarifs transparents et sans intermédiaire gourmand.
-              </p>
-            </div>
+        </section>
 
-            <div className="steps-grid">
-              <article className="step-card">
-                <div className="step-card__num">01</div>
-                <div className="step-card__icon">💰</div>
-                <h3 className="step-card__title">100% des frais de course pour vous</h3>
-                <p className="step-card__desc">
-                  1 000 FCFA net minimum par course intra-commune, 1 500 à 2 000 FCFA pour les trajets inter-communes. Zéro commission prélevée sur vos gains.
-                </p>
-              </article>
-
-              <article className="step-card">
-                <div className="step-card__num">02</div>
-                <div className="step-card__icon">📍</div>
-                <h3 className="step-card__title">Alertes de proximité géolocalisées</h3>
-                <p className="step-card__desc">
-                  Recevez directement sur WhatsApp les propositions de courses proches de votre position avec les adresses précises de départ et d’arrivée.
-                </p>
-              </article>
-
-              <article className="step-card">
-                <div className="step-card__num">03</div>
-                <div className="step-card__icon">🛵</div>
-                <h3 className="step-card__title">Liberté totale sans patron</h3>
-                <p className="step-card__desc">
-                  Envoyez simplement DISPO pour vous connecter quand vous voulez, et INDISPO pour vous reposer. Vous restez maître absolu de votre planning.
-                </p>
-              </article>
-            </div>
-
-            <div style={{ textAlign: 'center', marginBottom: 54 }}>
-              <Link to="/livreurs" className="landing-btn landing-btn--primary" style={{ padding: '14px 28px', fontSize: 16 }}>
-                🛵 Découvrir la grille tarifaire complète &amp; Postuler
-              </Link>
-            </div>
+        <section id="inscription" className="landing-container landing-activation">
+          <div className="landing-activation__head">
+            <p className="landing-eyebrow"><span aria-hidden="true" /> Activation immédiate</p>
+            <h2>Activez vos 15 livraisons offertes.</h2>
+            <p>Quelques informations suffisent pour démarrer. Sans carte bancaire, sans engagement.</p>
           </div>
-        )}
-      </section>
-
-      {/* Témoignages Commerçants avec Avatars Réels */}
-      <section className="landing-container">
-        <div className="section-head">
-          <span className="landing-pill">ILS LIVRENT DÉJÀ AVEC WAZAP</span>
-          <h2 className="section-head__title">Adopté par les commerçants d’Abidjan</h2>
-          <p className="section-head__sub">
-            Découvrez comment ils ont sécurisé leurs livraisons, éliminé le stress et fidélisé leur clientèle.
-          </p>
-        </div>
-
-        <div className="testimonials-grid">
-          {TESTIMONIALS.map((t, idx) => (
-            <div key={idx} className="testimonial-card">
-              <div>
-                <div className="testimonial-header">
-                  <img src={`${baseAssetUrl}${t.avatar}`} alt={t.name} className="testimonial-avatar" />
-                  <div>
-                    <h4 className="testimonial-info__name">{t.name}</h4>
-                    <p className="testimonial-info__role">{t.role}</p>
-                  </div>
+          <div className="landing-form-card">
+            {done ? (
+              <div className="landing-success" role="status">
+                <span aria-hidden="true">✓</span>
+                <h3>Félicitations {contact || business} !</h3>
+                <p>Votre demande est enregistrée. Un responsable WAZAP vous contacte sur WhatsApp pour activer vos 15 premières courses offertes.</p>
+                <a href={waLink(`Bonjour WAZAP 👋 Je viens de m’inscrire pour ${business}. Je souhaite activer mes 15 courses offertes.`)} target="_blank" rel="noreferrer" className="landing-btn landing-btn--primary">Ouvrir la conversation WhatsApp</a>
+              </div>
+            ) : (
+              <form onSubmit={(event) => { event.preventDefault(); void submit() }} noValidate>
+                {error && <div className="landing-form-error" role="alert">{error}</div>}
+                <div className="landing-form-grid">
+                  <label>Nom de votre commerce ou boutique *<input value={business} onChange={(event) => setBusiness(event.target.value)} placeholder="Ex : Restaurant Chez Awa" /></label>
+                  <label>Commune principale *<select value={zone} onChange={(event) => setZone(event.target.value)}>{COMMUNES.map((commune) => <option key={commune}>{commune}</option>)}</select></label>
+                  <label>Numéro WhatsApp joignable *<input value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="Ex : +225 07 01 02 03 04" inputMode="tel" /></label>
+                  <label>Nom du responsable <small>facultatif</small><input value={contact} onChange={(event) => setContact(event.target.value)} placeholder="Ex : Mme Awa Koné" /></label>
                 </div>
-                <div className="testimonial-stars">{t.stars}</div>
-                <p className="testimonial-quote">« {t.quote} »</p>
-              </div>
-              <div className="testimonial-tag">{t.tag}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Simulator Section */}
-      <section className="landing-container">
-        <div className="section-head">
-          <span className="landing-pill">SIMULATEUR DE RENTABILITÉ EN FCFA</span>
-          <h2 className="section-head__title">Combien vous rapporte un service de livraison fluide ?</h2>
-          <p className="section-head__sub">
-            Ajustez votre volume de livraisons estimé pour découvrir le pack idéal et le temps économisé.
-          </p>
-        </div>
-
-        <div className="simulator-box">
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <span style={{ fontSize: 14.5, color: 'var(--wz-l-text-muted)', fontWeight: 600 }}>Volume quotidien de commandes :</span>
-              <span style={{ fontSize: 32, fontWeight: 900, color: '#00A86B' }}>
-                {dailyDeliveries} <span style={{ fontSize: 16 }}>courses/jour</span>
-              </span>
-            </div>
-
-            <input
-              type="range"
-              min={2}
-              max={80}
-              step={1}
-              value={dailyDeliveries}
-              onChange={(e) => setDailyDeliveries(Number(e.target.value))}
-              className="simulator-slider"
-              aria-label="Nombre de livraisons par jour"
-            />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: 'var(--wz-l-text-dim)', fontWeight: 600 }}>
-              <span>2 courses/j</span>
-              <span>40 courses/j</span>
-              <span>80+ courses/j</span>
-            </div>
-
-            <div style={{ marginTop: 24, padding: 20, background: '#ecfdf5', borderRadius: 16, border: '1px solid #a7f3d0' }}>
-              <div style={{ fontSize: 12, textTransform: 'uppercase', color: '#065f46', fontWeight: 800, letterSpacing: 0.5 }}>Pack Recommandé</div>
-              <div style={{ fontSize: 24, fontWeight: 900, margin: '4px 0', color: '#0f172a' }}>{recommendedPack.name}</div>
-              <div style={{ fontSize: 14, color: '#334155' }}>
-                {recommendedPack.credits} • {recommendedPack.price} • <strong style={{ color: '#047857' }}>{recommendedPack.unit}</strong>
-              </div>
-            </div>
+                <button type="submit" className="landing-btn landing-btn--primary landing-form-submit" disabled={busy}>{busy ? 'Traitement de l’activation…' : 'Valider et recevoir mes 15 courses gratuites →'}</button>
+                <p className="landing-form-help">Vos informations servent uniquement à vous recontacter pour l’activation.</p>
+              </form>
+            )}
           </div>
+        </section>
 
-          <div className="simulator-metrics">
-            <div className="simulator-metric-row">
-              <div>
-                <div style={{ fontSize: 13, color: 'var(--wz-l-text-muted)' }}>Courses traitées / mois</div>
-                <div style={{ fontSize: 22, fontWeight: 900, color: '#0f172a' }}>~{monthlyOrders} livraisons</div>
-              </div>
-              <span style={{ fontSize: 24 }}>📦</span>
-            </div>
-
-            <div className="simulator-metric-row">
-              <div>
-                <div style={{ fontSize: 13, color: 'var(--wz-l-text-muted)' }}>Ventes sauvées (non perdues)</div>
-                <div style={{ fontSize: 22, fontWeight: 900, color: '#00A86B' }}>+{savedOrders} ventes / mois</div>
-              </div>
-              <span style={{ fontSize: 24 }}>📈</span>
-            </div>
-
-            <div className="simulator-metric-row">
-              <div>
-                <div style={{ fontSize: 13, color: 'var(--wz-l-text-muted)' }}>Temps d’appels téléphoniques gagné</div>
-                <div style={{ fontSize: 22, fontWeight: 900, color: '#f59e0b' }}>~{hoursSavedPerMonth} h / mois</div>
-              </div>
-              <span style={{ fontSize: 24 }}>⏱️</span>
-            </div>
+        <section className="landing-container landing-faq">
+          <div className="landing-section__head">
+            <p className="landing-eyebrow"><span aria-hidden="true" /> Questions fréquentes</p>
+            <h2>Les réponses avant de commencer.</h2>
           </div>
-        </div>
-      </section>
+          <div>{FAQ_ITEMS.map((item) => <details key={item.q}><summary>{item.q}<span aria-hidden="true">+</span></summary><p>{item.a}</p></details>)}</div>
+        </section>
+      </main>
 
-      {/* Abidjan Communes Radar */}
-      <section className="landing-container">
-        <div className="section-head">
-          <span className="landing-pill">RADAR DES COMMUNES COUVERTES</span>
-          <h2 className="section-head__title">Disponible dans toute l’agglomération d’Abidjan</h2>
-          <p className="section-head__sub">
-            Cliquez sur votre quartier pour visualiser la disponibilité et les temps d’acheminement constatés.
-          </p>
-        </div>
-
-        <div className="communes-grid">
-          {Object.keys(COMMUNES).map((c) => (
-            <button
-              key={c}
-              type="button"
-              className={`commune-chip ${selectedCommune === c ? 'active' : ''}`}
-              onClick={() => setSelectedCommune(c)}
-            >
-              📍 {c}
-            </button>
-          ))}
-        </div>
-
-        <div className="commune-card">
-          <div>
-            <div style={{ fontSize: 12.5, color: 'var(--wz-l-text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Assignation coursier</div>
-            <div style={{ fontSize: 26, fontWeight: 900, color: '#00A86B', marginTop: 4 }}>{activeCommuneData.assignTime}</div>
-          </div>
-          <div style={{ width: 1, height: 40, background: 'var(--wz-l-border)' }} />
-          <div>
-            <div style={{ fontSize: 12.5, color: 'var(--wz-l-text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Délai moyen livraison</div>
-            <div style={{ fontSize: 26, fontWeight: 900, color: '#0f172a', marginTop: 4 }}>~{activeCommuneData.deliveryTime}</div>
-          </div>
-          <div style={{ width: 1, height: 40, background: 'var(--wz-l-border)' }} />
-          <div>
-            <div style={{ fontSize: 12.5, color: 'var(--wz-l-text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Livreurs certifiés actifs</div>
-            <div style={{ fontSize: 26, fontWeight: 900, color: '#f59e0b', marginTop: 4 }}>{activeCommuneData.ridersCount}+</div>
-          </div>
-        </div>
-      </section>
-
-      {/* Security & Colis Sûr Guarantee */}
-      <section className="landing-container">
-        <div className="colis-sur-card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
-            <span style={{ fontSize: 32 }}>🛡️</span>
-            <div>
-              <h3 style={{ fontSize: 26, fontWeight: 900, margin: 0, color: '#064e3b' }}>Garantie Colis Sûr WAZAP</h3>
-              <p style={{ margin: '4px 0 0', color: '#334155', fontSize: 14.5 }}>
-                Le protocole de sécurité et d’indemnisation le plus rigoureux d’Abidjan.
-              </p>
-            </div>
-          </div>
-
-          <div className="colis-sur-grid">
-            <div className="colis-sur-item">
-              <div className="colis-sur-item__icon">🪪</div>
-              <h4 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 800, color: '#0f172a' }}>Identité Vérifiée</h4>
-              <p style={{ margin: 0, fontSize: 13, color: 'var(--wz-l-text-body)' }}>
-                Chaque coursier fournit une CNI ou Passeport valide, vérifié par nos équipes avant la première course.
-              </p>
-            </div>
-
-            <div className="colis-sur-item">
-              <div className="colis-sur-item__icon">📱</div>
-              <h4 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 800, color: '#0f172a' }}>Scan Colis Sûr 1-Tap</h4>
-              <p style={{ margin: 0, fontSize: 13, color: 'var(--wz-l-text-body)' }}>
-                Règlement par Scan du QR Code Universel (Wave, Orange Money, MTN, Moov, Carte). Zéro cash sur la marchandise.
-              </p>
-            </div>
-
-            <div className="colis-sur-item">
-              <div className="colis-sur-item__icon">⚡</div>
-              <h4 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 800, color: '#0f172a' }}>Suspension Immédiate</h4>
-              <p style={{ margin: 0, fontSize: 13, color: 'var(--wz-l-text-body)' }}>
-                Un simple message « SINISTRE + code » bloque instantanément le livreur et ouvre l’enquête opérationnelle.
-              </p>
-            </div>
-
-            <div className="colis-sur-item">
-              <div className="colis-sur-item__icon">💳</div>
-              <h4 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 800, color: '#0f172a' }}>Remboursement 48h</h4>
-              <p style={{ margin: 0, fontSize: 13, color: 'var(--wz-l-text-body)' }}>
-                Crédit restitué et indemnisation par Mobile Money sous 48h en cas d’avarie ou perte confirmée.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Onboarding Form */}
-      <section id="inscription" className="landing-container">
-        <div className="onboarding-card">
-          {done ? (
-            <div style={{ textAlign: 'center', padding: '20px 0' }}>
-              <div style={{ fontSize: 52, marginBottom: 12 }}>🎉</div>
-              <h2 style={{ fontSize: 28, fontWeight: 900, margin: '0 0 10px', color: '#00A86B' }}>
-                Félicitations {contact || business} !
-              </h2>
-              <p style={{ color: 'var(--wz-l-text-body)', fontSize: 16, lineHeight: 1.6, maxWidth: 480, margin: '0 auto 24px' }}>
-                Votre demande a bien été enregistrée. Un responsable WAZAP vous contacte sur WhatsApp dans l’heure pour activer vos <strong>15 premières courses offertes</strong>.
-              </p>
-
-              <a
-                href={waLink(`Bonjour WAZAP 👋 Je viens de m’inscrire sur le site (${business}). Je souhaite activer mes 15 courses offertes immédiatement !`)}
-                target="_blank"
-                rel="noreferrer"
-                className="landing-btn landing-btn--wa"
-                style={{ width: '100%', marginBottom: 12, padding: '14px 20px', fontSize: 15 }}
-              >
-                💬 Ouvrir la conversation WhatsApp prioritaire
-              </a>
-
-              <button
-                type="button"
-                className="landing-btn landing-btn--ghost"
-                style={{ width: '100%' }}
-                onClick={() => {
-                  setDone(false)
-                  setBusiness('')
-                  setPhone('')
-                }}
-              >
-                Inscrire un autre commerce ou numéro
-              </button>
-            </div>
-          ) : (
-            <div>
-              <div style={{ textAlign: 'center', marginBottom: 28 }}>
-                <span className="landing-pill">ACTIVATION IMMÉDIATE</span>
-                <h2 style={{ fontSize: 30, fontWeight: 900, margin: '10px 0 6px', color: '#0f172a' }}>
-                  {audience === 'vendor' ? 'Activez vos 15 livraisons offertes' : 'Rejoignez la flotte des livreurs WAZAP'}
-                </h2>
-                <p style={{ color: 'var(--wz-l-text-muted)', fontSize: 15 }}>
-                  {audience === 'vendor'
-                    ? 'Remplissez ce formulaire éclair. Aucune carte bancaire requise, sans engagement.'
-                    : 'Recevez des courses dans votre commune sans abonnement.'}
-                </p>
-              </div>
-
-              {audience === 'vendor' && (
-                <div className="incentive-box">
-                  <div className="incentive-box__icon">🎁</div>
-                  <div>
-                    <div className="incentive-box__title">Pack Découverte Réservé : 15 Livraisons Offertes</div>
-                    <div className="incentive-box__sub">
-                      Profitez de 15 courses sans débourser un centime. Sans engagement, sans carte bancaire.
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {error && (
-                <div style={{ background: '#fef2f2', border: '1px solid #f87171', color: '#991b1b', padding: '12px 16px', borderRadius: 10, fontSize: 14, marginBottom: 18, fontWeight: 600 }}>
-                  ⚠️ {error}
-                </div>
-              )}
-
-              <label className="landing-label" htmlFor="business-name">
-                {audience === 'vendor' ? 'Nom de votre commerce ou boutique *' : 'Votre prénom & nom complet *'}
-              </label>
-              <input
-                id="business-name"
-                className="landing-input"
-                value={business}
-                onChange={(e) => setBusiness(e.target.value)}
-                placeholder={audience === 'vendor' ? 'Ex : Restaurant Chez Awa, Boutique Chic Abidjan' : 'Ex : Konan Kouassi Ibrahim'}
-              />
-
-              <label className="landing-label" htmlFor="commune-zone">
-                Commune ou Quartier principal *
-              </label>
-              <select
-                id="commune-zone"
-                className="landing-input"
-                value={zone}
-                onChange={(e) => setZone(e.target.value)}
-              >
-                {Object.keys(COMMUNES).map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-              <div style={{ fontSize: 13, color: '#059669', fontWeight: 700, marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span>🛵</span> {(COMMUNES[zone] || COMMUNES['Marcory']).ridersCount}+ livreurs certifiés actifs en ce moment à {zone}
-              </div>
-
-              <label className="landing-label" htmlFor="whatsapp-phone">
-                Numéro WhatsApp joignable *
-              </label>
-              <input
-                id="whatsapp-phone"
-                className="landing-input"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="Ex : +225 07 01 02 03 04"
-                inputMode="tel"
-              />
-
-              {audience === 'vendor' && (
-                <>
-                  <label className="landing-label" htmlFor="contact-person">
-                    Nom du gérant ou responsable (facultatif)
-                  </label>
-                  <input
-                    id="contact-person"
-                    className="landing-input"
-                    value={contact}
-                    onChange={(e) => setContact(e.target.value)}
-                    placeholder="Ex : Mme Awa Koné"
-                  />
-                </>
-              )}
-
-              <button
-                type="button"
-                className="landing-btn landing-btn--primary"
-                style={{ width: '100%', marginTop: 24, padding: '16px 24px', fontSize: 16 }}
-                disabled={busy}
-                onClick={() => void submit()}
-              >
-                {busy ? 'Traitement de l’activation…' : '🎁 Valider et recevoir mes 15 courses gratuites'}
-              </button>
-
-              <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 14, fontSize: 12.5, color: 'var(--wz-l-text-dim)', flexWrap: 'wrap', fontWeight: 600 }}>
-                <span>🔒 100% Confidentiel</span>
-                <span>•</span>
-                <span>⚡ Activation en 5 min</span>
-                <span>•</span>
-                <span>💳 Zéro carte bancaire</span>
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* FAQ Accordion Section */}
-      <section className="landing-container">
-        <div className="section-head">
-          <span className="landing-pill">QUESTIONS FRÉQUENTES</span>
-          <h2 className="section-head__title">Tout ce que vous devez savoir</h2>
-          <p className="section-head__sub">Des réponses limpides à vos interrogations avant de démarrer.</p>
-        </div>
-
-        <div className="faq-wrap">
-          {FAQ_ITEMS.map((item) => (
-            <details key={item.q} className="faq-item">
-              <summary className="faq-summary">
-                <span>{item.q}</span>
-                <span style={{ fontSize: 18, color: '#00A86B' }}>▾</span>
-              </summary>
-              <div className="faq-content">{item.a}</div>
-            </details>
-          ))}
-        </div>
-
-        <div style={{ textAlign: 'center', marginTop: 36 }}>
-          <Link
-            to="/parrainage"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '12px 22px',
-              borderRadius: 999,
-              background: '#ecfdf5',
-              color: '#065f46',
-              border: '1px solid #a7f3d0',
-              fontWeight: 700,
-              fontSize: 14,
-              textDecoration: 'none',
-              boxShadow: '0 2px 8px rgba(0, 168, 107, 0.08)',
-            }}
-          >
-            🎁 Déjà partenaire ? Parrainez un commerçant et gagnez +5 crédits →
-          </Link>
-        </div>
-      </section>
-
-      {/* Footer Épuré */}
-      <footer style={{ marginTop: 80, borderTop: '1px solid var(--wz-l-border)', paddingTop: 40, textAlign: 'center', background: '#f8fafc' }}>
+      <footer className="landing-footer">
         <div className="landing-container">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 12 }}>
-            <span style={{ fontSize: 22 }}>⚡</span>
-            <span style={{ fontWeight: 900, fontSize: 18, color: '#0f172a' }}>WAZAP CÔTE D'IVOIRE</span>
-          </div>
-          <p style={{ color: 'var(--wz-l-text-muted)', fontSize: 13.5, maxWidth: 540, margin: '0 auto 16px', lineHeight: 1.6 }}>
-            Plateforme de mise en relation express pour la livraison à Abidjan. Conforme à la réglementation ivoirienne des transports et du commerce électronique.
-          </p>
-          <div style={{ fontSize: 12.5, color: 'var(--wz-l-text-dim)', paddingBottom: 24 }}>
-            © {new Date().getFullYear()} WAZAP • Fait avec passion pour le commerce abidjanais.
-          </div>
+          <BrandLogo size="sm" variant="inline" showTagline={false} theme="light" />
+          <p>La livraison par WhatsApp, pensée pour les commerces d’Abidjan.</p>
+          <Link to="/livreurs">Vous êtes livreur ? Rejoindre le réseau →</Link>
+          <small>© {new Date().getFullYear()} WAZAP Côte d’Ivoire</small>
         </div>
       </footer>
 
-      {/* Sticky Bottom Bar on Mobile */}
-      <div className="landing-sticky-bar">
-        <a href="#inscription" className="landing-btn landing-btn--primary" style={{ flex: 1, padding: '12px 14px', fontSize: 14 }}>
-          🎁 15 courses offertes
-        </a>
-        <a
-          href={waLink('Bonjour WAZAP 👋')}
-          target="_blank"
-          rel="noreferrer"
-          className="landing-btn landing-btn--wa"
-          style={{ padding: '12px 16px', fontSize: 16 }}
-          aria-label="Contacter sur WhatsApp"
-        >
-          💬
-        </a>
-      </div>
+      <div className="landing-sticky-bar"><a href="#inscription" className="landing-btn landing-btn--primary">Activer mes 15 courses offertes</a></div>
     </div>
   )
 }
